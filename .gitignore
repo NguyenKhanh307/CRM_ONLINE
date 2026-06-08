@@ -2,6 +2,8 @@
 # Tài liệu nội bộ
 # ============================================================
 *.md
+!README.md
+!**/README.md
 diagrams/
 documents/
 *.xml
