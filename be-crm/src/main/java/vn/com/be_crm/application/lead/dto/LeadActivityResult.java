@@ -1,0 +1,24 @@
+package vn.com.be_crm.application.lead.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import vn.com.be_crm.domain.lead.enums.LeadActivityType;
+
+import java.time.LocalDateTime;
+
+/** Output DTO cho LeadActivity. */
+@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+public class LeadActivityResult {
+    private Long id;
+    private Long leadId;
+    private LeadActivityType type;
+    private String subject;
+    private String content;
+    private LocalDateTime dueAt;
+    private LocalDateTime completedAt;
+    private Long createdBy;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}

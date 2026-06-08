@@ -1,0 +1,35 @@
+package vn.com.be_crm.infrastructure.product.entity;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+
+/**
+ * Hibernate entity ánh xạ bảng product_categories.
+ */
+@Entity
+@Table(name = "product_categories")
+@Getter @Setter @NoArgsConstructor
+public class ProductCategoryHibernate {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "code", nullable = false, unique = true, length = 20)
+    private String code;
+    @Column(name = "name", nullable = false, length = 40)
+    private String name;
+    @Column(name = "parent_id")
+    private Long parentId;
+    @Column(name = "sort_order", nullable = false)
+    private Integer sortOrder;
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+    @CreationTimestamp @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    @UpdateTimestamp @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+}

@@ -1,0 +1,66 @@
+# ============================================================
+# Tài liệu nội bộ
+# ============================================================
+*.md
+diagrams/
+documents/
+*.xml
+*.txt
+
+# ============================================================
+# Thông tin nhạy cảm / Credentials
+# ============================================================
+be-crm/src/main/resources/application.properties
+*.pem
+*.key
+*.cert
+*.p12
+*.jks
+
+# ============================================================
+# Frontend — fe-crm
+# ============================================================
+fe-crm/node_modules/
+fe-crm/dist/
+fe-crm/dist-ssr/
+fe-crm/*.local
+
+# ============================================================
+# Backend — be-crm
+# ============================================================
+be-crm/target/
+be-crm/**/*.jar
+be-crm/**/*.war
+be-crm/**/*.class
+
+# ============================================================
+# Semantic search server — Python
+# ============================================================
+semantic-search-server/__pycache__/
+semantic-search-server/**/__pycache__/
+semantic-search-server/.venv/
+semantic-search-server/venv/
+semantic-search-server/**/*.pyc
+semantic-search-server/**/*.pyo
+semantic-search-server/.env
+
+# ============================================================
+# Environment files (giữ lại .example)
+# ============================================================
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+!**/.env.example
+!**/.env-example
+
+# ============================================================
+# OS / Editor
+# ============================================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.sw?

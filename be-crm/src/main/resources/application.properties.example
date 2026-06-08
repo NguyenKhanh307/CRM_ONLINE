@@ -1,0 +1,14 @@
+spring.application.name=be-crm
+
+# DataSource — copy file này thành application.properties và điền thông tin thực
+spring.datasource.url=jdbc:mysql://<HOST>:<PORT>/<DATABASE>?useSSL=true&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+spring.datasource.username=<DB_USERNAME>
+spring.datasource.password=<DB_PASSWORD>
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# Hibernate
+spring.jpa.open-in-view=false
+hibernate.dialect=org.hibernate.dialect.MySQLDialect
+hibernate.show_sql=true
+hibernate.format_sql=true
+hibernate.hbm2ddl.auto=none

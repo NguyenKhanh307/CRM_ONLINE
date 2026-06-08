@@ -1,0 +1,41 @@
+package vn.com.be_crm.infrastructure.quotation.entity;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import vn.com.be_crm.domain.quotation.enums.QuotationStatus;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+/**
+ * Hibernate entity ánh xạ bảng quotations.
+ */
+@Entity
+@Table(name = "quotations")
+@Getter @Setter @NoArgsConstructor
+public class QuotationHibernate {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "code", nullable = false, unique = true, length = 20)
+    private String code;
+    @Column(name = "customer_id") private Long customerId;
+    @Column(name = "contact_id") private Long contactId;
+    @Column(name = "owner_id") private Long ownerId;
+    @Column(name = "quote_date") private LocalDate quoteDate;
+    @Column(name = "valid_until") private LocalDate validUntil;
+    @Enumerated(EnumType.STRING) @Column(name = "status", length = 20)
+    private QuotationStatus status;
+    @Column(name = "subtotal", precision = 18, scale = 2) private BigDecimal subtotal;
+    @Column(name = "discount", precision = 18, scale = 2) private BigDecimal discount;
+    @Column(name = "tax", precision = 18, scale = 2) private BigDecimal tax;
+    @Column(name = "total", precision = 18, scale = 2) private BigDecimal total;
+    @Column(name = "note", length = 255) private String note;
+    @CreationTimestamp @Column(name = "created_at", updatable = false) private LocalDateTime createdAt;
+    @UpdateTimestamp @Column(name = "updated_at") private LocalDateTime updatedAt;
+    @Column(name = "deleted_at") private LocalDateTime deletedAt;
+}

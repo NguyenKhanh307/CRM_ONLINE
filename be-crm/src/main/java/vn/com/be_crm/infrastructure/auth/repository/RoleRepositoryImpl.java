@@ -1,0 +1,100 @@
+package vn.com.be_crm.infrastructure.auth.repository;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.springframework.stereotype.Repository;
+import vn.com.be_crm.application.shared.dto.PageRequest;
+import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.domain.auth.entity.Role;
+import vn.com.be_crm.domain.auth.repository.IRoleRepository;
+import vn.com.be_crm.infrastructure.auth.entity.RoleHibernate;
+import vn.com.be_crm.infrastructure.auth.mapper.RoleHibernateMapper;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+/**
+ * Hibernate implementation của IRoleRepository.
+ */
+@Repository
+public class RoleRepositoryImpl implements IRoleRepository {
+
+    private final SessionFactory sessionFactory;
+    private final RoleHibernateMapper mapper;
+
+    /**
+     * @param sessionFactory Hibernate SessionFactory
+     * @param mapper         mapper domain ↔ hibernate
+     */
+    public RoleRepositoryImpl(SessionFactory sessionFactory, RoleHibernateMapper mapper) {
+        this.sessionFactory = sessionFactory;
+        this.mapper = mapper;
+    }
+
+    /**
+     * Lưu mới hoặc cập nhật Role.
+     *
+     * @param role domain entity cần lưu
+     * @return domain entity sau khi lưu
+     */
+    @Override
+    public Role save(Role role) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            RoleHibernate merged = session.merge(mapper.toHibernate(role));
+            tx.commit();
+            return mapper.toDomain(merged);
+        }
+    }
+
+    /**
+     * Tìm Role theo ID.
+     *
+     * @param id ID vai trò
+     * @return Optional chứa Role nếu tìm thấy
+     */
+    @Override
+    public Optional<Role> findById(Long id) {
+        try (Session session = sessionFactory.openSession()) {
+            RoleHibernate h = session.find(RoleHibernate.class, id);
+            return Optional.ofNullable(h).map(mapper::toDomain);
+        }
+    }
+
+    /**
+     * Xóa Role theo ID. Không làm gì nếu không tìm thấy.
+     *
+     * @param id ID vai trò cần xóa
+     */
+    @Override
+    public void deleteById(Long id) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            RoleHibernate h = session.find(RoleHibernate.class, id);
+            if (h != null) session.remove(h);
+            tx.commit();
+        }
+    }
+
+    /**
+     * Lấy danh sách Role có phân trang.
+     *
+     * @param request tham số phân trang
+     * @return PageResult chứa danh sách Role
+     */
+    @Override
+    public PageResult<Role> findAll(PageRequest request) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM RoleHibernate ORDER BY " + request.getSortBy() + " " + request.getSortDir();
+            List<Role> items = session.createQuery(hql, RoleHibernate.class)
+                    .setFirstResult(request.getOffset())
+                    .setMaxResults(request.getSize())
+                    .list().stream().map(mapper::toDomain).collect(Collectors.toList());
+            long total = session.createQuery("SELECT COUNT(r) FROM RoleHibernate r", Long.class).uniqueResult();
+            return PageResult.<Role>builder()
+                    .items(items).total(total).page(request.getPage()).size(request.getSize()).build();
+        }
+    }
+}
