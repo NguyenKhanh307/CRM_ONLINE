@@ -81,4 +81,22 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
                     .stream().map(mapper::toDomain).collect(Collectors.toList());
         }
     }
+
+    /**
+     * Lấy danh sách code vai trò của một người dùng bằng HQL subquery.
+     *
+     * @param userId ID người dùng
+     * @return danh sách code vai trò
+     */
+    @Override
+    public List<String> findRoleCodesByUserId(Long userId) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery(
+                    "SELECT r.code FROM RoleHibernate r WHERE r.id IN " +
+                    "(SELECT ur.roleId FROM UserRoleHibernate ur WHERE ur.userId = :userId)",
+                    String.class)
+                    .setParameter("userId", userId)
+                    .list();
+        }
+    }
 }

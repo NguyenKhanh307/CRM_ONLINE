@@ -32,4 +32,12 @@ public interface IUserRoleRepository {
      * @return danh sách UserRole
      */
     List<UserRole> findByUserId(Long userId);
+
+    /**
+     * Lấy danh sách code vai trò của một người dùng.
+     *
+     * @param userId ID người dùng
+     * @return danh sách code vai trò (vd: ADMIN, SALES)
+     */
+    List<String> findRoleCodesByUserId(Long userId);
 }

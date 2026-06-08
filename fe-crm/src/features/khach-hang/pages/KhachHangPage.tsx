@@ -1,13 +1,27 @@
-import { EmptyState } from '@/shared/components/EmptyState';
+import { DataTable } from '@/shared/components/table/DataTable';
+import { useCustomerList } from '../hooks/useCustomerList';
+import { customerColumns } from '../config/customerColumns';
 
-const KhachHangPage = () => (
-    <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)] flex items-center justify-center">
-        <EmptyState
-            illustration="/images/empty-states/khach-hang.svg"
-            title="Quản lý khách hàng"
-            description="Quản lý hồ sơ và lịch sử giao dịch của khách hàng."
-        />
-    </div>
-);
+const KhachHangPage = () => {
+    const { data = [], isLoading } = useCustomerList();
+
+    return (
+        <div className="p-6 bg-bg-main min-h-screen">
+            <h1 className="text-xl font-semibold text-text-main mb-4">Khách hàng</h1>
+            <div className="bg-white rounded-card p-4 shadow-sm">
+                <DataTable
+                    data={data}
+                    columns={customerColumns}
+                    isLoading={isLoading}
+                    emptyText="Chưa có khách hàng nào"
+                    quickFilters={[
+                        { id: 'active',   label: 'Hoạt động',      isActive: false, onToggle: () => {} },
+                        { id: 'inactive', label: 'Không hoạt động', isActive: false, onToggle: () => {} },
+                    ]}
+                />
+            </div>
+        </div>
+    );
+};
 
 export default KhachHangPage;

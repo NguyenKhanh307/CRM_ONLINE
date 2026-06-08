@@ -7,7 +7,7 @@ import { useLogin } from '../hooks/useLogin';
  * Trang đăng nhập — standalone, không dùng MainLayout.
  */
 const LoginPage = () => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
@@ -15,8 +15,8 @@ const LoginPage = () => {
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!username.trim() || !password.trim()) return;
-        loginMutation.mutate({ username: username.trim(), password });
+        if (!email.trim() || !password.trim()) return;
+        loginMutation.mutate({ email: email.trim(), password });
     };
 
     const errorMessage = loginMutation.error
@@ -39,21 +39,21 @@ const LoginPage = () => {
 
                 <form onSubmit={handleSubmit} noValidate>
 
-                    {/* Username / Gmail */}
+                    {/* Email */}
                     <div className="mb-4">
                         <label className="block text-md font-medium text-text-main mb-1">
-                            Tên tài khoản
+                            Email
                         </label>
                         <div className="relative">
                             <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
                                 <FiUser size={16} />
                             </span>
                             <input
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                placeholder="Tên tài khoản hoặc Gmail"
-                                autoComplete="username"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Nhập địa chỉ email"
+                                autoComplete="email"
                                 className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-btn text-md text-text-main placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                             />
                         </div>

@@ -6,6 +6,8 @@ import vn.com.be_crm.application.activity.command.*;
 import vn.com.be_crm.application.activity.query.*;
 import vn.com.be_crm.application.auth.command.*;
 import vn.com.be_crm.application.auth.query.*;
+import vn.com.be_crm.application.shared.security.IPasswordEncoder;
+import vn.com.be_crm.application.shared.security.ITokenProvider;
 import vn.com.be_crm.application.opportunity.command.*;
 import vn.com.be_crm.application.opportunity.query.*;
 import vn.com.be_crm.application.warehouse.command.*;
@@ -14,6 +16,7 @@ import vn.com.be_crm.application.product.command.*;
 import vn.com.be_crm.application.product.query.*;
 import vn.com.be_crm.domain.activity.repository.IActivityRepository;
 import vn.com.be_crm.domain.auth.repository.*;
+import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityStageRepository;
 import vn.com.be_crm.domain.product.repository.*;
 import vn.com.be_crm.domain.warehouse.repository.*;
@@ -24,6 +27,19 @@ import vn.com.be_crm.domain.warehouse.repository.*;
  */
 @Configuration
 public class BeanConfig {
+
+    // =====================================================================
+    // MODULE AUTH — Login
+    // =====================================================================
+
+    /** @return LoginUseCase được inject IUserRepository, IUserRoleRepository, IPasswordEncoder, ITokenProvider */
+    @Bean
+    public LoginUseCase loginUseCase(IUserRepository userRepo,
+                                     IUserRoleRepository userRoleRepo,
+                                     IPasswordEncoder passwordEncoder,
+                                     ITokenProvider tokenProvider) {
+        return new LoginUseCase(userRepo, userRoleRepo, passwordEncoder, tokenProvider);
+    }
 
     // =====================================================================
     // MODULE AUTH — OrgUnit

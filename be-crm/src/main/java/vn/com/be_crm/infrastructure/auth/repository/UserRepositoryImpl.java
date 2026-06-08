@@ -69,6 +69,24 @@ public class UserRepositoryImpl implements IUserRepository {
     }
 
     /**
+     * Tìm User theo email, chỉ trả về nếu chưa bị xóa mềm.
+     *
+     * @param email địa chỉ email cần tìm
+     * @return Optional chứa User nếu tìm thấy và chưa xóa
+     */
+    @Override
+    public Optional<User> findByEmail(String email) {
+        try (Session session = sessionFactory.openSession()) {
+            UserHibernate h = session.createQuery(
+                    "FROM UserHibernate WHERE email = :email AND deletedAt IS NULL", UserHibernate.class)
+                    .setParameter("email", email)
+                    .uniqueResult();
+            if (h == null) return Optional.empty();
+            return Optional.of(mapper.toDomain(h));
+        }
+    }
+
+    /**
      * Xóa mềm User bằng cách set deleted_at = now().
      *
      * @param id ID người dùng cần xóa mềm

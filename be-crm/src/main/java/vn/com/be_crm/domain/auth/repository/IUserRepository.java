@@ -35,6 +35,14 @@ public interface IUserRepository {
     void deleteById(Long id);
 
     /**
+     * Tìm người dùng theo email (bỏ qua bản ghi đã xóa mềm).
+     *
+     * @param email địa chỉ email cần tìm
+     * @return Optional chứa User nếu tìm thấy và chưa bị xóa
+     */
+    Optional<User> findByEmail(String email);
+
+    /**
      * Lấy danh sách người dùng chưa xóa, có phân trang.
      *
      * @param request tham số phân trang

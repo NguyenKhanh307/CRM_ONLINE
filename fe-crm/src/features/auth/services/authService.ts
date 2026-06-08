@@ -1,24 +1,23 @@
 import axiosInstance from '@/core/axios/axiosInstance';
-import type { AuthUser } from '@/core/auth/AuthContext';
 
 export interface LoginPayload {
-    username: string;
+    email: string;
     password: string;
 }
 
-export interface LoginResponse {
-    token: string;
-    user: AuthUser;
+export interface LoginApiResponse {
+    data: {
+        token: string;
+        id: number;
+        email: string;
+        fullName: string;
+        roles: string[];
+    };
+    message: string;
+    status: number;
 }
 
-/**
- * Service xác thực — gọi API đăng nhập.
- */
 export const authService = {
-    /**
-     * Gửi thông tin đăng nhập, nhận về token và thông tin user.
-     * @param body - username và password
-     */
     login: (body: LoginPayload) =>
-        axiosInstance.post<LoginResponse>('/auth/login', body),
+        axiosInstance.post<LoginApiResponse>('/api/auth/login', body),
 };

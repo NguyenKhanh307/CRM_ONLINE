@@ -6,53 +6,41 @@ const UserListPage    = lazy(() => import('@/features/users/pages/UserListPage')
 const LoginPage       = lazy(() => import('@/features/auth/pages/LoginPage'));
 const DashboardPage   = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
 const TiemNangPage    = lazy(() => import('@/features/tiem-nang/pages/TiemNangPage'));
-const ChaoHangPage    = lazy(() => import('@/features/chao-hang/pages/ChaoHangPage'));
+const LeadAddPage     = lazy(() => import('@/features/tiem-nang/pages/LeadAddPage'));
 const LienHePage      = lazy(() => import('@/features/lien-he/pages/LienHePage'));
 const KhachHangPage   = lazy(() => import('@/features/khach-hang/pages/KhachHangPage'));
 const CoHoiPage       = lazy(() => import('@/features/co-hoi/pages/CoHoiPage'));
 const BaoGiaPage      = lazy(() => import('@/features/bao-gia/pages/BaoGiaPage'));
 const QuoteAddPage    = lazy(() => import('@/features/bao-gia/pages/QuoteAddPage'));
-const LeadAddPage     = lazy(() => import('@/features/tiem-nang/pages/LeadAddPage'));
 const DonHangPage     = lazy(() => import('@/features/don-hang/pages/DonHangPage'));
-const HoaDonPage      = lazy(() => import('@/features/hoa-don/pages/HoaDonPage'));
-const AoCoHoiPage     = lazy(() => import('@/features/ao-co-hoi/pages/AoCoHoiPage'));
 const HoatDongPage    = lazy(() => import('@/features/hoat-dong/pages/HoatDongPage'));
-const MucTieuPage     = lazy(() => import('@/features/muc-tieu/pages/MucTieuPage'));
-const TatCaPage       = lazy(() => import('@/features/tat-ca/pages/TatCaPage'));
+const SanPhamPage     = lazy(() => import('@/features/san-pham/pages/SanPhamPage'));
+const KhoHangPage     = lazy(() => import('@/features/kho-hang/pages/KhoHangPage'));
 const PhanQuyenPage   = lazy(() => import('@/features/phan-quyen/pages/PhanQuyenPage'));
 const ThungRacPage    = lazy(() => import('@/features/thung-rac/pages/ThungRacPage'));
 
 const fallback = <div className="p-6 text-gray-400">Đang tải...</div>;
 
-/**
- * Router toàn app.
- * Thêm route mới theo pattern:
- *   const MyPage = lazy(() => import('@/features/my-feature/pages/MyPage'));
- *   { path: '/my-path', element: <ProtectedRoute requiredRole="..."><Suspense fallback={fallback}><MyPage /></Suspense></ProtectedRoute> }
- */
 export const router = createBrowserRouter([
     {
         element: <MainLayout />,
         children: [
-            { path: '/',           element: <Navigate to="/dashboard" replace /> },
-            { path: '/users',      element: <Suspense fallback={fallback}><UserListPage /></Suspense> },
-            { path: '/dashboard',  element: <Suspense fallback={fallback}><DashboardPage /></Suspense> },
-            { path: '/tiem-nang',          element: <Suspense fallback={fallback}><TiemNangPage /></Suspense> },
-            { path: '/tiem-nang/them-moi', element: <Suspense fallback={fallback}><LeadAddPage /></Suspense> },
-            { path: '/chao-hang',  element: <Suspense fallback={fallback}><ChaoHangPage /></Suspense> },
-            { path: '/lien-he',    element: <Suspense fallback={fallback}><LienHePage /></Suspense> },
-            { path: '/khach-hang', element: <Suspense fallback={fallback}><KhachHangPage /></Suspense> },
-            { path: '/co-hoi',     element: <Suspense fallback={fallback}><CoHoiPage /></Suspense> },
-            { path: '/bao-gia',          element: <Suspense fallback={fallback}><BaoGiaPage /></Suspense> },
-            { path: '/bao-gia/them-moi', element: <Suspense fallback={fallback}><QuoteAddPage /></Suspense> },
-            { path: '/don-hang',   element: <Suspense fallback={fallback}><DonHangPage /></Suspense> },
-            { path: '/hoa-don',    element: <Suspense fallback={fallback}><HoaDonPage /></Suspense> },
-            { path: '/ao-co-hoi',  element: <Suspense fallback={fallback}><AoCoHoiPage /></Suspense> },
-            { path: '/hoat-dong',  element: <Suspense fallback={fallback}><HoatDongPage /></Suspense> },
-            { path: '/muc-tieu',   element: <Suspense fallback={fallback}><MucTieuPage /></Suspense> },
-            { path: '/tat-ca',     element: <Suspense fallback={fallback}><TatCaPage /></Suspense> },
-            { path: '/phan-quyen', element: <Suspense fallback={fallback}><PhanQuyenPage /></Suspense> },
-            { path: '/thung-rac',  element: <Suspense fallback={fallback}><ThungRacPage /></Suspense> },
+            { path: '/',                     element: <Navigate to="/dashboard" replace /> },
+            { path: '/users',                element: <Suspense fallback={fallback}><UserListPage /></Suspense> },
+            { path: '/dashboard',            element: <Suspense fallback={fallback}><DashboardPage /></Suspense> },
+            { path: '/tiem-nang',            element: <Suspense fallback={fallback}><TiemNangPage /></Suspense> },
+            { path: '/tiem-nang/them-moi',   element: <Suspense fallback={fallback}><LeadAddPage /></Suspense> },
+            { path: '/lien-he',              element: <Suspense fallback={fallback}><LienHePage /></Suspense> },
+            { path: '/khach-hang',           element: <Suspense fallback={fallback}><KhachHangPage /></Suspense> },
+            { path: '/co-hoi',               element: <Suspense fallback={fallback}><CoHoiPage /></Suspense> },
+            { path: '/bao-gia',              element: <Suspense fallback={fallback}><BaoGiaPage /></Suspense> },
+            { path: '/bao-gia/them-moi',     element: <Suspense fallback={fallback}><QuoteAddPage /></Suspense> },
+            { path: '/don-hang',             element: <Suspense fallback={fallback}><DonHangPage /></Suspense> },
+            { path: '/hoat-dong',            element: <Suspense fallback={fallback}><HoatDongPage /></Suspense> },
+            { path: '/san-pham',             element: <Suspense fallback={fallback}><SanPhamPage /></Suspense> },
+            { path: '/kho-hang',             element: <Suspense fallback={fallback}><KhoHangPage /></Suspense> },
+            { path: '/phan-quyen',           element: <Suspense fallback={fallback}><PhanQuyenPage /></Suspense> },
+            { path: '/thung-rac',            element: <Suspense fallback={fallback}><ThungRacPage /></Suspense> },
         ],
     },
     {

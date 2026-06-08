@@ -66,6 +66,28 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 
 ### 2.1 Auth — Xác thực & Phân quyền
 
+#### Đăng nhập — `/api/auth`
+
+| Method | Endpoint | Mô tả | Auth yêu cầu |
+|--------|----------|-------|--------------|
+| `POST` | `/api/auth/login` | Đăng nhập, trả JWT token | Không |
+
+**Request body:**
+```json
+{ "email": "admin@abc.vn", "password": "123456" }
+```
+
+**Response:**
+```json
+{
+  "data": { "token": "eyJ...", "id": 1, "email": "admin@abc.vn", "fullName": "Nguyen Van Admin", "roles": ["ADMIN"] },
+  "message": "Success",
+  "status": 200
+}
+```
+
+Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer <token>`
+
 #### Đơn vị tổ chức — `/api/org-units`
 
 | Method | Endpoint | Mô tả |
@@ -470,7 +492,12 @@ be-crm/src/main/java/vn/com/be_crm/
 | `presentation/shared/ApiResponse.java` | Presentation | Wrapper chuẩn cho mọi HTTP response đơn lẻ |
 | `presentation/shared/PageResponse.java` | Presentation | Wrapper chuẩn cho HTTP response phân trang |
 | `presentation/shared/GlobalExceptionHandler.java` | Presentation | Bắt exception toàn cục, trả lỗi dạng chuẩn |
-| `infrastructure/shared/config/SecurityConfig.java` | Infrastructure | Cấu hình Spring Security (tạm thời permit all) |
+| `infrastructure/shared/config/SecurityConfig.java` | Infrastructure | Spring Security: stateless JWT, CORS cho localhost:5173, permit /api/auth/login |
+| `infrastructure/shared/security/JwtAuthFilter.java` | Infrastructure | OncePerRequestFilter — extract Bearer token, set SecurityContext |
+| `infrastructure/shared/security/JwtProvider.java` | Infrastructure | Generate + validate JWT (JJWT 0.12.x, HS256, 24h) |
+| `infrastructure/shared/security/BcryptPasswordEncoderImpl.java` | Infrastructure | BCrypt password verification |
+| `application/shared/security/ITokenProvider.java` | Application | Interface generate token |
+| `application/shared/security/IPasswordEncoder.java` | Application | Interface verify password |
 | `infrastructure/shared/config/HibernateConfig.java` | Infrastructure | Cấu hình Hibernate SessionFactory (truyền thủ công properties) |
 | `infrastructure/shared/config/BeanConfig.java` | Infrastructure | Wire tất cả UseCase — DI configuration trung tâm |
 

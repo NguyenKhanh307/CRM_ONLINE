@@ -1,17 +1,26 @@
-import { useNavigate } from 'react-router-dom';
-import { EmptyState } from '@/shared/components/EmptyState';
+import { DataTable } from '@/shared/components/table/DataTable';
+import { useLeadList } from '../hooks/useLeadList';
+import { leadColumns } from '../config/leadColumns';
 
 const TiemNangPage = () => {
-    const navigate = useNavigate();
+    const { data = [], isLoading } = useLeadList();
 
     return (
-        <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)] flex items-center justify-center">
-            <EmptyState
-                illustration="/images/empty-states/tiem-nang.svg"
-                title="Quản lý tiềm năng"
-                description="Ghi nhận thông tin tiềm năng và tiến hành chăm sóc để chuyển đổi thành cơ hội bán hàng."
-                onAdd={() => navigate('/tiem-nang/them-moi')}
-            />
+        <div className="p-6 bg-bg-main min-h-screen">
+            <h1 className="text-xl font-semibold text-text-main mb-4">Tiềm năng</h1>
+            <div className="bg-white rounded-card p-4 shadow-sm">
+                <DataTable
+                    data={data}
+                    columns={leadColumns}
+                    isLoading={isLoading}
+                    emptyText="Chưa có tiềm năng nào"
+                    quickFilters={[
+                        { id: 'new_',      label: 'Mới',         isActive: false, onToggle: () => {} },
+                        { id: 'contacted', label: 'Đã liên hệ',  isActive: false, onToggle: () => {} },
+                        { id: 'qualified', label: 'Tiềm năng',   isActive: false, onToggle: () => {} },
+                    ]}
+                />
+            </div>
         </div>
     );
 };
