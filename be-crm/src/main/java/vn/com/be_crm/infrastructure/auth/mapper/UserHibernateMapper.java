@@ -29,6 +29,8 @@ public class UserHibernateMapper {
         h.setStatus(domain.getStatus() != null ? domain.getStatus() : UserStatus.active);
         h.setLastLoginAt(domain.getLastLoginAt());
         h.setDeletedAt(domain.getDeletedAt());
+        h.setActivationToken(domain.getActivationToken());
+        h.setActivationExpiresAt(domain.getActivationExpiresAt());
         return h;
     }
 
@@ -52,6 +54,8 @@ public class UserHibernateMapper {
                 .createdAt(h.getCreatedAt())
                 .updatedAt(h.getUpdatedAt())
                 .deletedAt(h.getDeletedAt())
+                .activationToken(h.getActivationToken())
+                .activationExpiresAt(h.getActivationExpiresAt())
                 .build();
     }
 }

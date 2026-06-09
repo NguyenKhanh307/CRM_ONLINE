@@ -6,6 +6,7 @@ import vn.com.be_crm.application.activity.command.*;
 import vn.com.be_crm.application.activity.query.*;
 import vn.com.be_crm.application.auth.command.*;
 import vn.com.be_crm.application.auth.query.*;
+import vn.com.be_crm.application.shared.email.IEmailService;
 import vn.com.be_crm.application.shared.security.IPasswordEncoder;
 import vn.com.be_crm.application.shared.security.ITokenProvider;
 import vn.com.be_crm.application.opportunity.command.*;
@@ -39,6 +40,21 @@ public class BeanConfig {
                                      IPasswordEncoder passwordEncoder,
                                      ITokenProvider tokenProvider) {
         return new LoginUseCase(userRepo, userRoleRepo, passwordEncoder, tokenProvider);
+    }
+
+    /** @return RegisterEmployeeUseCase được inject IUserRepository, IUserRoleRepository, IEmailService */
+    @Bean
+    public RegisterEmployeeUseCase registerEmployeeUseCase(IUserRepository userRepo,
+                                                           IUserRoleRepository userRoleRepo,
+                                                           IEmailService emailService) {
+        return new RegisterEmployeeUseCase(userRepo, userRoleRepo, emailService);
+    }
+
+    /** @return ActivateAccountUseCase được inject IUserRepository, IPasswordEncoder */
+    @Bean
+    public ActivateAccountUseCase activateAccountUseCase(IUserRepository userRepo,
+                                                         IPasswordEncoder passwordEncoder) {
+        return new ActivateAccountUseCase(userRepo, passwordEncoder);
     }
 
     // =====================================================================
@@ -203,6 +219,22 @@ public class BeanConfig {
     @Bean
     public RevokeUserRoleUseCase revokeUserRoleUseCase(IUserRoleRepository repo) {
         return new RevokeUserRoleUseCase(repo);
+    }
+
+    /** @return ListRolePermissionsUseCase được inject IRolePermissionRepository, IPermissionRepository */
+    @Bean
+    public vn.com.be_crm.application.auth.query.ListRolePermissionsUseCase listRolePermissionsUseCase(
+            IRolePermissionRepository rolePermRepo,
+            IPermissionRepository permRepo) {
+        return new vn.com.be_crm.application.auth.query.ListRolePermissionsUseCase(rolePermRepo, permRepo);
+    }
+
+    /** @return ListRoleMembersUseCase được inject IUserRoleRepository, IUserRepository */
+    @Bean
+    public vn.com.be_crm.application.auth.query.ListRoleMembersUseCase listRoleMembersUseCase(
+            IUserRoleRepository userRoleRepo,
+            IUserRepository userRepo) {
+        return new vn.com.be_crm.application.auth.query.ListRoleMembersUseCase(userRoleRepo, userRepo);
     }
 
     // =====================================================================

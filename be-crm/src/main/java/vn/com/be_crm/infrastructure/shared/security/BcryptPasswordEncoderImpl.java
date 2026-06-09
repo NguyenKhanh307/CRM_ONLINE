@@ -23,4 +23,15 @@ public class BcryptPasswordEncoderImpl implements IPasswordEncoder {
     public boolean matches(String rawPassword, String encodedPassword) {
         return encoder.matches(rawPassword, encodedPassword);
     }
+
+    /**
+     * Mã hóa mật khẩu thô thành hash BCrypt.
+     *
+     * @param rawPassword mật khẩu người dùng nhập
+     * @return mật khẩu đã hash
+     */
+    @Override
+    public String encode(String rawPassword) {
+        return encoder.encode(rawPassword);
+    }
 }

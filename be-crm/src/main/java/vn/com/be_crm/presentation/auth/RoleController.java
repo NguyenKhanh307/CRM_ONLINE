@@ -12,6 +12,8 @@ import vn.com.be_crm.presentation.auth.request.*;
 import vn.com.be_crm.presentation.shared.ApiResponse;
 import vn.com.be_crm.presentation.shared.PageResponse;
 
+import java.util.List;
+
 /**
  * REST controller cho nghiệp vụ quản lý vai trò.
  */
@@ -26,20 +28,26 @@ public class RoleController {
     private final ListRoleUseCase listUseCase;
     private final AssignRolePermissionUseCase assignPermUseCase;
     private final RevokeRolePermissionUseCase revokePermUseCase;
+    private final ListRolePermissionsUseCase listRolePermissionsUseCase;
+    private final ListRoleMembersUseCase listRoleMembersUseCase;
 
     /**
-     * @param createUseCase      use case tạo mới
-     * @param updateUseCase      use case cập nhật
-     * @param deleteUseCase      use case xóa
-     * @param getUseCase         use case lấy theo ID
-     * @param listUseCase        use case lấy danh sách
-     * @param assignPermUseCase  use case gán quyền
-     * @param revokePermUseCase  use case thu hồi quyền
+     * @param createUseCase              use case tạo mới
+     * @param updateUseCase              use case cập nhật
+     * @param deleteUseCase              use case xóa
+     * @param getUseCase                 use case lấy theo ID
+     * @param listUseCase                use case lấy danh sách
+     * @param assignPermUseCase          use case gán quyền
+     * @param revokePermUseCase          use case thu hồi quyền
+     * @param listRolePermissionsUseCase use case lấy danh sách quyền của vai trò
+     * @param listRoleMembersUseCase     use case lấy danh sách thành viên của vai trò
      */
     public RoleController(CreateRoleUseCase createUseCase, UpdateRoleUseCase updateUseCase,
                            DeleteRoleUseCase deleteUseCase, GetRoleUseCase getUseCase,
                            ListRoleUseCase listUseCase, AssignRolePermissionUseCase assignPermUseCase,
-                           RevokeRolePermissionUseCase revokePermUseCase) {
+                           RevokeRolePermissionUseCase revokePermUseCase,
+                           ListRolePermissionsUseCase listRolePermissionsUseCase,
+                           ListRoleMembersUseCase listRoleMembersUseCase) {
         this.createUseCase = createUseCase;
         this.updateUseCase = updateUseCase;
         this.deleteUseCase = deleteUseCase;
@@ -47,6 +55,8 @@ public class RoleController {
         this.listUseCase = listUseCase;
         this.assignPermUseCase = assignPermUseCase;
         this.revokePermUseCase = revokePermUseCase;
+        this.listRolePermissionsUseCase = listRolePermissionsUseCase;
+        this.listRoleMembersUseCase = listRoleMembersUseCase;
     }
 
     /**
@@ -148,5 +158,27 @@ public class RoleController {
         revokePermUseCase.execute(AssignRolePermissionCommand.builder()
                 .roleId(id).permissionId(permissionId).build());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Lấy danh sách quyền đã gán cho vai trò.
+     *
+     * @param id ID vai trò
+     * @return 200 OK với danh sách PermissionResult
+     */
+    @GetMapping("/{id}/permissions")
+    public ResponseEntity<ApiResponse<List<PermissionResult>>> listPermissions(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(listRolePermissionsUseCase.execute(id)));
+    }
+
+    /**
+     * Lấy danh sách thành viên (user) thuộc vai trò.
+     *
+     * @param id ID vai trò
+     * @return 200 OK với danh sách UserResult
+     */
+    @GetMapping("/{id}/members")
+    public ResponseEntity<ApiResponse<List<UserResult>>> listMembers(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(listRoleMembersUseCase.execute(id)));
     }
 }

@@ -105,6 +105,25 @@ public class UserRepositoryImpl implements IUserRepository {
     }
 
     /**
+     * Tìm User theo activation token, chỉ trả về nếu chưa bị xóa mềm.
+     *
+     * @param token activation token cần tra cứu
+     * @return Optional chứa User nếu tìm thấy
+     */
+    @Override
+    public Optional<User> findByActivationToken(String token) {
+        try (Session session = sessionFactory.openSession()) {
+            UserHibernate h = session.createQuery(
+                    "FROM UserHibernate WHERE activationToken = :token AND deletedAt IS NULL",
+                    UserHibernate.class)
+                    .setParameter("token", token)
+                    .uniqueResult();
+            if (h == null) return Optional.empty();
+            return Optional.of(mapper.toDomain(h));
+        }
+    }
+
+    /**
      * Lấy danh sách User chưa xóa có phân trang.
      *
      * @param request tham số phân trang

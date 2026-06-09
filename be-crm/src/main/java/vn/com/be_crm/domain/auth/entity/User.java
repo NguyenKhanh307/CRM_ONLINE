@@ -52,4 +52,10 @@ public class User {
 
     /** Thời điểm xóa mềm (null nếu chưa xóa). */
     private LocalDateTime deletedAt;
+
+    /** Token kích hoạt tài khoản (UUID). Null sau khi đã kích hoạt. */
+    private String activationToken;
+
+    /** Thời điểm hết hạn link kích hoạt (1 ngày sau khi admin đăng ký). */
+    private LocalDateTime activationExpiresAt;
 }

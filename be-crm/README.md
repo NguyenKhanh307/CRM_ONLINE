@@ -66,24 +66,27 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 
 ### 2.1 Auth — Xác thực & Phân quyền
 
-#### Đăng nhập — `/api/auth`
+#### Đăng nhập / Kích hoạt tài khoản — `/api/auth`
 
 | Method | Endpoint | Mô tả | Auth yêu cầu |
 |--------|----------|-------|--------------|
-| `POST` | `/api/auth/login` | Đăng nhập, trả JWT token | Không |
+| `POST` | `/api/auth/login` | Đăng nhập, trả JWT token. Email phải là @gmail.com | Không |
+| `POST` | `/api/auth/register-employee` | Admin đăng ký tài khoản nhân viên, gửi email kích hoạt | Bearer JWT |
+| `POST` | `/api/auth/activate` | Nhân viên kích hoạt tài khoản và đặt mật khẩu lần đầu | Không |
 
-**Request body:**
+**POST /api/auth/login — Request:**
 ```json
-{ "email": "admin@abc.vn", "password": "123456" }
+{ "email": "admin@gmail.com", "password": "123456" }
 ```
 
-**Response:**
+**POST /api/auth/register-employee — Request:**
 ```json
-{
-  "data": { "token": "eyJ...", "id": 1, "email": "admin@abc.vn", "fullName": "Nguyen Van Admin", "roles": ["ADMIN"] },
-  "message": "Success",
-  "status": 200
-}
+{ "email": "nhanvien@gmail.com", "fullName": "Nguyễn Văn B", "phone": "0901234567", "unitId": 1, "roleId": 3 }
+```
+
+**POST /api/auth/activate — Request:**
+```json
+{ "token": "550e8400-e29b-41d4-a716-446655440000", "newPassword": "MyPass@2026" }
 ```
 
 Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer <token>`
@@ -121,6 +124,8 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `DELETE` | `/api/roles/{id}` | Xóa vai trò (không xóa role hệ thống) |
 | `POST` | `/api/roles/{id}/permissions` | Gán quyền cho vai trò — body: `{ "permissionId": ... }` |
 | `DELETE` | `/api/roles/{id}/permissions/{permissionId}` | Thu hồi quyền khỏi vai trò |
+| `GET` | `/api/roles/{id}/permissions` | Danh sách quyền đã gán cho vai trò |
+| `GET` | `/api/roles/{id}/members` | Danh sách thành viên (user) thuộc vai trò |
 
 #### Quyền hạn — `/api/permissions`
 
@@ -492,7 +497,7 @@ be-crm/src/main/java/vn/com/be_crm/
 | `presentation/shared/ApiResponse.java` | Presentation | Wrapper chuẩn cho mọi HTTP response đơn lẻ |
 | `presentation/shared/PageResponse.java` | Presentation | Wrapper chuẩn cho HTTP response phân trang |
 | `presentation/shared/GlobalExceptionHandler.java` | Presentation | Bắt exception toàn cục, trả lỗi dạng chuẩn |
-| `infrastructure/shared/config/SecurityConfig.java` | Infrastructure | Spring Security: stateless JWT, CORS cho localhost:5173, permit /api/auth/login |
+| `infrastructure/shared/config/SecurityConfig.java` | Infrastructure | Spring Security: stateless JWT, CORS cho localhost:5173, permit /api/auth/login và /api/auth/activate; trả **401** (không phải 403) khi token hết hạn/không hợp lệ |
 | `infrastructure/shared/security/JwtAuthFilter.java` | Infrastructure | OncePerRequestFilter — extract Bearer token, set SecurityContext |
 | `infrastructure/shared/security/JwtProvider.java` | Infrastructure | Generate + validate JWT (JJWT 0.12.x, HS256, 24h) |
 | `infrastructure/shared/security/BcryptPasswordEncoderImpl.java` | Infrastructure | BCrypt password verification |

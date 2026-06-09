@@ -12,6 +12,7 @@ import {
     FiTrash2,
     FiBox,
     FiArchive,
+    FiUserPlus,
 } from 'react-icons/fi';
 
 export interface NavItem {
@@ -31,6 +32,7 @@ export const NAV_ITEMS: NavItem[] = [
     { label: 'Hoạt động',    path: '/hoat-dong',   icon: FiActivity },
     { label: 'Sản phẩm',     path: '/san-pham',    icon: FiBox },
     { label: 'Kho hàng',     path: '/kho-hang',    icon: FiArchive },
-    { label: 'Phân quyền',   path: '/phan-quyen',  icon: FiShield },
-    { label: 'Thùng rác',    path: '/thung-rac',   icon: FiTrash2 },
+    { label: 'Phân quyền',   path: '/phan-quyen',        icon: FiShield },
+    { label: 'Đăng ký NV',   path: '/dang-ky-nhan-vien', icon: FiUserPlus },
+    { label: 'Thùng rác',    path: '/thung-rac',         icon: FiTrash2 },
 ];

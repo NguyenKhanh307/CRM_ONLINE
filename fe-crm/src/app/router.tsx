@@ -2,8 +2,10 @@ import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/shared/components/layout/MainLayout';
 
-const UserListPage    = lazy(() => import('@/features/users/pages/UserListPage'));
-const LoginPage       = lazy(() => import('@/features/auth/pages/LoginPage'));
+const UserListPage            = lazy(() => import('@/features/users/pages/UserListPage'));
+const RegisterEmployeePage    = lazy(() => import('@/features/users/pages/RegisterEmployeePage'));
+const LoginPage               = lazy(() => import('@/features/auth/pages/LoginPage'));
+const ActivatePage            = lazy(() => import('@/features/auth/pages/ActivatePage'));
 const DashboardPage   = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
 const TiemNangPage    = lazy(() => import('@/features/tiem-nang/pages/TiemNangPage'));
 const LeadAddPage     = lazy(() => import('@/features/tiem-nang/pages/LeadAddPage'));
@@ -27,6 +29,7 @@ export const router = createBrowserRouter([
         children: [
             { path: '/',                     element: <Navigate to="/dashboard" replace /> },
             { path: '/users',                element: <Suspense fallback={fallback}><UserListPage /></Suspense> },
+            { path: '/dang-ky-nhan-vien',    element: <Suspense fallback={fallback}><RegisterEmployeePage /></Suspense> },
             { path: '/dashboard',            element: <Suspense fallback={fallback}><DashboardPage /></Suspense> },
             { path: '/tiem-nang',            element: <Suspense fallback={fallback}><TiemNangPage /></Suspense> },
             { path: '/tiem-nang/them-moi',   element: <Suspense fallback={fallback}><LeadAddPage /></Suspense> },
@@ -48,6 +51,14 @@ export const router = createBrowserRouter([
         element: (
             <Suspense fallback={<div className="min-h-screen bg-bg-main" />}>
                 <LoginPage />
+            </Suspense>
+        ),
+    },
+    {
+        path: '/activate',
+        element: (
+            <Suspense fallback={<div className="min-h-screen bg-blue-200" />}>
+                <ActivatePage />
             </Suspense>
         ),
     },

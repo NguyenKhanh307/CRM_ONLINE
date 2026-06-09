@@ -43,6 +43,14 @@ public interface IUserRepository {
     Optional<User> findByEmail(String email);
 
     /**
+     * Tìm người dùng theo activation token, chỉ trả về nếu chưa bị xóa mềm.
+     *
+     * @param token activation token cần tra cứu
+     * @return Optional chứa User nếu tìm thấy
+     */
+    Optional<User> findByActivationToken(String token);
+
+    /**
      * Lấy danh sách người dùng chưa xóa, có phân trang.
      *
      * @param request tham số phân trang

@@ -45,8 +45,16 @@ public class LoginUseCase implements IUseCase<LoginCommand, LoginResult> {
      */
     @Override
     public LoginResult execute(LoginCommand command) {
+        if (!command.getEmail().toLowerCase().endsWith("@gmail.com")) {
+            throw new RuntimeException("Chỉ chấp nhận địa chỉ @gmail.com");
+        }
+
         User user = userRepository.findByEmail(command.getEmail())
                 .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không đúng"));
+
+        if (user.getStatus() != vn.com.be_crm.domain.auth.enums.UserStatus.active) {
+            throw new RuntimeException("Tài khoản chưa được kích hoạt");
+        }
 
         if (!passwordEncoder.matches(command.getPassword(), user.getPasswordHash())) {
             throw new RuntimeException("Email hoặc mật khẩu không đúng");

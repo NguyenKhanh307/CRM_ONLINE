@@ -2,6 +2,7 @@ package vn.com.be_crm.presentation.auth.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,9 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LoginRequest {
 
-    /** Email tài khoản. */
+    /** Email tài khoản — phải là @gmail.com. */
     @NotBlank
     @Email
+    @Pattern(regexp = ".*@gmail\\.com$", message = "Chỉ chấp nhận địa chỉ @gmail.com")
     private String email;
 
     /** Mật khẩu thô. */

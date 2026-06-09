@@ -59,4 +59,10 @@ public class UserHibernate {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @Column(name = "activation_token", length = 255)
+    private String activationToken;
+
+    @Column(name = "activation_expires_at")
+    private LocalDateTime activationExpiresAt;
 }

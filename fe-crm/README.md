@@ -154,7 +154,9 @@ export function useLeadList(params: PageParams = {}) {
 ## 4. Các module đã có
 
 ### Auth
-- `POST /api/auth/login` → JWT token lưu localStorage
+- `POST /api/auth/login` → JWT token lưu localStorage. **Email phải là @gmail.com** (validate cả FE lẫn BE)
+- `POST /api/auth/register-employee` → Admin đăng ký nhân viên, BE gửi email kích hoạt (route `/dang-ky-nhan-vien`)
+- `POST /api/auth/activate` → Nhân viên kích hoạt tài khoản qua link email (route public `/activate?token=...`)
 - Token tự động đính kèm vào mọi request qua axios interceptor
 - 401 response → tự động redirect về `/login`
 
@@ -171,6 +173,29 @@ export function useLeadList(params: PageParams = {}) {
 | Hoạt động | `/hoat-dong` | `GET /api/activities` |
 | Sản phẩm | `/san-pham` | `GET /api/products` |
 | Kho hàng | `/kho-hang` | `GET /api/warehouses` |
+
+### Phân quyền — `/phan-quyen`
+
+Trang quản lý nhóm người dùng và phân quyền theo nhóm. Kết nối đầy đủ với API.
+
+- **Panel trái**: Danh sách nhóm (roles) — tạo/sửa/xóa nhóm
+- **Tab Thành viên**: Xem + thêm/xóa người dùng trong nhóm
+- **Tab Phân quyền**: Accordion theo module, toggle gán/thu hồi quyền ngay lập tức
+
+| Endpoint | Mô tả |
+|----------|-------|
+| `GET /api/roles` | Danh sách nhóm |
+| `POST /api/roles` | Tạo nhóm |
+| `PUT /api/roles/{id}` | Sửa nhóm |
+| `DELETE /api/roles/{id}` | Xóa nhóm |
+| `GET /api/roles/{id}/permissions` | Quyền đã gán cho nhóm |
+| `GET /api/roles/{id}/members` | Thành viên trong nhóm |
+| `POST /api/roles/{id}/permissions` | Gán quyền |
+| `DELETE /api/roles/{id}/permissions/{permId}` | Thu hồi quyền |
+| `POST /api/users/{userId}/roles` | Thêm thành viên vào nhóm |
+| `DELETE /api/users/{userId}/roles/{roleId}` | Xóa thành viên khỏi nhóm |
+
+Files: `features/phan-quyen/` — types, services, hooks (8 hooks), components (5 components), pages
 
 ### Chưa implement
 - Form tạo mới / chỉnh sửa cho tất cả module

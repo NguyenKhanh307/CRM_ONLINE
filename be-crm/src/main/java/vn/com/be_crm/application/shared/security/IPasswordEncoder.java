@@ -13,4 +13,12 @@ public interface IPasswordEncoder {
      * @return true nếu khớp
      */
     boolean matches(String rawPassword, String encodedPassword);
+
+    /**
+     * Mã hóa mật khẩu thô thành hash BCrypt.
+     *
+     * @param rawPassword mật khẩu người dùng nhập
+     * @return mật khẩu đã hash
+     */
+    String encode(String rawPassword);
 }

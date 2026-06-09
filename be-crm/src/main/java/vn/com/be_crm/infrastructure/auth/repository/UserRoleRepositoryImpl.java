@@ -99,4 +99,21 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
                     .list();
         }
     }
+
+    /**
+     * Lấy tất cả UserRole theo roleId.
+     *
+     * @param roleId ID vai trò
+     * @return danh sách UserRole
+     */
+    @Override
+    public List<UserRole> findByRoleId(Long roleId) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery(
+                    "FROM UserRoleHibernate WHERE roleId = :roleId", UserRoleHibernate.class)
+                    .setParameter("roleId", roleId)
+                    .list()
+                    .stream().map(mapper::toDomain).collect(Collectors.toList());
+        }
+    }
 }
