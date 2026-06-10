@@ -5,6 +5,7 @@ import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.order.entity.Order;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,4 +42,20 @@ public interface IOrderRepository {
 
     /** Ẩn đơn hàng khỏi thùng rác. @param id */
     void purgeById(Long id);
+
+    /**
+     * Bàn giao hàng loạt đơn hàng sang người dùng mới.
+     * @param ids              danh sách ID cần bàn giao
+     * @param toUserId         ID người nhận
+     * @param currentUserId    ID người thực hiện
+     * @param isAdminOrManager true → bàn giao bất kỳ; false → chỉ bàn giao bản ghi mình là owner
+     */
+    void handoverBulk(List<Long> ids, Long toUserId, Long currentUserId, boolean isAdminOrManager);
+
+    /**
+     * Bàn giao toàn bộ đơn hàng của fromUserId sang toUserId.
+     * @param fromUserId ID người bàn giao
+     * @param toUserId   ID người nhận
+     */
+    void handoverAll(Long fromUserId, Long toUserId);
 }

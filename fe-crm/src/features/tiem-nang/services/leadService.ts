@@ -20,4 +20,6 @@ export const leadService = {
             ownerFileColumn: options.ownerFileColumn ?? null,
             rows,
         }),
+    handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
+        axiosInstance.post('/api/leads/handover-bulk', payload),
 };

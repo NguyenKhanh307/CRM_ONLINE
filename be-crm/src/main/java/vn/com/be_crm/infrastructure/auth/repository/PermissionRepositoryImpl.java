@@ -97,4 +97,28 @@ public class PermissionRepositoryImpl implements IPermissionRepository {
                     .items(items).total(total).page(request.getPage()).size(request.getSize()).build();
         }
     }
+
+    /**
+     * Lấy tất cả permission code của user thông qua user_roles → role_permissions.
+     *
+     * @param userId ID người dùng
+     * @return danh sách code (vd: "lead.view", "order.create")
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<String> findCodesByUserId(Long userId) {
+        try (Session session = sessionFactory.openSession()) {
+            String sql = """
+                    SELECT DISTINCT p.code
+                    FROM permissions p
+                    JOIN role_permissions rp ON p.id = rp.permission_id
+                    JOIN user_roles ur ON rp.role_id = ur.role_id
+                    WHERE ur.user_id = :userId
+                    ORDER BY p.code
+                    """;
+            return session.createNativeQuery(sql, String.class)
+                    .setParameter("userId", userId)
+                    .list();
+        }
+    }
 }

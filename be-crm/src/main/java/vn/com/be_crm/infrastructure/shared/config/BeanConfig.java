@@ -33,13 +33,14 @@ public class BeanConfig {
     // MODULE AUTH — Login
     // =====================================================================
 
-    /** @return LoginUseCase được inject IUserRepository, IUserRoleRepository, IPasswordEncoder, ITokenProvider */
+    /** @return LoginUseCase được inject IUserRepository, IUserRoleRepository, IPermissionRepository, IPasswordEncoder, ITokenProvider */
     @Bean
     public LoginUseCase loginUseCase(IUserRepository userRepo,
                                      IUserRoleRepository userRoleRepo,
+                                     IPermissionRepository permissionRepo,
                                      IPasswordEncoder passwordEncoder,
                                      ITokenProvider tokenProvider) {
-        return new LoginUseCase(userRepo, userRoleRepo, passwordEncoder, tokenProvider);
+        return new LoginUseCase(userRepo, userRoleRepo, permissionRepo, passwordEncoder, tokenProvider);
     }
 
     /** @return RegisterEmployeeUseCase được inject IUserRepository, IUserRoleRepository, IEmailService */
@@ -588,6 +589,29 @@ public class BeanConfig {
     @Bean public vn.com.be_crm.application.pricing.command.DeletePricePolicyEmployeeUseCase deletePricePolicyEmployeeUseCase(vn.com.be_crm.domain.pricing.repository.IPricePolicyEmployeeRepository r) { return new vn.com.be_crm.application.pricing.command.DeletePricePolicyEmployeeUseCase(r); }
     /** @return ListPricePolicyEmployeeUseCase */
     @Bean public vn.com.be_crm.application.pricing.query.ListPricePolicyEmployeeUseCase listPricePolicyEmployeeUseCase(vn.com.be_crm.domain.pricing.repository.IPricePolicyEmployeeRepository r) { return new vn.com.be_crm.application.pricing.query.ListPricePolicyEmployeeUseCase(r); }
+
+    // =====================================================================
+    // HANDOVER BULK — 5 modules
+    // =====================================================================
+    /** @return HandoverBulkLeadUseCase */
+    @Bean public vn.com.be_crm.application.lead.command.HandoverBulkLeadUseCase handoverBulkLeadUseCase(vn.com.be_crm.domain.lead.repository.ILeadRepository r) { return new vn.com.be_crm.application.lead.command.HandoverBulkLeadUseCase(r); }
+    /** @return HandoverBulkCustomerUseCase */
+    @Bean public vn.com.be_crm.application.customer.command.HandoverBulkCustomerUseCase handoverBulkCustomerUseCase(vn.com.be_crm.domain.customer.repository.ICustomerRepository r) { return new vn.com.be_crm.application.customer.command.HandoverBulkCustomerUseCase(r); }
+    /** @return HandoverBulkOpportunityUseCase */
+    @Bean public vn.com.be_crm.application.opportunity.command.HandoverBulkOpportunityUseCase handoverBulkOpportunityUseCase(vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository r) { return new vn.com.be_crm.application.opportunity.command.HandoverBulkOpportunityUseCase(r); }
+    /** @return HandoverBulkQuotationUseCase */
+    @Bean public vn.com.be_crm.application.quotation.command.HandoverBulkQuotationUseCase handoverBulkQuotationUseCase(vn.com.be_crm.domain.quotation.repository.IQuotationRepository r) { return new vn.com.be_crm.application.quotation.command.HandoverBulkQuotationUseCase(r); }
+    /** @return HandoverBulkOrderUseCase */
+    @Bean public vn.com.be_crm.application.order.command.HandoverBulkOrderUseCase handoverBulkOrderUseCase(vn.com.be_crm.domain.order.repository.IOrderRepository r) { return new vn.com.be_crm.application.order.command.HandoverBulkOrderUseCase(r); }
+    /** @return HandoverAllUseCase */
+    @Bean public vn.com.be_crm.application.handover.HandoverAllUseCase handoverAllUseCase(
+            vn.com.be_crm.domain.lead.repository.ILeadRepository leadRepo,
+            vn.com.be_crm.domain.customer.repository.ICustomerRepository customerRepo,
+            vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository opportunityRepo,
+            vn.com.be_crm.domain.quotation.repository.IQuotationRepository quotationRepo,
+            vn.com.be_crm.domain.order.repository.IOrderRepository orderRepo) {
+        return new vn.com.be_crm.application.handover.HandoverAllUseCase(leadRepo, customerRepo, opportunityRepo, quotationRepo, orderRepo);
+    }
 
     // =====================================================================
     // IMPORT BULK — 9 modules

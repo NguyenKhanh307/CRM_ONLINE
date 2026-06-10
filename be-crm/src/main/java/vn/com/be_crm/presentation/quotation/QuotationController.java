@@ -10,10 +10,12 @@ import vn.com.be_crm.application.quotation.dto.*;
 import vn.com.be_crm.application.quotation.query.*;
 import vn.com.be_crm.application.shared.dto.DeleteCommand;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
+import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
 import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
 import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.presentation.shared.HandoverBulkRequest;
 import vn.com.be_crm.presentation.shared.PageResponse;
 
 /**
@@ -31,17 +33,20 @@ public class QuotationController {
     private final RestoreQuotationUseCase restoreUC;
     private final PurgeQuotationUseCase purgeUC;
     private final ImportBulkQuotationUseCase importBulkUC;
+    private final vn.com.be_crm.application.quotation.command.HandoverBulkQuotationUseCase handoverBulkUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
-     *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt */
+     *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
+     *  @param handoverBulkUC bàn giao hàng loạt */
     public QuotationController(CreateQuotationUseCase createUC, UpdateQuotationUseCase updateUC,
                                 DeleteQuotationUseCase deleteUC, GetQuotationUseCase getUC, ListQuotationUseCase listUC,
                                 ListDeletedQuotationsUseCase listDeletedUC, RestoreQuotationUseCase restoreUC, PurgeQuotationUseCase purgeUC,
-                                ImportBulkQuotationUseCase importBulkUC) {
+                                ImportBulkQuotationUseCase importBulkUC,
+                                vn.com.be_crm.application.quotation.command.HandoverBulkQuotationUseCase handoverBulkUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
-        this.importBulkUC = importBulkUC;
+        this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC;
     }
 
     /** Tạo mới báo giá. @param cmd JSON body @return 201 */
@@ -113,5 +118,17 @@ public class QuotationController {
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkQuotationCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
+    }
+
+    /** Bàn giao hàng loạt báo giá sang người dùng khác. @param body body @param req HTTP request @return 200 */
+    @PostMapping("/handover-bulk")
+    public ResponseEntity<ApiResponse<Void>> handoverBulk(@Valid @RequestBody HandoverBulkRequest body, HttpServletRequest req) {
+        Long userId = (Long) req.getAttribute("userId");
+        boolean isAdminOrManager = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
+        handoverBulkUC.execute(HandoverBulkCommand.builder()
+                .ids(body.getIds()).toUserId(body.getToUserId())
+                .currentUserId(userId).adminOrManager(isAdminOrManager)
+                .reason(body.getReason()).build());
+        return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }

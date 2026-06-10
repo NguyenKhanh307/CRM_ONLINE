@@ -10,8 +10,8 @@ export const useLogin = () => {
     return useMutation({
         mutationFn: (payload: LoginPayload) => authService.login(payload),
         onSuccess: ({ data }) => {
-            const { token, id, email, fullName, roles } = data.data;
-            login(token, { id, email, fullName, roles });
+            const { token, id, email, fullName, roles, permissions } = data.data;
+            login(token, { id, email, fullName, roles, permissions });
             navigate('/', { replace: true });
         },
     });

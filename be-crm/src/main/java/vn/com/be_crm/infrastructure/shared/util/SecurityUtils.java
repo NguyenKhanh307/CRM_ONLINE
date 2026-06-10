@@ -16,4 +16,15 @@ public class SecurityUtils {
         return auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().contains("USER_MANAGE"));
     }
+
+    /**
+     * Kiểm tra người dùng có role ADMIN hoặc SALES_MANAGER — có quyền bàn giao bất kỳ bản ghi nào.
+     * @param auth Spring Security Authentication
+     * @return true nếu là ADMIN hoặc SALES_MANAGER
+     */
+    public static boolean isAdminOrManager(Authentication auth) {
+        if (auth == null) return false;
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("SALES_MANAGER"));
+    }
 }

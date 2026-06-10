@@ -20,4 +20,6 @@ export const opportunityService = {
             ownerFileColumn: options.ownerFileColumn ?? null,
             rows,
         }),
+    handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
+        axiosInstance.post('/api/opportunities/handover-bulk', payload),
 };

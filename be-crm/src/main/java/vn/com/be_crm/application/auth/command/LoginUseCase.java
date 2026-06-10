@@ -5,6 +5,7 @@ import vn.com.be_crm.application.shared.security.IPasswordEncoder;
 import vn.com.be_crm.application.shared.security.ITokenProvider;
 import vn.com.be_crm.application.shared.usecase.IUseCase;
 import vn.com.be_crm.domain.auth.entity.User;
+import vn.com.be_crm.domain.auth.repository.IPermissionRepository;
 import vn.com.be_crm.domain.auth.repository.IUserRepository;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
 
@@ -17,21 +18,25 @@ public class LoginUseCase implements IUseCase<LoginCommand, LoginResult> {
 
     private final IUserRepository userRepository;
     private final IUserRoleRepository userRoleRepository;
+    private final IPermissionRepository permissionRepository;
     private final IPasswordEncoder passwordEncoder;
     private final ITokenProvider tokenProvider;
 
     /**
-     * @param userRepository     repository người dùng
-     * @param userRoleRepository repository gán vai trò
-     * @param passwordEncoder    port kiểm tra mật khẩu
-     * @param tokenProvider      port tạo token
+     * @param userRepository       repository người dùng
+     * @param userRoleRepository   repository gán vai trò
+     * @param permissionRepository repository quyền hạn
+     * @param passwordEncoder      port kiểm tra mật khẩu
+     * @param tokenProvider        port tạo token
      */
     public LoginUseCase(IUserRepository userRepository,
                         IUserRoleRepository userRoleRepository,
+                        IPermissionRepository permissionRepository,
                         IPasswordEncoder passwordEncoder,
                         ITokenProvider tokenProvider) {
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
+        this.permissionRepository = permissionRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
     }
@@ -61,8 +66,9 @@ public class LoginUseCase implements IUseCase<LoginCommand, LoginResult> {
         }
 
         List<String> roles = userRoleRepository.findRoleCodesByUserId(user.getId());
+        List<String> permissions = permissionRepository.findCodesByUserId(user.getId());
         String token = tokenProvider.generateToken(user.getId(), user.getEmail(), roles, user.getDataAccessFromYear());
 
-        return new LoginResult(token, user.getId(), user.getEmail(), user.getFullName(), roles);
+        return new LoginResult(token, user.getId(), user.getEmail(), user.getFullName(), roles, permissions);
     }
 }

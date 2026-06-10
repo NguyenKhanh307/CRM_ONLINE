@@ -33,6 +33,9 @@ public class PageRequest {
     /** Năm sớm nhất được xem data — null nghĩa là không giới hạn theo năm. */
     private Integer dataAccessFromYear;
 
+    /** Lọc theo trạng thái người dùng — null nghĩa là không lọc. */
+    private String status;
+
     /** @return offset = page * size */
     public int getOffset() {
         return page * size;

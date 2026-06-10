@@ -1,6 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import { FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
+import { useMemo } from 'react';
 import { NAV_ITEMS } from './sidebar/sidebarConfig';
+import { usePermission } from '@/core/permissions/usePermission';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -8,6 +10,16 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
+    const { hasRole, hasModuleAccess } = usePermission();
+    const isAdmin = hasRole('ADMIN');
+
+    const visibleItems = useMemo(() => NAV_ITEMS.filter((item) => {
+        if (item.adminOnly)    return isAdmin;
+        if (item.module)       return !isAdmin && hasModuleAccess(item.module);
+        if (item.nonAdminOnly) return !isAdmin;
+        return true;
+    }), [isAdmin, hasModuleAccess]);
+
     return (
         <aside
             className={`
@@ -19,7 +31,7 @@ export const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
             {/* Nav */}
             <nav className="flex-1 overflow-y-auto py-2 px-2">
                 <ul className="space-y-0.5">
-                    {NAV_ITEMS.map(({ label, path, icon: Icon }) => (
+                    {visibleItems.map(({ label, path, icon: Icon }) => (
                         <li key={path}>
                             <NavLink
                                 to={path}

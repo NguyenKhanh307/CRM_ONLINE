@@ -4,6 +4,7 @@ import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.auth.entity.Permission;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,4 +42,12 @@ public interface IPermissionRepository {
      * @return PageResult chứa danh sách Permission
      */
     PageResult<Permission> findAll(PageRequest request);
+
+    /**
+     * Lấy tất cả permission code của user thông qua user_roles → role_permissions.
+     *
+     * @param userId ID người dùng
+     * @return danh sách code (vd: "lead.view", "order.create")
+     */
+    List<String> findCodesByUserId(Long userId);
 }

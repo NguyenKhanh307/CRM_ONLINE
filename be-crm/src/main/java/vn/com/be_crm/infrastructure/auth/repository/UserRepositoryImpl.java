@@ -132,15 +132,17 @@ public class UserRepositoryImpl implements IUserRepository {
     @Override
     public PageResult<User> findAll(PageRequest request) {
         try (Session session = sessionFactory.openSession()) {
-            String hql = "FROM UserHibernate WHERE deletedAt IS NULL ORDER BY " + request.getSortBy() + " " + request.getSortDir();
-            List<User> items = session.createQuery(hql, UserHibernate.class)
+            String statusFilter = request.getStatus() != null ? " AND status = :status" : "";
+            String hql = "FROM UserHibernate WHERE deletedAt IS NULL" + statusFilter + " ORDER BY " + request.getSortBy() + " " + request.getSortDir();
+            var q = session.createQuery(hql, UserHibernate.class)
                     .setFirstResult(request.getOffset())
-                    .setMaxResults(request.getSize())
-                    .list()
-                    .stream().map(mapper::toDomain).collect(Collectors.toList());
-            long total = session.createQuery(
-                    "SELECT COUNT(u) FROM UserHibernate u WHERE u.deletedAt IS NULL", Long.class)
-                    .uniqueResult();
+                    .setMaxResults(request.getSize());
+            if (request.getStatus() != null) q.setParameter("status", request.getStatus());
+            List<User> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
+            String countHql = "SELECT COUNT(u) FROM UserHibernate u WHERE u.deletedAt IS NULL" + statusFilter;
+            var cq = session.createQuery(countHql, Long.class);
+            if (request.getStatus() != null) cq.setParameter("status", request.getStatus());
+            long total = cq.uniqueResult();
             return PageResult.<User>builder()
                     .items(items).total(total).page(request.getPage()).size(request.getSize()).build();
         }

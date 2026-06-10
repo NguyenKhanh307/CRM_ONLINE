@@ -20,4 +20,6 @@ export const quotationService = {
             ownerFileColumn: options.ownerFileColumn ?? null,
             rows,
         }),
+    handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
+        axiosInstance.post('/api/quotations/handover-bulk', payload),
 };

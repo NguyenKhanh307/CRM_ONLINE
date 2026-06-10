@@ -110,6 +110,30 @@ public class CustomerRepositoryImpl implements ICustomerRepository {
         }
     }
 
+    /** Bàn giao toàn bộ Customer của fromUserId sang toUserId. @param fromUserId @param toUserId */
+    @Override public void handoverAll(Long fromUserId, Long toUserId) {
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            s.createNativeQuery("UPDATE customers SET owner_id = :toUserId WHERE owner_id = :fromUserId AND deleted_at IS NULL")
+                    .setParameter("toUserId", toUserId).setParameter("fromUserId", fromUserId).executeUpdate();
+            tx.commit();
+        }
+    }
+
+    /** Bàn giao hàng loạt Customer sang owner mới. @param ids IDs @param toUserId người nhận @param currentUserId người thực hiện @param isAdminOrManager quyền admin/manager */
+    @Override public void handoverBulk(List<Long> ids, Long toUserId, Long currentUserId, boolean isAdminOrManager) {
+        if (ids == null || ids.isEmpty()) return;
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            String ownerFilter = isAdminOrManager ? "" : " AND owner_id = :currentUserId";
+            String sql = "UPDATE customers SET owner_id = :toUserId WHERE id IN (:ids) AND deleted_at IS NULL" + ownerFilter;
+            var q = s.createNativeQuery(sql).setParameter("toUserId", toUserId).setParameter("ids", ids);
+            if (!isAdminOrManager) q.setParameter("currentUserId", currentUserId);
+            q.executeUpdate();
+            tx.commit();
+        }
+    }
+
     /** Lấy danh sách Customer chưa xóa có phân trang. @param r tham số phân trang @return PageResult */
     @Override public PageResult<Customer> findAll(PageRequest r) {
         try (Session s = sf.openSession()) {

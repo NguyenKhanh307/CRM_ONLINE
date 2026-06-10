@@ -85,9 +85,12 @@ fe-crm/src/
 │   └── App.tsx
 ├── core/
 │   ├── auth/
-│   │   ├── AuthContext.tsx     # AuthUser: { id, email, fullName, roles }
+│   │   ├── AuthContext.tsx     # AuthUser: { id, email, fullName, roles, permissions }
 │   │   ├── authStorage.ts      # localStorage helpers
 │   │   └── useAuth.ts
+│   ├── permissions/
+│   │   ├── PermissionContext.tsx  # hasRole(), hasPermission(), hasModuleAccess()
+│   │   └── usePermission.ts
 │   └── axios/
 │       └── axiosInstance.ts    # Axios instance — đọc VITE_API_BASE_URL
 ├── features/
@@ -331,7 +334,11 @@ importBulk: (payload: ImportBulkLeadCommand) =>
 ### Thêm route mới
 1. Tạo page component trong `features/<module>/pages/`
 2. Thêm vào `children[]` của layout route trong `app/router.tsx`
-3. Thêm vào `NAV_ITEMS` trong `shared/components/layout/sidebar/sidebarConfig.ts`
+3. Thêm vào `NAV_ITEMS` trong `shared/components/layout/sidebar/sidebarConfig.ts` — gán đúng flag:
+   - Module nghiệp vụ: thêm `module: '<ten-module>'` (vd: `module: 'lead'`) — hiện khi user có ít nhất 1 permission `<module>.*`
+   - Mục admin: thêm `adminOnly: true` — chỉ hiện với ADMIN
+   - Mục chỉ nhân viên: thêm `nonAdminOnly: true` — ẩn với ADMIN
+   - Không flag: luôn hiện với mọi user đã đăng nhập
 
 ### Thêm cột bảng
 - Tạo file `features/<name>/config/<name>Columns.tsx`

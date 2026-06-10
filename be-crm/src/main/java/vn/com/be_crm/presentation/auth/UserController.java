@@ -79,9 +79,10 @@ public class UserController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "asc") String sortDir,
+            @RequestParam(required = false) String status) {
         PageResult<UserResult> result = listUseCase.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).build());
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).status(status).build());
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(result)));
     }
 

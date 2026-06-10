@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiUpload, FiShare2 } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
+import { HandoverModal } from '@/shared/components/HandoverModal';
 import { useOrderList } from '../hooks/useOrderList';
 import { useDeleteOrder } from '../hooks/useDeleteOrder';
+import { useHandoverBulkOrder } from '../hooks/useHandoverBulkOrder';
 import { orderColumns } from '../config/orderColumns';
 import { OrderEditModal } from '../components/OrderEditModal';
 import type { OrderResult } from '../types/orderTypes';
@@ -14,11 +16,13 @@ const DonHangPage = () => {
     const navigate = useNavigate();
     const { data = [], isLoading } = useOrderList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteOrder();
+    const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkOrder();
 
     const [editTarget, setEditTarget] = useState<OrderResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
     const [selectedRows, setSelectedRows] = useState<OrderResult[]>([]);
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+    const [handoverOpen, setHandoverOpen] = useState(false);
 
     const columns = useMemo<ColumnDef<OrderResult>[]>(() => [
         ...orderColumns,
@@ -61,13 +65,22 @@ const DonHangPage = () => {
                         Nhập file
                     </button>
                     {selectedRows.length > 0 && (
-                        <button
-                            onClick={() => setBulkDeleteOpen(true)}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-btn bg-red-50 text-danger text-md font-medium hover:bg-red-100"
-                        >
-                            <FiTrash2 size={14} />
-                            Xóa đã chọn ({selectedRows.length})
-                        </button>
+                        <>
+                            <button
+                                onClick={() => setHandoverOpen(true)}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-btn bg-blue-50 text-primary text-md font-medium hover:bg-blue-100"
+                            >
+                                <FiShare2 size={14} />
+                                Bàn giao ({selectedRows.length})
+                            </button>
+                            <button
+                                onClick={() => setBulkDeleteOpen(true)}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-btn bg-red-50 text-danger text-md font-medium hover:bg-red-100"
+                            >
+                                <FiTrash2 size={14} />
+                                Xóa đã chọn ({selectedRows.length})
+                            </button>
+                        </>
                     )}
                 </div>
             </div>
@@ -112,6 +125,17 @@ const DonHangPage = () => {
             )}
 
             <OrderEditModal item={editTarget} onClose={() => setEditTarget(null)} />
+
+            <HandoverModal
+                open={handoverOpen}
+                count={selectedRows.length}
+                isLoading={isHandovering}
+                onClose={() => setHandoverOpen(false)}
+                onConfirm={(toUserId, reason) =>
+                    handoverFn({ ids: selectedRows.map(r => r.id), toUserId, reason },
+                        { onSuccess: () => { setHandoverOpen(false); setSelectedRows([]); } })
+                }
+            />
         </div>
     );
 };

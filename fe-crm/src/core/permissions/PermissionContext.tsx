@@ -3,7 +3,10 @@ import { useAuth } from '@/core/auth/useAuth';
 
 interface PermissionContextValue {
     roles: string[];
+    permissions: string[];
     hasRole: (role: string) => boolean;
+    hasPermission: (code: string) => boolean;
+    hasModuleAccess: (module: string) => boolean;
 }
 
 export const PermissionContext = createContext<PermissionContextValue | null>(null);
@@ -21,9 +24,13 @@ export const PermissionProvider = ({ children }: PermissionProviderProps) => {
 
     const value = useMemo<PermissionContextValue>(() => {
         const roles = user?.roles ?? [];
+        const permissions = user?.permissions ?? [];
         return {
             roles,
+            permissions,
             hasRole: (role) => roles.includes(role),
+            hasPermission: (code) => permissions.includes(code),
+            hasModuleAccess: (module) => permissions.some((p) => p.startsWith(`${module}.`)),
         };
     }, [user]);
 

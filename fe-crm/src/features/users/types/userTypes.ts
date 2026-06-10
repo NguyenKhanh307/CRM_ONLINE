@@ -25,3 +25,15 @@ export interface ActivateAccountPayload {
     token: string;
     newPassword: string;
 }
+
+export interface HandoverBulkPayload {
+    ids: number[];
+    toUserId: number;
+    reason?: string;
+}
+
+export interface HandoverAllPayload {
+    fromUserId: number;
+    toUserId: number;
+    reason?: string;
+}

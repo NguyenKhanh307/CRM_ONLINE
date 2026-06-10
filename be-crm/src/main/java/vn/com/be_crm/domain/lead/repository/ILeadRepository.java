@@ -5,6 +5,7 @@ import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.lead.entity.Lead;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -69,4 +70,20 @@ public interface ILeadRepository {
      * @param email email @return Optional
      */
     Optional<Lead> findByEmail(String email);
+
+    /**
+     * Bàn giao hàng loạt tiềm năng sang người dùng mới.
+     * @param ids              danh sách ID cần bàn giao
+     * @param toUserId         ID người nhận
+     * @param currentUserId    ID người thực hiện
+     * @param isAdminOrManager true → bàn giao bất kỳ; false → chỉ bàn giao bản ghi mình là owner
+     */
+    void handoverBulk(List<Long> ids, Long toUserId, Long currentUserId, boolean isAdminOrManager);
+
+    /**
+     * Bàn giao toàn bộ tiềm năng của fromUserId sang toUserId.
+     * @param fromUserId ID người bàn giao
+     * @param toUserId   ID người nhận
+     */
+    void handoverAll(Long fromUserId, Long toUserId);
 }

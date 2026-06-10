@@ -10,10 +10,12 @@ import vn.com.be_crm.application.customer.dto.*;
 import vn.com.be_crm.application.customer.query.*;
 import vn.com.be_crm.application.shared.dto.DeleteCommand;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
+import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
 import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
 import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.presentation.shared.HandoverBulkRequest;
 import vn.com.be_crm.presentation.shared.PageResponse;
 
 /**
@@ -31,20 +33,23 @@ public class CustomerController {
     private final RestoreCustomerUseCase restoreUC;
     private final PurgeCustomerUseCase purgeUC;
     private final ImportBulkCustomerUseCase importBulkUC;
+    private final vn.com.be_crm.application.customer.command.HandoverBulkCustomerUseCase handoverBulkUC;
 
     /**
      * @param createUC use case tạo mới @param updateUC use case cập nhật @param deleteUC use case xóa mềm
      * @param getUC    use case lấy theo ID @param listUC use case lấy danh sách
      * @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
+     * @param handoverBulkUC bàn giao hàng loạt
      */
     public CustomerController(CreateCustomerUseCase createUC, UpdateCustomerUseCase updateUC,
                                DeleteCustomerUseCase deleteUC, GetCustomerUseCase getUC, ListCustomerUseCase listUC,
                                ListDeletedCustomersUseCase listDeletedUC, RestoreCustomerUseCase restoreUC, PurgeCustomerUseCase purgeUC,
-                               ImportBulkCustomerUseCase importBulkUC) {
+                               ImportBulkCustomerUseCase importBulkUC,
+                               vn.com.be_crm.application.customer.command.HandoverBulkCustomerUseCase handoverBulkUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
-        this.importBulkUC = importBulkUC;
+        this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC;
     }
 
     /** Tạo mới khách hàng. @param cmd JSON body @return 201 */
@@ -116,5 +121,17 @@ public class CustomerController {
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkCustomerCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
+    }
+
+    /** Bàn giao hàng loạt khách hàng sang người dùng khác. @param body body @param req HTTP request @return 200 */
+    @PostMapping("/handover-bulk")
+    public ResponseEntity<ApiResponse<Void>> handoverBulk(@Valid @RequestBody HandoverBulkRequest body, HttpServletRequest req) {
+        Long userId = (Long) req.getAttribute("userId");
+        boolean isAdminOrManager = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
+        handoverBulkUC.execute(HandoverBulkCommand.builder()
+                .ids(body.getIds()).toUserId(body.getToUserId())
+                .currentUserId(userId).adminOrManager(isAdminOrManager)
+                .reason(body.getReason()).build());
+        return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }

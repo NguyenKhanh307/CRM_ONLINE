@@ -12,6 +12,7 @@ export interface LoginApiResponse {
         email: string;
         fullName: string;
         roles: string[];
+        permissions: string[];
     };
     message: string;
     status: number;
