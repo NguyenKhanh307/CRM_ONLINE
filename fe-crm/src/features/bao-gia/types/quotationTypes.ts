@@ -1,3 +1,17 @@
+export interface UpdateQuotationPayload {
+    customerId: number | null;
+    contactId: number | null;
+    ownerId: number | null;
+    quoteDate: string | null;
+    validUntil: string | null;
+    status: string;
+    subtotal: number | null;
+    discount: number | null;
+    tax: number | null;
+    total: number | null;
+    note: string | null;
+}
+
 export interface QuotationResult {
     id: number;
     code: string;

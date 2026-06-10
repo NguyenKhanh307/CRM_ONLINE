@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.activity.command.*;
 import vn.com.be_crm.application.activity.dto.*;
 import vn.com.be_crm.application.activity.query.*;
+import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.presentation.activity.request.*;
@@ -25,6 +26,7 @@ public class ActivityController {
     private final DeleteActivityUseCase deleteUseCase;
     private final GetActivityUseCase getUseCase;
     private final ListActivityUseCase listUseCase;
+    private final ImportBulkActivityUseCase importBulkUC;
 
     /**
      * @param createUseCase use case tạo mới
@@ -32,15 +34,17 @@ public class ActivityController {
      * @param deleteUseCase use case xóa
      * @param getUseCase    use case lấy theo ID
      * @param listUseCase   use case lấy danh sách
+     * @param importBulkUC  use case nhập hàng loạt
      */
     public ActivityController(CreateActivityUseCase createUseCase, UpdateActivityUseCase updateUseCase,
                                DeleteActivityUseCase deleteUseCase, GetActivityUseCase getUseCase,
-                               ListActivityUseCase listUseCase) {
+                               ListActivityUseCase listUseCase, ImportBulkActivityUseCase importBulkUC) {
         this.createUseCase = createUseCase;
         this.updateUseCase = updateUseCase;
         this.deleteUseCase = deleteUseCase;
         this.getUseCase = getUseCase;
         this.listUseCase = listUseCase;
+        this.importBulkUC = importBulkUC;
     }
 
     /**
@@ -117,5 +121,11 @@ public class ActivityController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         deleteUseCase.execute(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Nhập hàng loạt hoạt động từ file. @param cmd body @return 200 */
+    @PostMapping("/import-bulk")
+    public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkActivityCommand cmd) {
+        return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 }

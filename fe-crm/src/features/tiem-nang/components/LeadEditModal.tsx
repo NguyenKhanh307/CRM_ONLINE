@@ -1,0 +1,98 @@
+import { useState, type FormEvent, useEffect } from 'react';
+import { FiX } from 'react-icons/fi';
+import type { LeadResult, UpdateLeadPayload } from '../types/leadTypes';
+import { useUpdateLead } from '../hooks/useUpdateLead';
+
+interface Props {
+    item: LeadResult | null;
+    onClose: () => void;
+}
+
+const LEAD_STATUSES = ['new_', 'contacted', 'qualified', 'unqualified', 'converted'];
+const LEAD_STATUS_LABELS: Record<string, string> = {
+    new_: 'Mới', contacted: 'Đã liên hệ', qualified: 'Tiềm năng', unqualified: 'Không tiềm năng', converted: 'Đã chuyển đổi',
+};
+const LEAD_SOURCES = ['website', 'referral', 'social', 'email', 'event', 'other'];
+
+export function LeadEditModal({ item, onClose }: Props) {
+    const { mutate, isPending } = useUpdateLead();
+    const [form, setForm] = useState<UpdateLeadPayload>({
+        name: '', ownerId: null, customerId: null, contactId: null,
+        source: null, status: 'new_', estimatedValue: null, phone: null, email: null, note: null,
+    });
+
+    useEffect(() => {
+        if (!item) return;
+        setForm({
+            name: item.name, ownerId: item.ownerId, customerId: item.customerId,
+            contactId: item.contactId, source: item.source, status: item.status,
+            estimatedValue: item.estimatedValue, phone: item.phone, email: item.email, note: item.note,
+        });
+    }, [item]);
+
+    if (!item) return null;
+
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        mutate({ id: item.id, payload: form }, { onSuccess: onClose });
+    };
+
+    const inp = 'w-full border border-gray-300 rounded-btn px-3 py-1.5 text-md text-text-main focus:outline-none focus:border-primary';
+    const lbl = 'block text-sm font-medium text-gray-700 mb-1';
+
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40" onClick={onClose}>
+            <div className="bg-white rounded-card shadow-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa tiềm năng</h2>
+                    <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
+                </div>
+                <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                    <div>
+                        <label className={lbl}>Tên <span className="text-danger">*</span></label>
+                        <input className={inp} required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Điện thoại</label>
+                            <input className={inp} value={form.phone ?? ''} onChange={e => setForm(f => ({ ...f, phone: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Email</label>
+                            <input type="email" className={inp} value={form.email ?? ''} onChange={e => setForm(f => ({ ...f, email: e.target.value || null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Trạng thái</label>
+                            <select className={inp} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
+                                {LEAD_STATUSES.map(s => <option key={s} value={s}>{LEAD_STATUS_LABELS[s]}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className={lbl}>Nguồn</label>
+                            <select className={inp} value={form.source ?? ''} onChange={e => setForm(f => ({ ...f, source: e.target.value || null }))}>
+                                <option value="">-- Chọn --</option>
+                                {LEAD_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label className={lbl}>Giá trị dự kiến</label>
+                        <input type="number" className={inp} value={form.estimatedValue ?? ''} onChange={e => setForm(f => ({ ...f, estimatedValue: e.target.value ? +e.target.value : null }))} />
+                    </div>
+                    <div>
+                        <label className={lbl}>Ghi chú</label>
+                        <textarea className={inp} rows={2} value={form.note ?? ''} onChange={e => setForm(f => ({ ...f, note: e.target.value || null }))} />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+                        <button type="button" onClick={onClose} className="px-4 py-1.5 rounded-btn border border-gray-300 text-md text-text-main hover:bg-gray-50">Hủy</button>
+                        <button type="submit" disabled={isPending} className="px-4 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">
+                            {isPending ? 'Đang lưu...' : 'Lưu'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}

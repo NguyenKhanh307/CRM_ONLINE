@@ -1,3 +1,17 @@
+export interface UpdateProductPayload {
+    name: string;
+    categoryId: number | null;
+    type: string;
+    unit: string | null;
+    basePrice: number | null;
+    costPrice: number | null;
+    vatRate: number | null;
+    barcode: string | null;
+    description: string | null;
+    isDiscontinued: boolean;
+    isActive: boolean;
+}
+
 export interface ProductResult {
     id: number;
     sku: string;

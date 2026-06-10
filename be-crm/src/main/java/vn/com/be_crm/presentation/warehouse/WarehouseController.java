@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.warehouse.command.*;
 import vn.com.be_crm.application.warehouse.dto.*;
@@ -24,17 +25,20 @@ public class WarehouseController {
     private final ListWarehouseUseCase listUC;
     private final AssignWarehousePermissionUseCase assignPermUC;
     private final RevokeWarehousePermissionUseCase revokePermUC;
+    private final ImportBulkWarehouseUseCase importBulkUC;
 
     /**
      * @param createUC   use case tạo mới @param updateUC use case cập nhật @param deleteUC use case xóa
      * @param getUC      use case lấy theo ID @param listUC use case lấy danh sách
-     * @param assignPermUC use case gán quyền @param revokePermUC use case thu hồi quyền
+     * @param assignPermUC use case gán quyền @param revokePermUC use case thu hồi quyền @param importBulkUC nhập hàng loạt
      */
     public WarehouseController(CreateWarehouseUseCase createUC, UpdateWarehouseUseCase updateUC,
                                 DeleteWarehouseUseCase deleteUC, GetWarehouseUseCase getUC, ListWarehouseUseCase listUC,
-                                AssignWarehousePermissionUseCase assignPermUC, RevokeWarehousePermissionUseCase revokePermUC) {
+                                AssignWarehousePermissionUseCase assignPermUC, RevokeWarehousePermissionUseCase revokePermUC,
+                                ImportBulkWarehouseUseCase importBulkUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC; this.assignPermUC = assignPermUC; this.revokePermUC = revokePermUC;
+        this.importBulkUC = importBulkUC;
     }
 
     /** Tạo mới kho. @param c command @return 201 */
@@ -88,5 +92,11 @@ public class WarehouseController {
     public ResponseEntity<Void> revokePermission(@PathVariable Long id, @PathVariable Long userId) {
         revokePermUC.execute(AssignWarehousePermissionCommand.builder().warehouseId(id).userId(userId).build());
         return ResponseEntity.noContent().build();
+    }
+
+    /** Nhập hàng loạt kho từ file. @param cmd body @return 200 */
+    @PostMapping("/import-bulk")
+    public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkWarehouseCommand cmd) {
+        return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 }

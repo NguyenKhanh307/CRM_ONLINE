@@ -10,6 +10,7 @@ import vn.com.be_crm.application.quotation.dto.*;
 import vn.com.be_crm.application.quotation.query.*;
 import vn.com.be_crm.application.shared.dto.DeleteCommand;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
+import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
 import vn.com.be_crm.presentation.shared.ApiResponse;
@@ -29,15 +30,18 @@ public class QuotationController {
     private final ListDeletedQuotationsUseCase listDeletedUC;
     private final RestoreQuotationUseCase restoreUC;
     private final PurgeQuotationUseCase purgeUC;
+    private final ImportBulkQuotationUseCase importBulkUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
-     *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn */
+     *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt */
     public QuotationController(CreateQuotationUseCase createUC, UpdateQuotationUseCase updateUC,
                                 DeleteQuotationUseCase deleteUC, GetQuotationUseCase getUC, ListQuotationUseCase listUC,
-                                ListDeletedQuotationsUseCase listDeletedUC, RestoreQuotationUseCase restoreUC, PurgeQuotationUseCase purgeUC) {
+                                ListDeletedQuotationsUseCase listDeletedUC, RestoreQuotationUseCase restoreUC, PurgeQuotationUseCase purgeUC,
+                                ImportBulkQuotationUseCase importBulkUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
+        this.importBulkUC = importBulkUC;
     }
 
     /** Tạo mới báo giá. @param cmd JSON body @return 201 */
@@ -103,5 +107,11 @@ public class QuotationController {
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    /** Nhập hàng loạt báo giá từ file. @param cmd body @return 200 */
+    @PostMapping("/import-bulk")
+    public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkQuotationCommand cmd) {
+        return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 }

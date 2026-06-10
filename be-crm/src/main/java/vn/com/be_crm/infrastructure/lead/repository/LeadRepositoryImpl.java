@@ -110,6 +110,24 @@ public class LeadRepositoryImpl implements ILeadRepository {
         }
     }
 
+    /** Tìm Lead theo số điện thoại (chưa xóa mềm). @param phone số điện thoại @return Optional */
+    @Override public Optional<Lead> findByPhone(String phone) {
+        try (Session s = sf.openSession()) {
+            return s.createQuery("FROM LeadHibernate WHERE phone = :phone AND deletedAt IS NULL", LeadHibernate.class)
+                    .setParameter("phone", phone).setMaxResults(1).list()
+                    .stream().map(mapper::toDomain).findFirst();
+        }
+    }
+
+    /** Tìm Lead theo email (chưa xóa mềm). @param email email @return Optional */
+    @Override public Optional<Lead> findByEmail(String email) {
+        try (Session s = sf.openSession()) {
+            return s.createQuery("FROM LeadHibernate WHERE email = :email AND deletedAt IS NULL", LeadHibernate.class)
+                    .setParameter("email", email).setMaxResults(1).list()
+                    .stream().map(mapper::toDomain).findFirst();
+        }
+    }
+
     /** Lấy danh sách Lead chưa xóa có phân trang. @param r phân trang @return PageResult */
     @Override public PageResult<Lead> findAll(PageRequest r) {
         try (Session s = sf.openSession()) {

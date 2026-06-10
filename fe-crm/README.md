@@ -106,8 +106,16 @@ fe-crm/src/
     │   ├── layout/
     │   │   └── sidebar/
     │   │       └── sidebarConfig.ts   # NAV_ITEMS — thêm menu item ở đây
-    │   └── table/
-    │       └── DataTable.tsx          # Component bảng dùng chung
+    │   ├── table/
+    │   │   └── DataTable.tsx          # Component bảng dùng chung
+    │   ├── ConfirmModal.tsx            # Modal xác nhận dùng chung
+    │   └── import/                    # Shared wizard nhập file Excel/CSV
+    │       ├── importTypes.ts
+    │       ├── ImportWizard.tsx
+    │       ├── StepUploadFile.tsx
+    │       ├── StepMapColumns.tsx
+    │       ├── StepOptions.tsx
+    │       └── StepResult.tsx
     ├── types/
     │   └── api.ts              # ApiResponse<T>, PageResult<T>, PageParams
     └── utils/
@@ -116,18 +124,21 @@ fe-crm/src/
 
 ### Pattern tạo module mới
 
-Mỗi feature folder có cấu trúc:
+Mỗi feature folder có cấu trúc đầy đủ (kể cả edit/delete):
 
 ```
 features/<ten-module>/
-├── types/<Module>Types.ts      # TypeScript interfaces
-├── services/<module>Service.ts # Axios calls
-├── hooks/use<Module>List.ts    # useQuery hook
-├── config/<module>Columns.tsx  # ColumnDef[] cho DataTable
-└── pages/<Module>Page.tsx      # Trang list view
+├── types/<Module>Types.ts            # TypeScript interfaces (kể cả Update*Payload)
+├── services/<module>Service.ts       # Axios calls (getList, getById, update, remove)
+├── hooks/use<Module>List.ts          # useQuery hook danh sách
+├── hooks/useDelete<Module>.ts        # useMutation → DELETE /api/<module>/{id}
+├── hooks/useUpdate<Module>.ts        # useMutation → PUT /api/<module>/{id}
+├── config/<module>Columns.tsx        # ColumnDef[] cho DataTable (không có cột actions)
+├── components/<Module>EditModal.tsx  # Modal chỉnh sửa đầy đủ
+└── pages/<Module>Page.tsx            # Trang list view (thêm actions column + modals)
 ```
 
-Ví dụ service:
+Ví dụ service đầy đủ:
 
 ```ts
 export const leadService = {
@@ -135,16 +146,45 @@ export const leadService = {
         axiosInstance.get<ApiResponse<PageResult<LeadResult>>>('/api/leads', { params }),
     getById: (id: number) =>
         axiosInstance.get<ApiResponse<LeadResult>>(`/api/leads/${id}`),
+    update: (id: number, payload: UpdateLeadPayload) =>
+        axiosInstance.put<ApiResponse<LeadResult>>(`/api/leads/${id}`, payload),
+    remove: (id: number) =>
+        axiosInstance.delete(`/api/leads/${id}`),
 };
 ```
 
-Ví dụ hook:
+Ví dụ hook list:
 
 ```ts
 export function useLeadList(params: PageParams = {}) {
     return useQuery({
         queryKey: ['leads', params],
         queryFn: () => leadService.getList(params).then(r => r.data.data),
+    });
+}
+```
+
+Ví dụ hook delete:
+
+```ts
+export function useDeleteLead() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (id: number) => leadService.remove(id),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['leads'] }),
+    });
+}
+```
+
+Ví dụ hook update:
+
+```ts
+export function useUpdateLead() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, payload }: { id: number; payload: UpdateLeadPayload }) =>
+            leadService.update(id, payload),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['leads'] }),
     });
 }
 ```
@@ -160,19 +200,21 @@ export function useLeadList(params: PageParams = {}) {
 - Token tự động đính kèm vào mọi request qua axios interceptor
 - 401 response → tự động redirect về `/login`
 
-### Data modules (list view)
+### Data modules (list view + edit/delete)
 
-| Module | Route | Endpoint |
-|--------|-------|---------|
-| Tiềm năng | `/tiem-nang` | `GET /api/leads` |
-| Liên hệ | `/lien-he` | `GET /api/contacts` |
-| Khách hàng | `/khach-hang` | `GET /api/customers` |
-| Cơ hội | `/co-hoi` | `GET /api/opportunities` |
-| Báo giá | `/bao-gia` | `GET /api/quotations` |
-| Đơn hàng | `/don-hang` | `GET /api/orders` |
-| Hoạt động | `/hoat-dong` | `GET /api/activities` |
-| Sản phẩm | `/san-pham` | `GET /api/products` |
-| Kho hàng | `/kho-hang` | `GET /api/warehouses` |
+Tất cả 9 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (ConfirmModal), chọn nhiều hàng + Xóa hàng loạt.
+
+| Module | Route | Endpoint GET | Endpoint PUT | Endpoint DELETE |
+|--------|-------|-------------|-------------|----------------|
+| Tiềm năng | `/tiem-nang` | `GET /api/leads` | `PUT /api/leads/{id}` | `DELETE /api/leads/{id}` |
+| Liên hệ | `/lien-he` | `GET /api/contacts` | `PUT /api/contacts/{id}` | `DELETE /api/contacts/{id}` |
+| Khách hàng | `/khach-hang` | `GET /api/customers` | `PUT /api/customers/{id}` | `DELETE /api/customers/{id}` |
+| Cơ hội | `/co-hoi` | `GET /api/opportunities` | `PUT /api/opportunities/{id}` | `DELETE /api/opportunities/{id}` |
+| Báo giá | `/bao-gia` | `GET /api/quotations` | `PUT /api/quotations/{id}` | `DELETE /api/quotations/{id}` |
+| Đơn hàng | `/don-hang` | `GET /api/orders` | `PUT /api/orders/{id}` | `DELETE /api/orders/{id}` |
+| Hoạt động | `/hoat-dong` | `GET /api/activities` | `PUT /api/activities/{id}` | `DELETE /api/activities/{id}` |
+| Sản phẩm | `/san-pham` | `GET /api/products` | `PUT /api/products/{id}` | `DELETE /api/products/{id}` |
+| Kho hàng | `/kho-hang` | `GET /api/warehouses` | `PUT /api/warehouses/{id}` | `DELETE /api/warehouses/{id}` |
 
 ### Phân quyền — `/phan-quyen`
 
@@ -221,20 +263,58 @@ features/
 ├── users/             # Đăng ký NV + hooks liên quan user
 ├── phan-quyen/        # Phân quyền nhóm + thành viên
 ├── thung-rac/         # Thùng rác 7 module
-├── tiem-nang/         # Lead
-├── lien-he/           # Contact
-├── khach-hang/        # Customer
-├── co-hoi/            # Opportunity
-├── bao-gia/           # Quotation
-├── don-hang/          # Order
-├── hoat-dong/         # Activity
-├── san-pham/          # Product
-└── kho-hang/          # Warehouse
+├── tiem-nang/         # Lead — có LeadImportPage
+├── lien-he/           # Contact — có ContactImportPage
+├── khach-hang/        # Customer — có CustomerImportPage
+├── co-hoi/            # Opportunity — có OpportunityImportPage
+├── bao-gia/           # Quotation — có QuotationImportPage
+├── don-hang/          # Order — có OrderImportPage
+├── hoat-dong/         # Activity — có ActivityImportPage
+├── san-pham/          # Product — có ProductImportPage
+└── kho-hang/          # Warehouse — có WarehouseImportPage
 ```
 
+### Nhập file Excel/CSV — 9 module (2026-06-11)
+
+Mỗi module data có trang nhập file 4 bước riêng, truy cập qua nút "Nhập file" trên trang danh sách.
+
+| Module | Route nhập file | Endpoint backend |
+|--------|----------------|-----------------|
+| Tiềm năng | `/tiem-nang/nhap-file` | `POST /api/leads/import-bulk` |
+| Liên hệ | `/lien-he/nhap-file` | `POST /api/contacts/import-bulk` |
+| Khách hàng | `/khach-hang/nhap-file` | `POST /api/customers/import-bulk` |
+| Cơ hội | `/co-hoi/nhap-file` | `POST /api/opportunities/import-bulk` |
+| Báo giá | `/bao-gia/nhap-file` | `POST /api/quotations/import-bulk` |
+| Đơn hàng | `/don-hang/nhap-file` | `POST /api/orders/import-bulk` |
+| Hoạt động | `/hoat-dong/nhap-file` | `POST /api/activities/import-bulk` |
+| Sản phẩm | `/san-pham/nhap-file` | `POST /api/products/import-bulk` |
+| Kho hàng | `/kho-hang/nhap-file` | `POST /api/warehouses/import-bulk` |
+
+**Shared wizard** — `src/shared/components/import/`:
+
+| File | Vai trò |
+|------|---------|
+| `importTypes.ts` | Types: `ImportField`, `ImportOptions`, `ImportRowError`, `ImportBulkResult`, `ColumnMapping` |
+| `ImportWizard.tsx` | Component wizard 4 bước, nhận `fields[]`, `onImport()`, `backPath` |
+| `StepUploadFile.tsx` | Bước 1: drag & drop, parse xlsx/csv (SheetJS), tải file mẫu |
+| `StepMapColumns.tsx` | Bước 2: ghép cột file → trường CRM, auto-map theo label, tabs Tất cả/Đã ghép/Chưa ghép |
+| `StepOptions.tsx` | Bước 3: importType (CREATE/UPDATE/BOTH), ownerMode (SPECIFIC/FROM_FILE) |
+| `StepResult.tsx` | Bước 4: hiển thị successCount, failedCount, bảng lỗi, nút Quay về / Nhập thêm |
+
+**importBulk trong service** — pattern chung:
+
+```ts
+importBulk: (payload: ImportBulkLeadCommand) =>
+    axiosInstance.post<ApiResponse<ImportBulkResult>>('/api/leads/import-bulk', payload),
+```
+
+**Dependency**: `xlsx` (SheetJS) — parse file trong trình duyệt, backend chỉ nhận JSON.
+
+**Lưu ý**: Import UPDATE/BOTH chỉ hoạt động cho module Lead (có `findByPhone`/`findByEmail`). 8 module còn lại chỉ hỗ trợ CREATE.
+
 ### Chưa implement
-- Form tạo mới / chỉnh sửa cho tất cả module
-- Pricing module
+- Form tạo mới cho tất cả module (chỉ có edit modal, chưa có create modal)
+- Pricing module chưa có frontend page
 
 ---
 

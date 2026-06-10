@@ -10,6 +10,7 @@ import vn.com.be_crm.application.contact.dto.*;
 import vn.com.be_crm.application.contact.query.*;
 import vn.com.be_crm.application.shared.dto.DeleteCommand;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
+import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
 import vn.com.be_crm.presentation.shared.ApiResponse;
@@ -29,18 +30,21 @@ public class ContactController {
     private final ListDeletedContactsUseCase listDeletedUC;
     private final RestoreContactUseCase restoreUC;
     private final PurgeContactUseCase purgeUC;
+    private final ImportBulkContactUseCase importBulkUC;
 
     /**
      * @param createUC use case tạo mới @param updateUC use case cập nhật @param deleteUC use case xóa mềm
      * @param getUC    use case lấy theo ID @param listUC use case lấy danh sách
-     * @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn
+     * @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
      */
     public ContactController(CreateContactUseCase createUC, UpdateContactUseCase updateUC,
                               DeleteContactUseCase deleteUC, GetContactUseCase getUC, ListContactUseCase listUC,
-                              ListDeletedContactsUseCase listDeletedUC, RestoreContactUseCase restoreUC, PurgeContactUseCase purgeUC) {
+                              ListDeletedContactsUseCase listDeletedUC, RestoreContactUseCase restoreUC, PurgeContactUseCase purgeUC,
+                              ImportBulkContactUseCase importBulkUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
+        this.importBulkUC = importBulkUC;
     }
 
     /** Tạo mới liên hệ. @param cmd JSON body @return 201 */
@@ -107,5 +111,11 @@ public class ContactController {
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    /** Nhập hàng loạt liên hệ từ file. @param cmd body @return 200 */
+    @PostMapping("/import-bulk")
+    public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkContactCommand cmd) {
+        return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 }

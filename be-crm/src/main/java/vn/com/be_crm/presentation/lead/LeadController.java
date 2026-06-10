@@ -10,6 +10,7 @@ import vn.com.be_crm.application.lead.dto.*;
 import vn.com.be_crm.application.lead.query.*;
 import vn.com.be_crm.application.shared.dto.DeleteCommand;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
+import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
 import vn.com.be_crm.presentation.shared.ApiResponse;
@@ -29,15 +30,18 @@ public class LeadController {
     private final ListDeletedLeadsUseCase listDeletedUC;
     private final RestoreLeadUseCase restoreUC;
     private final PurgeLeadUseCase purgeUC;
+    private final ImportBulkLeadUseCase importBulkUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
-     *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn */
+     *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt */
     public LeadController(CreateLeadUseCase createUC, UpdateLeadUseCase updateUC, DeleteLeadUseCase deleteUC,
                            GetLeadUseCase getUC, ListLeadUseCase listUC,
-                           ListDeletedLeadsUseCase listDeletedUC, RestoreLeadUseCase restoreUC, PurgeLeadUseCase purgeUC) {
+                           ListDeletedLeadsUseCase listDeletedUC, RestoreLeadUseCase restoreUC, PurgeLeadUseCase purgeUC,
+                           ImportBulkLeadUseCase importBulkUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
+        this.importBulkUC = importBulkUC;
     }
 
     /** Tạo mới tiềm năng. @param cmd JSON body @return 201 */
@@ -102,5 +106,11 @@ public class LeadController {
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    /** Nhập hàng loạt tiềm năng từ file. @param cmd body @return 200 */
+    @PostMapping("/import-bulk")
+    public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkLeadCommand cmd) {
+        return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 }

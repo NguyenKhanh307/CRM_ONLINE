@@ -10,6 +10,7 @@ import vn.com.be_crm.application.customer.dto.*;
 import vn.com.be_crm.application.customer.query.*;
 import vn.com.be_crm.application.shared.dto.DeleteCommand;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
+import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
 import vn.com.be_crm.presentation.shared.ApiResponse;
@@ -29,18 +30,21 @@ public class CustomerController {
     private final ListDeletedCustomersUseCase listDeletedUC;
     private final RestoreCustomerUseCase restoreUC;
     private final PurgeCustomerUseCase purgeUC;
+    private final ImportBulkCustomerUseCase importBulkUC;
 
     /**
      * @param createUC use case tạo mới @param updateUC use case cập nhật @param deleteUC use case xóa mềm
      * @param getUC    use case lấy theo ID @param listUC use case lấy danh sách
-     * @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn
+     * @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
      */
     public CustomerController(CreateCustomerUseCase createUC, UpdateCustomerUseCase updateUC,
                                DeleteCustomerUseCase deleteUC, GetCustomerUseCase getUC, ListCustomerUseCase listUC,
-                               ListDeletedCustomersUseCase listDeletedUC, RestoreCustomerUseCase restoreUC, PurgeCustomerUseCase purgeUC) {
+                               ListDeletedCustomersUseCase listDeletedUC, RestoreCustomerUseCase restoreUC, PurgeCustomerUseCase purgeUC,
+                               ImportBulkCustomerUseCase importBulkUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
+        this.importBulkUC = importBulkUC;
     }
 
     /** Tạo mới khách hàng. @param cmd JSON body @return 201 */
@@ -106,5 +110,11 @@ public class CustomerController {
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    /** Nhập hàng loạt khách hàng từ file. @param cmd body @return 200 */
+    @PostMapping("/import-bulk")
+    public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkCustomerCommand cmd) {
+        return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 }

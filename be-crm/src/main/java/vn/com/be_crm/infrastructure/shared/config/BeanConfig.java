@@ -588,4 +588,26 @@ public class BeanConfig {
     @Bean public vn.com.be_crm.application.pricing.command.DeletePricePolicyEmployeeUseCase deletePricePolicyEmployeeUseCase(vn.com.be_crm.domain.pricing.repository.IPricePolicyEmployeeRepository r) { return new vn.com.be_crm.application.pricing.command.DeletePricePolicyEmployeeUseCase(r); }
     /** @return ListPricePolicyEmployeeUseCase */
     @Bean public vn.com.be_crm.application.pricing.query.ListPricePolicyEmployeeUseCase listPricePolicyEmployeeUseCase(vn.com.be_crm.domain.pricing.repository.IPricePolicyEmployeeRepository r) { return new vn.com.be_crm.application.pricing.query.ListPricePolicyEmployeeUseCase(r); }
+
+    // =====================================================================
+    // IMPORT BULK — 9 modules
+    // =====================================================================
+    /** @return ImportBulkLeadUseCase */
+    @Bean public vn.com.be_crm.application.lead.command.ImportBulkLeadUseCase importBulkLeadUseCase(vn.com.be_crm.domain.lead.repository.ILeadRepository r) { return new vn.com.be_crm.application.lead.command.ImportBulkLeadUseCase(r); }
+    /** @return ImportBulkContactUseCase */
+    @Bean public vn.com.be_crm.application.contact.command.ImportBulkContactUseCase importBulkContactUseCase(vn.com.be_crm.domain.contact.repository.IContactRepository r) { return new vn.com.be_crm.application.contact.command.ImportBulkContactUseCase(r); }
+    /** @return ImportBulkCustomerUseCase */
+    @Bean public vn.com.be_crm.application.customer.command.ImportBulkCustomerUseCase importBulkCustomerUseCase(vn.com.be_crm.domain.customer.repository.ICustomerRepository r) { return new vn.com.be_crm.application.customer.command.ImportBulkCustomerUseCase(r); }
+    /** @return ImportBulkOpportunityUseCase */
+    @Bean public vn.com.be_crm.application.opportunity.command.ImportBulkOpportunityUseCase importBulkOpportunityUseCase(vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository r) { return new vn.com.be_crm.application.opportunity.command.ImportBulkOpportunityUseCase(r); }
+    /** @return ImportBulkQuotationUseCase */
+    @Bean public vn.com.be_crm.application.quotation.command.ImportBulkQuotationUseCase importBulkQuotationUseCase(vn.com.be_crm.domain.quotation.repository.IQuotationRepository r) { return new vn.com.be_crm.application.quotation.command.ImportBulkQuotationUseCase(r); }
+    /** @return ImportBulkOrderUseCase */
+    @Bean public vn.com.be_crm.application.order.command.ImportBulkOrderUseCase importBulkOrderUseCase(vn.com.be_crm.domain.order.repository.IOrderRepository r) { return new vn.com.be_crm.application.order.command.ImportBulkOrderUseCase(r); }
+    /** @return ImportBulkActivityUseCase */
+    @Bean public vn.com.be_crm.application.activity.command.ImportBulkActivityUseCase importBulkActivityUseCase(IActivityRepository r) { return new vn.com.be_crm.application.activity.command.ImportBulkActivityUseCase(r); }
+    /** @return ImportBulkProductUseCase */
+    @Bean public vn.com.be_crm.application.product.command.ImportBulkProductUseCase importBulkProductUseCase(vn.com.be_crm.domain.product.repository.IProductRepository r) { return new vn.com.be_crm.application.product.command.ImportBulkProductUseCase(r); }
+    /** @return ImportBulkWarehouseUseCase */
+    @Bean public vn.com.be_crm.application.warehouse.command.ImportBulkWarehouseUseCase importBulkWarehouseUseCase(IWarehouseRepository r) { return new vn.com.be_crm.application.warehouse.command.ImportBulkWarehouseUseCase(r); }
 }

@@ -5,6 +5,7 @@ import {
     getStoredUser,
     setStoredUser,
     clearSession,
+    isTokenExpired,
 } from './authStorage';
 
 export interface AuthUser {
@@ -33,10 +34,19 @@ interface AuthProviderProps {
  * Khởi tạo state từ localStorage để giữ session qua reload.
  */
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-    const [token, setTokenState] = useState<string | null>(() => getToken());
-    const [user, setUser] = useState<AuthUser | null>(() =>
-        getStoredUser<AuthUser>()
-    );
+    const [token, setTokenState] = useState<string | null>(() => {
+        const stored = getToken();
+        if (stored && isTokenExpired(stored)) {
+            clearSession();
+            return null;
+        }
+        return stored;
+    });
+    const [user, setUser] = useState<AuthUser | null>(() => {
+        const stored = getToken();
+        if (!stored || isTokenExpired(stored)) return null;
+        return getStoredUser<AuthUser>();
+    });
 
     const login = useCallback((newToken: string, newUser: AuthUser) => {
         setToken(newToken);

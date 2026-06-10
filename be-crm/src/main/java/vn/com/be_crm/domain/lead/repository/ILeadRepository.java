@@ -57,4 +57,16 @@ public interface ILeadRepository {
      * @param id ID cần ẩn
      */
     void purgeById(Long id);
+
+    /**
+     * Tìm tiềm năng theo số điện thoại (chưa xóa mềm) — dùng cho import update matching.
+     * @param phone số điện thoại @return Optional
+     */
+    Optional<Lead> findByPhone(String phone);
+
+    /**
+     * Tìm tiềm năng theo email (chưa xóa mềm) — dùng cho import update matching.
+     * @param email email @return Optional
+     */
+    Optional<Lead> findByEmail(String email);
 }

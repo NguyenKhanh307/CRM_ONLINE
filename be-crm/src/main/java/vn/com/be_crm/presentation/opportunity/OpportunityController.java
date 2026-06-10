@@ -10,6 +10,7 @@ import vn.com.be_crm.application.opportunity.dto.*;
 import vn.com.be_crm.application.opportunity.query.*;
 import vn.com.be_crm.application.shared.dto.DeleteCommand;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
+import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
 import vn.com.be_crm.presentation.shared.ApiResponse;
@@ -29,16 +30,19 @@ public class OpportunityController {
     private final ListDeletedOpportunitiesUseCase listDeletedUC;
     private final RestoreOpportunityUseCase restoreUC;
     private final PurgeOpportunityUseCase purgeUC;
+    private final ImportBulkOpportunityUseCase importBulkUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
-     *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn */
+     *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt */
     public OpportunityController(CreateOpportunityUseCase createUC, UpdateOpportunityUseCase updateUC,
                                   DeleteOpportunityUseCase deleteUC, GetOpportunityUseCase getUC,
                                   ListOpportunityUseCase listUC, ListDeletedOpportunitiesUseCase listDeletedUC,
-                                  RestoreOpportunityUseCase restoreUC, PurgeOpportunityUseCase purgeUC) {
+                                  RestoreOpportunityUseCase restoreUC, PurgeOpportunityUseCase purgeUC,
+                                  ImportBulkOpportunityUseCase importBulkUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
+        this.importBulkUC = importBulkUC;
     }
 
     /** Tạo mới cơ hội. @param cmd JSON body @return 201 */
@@ -104,5 +108,11 @@ public class OpportunityController {
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    /** Nhập hàng loạt cơ hội từ file. @param cmd body @return 200 */
+    @PostMapping("/import-bulk")
+    public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkOpportunityCommand cmd) {
+        return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 }

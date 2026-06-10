@@ -154,6 +154,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/activities/{id}` | Lấy hoạt động theo ID |
 | `PUT` | `/api/activities/{id}` | Cập nhật hoạt động |
 | `DELETE` | `/api/activities/{id}` | Xóa hoạt động |
+| `POST` | `/api/activities/import-bulk` | Nhập hàng loạt hoạt động từ file Excel/CSV |
 
 ---
 
@@ -171,6 +172,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/contacts/deleted` | Thùng rác — danh sách liên hệ đã xóa (30 ngày) |
 | `POST` | `/api/contacts/{id}/restore` | Khôi phục liên hệ từ thùng rác |
 | `DELETE` | `/api/contacts/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
+| `POST` | `/api/contacts/import-bulk` | Nhập hàng loạt liên hệ từ file Excel/CSV |
 
 #### Số điện thoại — `/api/contacts/{contactId}/phones`
 
@@ -197,6 +199,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/customers/deleted` | Thùng rác — danh sách khách hàng đã xóa (30 ngày) |
 | `POST` | `/api/customers/{id}/restore` | Khôi phục khách hàng từ thùng rác |
 | `DELETE` | `/api/customers/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
+| `POST` | `/api/customers/import-bulk` | Nhập hàng loạt khách hàng từ file Excel/CSV |
 
 #### Chia sẻ khách hàng — `/api/customers/{customerId}/shares`
 
@@ -241,6 +244,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/leads/deleted` | Thùng rác — danh sách lead đã xóa (30 ngày) |
 | `POST` | `/api/leads/{id}/restore` | Khôi phục lead từ thùng rác |
 | `DELETE` | `/api/leads/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác (ẩn UI, DB giữ) |
+| `POST` | `/api/leads/import-bulk` | Nhập hàng loạt lead từ file Excel/CSV (hỗ trợ CREATE/UPDATE/BOTH) |
 
 #### Hoạt động của lead — `/api/leads/{leadId}/activities`
 
@@ -285,6 +289,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/opportunities/deleted` | Thùng rác — danh sách cơ hội đã xóa (30 ngày) |
 | `POST` | `/api/opportunities/{id}/restore` | Khôi phục cơ hội từ thùng rác |
 | `DELETE` | `/api/opportunities/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
+| `POST` | `/api/opportunities/import-bulk` | Nhập hàng loạt cơ hội từ file Excel/CSV |
 
 #### Giai đoạn cơ hội — `/api/opportunity-stages`
 
@@ -321,6 +326,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/orders/deleted` | Thùng rác — danh sách đơn hàng đã xóa (30 ngày) |
 | `POST` | `/api/orders/{id}/restore` | Khôi phục đơn hàng từ thùng rác |
 | `DELETE` | `/api/orders/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
+| `POST` | `/api/orders/import-bulk` | Nhập hàng loạt đơn hàng từ file Excel/CSV |
 
 #### Dòng hàng đơn — `/api/orders/{orderId}/items`
 
@@ -374,6 +380,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/products/deleted` | Thùng rác — danh sách sản phẩm đã xóa (30 ngày) |
 | `POST` | `/api/products/{id}/restore` | Khôi phục sản phẩm từ thùng rác |
 | `DELETE` | `/api/products/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
+| `POST` | `/api/products/import-bulk` | Nhập hàng loạt sản phẩm từ file Excel/CSV |
 
 #### Danh mục sản phẩm — `/api/product-categories`
 
@@ -456,6 +463,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/quotations/deleted` | Thùng rác — danh sách báo giá đã xóa (30 ngày) |
 | `POST` | `/api/quotations/{id}/restore` | Khôi phục báo giá từ thùng rác |
 | `DELETE` | `/api/quotations/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
+| `POST` | `/api/quotations/import-bulk` | Nhập hàng loạt báo giá từ file Excel/CSV |
 
 #### Dòng sản phẩm báo giá — `/api/quotations/{quotationId}/items`
 
@@ -490,6 +498,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `DELETE` | `/api/warehouses/{id}` | Xóa kho |
 | `POST` | `/api/warehouses/{id}/permissions` | Gán quyền truy cập kho cho user |
 | `DELETE` | `/api/warehouses/{id}/permissions/{userId}` | Thu hồi quyền truy cập kho |
+| `POST` | `/api/warehouses/import-bulk` | Nhập hàng loạt kho hàng từ file Excel/CSV |
 
 #### Tồn kho — `/api/inventory-stocks`
 
@@ -519,6 +528,8 @@ be-crm/src/main/java/vn/com/be_crm/
 | `application/shared/usecase/IUseCase.java` | Application | Interface generic `IUseCase<Input, Output>` — marker cho tất cả use case |
 | `application/shared/dto/PageRequest.java` | Application | DTO input cho query phân trang (page, size, sortBy, sortDir) |
 | `application/shared/dto/PageResult.java` | Application | DTO output trả danh sách phân trang |
+| `application/shared/dto/ImportBulkResult.java` | Application | Output DTO nhập hàng loạt: `record(int successCount, int failedCount, List<ImportRowError> errors)` |
+| `application/shared/dto/ImportRowError.java` | Application | Lỗi từng dòng: `record(int row, String message)` — row bắt đầu từ 2 (dòng 1 là header) |
 | `presentation/shared/ApiResponse.java` | Presentation | Wrapper chuẩn cho mọi HTTP response đơn lẻ |
 | `presentation/shared/PageResponse.java` | Presentation | Wrapper chuẩn cho HTTP response phân trang |
 | `presentation/shared/GlobalExceptionHandler.java` | Presentation | Bắt exception toàn cục, trả lỗi dạng chuẩn |
