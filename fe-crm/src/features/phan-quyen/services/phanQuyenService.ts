@@ -53,4 +53,16 @@ export const phanQuyenService = {
     /** Xóa thành viên khỏi nhóm. */
     removeMember: (userId: number, roleId: number) =>
         axiosInstance.delete(`/api/users/${userId}/roles/${roleId}`),
+
+    /** Thu hồi tài khoản nhân viên (status → locked). */
+    revokeUser: (userId: number) =>
+        axiosInstance.put<ApiResponse<GroupMember>>(`/api/users/${userId}/revoke`),
+
+    /** Kích hoạt lại tài khoản nhân viên (status → active). */
+    reactivateUser: (userId: number) =>
+        axiosInstance.put<ApiResponse<GroupMember>>(`/api/users/${userId}/reactivate`),
+
+    /** Cập nhật năm được xem data cho nhân viên. */
+    updateUserDataAccess: (userId: number, dataAccessFromYear: number | null) =>
+        axiosInstance.put<ApiResponse<GroupMember>>(`/api/users/${userId}`, { dataAccessFromYear }),
 };

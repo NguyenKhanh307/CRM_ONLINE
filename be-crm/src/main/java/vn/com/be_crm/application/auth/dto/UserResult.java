@@ -26,4 +26,5 @@ public class UserResult {
     private LocalDateTime lastLoginAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer dataAccessFromYear;
 }

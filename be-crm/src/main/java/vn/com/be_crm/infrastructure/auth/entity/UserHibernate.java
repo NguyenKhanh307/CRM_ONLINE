@@ -65,4 +65,7 @@ public class UserHibernate {
 
     @Column(name = "activation_expires_at")
     private LocalDateTime activationExpiresAt;
+
+    @Column(name = "data_access_from_year")
+    private Integer dataAccessFromYear;
 }

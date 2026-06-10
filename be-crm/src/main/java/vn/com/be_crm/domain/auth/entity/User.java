@@ -58,4 +58,7 @@ public class User {
 
     /** Thời điểm hết hạn link kích hoạt (1 ngày sau khi admin đăng ký). */
     private LocalDateTime activationExpiresAt;
+
+    /** Năm sớm nhất mà nhân viên được xem data (mặc định = năm kích hoạt tài khoản). Null = không giới hạn. */
+    private Integer dataAccessFromYear;
 }

@@ -21,4 +21,5 @@ public class UpdateUserRequest {
     private String avatarUrl;
     private Long unitId;
     private UserStatus status;
+    private Integer dataAccessFromYear;
 }

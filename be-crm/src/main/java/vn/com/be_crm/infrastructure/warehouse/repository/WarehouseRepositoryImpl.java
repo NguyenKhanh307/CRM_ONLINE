@@ -48,10 +48,14 @@ public class WarehouseRepositoryImpl implements IWarehouseRepository {
     /** @param r page request @return PageResult */
     @Override public PageResult<Warehouse> findAll(PageRequest r) {
         try (Session s = sf.openSession()) {
-            List<Warehouse> items = s.createQuery("FROM WarehouseHibernate ORDER BY " + r.getSortBy() + " " + r.getSortDir(), WarehouseHibernate.class)
-                    .setFirstResult(r.getOffset()).setMaxResults(r.getSize())
-                    .list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            long total = s.createQuery("SELECT COUNT(w) FROM WarehouseHibernate w", Long.class).uniqueResult();
+            String yearFilter = r.getDataAccessFromYear() != null ? " WHERE YEAR(createdAt) >= :fromYear" : "";
+            var q = s.createQuery("FROM WarehouseHibernate" + yearFilter + " ORDER BY " + r.getSortBy() + " " + r.getSortDir(), WarehouseHibernate.class)
+                    .setFirstResult(r.getOffset()).setMaxResults(r.getSize());
+            if (r.getDataAccessFromYear() != null) q.setParameter("fromYear", r.getDataAccessFromYear());
+            List<Warehouse> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
+            var cq = s.createQuery("SELECT COUNT(w) FROM WarehouseHibernate w" + (r.getDataAccessFromYear() != null ? " WHERE YEAR(w.createdAt) >= :fromYear" : ""), Long.class);
+            if (r.getDataAccessFromYear() != null) cq.setParameter("fromYear", r.getDataAccessFromYear());
+            long total = cq.uniqueResult();
             return PageResult.<Warehouse>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
         }
     }

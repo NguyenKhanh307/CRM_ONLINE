@@ -1,5 +1,6 @@
 package vn.com.be_crm.domain.contact.repository;
 
+import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.contact.entity.Contact;
@@ -24,14 +25,36 @@ public interface IContactRepository {
     Optional<Contact> findById(Long id);
 
     /**
-     * Xóa mềm liên hệ theo ID.
-     * @param id ID cần xóa
+     * Xóa mềm liên hệ theo ID, ghi nhận người xóa.
+     * @param id        ID cần xóa
+     * @param deletedBy ID người thực hiện xóa
      */
-    void deleteById(Long id);
+    void deleteById(Long id, Long deletedBy);
 
     /**
      * Lấy danh sách liên hệ chưa xóa có phân trang.
      * @param r tham số phân trang @return PageResult
      */
     PageResult<Contact> findAll(PageRequest r);
+
+    /**
+     * Lấy danh sách liên hệ đã xóa mềm trong 30 ngày gần nhất (dùng cho thùng rác).
+     * @param userId  ID người dùng hiện tại
+     * @param isAdmin true nếu admin (xem tất cả), false nếu chỉ xem của mình
+     * @param r       tham số phân trang
+     * @return PageResult<DeletedItemResult>
+     */
+    PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest r);
+
+    /**
+     * Khôi phục liên hệ từ thùng rác.
+     * @param id ID cần khôi phục
+     */
+    void restoreById(Long id);
+
+    /**
+     * Ẩn liên hệ khỏi thùng rác (set is_purged = true).
+     * @param id ID cần ẩn
+     */
+    void purgeById(Long id);
 }

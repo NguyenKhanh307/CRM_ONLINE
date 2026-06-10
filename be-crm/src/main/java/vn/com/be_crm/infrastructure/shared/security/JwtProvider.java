@@ -34,19 +34,24 @@ public class JwtProvider implements ITokenProvider {
     }
 
     /**
-     * Tạo JWT token chứa userId, email (subject), roles.
+     * Tạo JWT token chứa userId, email (subject), roles, dataAccessFromYear.
      *
-     * @param userId ID người dùng
-     * @param email  email (subject)
-     * @param roles  danh sách code vai trò
+     * @param userId             ID người dùng
+     * @param email              email (subject)
+     * @param roles              danh sách code vai trò
+     * @param dataAccessFromYear năm sớm nhất được xem data (null = không giới hạn)
      * @return JWT token dạng chuỗi
      */
     @Override
-    public String generateToken(Long userId, String email, List<String> roles) {
-        return Jwts.builder()
+    public String generateToken(Long userId, String email, List<String> roles, Integer dataAccessFromYear) {
+        var builder = Jwts.builder()
                 .subject(email)
                 .claim("userId", userId)
-                .claim("roles", roles)
+                .claim("roles", roles);
+        if (dataAccessFromYear != null) {
+            builder.claim("dataAccessFromYear", dataAccessFromYear);
+        }
+        return builder
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(secretKey)
@@ -90,6 +95,29 @@ public class JwtProvider implements ITokenProvider {
             return list.stream().map(Object::toString).toList();
         }
         return List.of();
+    }
+
+    /**
+     * Lấy dataAccessFromYear từ token claims.
+     *
+     * @param token JWT token
+     * @return năm sớm nhất được xem data, hoặc null nếu không giới hạn
+     */
+    public Integer extractDataAccessFromYear(String token) {
+        Object val = getClaims(token).get("dataAccessFromYear");
+        if (val instanceof Number n) return n.intValue();
+        return null;
+    }
+
+    /**
+     * Lấy userId từ token claims.
+     * @param token JWT token
+     * @return userId, hoặc null nếu không có
+     */
+    public Long extractUserId(String token) {
+        Object val = getClaims(token).get("userId");
+        if (val instanceof Number n) return n.longValue();
+        return null;
     }
 
     private Claims getClaims(String token) {

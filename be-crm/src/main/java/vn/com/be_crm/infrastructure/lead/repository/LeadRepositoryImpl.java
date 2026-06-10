@@ -4,6 +4,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
+import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.lead.entity.Lead;
@@ -11,6 +12,7 @@ import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.infrastructure.lead.entity.LeadHibernate;
 import vn.com.be_crm.infrastructure.lead.mapper.LeadHibernateMapper;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -51,12 +53,59 @@ public class LeadRepositoryImpl implements ILeadRepository {
         }
     }
 
-    /** Xóa mềm Lead. @param id ID */
-    @Override public void deleteById(Long id) {
+    /** Xóa mềm Lead, ghi nhận người xóa. @param id ID @param deletedBy userId người xóa */
+    @Override public void deleteById(Long id, Long deletedBy) {
         try (Session s = sf.openSession()) {
             Transaction tx = s.beginTransaction();
             LeadHibernate h = s.find(LeadHibernate.class, id);
-            if (h != null) { h.setDeletedAt(LocalDateTime.now()); s.merge(h); }
+            if (h != null) { h.setDeletedAt(LocalDateTime.now()); h.setDeletedBy(deletedBy); s.merge(h); }
+            tx.commit();
+        }
+    }
+
+    /** Lấy danh sách Lead trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
+    @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
+        try (Session s = sf.openSession()) {
+            LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+            String userFilter = isAdmin ? "" : " AND l.deleted_by = :userId";
+            String sql = "SELECT l.id, l.name, l.deleted_at, u.full_name FROM leads l" +
+                    " LEFT JOIN users u ON u.id = l.deleted_by" +
+                    " WHERE l.deleted_at IS NOT NULL AND l.deleted_at >= :cutoff AND l.is_purged = 0" +
+                    userFilter + " ORDER BY l.deleted_at DESC";
+            var q = s.createNativeQuery(sql, Object[].class)
+                    .setParameter("cutoff", cutoff)
+                    .setFirstResult(req.getOffset()).setMaxResults(req.getSize());
+            if (!isAdmin) q.setParameter("userId", userId);
+            List<DeletedItemResult> items = q.list().stream()
+                    .map(row -> new DeletedItemResult(
+                            ((Number) row[0]).longValue(), (String) row[1],
+                            row[2] instanceof Timestamp ts ? ts.toLocalDateTime() : (LocalDateTime) row[2],
+                            (String) row[3]))
+                    .collect(Collectors.toList());
+            String countSql = "SELECT COUNT(*) FROM leads l WHERE l.deleted_at IS NOT NULL AND l.deleted_at >= :cutoff AND l.is_purged = 0" + userFilter;
+            var cq = s.createNativeQuery(countSql, Object.class).setParameter("cutoff", cutoff);
+            if (!isAdmin) cq.setParameter("userId", userId);
+            long total = ((Number) cq.uniqueResult()).longValue();
+            return PageResult.<DeletedItemResult>builder().items(items).total(total).page(req.getPage()).size(req.getSize()).build();
+        }
+    }
+
+    /** Khôi phục Lead từ thùng rác. @param id ID */
+    @Override public void restoreById(Long id) {
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            LeadHibernate h = s.find(LeadHibernate.class, id);
+            if (h != null) { h.setDeletedAt(null); h.setDeletedBy(null); h.setPurged(false); s.merge(h); }
+            tx.commit();
+        }
+    }
+
+    /** Ẩn Lead khỏi thùng rác (is_purged = true). @param id ID */
+    @Override public void purgeById(Long id) {
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            LeadHibernate h = s.find(LeadHibernate.class, id);
+            if (h != null) { h.setPurged(true); s.merge(h); }
             tx.commit();
         }
     }
@@ -64,12 +113,16 @@ public class LeadRepositoryImpl implements ILeadRepository {
     /** Lấy danh sách Lead chưa xóa có phân trang. @param r phân trang @return PageResult */
     @Override public PageResult<Lead> findAll(PageRequest r) {
         try (Session s = sf.openSession()) {
-            List<Lead> items = s.createQuery(
-                    "FROM LeadHibernate WHERE deletedAt IS NULL ORDER BY " + r.getSortBy() + " " + r.getSortDir(),
+            String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
+            var q = s.createQuery(
+                    "FROM LeadHibernate WHERE deletedAt IS NULL" + yearFilter + " ORDER BY " + r.getSortBy() + " " + r.getSortDir(),
                     LeadHibernate.class)
-                    .setFirstResult(r.getOffset()).setMaxResults(r.getSize())
-                    .list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            long total = s.createQuery("SELECT COUNT(l) FROM LeadHibernate l WHERE l.deletedAt IS NULL", Long.class).uniqueResult();
+                    .setFirstResult(r.getOffset()).setMaxResults(r.getSize());
+            if (r.getDataAccessFromYear() != null) q.setParameter("fromYear", r.getDataAccessFromYear());
+            List<Lead> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
+            var cq = s.createQuery("SELECT COUNT(l) FROM LeadHibernate l WHERE l.deletedAt IS NULL" + yearFilter, Long.class);
+            if (r.getDataAccessFromYear() != null) cq.setParameter("fromYear", r.getDataAccessFromYear());
+            long total = cq.uniqueResult();
             return PageResult.<Lead>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
         }
     }

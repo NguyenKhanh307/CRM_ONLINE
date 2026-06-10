@@ -22,6 +22,7 @@ public class QuotationHibernateMapper {
         h.setTax(d.getTax() != null ? d.getTax() : BigDecimal.ZERO);
         h.setTotal(d.getTotal() != null ? d.getTotal() : BigDecimal.ZERO);
         h.setNote(d.getNote()); h.setDeletedAt(d.getDeletedAt());
+        h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
         return h;
     }
     /** Chuyển Hibernate entity sang domain entity. @param h @return domain entity */
@@ -31,6 +32,7 @@ public class QuotationHibernateMapper {
                 .ownerId(h.getOwnerId()).quoteDate(h.getQuoteDate()).validUntil(h.getValidUntil())
                 .status(h.getStatus()).subtotal(h.getSubtotal()).discount(h.getDiscount())
                 .tax(h.getTax()).total(h.getTotal()).note(h.getNote())
-                .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt()).build();
+                .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
+                .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }
 }

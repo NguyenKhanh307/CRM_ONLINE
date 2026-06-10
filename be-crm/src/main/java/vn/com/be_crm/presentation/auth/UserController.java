@@ -109,7 +109,33 @@ public class UserController {
         UpdateUserCommand cmd = UpdateUserCommand.builder()
                 .id(id).fullName(request.getFullName()).phone(request.getPhone())
                 .avatarUrl(request.getAvatarUrl()).unitId(request.getUnitId())
-                .status(request.getStatus()).build();
+                .status(request.getStatus()).dataAccessFromYear(request.getDataAccessFromYear()).build();
+        return ResponseEntity.ok(ApiResponse.ok(updateUseCase.execute(cmd)));
+    }
+
+    /**
+     * Thu hồi tài khoản nhân viên — chuyển status sang locked.
+     *
+     * @param id ID người dùng cần thu hồi
+     * @return 200 OK với UserResult đã cập nhật
+     */
+    @PutMapping("/{id}/revoke")
+    public ResponseEntity<ApiResponse<UserResult>> revoke(@PathVariable Long id) {
+        UpdateUserCommand cmd = UpdateUserCommand.builder()
+                .id(id).status(vn.com.be_crm.domain.auth.enums.UserStatus.locked).build();
+        return ResponseEntity.ok(ApiResponse.ok(updateUseCase.execute(cmd)));
+    }
+
+    /**
+     * Kích hoạt lại tài khoản nhân viên bị thu hồi — chuyển status sang active.
+     *
+     * @param id ID người dùng cần kích hoạt lại
+     * @return 200 OK với UserResult đã cập nhật
+     */
+    @PutMapping("/{id}/reactivate")
+    public ResponseEntity<ApiResponse<UserResult>> reactivate(@PathVariable Long id) {
+        UpdateUserCommand cmd = UpdateUserCommand.builder()
+                .id(id).status(vn.com.be_crm.domain.auth.enums.UserStatus.active).build();
         return ResponseEntity.ok(ApiResponse.ok(updateUseCase.execute(cmd)));
     }
 

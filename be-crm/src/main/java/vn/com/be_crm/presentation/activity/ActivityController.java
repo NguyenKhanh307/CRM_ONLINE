@@ -1,5 +1,6 @@
 package vn.com.be_crm.presentation.activity;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -69,10 +70,12 @@ public class ActivityController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ActivityResult>>> list(
+            HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "id") String sortBy, @RequestParam(defaultValue = "asc") String sortDir) {
+        Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
         PageResult<ActivityResult> result = listUseCase.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).build());
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).build());
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(result)));
     }
 

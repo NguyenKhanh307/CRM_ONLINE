@@ -1,5 +1,6 @@
 package vn.com.be_crm.domain.customer.repository;
 
+import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.customer.entity.Customer;
@@ -24,14 +25,36 @@ public interface ICustomerRepository {
     Optional<Customer> findById(Long id);
 
     /**
-     * Xóa mềm khách hàng theo ID.
-     * @param id ID cần xóa
+     * Xóa mềm khách hàng theo ID, ghi nhận người xóa.
+     * @param id        ID cần xóa
+     * @param deletedBy ID người thực hiện xóa
      */
-    void deleteById(Long id);
+    void deleteById(Long id, Long deletedBy);
 
     /**
      * Lấy danh sách khách hàng chưa xóa có phân trang.
      * @param r tham số phân trang @return PageResult
      */
     PageResult<Customer> findAll(PageRequest r);
+
+    /**
+     * Lấy danh sách khách hàng đã xóa mềm trong 30 ngày gần nhất (dùng cho thùng rác).
+     * @param userId  ID người dùng hiện tại
+     * @param isAdmin true nếu admin (xem tất cả), false nếu chỉ xem của mình
+     * @param r       tham số phân trang
+     * @return PageResult<DeletedItemResult>
+     */
+    PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest r);
+
+    /**
+     * Khôi phục khách hàng từ thùng rác.
+     * @param id ID cần khôi phục
+     */
+    void restoreById(Long id);
+
+    /**
+     * Ẩn khách hàng khỏi thùng rác (set is_purged = true).
+     * @param id ID cần ẩn
+     */
+    void purgeById(Long id);
 }

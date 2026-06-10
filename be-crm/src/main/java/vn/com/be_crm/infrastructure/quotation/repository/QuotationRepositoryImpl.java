@@ -4,6 +4,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
+import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
@@ -11,6 +12,7 @@ import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 import vn.com.be_crm.infrastructure.quotation.entity.QuotationHibernate;
 import vn.com.be_crm.infrastructure.quotation.mapper.QuotationHibernateMapper;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -47,12 +49,59 @@ public class QuotationRepositoryImpl implements IQuotationRepository {
         }
     }
 
-    /** Xóa mềm Quotation. @param id */
-    @Override public void deleteById(Long id) {
+    /** Xóa mềm Quotation, ghi nhận người xóa. @param id ID @param deletedBy userId người xóa */
+    @Override public void deleteById(Long id, Long deletedBy) {
         try (Session s = sf.openSession()) {
             Transaction tx = s.beginTransaction();
             QuotationHibernate h = s.find(QuotationHibernate.class, id);
-            if (h != null) { h.setDeletedAt(LocalDateTime.now()); s.merge(h); }
+            if (h != null) { h.setDeletedAt(LocalDateTime.now()); h.setDeletedBy(deletedBy); s.merge(h); }
+            tx.commit();
+        }
+    }
+
+    /** Lấy danh sách Quotation trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
+    @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
+        try (Session s = sf.openSession()) {
+            LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+            String userFilter = isAdmin ? "" : " AND q.deleted_by = :userId";
+            String sql = "SELECT q.id, q.code, q.deleted_at, u.full_name FROM quotations q" +
+                    " LEFT JOIN users u ON u.id = q.deleted_by" +
+                    " WHERE q.deleted_at IS NOT NULL AND q.deleted_at >= :cutoff AND q.is_purged = 0" +
+                    userFilter + " ORDER BY q.deleted_at DESC";
+            var qr = s.createNativeQuery(sql, Object[].class)
+                    .setParameter("cutoff", cutoff)
+                    .setFirstResult(req.getOffset()).setMaxResults(req.getSize());
+            if (!isAdmin) qr.setParameter("userId", userId);
+            List<DeletedItemResult> items = qr.list().stream()
+                    .map(row -> new DeletedItemResult(
+                            ((Number) row[0]).longValue(), (String) row[1],
+                            row[2] instanceof Timestamp ts ? ts.toLocalDateTime() : (LocalDateTime) row[2],
+                            (String) row[3]))
+                    .collect(Collectors.toList());
+            String countSql = "SELECT COUNT(*) FROM quotations q WHERE q.deleted_at IS NOT NULL AND q.deleted_at >= :cutoff AND q.is_purged = 0" + userFilter;
+            var cq = s.createNativeQuery(countSql, Object.class).setParameter("cutoff", cutoff);
+            if (!isAdmin) cq.setParameter("userId", userId);
+            long total = ((Number) cq.uniqueResult()).longValue();
+            return PageResult.<DeletedItemResult>builder().items(items).total(total).page(req.getPage()).size(req.getSize()).build();
+        }
+    }
+
+    /** Khôi phục Quotation từ thùng rác. @param id ID */
+    @Override public void restoreById(Long id) {
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            QuotationHibernate h = s.find(QuotationHibernate.class, id);
+            if (h != null) { h.setDeletedAt(null); h.setDeletedBy(null); h.setPurged(false); s.merge(h); }
+            tx.commit();
+        }
+    }
+
+    /** Ẩn Quotation khỏi thùng rác (is_purged = true). @param id ID */
+    @Override public void purgeById(Long id) {
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            QuotationHibernate h = s.find(QuotationHibernate.class, id);
+            if (h != null) { h.setPurged(true); s.merge(h); }
             tx.commit();
         }
     }
@@ -60,12 +109,14 @@ public class QuotationRepositoryImpl implements IQuotationRepository {
     /** Lấy danh sách Quotation chưa xóa có phân trang. @param r @return PageResult */
     @Override public PageResult<Quotation> findAll(PageRequest r) {
         try (Session s = sf.openSession()) {
-            List<Quotation> items = s.createQuery(
-                    "FROM QuotationHibernate WHERE deletedAt IS NULL ORDER BY " + r.getSortBy() + " " + r.getSortDir(),
-                    QuotationHibernate.class)
-                    .setFirstResult(r.getOffset()).setMaxResults(r.getSize())
-                    .list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            long total = s.createQuery("SELECT COUNT(q) FROM QuotationHibernate q WHERE q.deletedAt IS NULL", Long.class).uniqueResult();
+            String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
+            var q = s.createQuery("FROM QuotationHibernate WHERE deletedAt IS NULL" + yearFilter + " ORDER BY " + r.getSortBy() + " " + r.getSortDir(), QuotationHibernate.class)
+                    .setFirstResult(r.getOffset()).setMaxResults(r.getSize());
+            if (r.getDataAccessFromYear() != null) q.setParameter("fromYear", r.getDataAccessFromYear());
+            List<Quotation> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
+            var cq = s.createQuery("SELECT COUNT(q) FROM QuotationHibernate q WHERE q.deletedAt IS NULL" + (r.getDataAccessFromYear() != null ? " AND YEAR(q.createdAt) >= :fromYear" : ""), Long.class);
+            if (r.getDataAccessFromYear() != null) cq.setParameter("fromYear", r.getDataAccessFromYear());
+            long total = cq.uniqueResult();
             return PageResult.<Quotation>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
         }
     }

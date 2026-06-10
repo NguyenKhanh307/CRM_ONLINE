@@ -1,12 +1,17 @@
 package vn.com.be_crm.presentation.contact;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.contact.command.*;
 import vn.com.be_crm.application.contact.dto.*;
 import vn.com.be_crm.application.contact.query.*;
+import vn.com.be_crm.application.shared.dto.DeleteCommand;
+import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
+import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
 import vn.com.be_crm.presentation.shared.ApiResponse;
 import vn.com.be_crm.presentation.shared.PageResponse;
 
@@ -21,15 +26,21 @@ public class ContactController {
     private final DeleteContactUseCase deleteUC;
     private final GetContactUseCase getUC;
     private final ListContactUseCase listUC;
+    private final ListDeletedContactsUseCase listDeletedUC;
+    private final RestoreContactUseCase restoreUC;
+    private final PurgeContactUseCase purgeUC;
 
     /**
      * @param createUC use case tạo mới @param updateUC use case cập nhật @param deleteUC use case xóa mềm
      * @param getUC    use case lấy theo ID @param listUC use case lấy danh sách
+     * @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn
      */
     public ContactController(CreateContactUseCase createUC, UpdateContactUseCase updateUC,
-                              DeleteContactUseCase deleteUC, GetContactUseCase getUC, ListContactUseCase listUC) {
+                              DeleteContactUseCase deleteUC, GetContactUseCase getUC, ListContactUseCase listUC,
+                              ListDeletedContactsUseCase listDeletedUC, RestoreContactUseCase restoreUC, PurgeContactUseCase purgeUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
+        this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
     }
 
     /** Tạo mới liên hệ. @param cmd JSON body @return 201 */
@@ -41,10 +52,12 @@ public class ContactController {
     /** Lấy danh sách liên hệ có phân trang. @return 200 */
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ContactResult>>> list(
+            HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "id") String sortBy, @RequestParam(defaultValue = "asc") String sortDir) {
+        Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listUC.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).build()))));
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).build()))));
     }
 
     /** Lấy liên hệ theo ID. @param id ID @return 200 */
@@ -65,9 +78,34 @@ public class ContactController {
                         .isPrimary(cmd.getIsPrimary()).build())));
     }
 
-    /** Xóa mềm liên hệ. @param id ID @return 204 */
+    /** Xóa mềm liên hệ. @param id ID @param req HTTP request @return 204 */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        deleteUC.execute(id); return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> delete(@PathVariable Long id, HttpServletRequest req) {
+        Long userId = (Long) req.getAttribute("userId");
+        deleteUC.execute(new DeleteCommand(id, userId));
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Lấy danh sách liên hệ trong thùng rác. @return 200 */
+    @GetMapping("/deleted")
+    public ResponseEntity<ApiResponse<PageResponse<DeletedItemResult>>> listDeleted(
+            HttpServletRequest req,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        Long userId = (Long) req.getAttribute("userId");
+        boolean isAdmin = SecurityUtils.isAdmin(SecurityContextHolder.getContext().getAuthentication());
+        return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listDeletedUC.execute(userId, isAdmin,
+                PageRequest.builder().page(page).size(size).sortBy("deletedAt").sortDir("desc").build()))));
+    }
+
+    /** Khôi phục liên hệ từ thùng rác. @param id ID @return 200 */
+    @PostMapping("/{id}/restore")
+    public ResponseEntity<ApiResponse<Void>> restore(@PathVariable Long id) {
+        restoreUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    /** Xóa vĩnh viễn liên hệ khỏi thùng rác. @param id ID @return 200 */
+    @DeleteMapping("/{id}/purge")
+    public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
+        purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }

@@ -60,6 +60,8 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 | `sortBy` | `id` | Trường sắp xếp |
 | `sortDir` | `asc` | Chiều sắp xếp (`asc`/`desc`) |
 
+**Lọc theo năm (`dataAccessFromYear`):** Giá trị này **không** là query param — được trích xuất từ JWT claim (`JwtAuthFilter` set vào `request.setAttribute`). Controller đọc ra và truyền vào `PageRequest`. Repository tự động thêm `AND YEAR(createdAt) >= :fromYear` vào HQL khi giá trị không null. Nhân viên mới được tự set `dataAccessFromYear` = năm kích hoạt tài khoản.
+
 ---
 
 ## 2. Danh sách API theo module
@@ -108,10 +110,12 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/users` | Tạo người dùng |
 | `GET` | `/api/users` | Danh sách người dùng (phân trang) |
 | `GET` | `/api/users/{id}` | Lấy người dùng theo ID |
-| `PUT` | `/api/users/{id}` | Cập nhật người dùng |
+| `PUT` | `/api/users/{id}` | Cập nhật người dùng (bao gồm `dataAccessFromYear`) |
 | `DELETE` | `/api/users/{id}` | Xóa mềm người dùng |
 | `POST` | `/api/users/{id}/roles` | Gán role cho người dùng — body: `{ "roleId": ... }` |
 | `DELETE` | `/api/users/{id}/roles/{roleId}` | Thu hồi role khỏi người dùng |
+| `PUT` | `/api/users/{id}/revoke` | Khóa tài khoản (chuyển status → `locked`) |
+| `PUT` | `/api/users/{id}/reactivate` | Mở khóa tài khoản (chuyển status → `active`) |
 
 #### Vai trò — `/api/roles`
 
@@ -164,6 +168,9 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/contacts/{id}` | Lấy liên hệ theo ID |
 | `PUT` | `/api/contacts/{id}` | Cập nhật liên hệ |
 | `DELETE` | `/api/contacts/{id}` | Xóa mềm liên hệ |
+| `GET` | `/api/contacts/deleted` | Thùng rác — danh sách liên hệ đã xóa (30 ngày) |
+| `POST` | `/api/contacts/{id}/restore` | Khôi phục liên hệ từ thùng rác |
+| `DELETE` | `/api/contacts/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 
 #### Số điện thoại — `/api/contacts/{contactId}/phones`
 
@@ -187,6 +194,9 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/customers/{id}` | Lấy khách hàng theo ID |
 | `PUT` | `/api/customers/{id}` | Cập nhật khách hàng |
 | `DELETE` | `/api/customers/{id}` | Xóa mềm khách hàng |
+| `GET` | `/api/customers/deleted` | Thùng rác — danh sách khách hàng đã xóa (30 ngày) |
+| `POST` | `/api/customers/{id}/restore` | Khôi phục khách hàng từ thùng rác |
+| `DELETE` | `/api/customers/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 
 #### Chia sẻ khách hàng — `/api/customers/{customerId}/shares`
 
@@ -228,6 +238,9 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/leads/{id}` | Lấy lead theo ID |
 | `PUT` | `/api/leads/{id}` | Cập nhật lead |
 | `DELETE` | `/api/leads/{id}` | Xóa mềm lead |
+| `GET` | `/api/leads/deleted` | Thùng rác — danh sách lead đã xóa (30 ngày) |
+| `POST` | `/api/leads/{id}/restore` | Khôi phục lead từ thùng rác |
+| `DELETE` | `/api/leads/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác (ẩn UI, DB giữ) |
 
 #### Hoạt động của lead — `/api/leads/{leadId}/activities`
 
@@ -269,6 +282,9 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/opportunities/{id}` | Lấy cơ hội theo ID |
 | `PUT` | `/api/opportunities/{id}` | Cập nhật cơ hội |
 | `DELETE` | `/api/opportunities/{id}` | Xóa mềm cơ hội |
+| `GET` | `/api/opportunities/deleted` | Thùng rác — danh sách cơ hội đã xóa (30 ngày) |
+| `POST` | `/api/opportunities/{id}/restore` | Khôi phục cơ hội từ thùng rác |
+| `DELETE` | `/api/opportunities/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 
 #### Giai đoạn cơ hội — `/api/opportunity-stages`
 
@@ -302,6 +318,9 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/orders/{id}` | Lấy đơn hàng theo ID |
 | `PUT` | `/api/orders/{id}` | Cập nhật đơn hàng |
 | `DELETE` | `/api/orders/{id}` | Xóa mềm đơn hàng |
+| `GET` | `/api/orders/deleted` | Thùng rác — danh sách đơn hàng đã xóa (30 ngày) |
+| `POST` | `/api/orders/{id}/restore` | Khôi phục đơn hàng từ thùng rác |
+| `DELETE` | `/api/orders/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 
 #### Dòng hàng đơn — `/api/orders/{orderId}/items`
 
@@ -352,6 +371,9 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/products/{id}` | Lấy sản phẩm theo ID |
 | `PUT` | `/api/products/{id}` | Cập nhật sản phẩm |
 | `DELETE` | `/api/products/{id}` | Xóa mềm sản phẩm |
+| `GET` | `/api/products/deleted` | Thùng rác — danh sách sản phẩm đã xóa (30 ngày) |
+| `POST` | `/api/products/{id}/restore` | Khôi phục sản phẩm từ thùng rác |
+| `DELETE` | `/api/products/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 
 #### Danh mục sản phẩm — `/api/product-categories`
 
@@ -431,6 +453,9 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/quotations/{id}` | Lấy báo giá theo ID |
 | `PUT` | `/api/quotations/{id}` | Cập nhật báo giá |
 | `DELETE` | `/api/quotations/{id}` | Xóa mềm báo giá |
+| `GET` | `/api/quotations/deleted` | Thùng rác — danh sách báo giá đã xóa (30 ngày) |
+| `POST` | `/api/quotations/{id}/restore` | Khôi phục báo giá từ thùng rác |
+| `DELETE` | `/api/quotations/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 
 #### Dòng sản phẩm báo giá — `/api/quotations/{quotationId}/items`
 
@@ -747,6 +772,23 @@ Các entity hỗ trợ soft delete: User, Contact, Customer, Lead, Opportunity, 
 
 - Xóa = set `deletedAt = LocalDateTime.now()`
 - Truy vấn tự động thêm `WHERE deleted_at IS NULL`
+
+### UserStatus enum
+
+| Giá trị | Ý nghĩa |
+|---------|---------|
+| `active` | Tài khoản đang hoạt động |
+| `inactive` | Chưa kích hoạt (mới đăng ký, chưa qua link email) |
+| `locked` | Đã bị admin thu hồi — không thể đăng nhập |
+
+### dataAccessFromYear — lọc data theo năm
+
+- Field `data_access_from_year` trên bảng `users` (kiểu `SMALLINT UNSIGNED NULL`)
+- Tự set = năm hiện tại khi nhân viên kích hoạt tài khoản (`ActivateAccountUseCase`)
+- Nhúng vào JWT claim, `JwtAuthFilter` trích xuất và set `request.setAttribute("dataAccessFromYear", ...)`
+- Tất cả 9 controller list đọc attribute này và truyền vào `PageRequest.dataAccessFromYear`
+- Repository thêm `AND YEAR(createdAt) >= :fromYear` (hoặc `WHERE YEAR(...)` cho entity không soft delete) khi `dataAccessFromYear != null`
+- Admin có thể sửa qua `PUT /api/users/{id}` với body `{ "dataAccessFromYear": 2025 }`
 
 ### Hibernate 7 API
 

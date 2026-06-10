@@ -87,11 +87,16 @@ public class ActivityRepositoryImpl implements IActivityRepository {
     @Override
     public PageResult<Activity> findAll(PageRequest request) {
         try (Session session = sessionFactory.openSession()) {
-            String hql = "FROM ActivityHibernate ORDER BY " + request.getSortBy() + " " + request.getSortDir();
-            List<Activity> items = session.createQuery(hql, ActivityHibernate.class)
-                    .setFirstResult(request.getOffset()).setMaxResults(request.getSize())
-                    .list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            long total = session.createQuery("SELECT COUNT(a) FROM ActivityHibernate a", Long.class).uniqueResult();
+            String yearFilter = request.getDataAccessFromYear() != null ? " WHERE YEAR(createdAt) >= :fromYear" : "";
+            var q = session.createQuery(
+                    "FROM ActivityHibernate" + yearFilter + " ORDER BY " + request.getSortBy() + " " + request.getSortDir(),
+                    ActivityHibernate.class)
+                    .setFirstResult(request.getOffset()).setMaxResults(request.getSize());
+            if (request.getDataAccessFromYear() != null) q.setParameter("fromYear", request.getDataAccessFromYear());
+            List<Activity> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
+            var cq = session.createQuery("SELECT COUNT(a) FROM ActivityHibernate a" + (request.getDataAccessFromYear() != null ? " WHERE YEAR(a.createdAt) >= :fromYear" : ""), Long.class);
+            if (request.getDataAccessFromYear() != null) cq.setParameter("fromYear", request.getDataAccessFromYear());
+            long total = cq.uniqueResult();
             return PageResult.<Activity>builder()
                     .items(items).total(total).page(request.getPage()).size(request.getSize()).build();
         }

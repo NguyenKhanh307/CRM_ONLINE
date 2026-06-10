@@ -10,6 +10,7 @@ import GroupFormModal from '@/features/phan-quyen/components/GroupFormModal';
 import MembersTab from '@/features/phan-quyen/components/MembersTab';
 import PermissionsTab from '@/features/phan-quyen/components/PermissionsTab';
 import type { RoleGroup } from '@/features/phan-quyen/types/phanQuyenTypes';
+import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { useAlert } from '@/shared/alert/useAlert';
 
 type ActiveTab = 'members' | 'permissions';
@@ -23,6 +24,7 @@ type ModalState =
 const PhanQuyenPage = () => {
     const { showAlert } = useAlert();
     const [selectedGroup, setSelectedGroup] = useState<RoleGroup | null>(null);
+    const [deleteConfirmGroup, setDeleteConfirmGroup] = useState<RoleGroup | null>(null);
 
     const getErrorMsg = (err: unknown): string => {
         if (axios.isAxiosError(err) && err.response?.data?.message)
@@ -66,12 +68,20 @@ const PhanQuyenPage = () => {
     };
 
     const handleDelete = (group: RoleGroup) => {
-        if (!confirm(`Xóa nhóm "${group.name}"? Hành động này không thể hoàn tác.`)) return;
-        deleteMutation.mutate(group.id, {
+        setDeleteConfirmGroup(group);
+    };
+
+    const handleDeleteConfirm = () => {
+        if (!deleteConfirmGroup) return;
+        deleteMutation.mutate(deleteConfirmGroup.id, {
             onSuccess: () => {
-                if (selectedGroup?.id === group.id) setSelectedGroup(null);
+                if (selectedGroup?.id === deleteConfirmGroup.id) setSelectedGroup(null);
+                setDeleteConfirmGroup(null);
             },
-            onError: (err) => showAlert('Xóa nhóm thất bại: ' + getErrorMsg(err)),
+            onError: (err) => {
+                setDeleteConfirmGroup(null);
+                showAlert('Xóa nhóm thất bại: ' + getErrorMsg(err));
+            },
         });
     };
 
@@ -169,6 +179,17 @@ const PhanQuyenPage = () => {
                     onClose={() => setModal({ type: 'none' })}
                     onSubmit={handleModalSubmit}
                     isLoading={isMutating}
+                />
+            )}
+
+            {deleteConfirmGroup && (
+                <ConfirmModal
+                    message={`Xóa nhóm "${deleteConfirmGroup.name}"? Hành động này không thể hoàn tác.`}
+                    confirmLabel="Xóa"
+                    confirmDanger
+                    isLoading={deleteMutation.isPending}
+                    onConfirm={handleDeleteConfirm}
+                    onCancel={() => setDeleteConfirmGroup(null)}
                 />
             )}
         </div>

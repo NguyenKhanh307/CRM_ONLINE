@@ -19,6 +19,7 @@ public class ContactHibernateMapper {
         h.setGender(d.getGender()); h.setDateOfBirth(d.getDateOfBirth()); h.setAddress(d.getAddress());
         h.setIsPrimary(d.getIsPrimary() != null ? d.getIsPrimary() : false);
         h.setDeletedAt(d.getDeletedAt());
+        h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
         return h;
     }
 
@@ -32,6 +33,6 @@ public class ContactHibernateMapper {
                 .fullName(h.getFullName()).position(h.getPosition()).email(h.getEmail())
                 .gender(h.getGender()).dateOfBirth(h.getDateOfBirth()).address(h.getAddress())
                 .isPrimary(h.getIsPrimary()).createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt())
-                .deletedAt(h.getDeletedAt()).build();
+                .deletedAt(h.getDeletedAt()).deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }
 }

@@ -46,11 +46,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (jwtProvider.validateToken(token)) {
                 String email = jwtProvider.extractEmail(token);
                 List<String> roles = jwtProvider.extractRoles(token);
+                Integer dataAccessFromYear = jwtProvider.extractDataAccessFromYear(token);
                 var authorities = roles.stream()
                         .map(SimpleGrantedAuthority::new)
                         .toList();
                 var auth = new UsernamePasswordAuthenticationToken(email, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);
+                if (dataAccessFromYear != null) {
+                    request.setAttribute("dataAccessFromYear", dataAccessFromYear);
+                }
+                Long userId = jwtProvider.extractUserId(token);
+                request.setAttribute("userId", userId);
             }
         }
         chain.doFilter(request, response);

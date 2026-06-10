@@ -31,6 +31,7 @@ public class UserHibernateMapper {
         h.setDeletedAt(domain.getDeletedAt());
         h.setActivationToken(domain.getActivationToken());
         h.setActivationExpiresAt(domain.getActivationExpiresAt());
+        h.setDataAccessFromYear(domain.getDataAccessFromYear());
         return h;
     }
 
@@ -56,6 +57,7 @@ public class UserHibernateMapper {
                 .deletedAt(h.getDeletedAt())
                 .activationToken(h.getActivationToken())
                 .activationExpiresAt(h.getActivationExpiresAt())
+                .dataAccessFromYear(h.getDataAccessFromYear())
                 .build();
     }
 }

@@ -48,6 +48,7 @@ public class UserCommandMapper {
                 .status(cmd.getStatus() != null ? cmd.getStatus() : existing.getStatus())
                 .lastLoginAt(existing.getLastLoginAt())
                 .createdAt(existing.getCreatedAt())
+                .dataAccessFromYear(cmd.getDataAccessFromYear() != null ? cmd.getDataAccessFromYear() : existing.getDataAccessFromYear())
                 .build();
     }
 
@@ -69,6 +70,7 @@ public class UserCommandMapper {
                 .lastLoginAt(entity.getLastLoginAt())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
+                .dataAccessFromYear(entity.getDataAccessFromYear())
                 .build();
     }
 

@@ -29,6 +29,7 @@ export interface GroupMember {
     phone: string | null;
     avatarUrl: string | null;
     unitId: number | null;
+    dataAccessFromYear: number | null;
 }
 
 /** Payload tạo/sửa nhóm. */

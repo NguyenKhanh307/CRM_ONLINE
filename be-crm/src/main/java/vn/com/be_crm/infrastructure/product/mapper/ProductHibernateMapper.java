@@ -27,6 +27,7 @@ public class ProductHibernateMapper {
         h.setIsDiscontinued(d.getIsDiscontinued() != null ? d.getIsDiscontinued() : false);
         h.setIsActive(d.getIsActive() != null ? d.getIsActive() : true);
         h.setDeletedAt(d.getDeletedAt());
+        h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
         return h;
     }
     /**
@@ -40,6 +41,7 @@ public class ProductHibernateMapper {
                 .costPrice(h.getCostPrice()).vatRate(h.getVatRate()).barcode(h.getBarcode())
                 .description(h.getDescription()).isDiscontinued(h.getIsDiscontinued())
                 .isActive(h.getIsActive()).createdAt(h.getCreatedAt())
-                .updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt()).build();
+                .updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
+                .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }
 }

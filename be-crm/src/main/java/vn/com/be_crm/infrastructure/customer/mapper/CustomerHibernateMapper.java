@@ -23,6 +23,7 @@ public class CustomerHibernateMapper {
         h.setStatus(d.getStatus() != null ? d.getStatus() : CustomerStatus.active);
         h.setOwnerId(d.getOwnerId()); h.setUnitId(d.getUnitId());
         h.setDeletedAt(d.getDeletedAt());
+        h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
         return h;
     }
 
@@ -36,6 +37,7 @@ public class CustomerHibernateMapper {
                 .taxCode(h.getTaxCode()).phone(h.getPhone()).email(h.getEmail())
                 .address(h.getAddress()).source(h.getSource()).status(h.getStatus())
                 .ownerId(h.getOwnerId()).unitId(h.getUnitId())
-                .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt()).build();
+                .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
+                .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }
 }

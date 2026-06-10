@@ -1,5 +1,6 @@
 package vn.com.be_crm.domain.order.repository;
 
+import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.order.entity.Order;
@@ -10,12 +11,34 @@ import java.util.Optional;
  * Port lưu trữ cho Order.
  */
 public interface IOrderRepository {
+
     /** Lưu mới hoặc cập nhật đơn hàng. @param o @return entity sau khi lưu */
     Order save(Order o);
+
     /** Tìm đơn hàng theo ID. @param id @return Optional */
     Optional<Order> findById(Long id);
-    /** Xóa mềm đơn hàng. @param id */
-    void deleteById(Long id);
+
+    /**
+     * Xóa mềm đơn hàng theo ID, ghi nhận người xóa.
+     * @param id        ID cần xóa
+     * @param deletedBy ID người thực hiện xóa
+     */
+    void deleteById(Long id, Long deletedBy);
+
     /** Lấy danh sách đơn hàng có phân trang. @param r @return PageResult */
     PageResult<Order> findAll(PageRequest r);
+
+    /**
+     * Lấy danh sách đơn hàng đã xóa mềm trong 30 ngày gần nhất.
+     * @param userId  ID người dùng hiện tại
+     * @param isAdmin true nếu admin
+     * @param r       tham số phân trang
+     */
+    PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest r);
+
+    /** Khôi phục đơn hàng từ thùng rác. @param id */
+    void restoreById(Long id);
+
+    /** Ẩn đơn hàng khỏi thùng rác. @param id */
+    void purgeById(Long id);
 }

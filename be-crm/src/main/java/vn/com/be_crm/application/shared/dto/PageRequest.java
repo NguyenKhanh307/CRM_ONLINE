@@ -30,6 +30,9 @@ public class PageRequest {
     @Builder.Default
     private String sortDir = "asc";
 
+    /** Năm sớm nhất được xem data — null nghĩa là không giới hạn theo năm. */
+    private Integer dataAccessFromYear;
+
     /** @return offset = page * size */
     public int getOffset() {
         return page * size;

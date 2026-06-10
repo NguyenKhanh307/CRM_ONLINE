@@ -48,4 +48,6 @@ public class OpportunityHibernate {
     private LocalDateTime updatedAt;
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+    @Column(name = "deleted_by") private Long deletedBy;
+    @Column(name = "is_purged") private boolean isPurged;
 }

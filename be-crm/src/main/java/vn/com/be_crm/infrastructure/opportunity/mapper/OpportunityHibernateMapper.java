@@ -24,6 +24,7 @@ public class OpportunityHibernateMapper {
         h.setProbability(d.getProbability()); h.setExpectedCloseDate(d.getExpectedCloseDate());
         h.setStatus(d.getStatus() != null ? d.getStatus() : OpportunityStatus.open);
         h.setDeletedAt(d.getDeletedAt());
+        h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
         return h;
     }
 
@@ -37,6 +38,7 @@ public class OpportunityHibernateMapper {
                 .contactId(h.getContactId()).ownerId(h.getOwnerId()).stageId(h.getStageId())
                 .amount(h.getAmount()).probability(h.getProbability())
                 .expectedCloseDate(h.getExpectedCloseDate()).status(h.getStatus())
-                .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt()).build();
+                .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
+                .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }
 }

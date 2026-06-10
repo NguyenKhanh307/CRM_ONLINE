@@ -513,6 +513,37 @@ public class BeanConfig {
     @Bean public vn.com.be_crm.application.order.query.ListOrderDeliveryTrackingUseCase listOrderDeliveryTrackingUseCase(vn.com.be_crm.domain.order.repository.IOrderDeliveryTrackingRepository r) { return new vn.com.be_crm.application.order.query.ListOrderDeliveryTrackingUseCase(r); }
 
     // =====================================================================
+    // TRASH — ListDeleted / Restore / Purge (7 modules)
+    // =====================================================================
+    /** @return ListDeletedLeadsUseCase */ @Bean public vn.com.be_crm.application.lead.query.ListDeletedLeadsUseCase listDeletedLeadsUseCase(vn.com.be_crm.domain.lead.repository.ILeadRepository r) { return new vn.com.be_crm.application.lead.query.ListDeletedLeadsUseCase(r); }
+    /** @return RestoreLeadUseCase */ @Bean public vn.com.be_crm.application.lead.command.RestoreLeadUseCase restoreLeadUseCase(vn.com.be_crm.domain.lead.repository.ILeadRepository r) { return new vn.com.be_crm.application.lead.command.RestoreLeadUseCase(r); }
+    /** @return PurgeLeadUseCase */ @Bean public vn.com.be_crm.application.lead.command.PurgeLeadUseCase purgeLeadUseCase(vn.com.be_crm.domain.lead.repository.ILeadRepository r) { return new vn.com.be_crm.application.lead.command.PurgeLeadUseCase(r); }
+
+    /** @return ListDeletedContactsUseCase */ @Bean public vn.com.be_crm.application.contact.query.ListDeletedContactsUseCase listDeletedContactsUseCase(vn.com.be_crm.domain.contact.repository.IContactRepository r) { return new vn.com.be_crm.application.contact.query.ListDeletedContactsUseCase(r); }
+    /** @return RestoreContactUseCase */ @Bean public vn.com.be_crm.application.contact.command.RestoreContactUseCase restoreContactUseCase(vn.com.be_crm.domain.contact.repository.IContactRepository r) { return new vn.com.be_crm.application.contact.command.RestoreContactUseCase(r); }
+    /** @return PurgeContactUseCase */ @Bean public vn.com.be_crm.application.contact.command.PurgeContactUseCase purgeContactUseCase(vn.com.be_crm.domain.contact.repository.IContactRepository r) { return new vn.com.be_crm.application.contact.command.PurgeContactUseCase(r); }
+
+    /** @return ListDeletedCustomersUseCase */ @Bean public vn.com.be_crm.application.customer.query.ListDeletedCustomersUseCase listDeletedCustomersUseCase(vn.com.be_crm.domain.customer.repository.ICustomerRepository r) { return new vn.com.be_crm.application.customer.query.ListDeletedCustomersUseCase(r); }
+    /** @return RestoreCustomerUseCase */ @Bean public vn.com.be_crm.application.customer.command.RestoreCustomerUseCase restoreCustomerUseCase(vn.com.be_crm.domain.customer.repository.ICustomerRepository r) { return new vn.com.be_crm.application.customer.command.RestoreCustomerUseCase(r); }
+    /** @return PurgeCustomerUseCase */ @Bean public vn.com.be_crm.application.customer.command.PurgeCustomerUseCase purgeCustomerUseCase(vn.com.be_crm.domain.customer.repository.ICustomerRepository r) { return new vn.com.be_crm.application.customer.command.PurgeCustomerUseCase(r); }
+
+    /** @return ListDeletedOpportunitiesUseCase */ @Bean public vn.com.be_crm.application.opportunity.query.ListDeletedOpportunitiesUseCase listDeletedOpportunitiesUseCase(vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository r) { return new vn.com.be_crm.application.opportunity.query.ListDeletedOpportunitiesUseCase(r); }
+    /** @return RestoreOpportunityUseCase */ @Bean public vn.com.be_crm.application.opportunity.command.RestoreOpportunityUseCase restoreOpportunityUseCase(vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository r) { return new vn.com.be_crm.application.opportunity.command.RestoreOpportunityUseCase(r); }
+    /** @return PurgeOpportunityUseCase */ @Bean public vn.com.be_crm.application.opportunity.command.PurgeOpportunityUseCase purgeOpportunityUseCase(vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository r) { return new vn.com.be_crm.application.opportunity.command.PurgeOpportunityUseCase(r); }
+
+    /** @return ListDeletedQuotationsUseCase */ @Bean public vn.com.be_crm.application.quotation.query.ListDeletedQuotationsUseCase listDeletedQuotationsUseCase(vn.com.be_crm.domain.quotation.repository.IQuotationRepository r) { return new vn.com.be_crm.application.quotation.query.ListDeletedQuotationsUseCase(r); }
+    /** @return RestoreQuotationUseCase */ @Bean public vn.com.be_crm.application.quotation.command.RestoreQuotationUseCase restoreQuotationUseCase(vn.com.be_crm.domain.quotation.repository.IQuotationRepository r) { return new vn.com.be_crm.application.quotation.command.RestoreQuotationUseCase(r); }
+    /** @return PurgeQuotationUseCase */ @Bean public vn.com.be_crm.application.quotation.command.PurgeQuotationUseCase purgeQuotationUseCase(vn.com.be_crm.domain.quotation.repository.IQuotationRepository r) { return new vn.com.be_crm.application.quotation.command.PurgeQuotationUseCase(r); }
+
+    /** @return ListDeletedOrdersUseCase */ @Bean public vn.com.be_crm.application.order.query.ListDeletedOrdersUseCase listDeletedOrdersUseCase(vn.com.be_crm.domain.order.repository.IOrderRepository r) { return new vn.com.be_crm.application.order.query.ListDeletedOrdersUseCase(r); }
+    /** @return RestoreOrderUseCase */ @Bean public vn.com.be_crm.application.order.command.RestoreOrderUseCase restoreOrderUseCase(vn.com.be_crm.domain.order.repository.IOrderRepository r) { return new vn.com.be_crm.application.order.command.RestoreOrderUseCase(r); }
+    /** @return PurgeOrderUseCase */ @Bean public vn.com.be_crm.application.order.command.PurgeOrderUseCase purgeOrderUseCase(vn.com.be_crm.domain.order.repository.IOrderRepository r) { return new vn.com.be_crm.application.order.command.PurgeOrderUseCase(r); }
+
+    /** @return ListDeletedProductsUseCase */ @Bean public vn.com.be_crm.application.product.query.ListDeletedProductsUseCase listDeletedProductsUseCase(vn.com.be_crm.domain.product.repository.IProductRepository r) { return new vn.com.be_crm.application.product.query.ListDeletedProductsUseCase(r); }
+    /** @return RestoreProductUseCase */ @Bean public vn.com.be_crm.application.product.command.RestoreProductUseCase restoreProductUseCase(vn.com.be_crm.domain.product.repository.IProductRepository r) { return new vn.com.be_crm.application.product.command.RestoreProductUseCase(r); }
+    /** @return PurgeProductUseCase */ @Bean public vn.com.be_crm.application.product.command.PurgeProductUseCase purgeProductUseCase(vn.com.be_crm.domain.product.repository.IProductRepository r) { return new vn.com.be_crm.application.product.command.PurgeProductUseCase(r); }
+
+    // =====================================================================
     // MODULE PRICING
     // =====================================================================
     /** @return CreatePricePolicyUseCase */

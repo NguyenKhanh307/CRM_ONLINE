@@ -179,7 +179,7 @@ export function useLeadList(params: PageParams = {}) {
 Trang quản lý nhóm người dùng và phân quyền theo nhóm. Kết nối đầy đủ với API.
 
 - **Panel trái**: Danh sách nhóm (roles) — tạo/sửa/xóa nhóm
-- **Tab Thành viên**: Xem + thêm/xóa người dùng trong nhóm
+- **Tab Thành viên**: Xem + thêm/xóa người dùng trong nhóm; Thu hồi/kích hoạt lại tài khoản; Chỉnh sửa năm xem data (`dataAccessFromYear`)
 - **Tab Phân quyền**: Accordion theo module, toggle gán/thu hồi quyền ngay lập tức
 
 | Endpoint | Mô tả |
@@ -194,8 +194,43 @@ Trang quản lý nhóm người dùng và phân quyền theo nhóm. Kết nối 
 | `DELETE /api/roles/{id}/permissions/{permId}` | Thu hồi quyền |
 | `POST /api/users/{userId}/roles` | Thêm thành viên vào nhóm |
 | `DELETE /api/users/{userId}/roles/{roleId}` | Xóa thành viên khỏi nhóm |
+| `PUT /api/users/{userId}/revoke` | Thu hồi tài khoản (→ locked) |
+| `PUT /api/users/{userId}/reactivate` | Kích hoạt lại tài khoản (→ active) |
+| `PUT /api/users/{userId}` | Cập nhật `dataAccessFromYear` |
 
-Files: `features/phan-quyen/` — types, services, hooks (8 hooks), components (5 components), pages
+Files: `features/phan-quyen/` — types, services, hooks (11 hooks), components (6 components), pages
+
+### Thùng rác — `/thung-rac`
+
+Trang hiển thị bản ghi đã xóa mềm trong 30 ngày gần nhất. Admin thấy tất cả, nhân viên chỉ thấy bản ghi do mình xóa.
+
+- **7 tab**: Tiềm năng, Liên hệ, Khách hàng, Cơ hội, Báo giá, Đơn hàng, Sản phẩm
+- **Khôi phục**: `POST /api/{module}/{id}/restore`
+- **Xóa vĩnh viễn**: `DELETE /api/{module}/{id}/purge` — set `is_purged=1`, ẩn UI, DB giữ soft-delete
+
+Files: `features/thung-rac/` — types/thungRacTypes.ts, services/trashService.ts, hooks/useTrash.ts, config/trashColumns.tsx, pages/ThungRacPage.tsx
+
+### Shared component
+- `shared/components/ConfirmModal.tsx` — modal xác nhận dùng chung, thay thế `window.confirm()`
+
+### Cấu trúc thư mục đầy đủ (updated)
+
+```
+features/
+├── auth/
+├── users/             # Đăng ký NV + hooks liên quan user
+├── phan-quyen/        # Phân quyền nhóm + thành viên
+├── thung-rac/         # Thùng rác 7 module
+├── tiem-nang/         # Lead
+├── lien-he/           # Contact
+├── khach-hang/        # Customer
+├── co-hoi/            # Opportunity
+├── bao-gia/           # Quotation
+├── don-hang/          # Order
+├── hoat-dong/         # Activity
+├── san-pham/          # Product
+└── kho-hang/          # Warehouse
+```
 
 ### Chưa implement
 - Form tạo mới / chỉnh sửa cho tất cả module

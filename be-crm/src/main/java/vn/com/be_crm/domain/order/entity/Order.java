@@ -41,4 +41,8 @@ public class Order {
     private LocalDateTime updatedAt;
     /** Thời điểm xóa mềm. */
     private LocalDateTime deletedAt;
+    /** ID người dùng đã xóa. */
+    private Long deletedBy;
+    /** True nếu đã ẩn khỏi thùng rác. */
+    private boolean isPurged;
 }

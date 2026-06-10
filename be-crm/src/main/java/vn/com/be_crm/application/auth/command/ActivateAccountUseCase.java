@@ -9,6 +9,7 @@ import vn.com.be_crm.domain.auth.entity.User;
 import vn.com.be_crm.domain.auth.enums.UserStatus;
 import vn.com.be_crm.domain.auth.repository.IUserRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -61,6 +62,7 @@ public class ActivateAccountUseCase implements IUseCase<ActivateAccountCommand, 
                 .createdAt(user.getCreatedAt())
                 .activationToken(null)
                 .activationExpiresAt(null)
+                .dataAccessFromYear(LocalDate.now().getYear())
                 .build();
 
         User saved = userRepository.save(activated);
