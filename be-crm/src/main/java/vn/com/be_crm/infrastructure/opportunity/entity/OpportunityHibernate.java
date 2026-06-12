@@ -25,6 +25,8 @@ public class OpportunityHibernate {
     private String code;
     @Column(name = "name", nullable = false, length = 40)
     private String name;
+    @Column(name = "opportunity_type", length = 20)
+    private String opportunityType;
     @Column(name = "customer_id")
     private Long customerId;
     @Column(name = "contact_id")
@@ -35,13 +37,23 @@ public class OpportunityHibernate {
     private Long stageId;
     @Column(name = "amount", precision = 18, scale = 2)
     private BigDecimal amount;
+    @Column(name = "expected_revenue", precision = 18, scale = 2)
+    private BigDecimal expectedRevenue;
     @Column(name = "probability", precision = 5, scale = 2)
     private BigDecimal probability;
     @Column(name = "expected_close_date")
     private LocalDate expectedCloseDate;
+    @Column(name = "source", length = 30)
+    private String source;
+    @Column(name = "win_loss_reason", length = 255)
+    private String winLossReason;
+    @Column(name = "description", length = 500)
+    private String description;
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 10)
     private OpportunityStatus status;
+    @Column(name = "created_by") private Long createdBy;
+    @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
     @UpdateTimestamp @Column(name = "updated_at")

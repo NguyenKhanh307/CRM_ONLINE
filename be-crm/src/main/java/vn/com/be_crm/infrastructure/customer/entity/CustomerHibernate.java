@@ -35,15 +35,39 @@ public class CustomerHibernate {
     private String email;
     @Column(name = "address", length = 255)
     private String address;
+    @Column(name = "short_name", length = 50)
+    private String shortName;
+    @Column(name = "website", length = 100)
+    private String website;
+    @Column(name = "industry", length = 50)
+    private String industry;
     @Column(name = "source", length = 20)
     private String source;
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20)
     private CustomerStatus status;
+    @Column(name = "credit_days")
+    private Integer creditDays;
+    @Column(name = "credit_limit", precision = 18, scale = 2)
+    private java.math.BigDecimal creditLimit;
+    @Column(name = "bank_account", length = 30)
+    private String bankAccount;
+    @Column(name = "bank_name", length = 100)
+    private String bankName;
+    @Column(name = "rating", length = 10)
+    private String rating;
+    @Column(name = "annual_revenue", precision = 18, scale = 2)
+    private java.math.BigDecimal annualRevenue;
+    @Column(name = "employee_size", length = 30)
+    private String employeeSize;
+    @Column(name = "is_distributor")
+    private boolean isDistributor;
     @Column(name = "owner_id")
     private Long ownerId;
     @Column(name = "unit_id")
     private Long unitId;
+    @Column(name = "created_by") private Long createdBy;
+    @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
     @UpdateTimestamp @Column(name = "updated_at")

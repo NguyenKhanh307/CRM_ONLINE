@@ -4,7 +4,6 @@ import vn.com.be_crm.application.warehouse.dto.*;
 import vn.com.be_crm.domain.warehouse.entity.InventoryStock;
 import vn.com.be_crm.domain.warehouse.entity.Warehouse;
 
-import java.math.BigDecimal;
 
 /** Chuyển đổi Command ↔ Warehouse/InventoryStock ↔ Result. */
 public class WarehouseCommandMapper {
@@ -12,7 +11,7 @@ public class WarehouseCommandMapper {
     /** @param c command @return entity */
     public static Warehouse toEntity(CreateWarehouseCommand c) {
         return Warehouse.builder().code(c.getCode()).name(c.getName()).address(c.getAddress())
-                .managerId(c.getManagerId()).isActive(c.getIsActive() != null ? c.getIsActive() : true).build();
+                .isActive(c.getIsActive() != null ? c.getIsActive() : true).build();
     }
 
     /** @param c command @param e existing @return entity */
@@ -20,7 +19,6 @@ public class WarehouseCommandMapper {
         return Warehouse.builder().id(e.getId()).code(e.getCode())
                 .name(c.getName() != null ? c.getName() : e.getName())
                 .address(c.getAddress() != null ? c.getAddress() : e.getAddress())
-                .managerId(c.getManagerId() != null ? c.getManagerId() : e.getManagerId())
                 .isActive(c.getIsActive() != null ? c.getIsActive() : e.getIsActive())
                 .createdAt(e.getCreatedAt()).build();
     }
@@ -28,23 +26,23 @@ public class WarehouseCommandMapper {
     /** @param e entity @return result */
     public static WarehouseResult toResult(Warehouse e) {
         return WarehouseResult.builder().id(e.getId()).code(e.getCode()).name(e.getName())
-                .address(e.getAddress()).managerId(e.getManagerId()).isActive(e.getIsActive())
+                .address(e.getAddress()).isActive(e.getIsActive())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 
     /** @param c command @return entity */
     public static InventoryStock toEntity(UpsertInventoryStockCommand c) {
         return InventoryStock.builder().id(c.getId()).productId(c.getProductId()).warehouseId(c.getWarehouseId())
-                .quantity(c.getQuantity())
-                .reservedQuantity(c.getReservedQuantity() != null ? c.getReservedQuantity() : BigDecimal.ZERO).build();
+                .quantity(c.getQuantity()).countedQuantity(c.getCountedQuantity())
+                .note(c.getNote()).updatedBy(c.getUpdatedBy()).build();
     }
 
     /** @param e entity @return result */
     public static InventoryStockResult toStockResult(InventoryStock e) {
         return InventoryStockResult.builder().id(e.getId()).productId(e.getProductId())
                 .warehouseId(e.getWarehouseId()).quantity(e.getQuantity())
-                .reservedQuantity(e.getReservedQuantity()).availableQuantity(e.getAvailableQuantity())
-                .updatedAt(e.getUpdatedAt()).build();
+                .countedQuantity(e.getCountedQuantity()).differenceQuantity(e.getDifferenceQuantity())
+                .note(e.getNote()).updatedBy(e.getUpdatedBy()).updatedAt(e.getUpdatedAt()).build();
     }
 
     private WarehouseCommandMapper() {}

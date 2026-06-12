@@ -25,12 +25,26 @@ public class LeadHibernate {
     private String code;
     @Column(name = "name", nullable = false, length = 100)
     private String name;
+    @Column(name = "company_name", length = 100)
+    private String companyName;
+    @Column(name = "lead_type", length = 30)
+    private String leadType;
     @Column(name = "owner_id")
     private Long ownerId;
     @Column(name = "customer_id")
     private Long customerId;
     @Column(name = "contact_id")
     private Long contactId;
+    @Column(name = "title", length = 100)
+    private String title;
+    @Column(name = "department", length = 100)
+    private String department;
+    @Column(name = "tax_code", length = 15)
+    private String taxCode;
+    @Column(name = "website", length = 100)
+    private String website;
+    @Column(name = "industry", length = 50)
+    private String industry;
     @Column(name = "source", length = 20)
     private String source;
     @Convert(converter = LeadStatusConverter.class)
@@ -42,8 +56,14 @@ public class LeadHibernate {
     private String phone;
     @Column(name = "email", length = 50)
     private String email;
+    @Column(name = "do_not_call")
+    private boolean doNotCall;
+    @Column(name = "do_not_email")
+    private boolean doNotEmail;
     @Column(name = "note", length = 255)
     private String note;
+    @Column(name = "created_by") private Long createdBy;
+    @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
     @UpdateTimestamp @Column(name = "updated_at")

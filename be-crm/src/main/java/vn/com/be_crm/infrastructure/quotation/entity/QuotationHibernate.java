@@ -25,9 +25,12 @@ public class QuotationHibernate {
     private String code;
     @Column(name = "customer_id") private Long customerId;
     @Column(name = "contact_id") private Long contactId;
+    @Column(name = "opportunity_id") private Long opportunityId;
     @Column(name = "owner_id") private Long ownerId;
     @Column(name = "quote_date") private LocalDate quoteDate;
     @Column(name = "valid_until") private LocalDate validUntil;
+    @Column(name = "currency", length = 3) private String currency;
+    @Column(name = "exchange_rate", precision = 18, scale = 6) private java.math.BigDecimal exchangeRate;
     @Enumerated(EnumType.STRING) @Column(name = "status", length = 20)
     private QuotationStatus status;
     @Column(name = "subtotal", precision = 18, scale = 2) private BigDecimal subtotal;
@@ -35,6 +38,8 @@ public class QuotationHibernate {
     @Column(name = "tax", precision = 18, scale = 2) private BigDecimal tax;
     @Column(name = "total", precision = 18, scale = 2) private BigDecimal total;
     @Column(name = "note", length = 255) private String note;
+    @Column(name = "created_by") private Long createdBy;
+    @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false) private LocalDateTime createdAt;
     @UpdateTimestamp @Column(name = "updated_at") private LocalDateTime updatedAt;
     @Column(name = "deleted_at") private LocalDateTime deletedAt;

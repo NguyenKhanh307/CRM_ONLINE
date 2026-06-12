@@ -24,12 +24,26 @@ public class ContactHibernate {
     private Long customerId;
     @Column(name = "assigned_user_id")
     private Long assignedUserId;
+    @Column(name = "salutation", length = 10)
+    private String salutation;
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
+    @Column(name = "title", length = 100)
+    private String title;
+    @Column(name = "department", length = 100)
+    private String department;
     @Column(name = "position", length = 100)
     private String position;
     @Column(name = "email", length = 50)
     private String email;
+    @Column(name = "work_email", length = 100)
+    private String workEmail;
+    @Column(name = "personal_email", length = 100)
+    private String personalEmail;
+    @Column(name = "zalo", length = 20)
+    private String zalo;
+    @Column(name = "source", length = 30)
+    private String source;
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", length = 10)
     private ContactGender gender;
@@ -37,8 +51,14 @@ public class ContactHibernate {
     private LocalDate dateOfBirth;
     @Column(name = "address", length = 255)
     private String address;
+    @Column(name = "do_not_call")
+    private boolean doNotCall;
+    @Column(name = "do_not_email")
+    private boolean doNotEmail;
     @Column(name = "is_primary")
     private Boolean isPrimary;
+    @Column(name = "created_by") private Long createdBy;
+    @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
     @UpdateTimestamp @Column(name = "updated_at")

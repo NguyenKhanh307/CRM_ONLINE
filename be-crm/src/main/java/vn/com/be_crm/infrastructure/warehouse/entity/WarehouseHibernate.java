@@ -16,7 +16,6 @@ public class WarehouseHibernate {
     @Column(name = "code", nullable = false, unique = true, length = 20) private String code;
     @Column(name = "name", nullable = false, length = 40) private String name;
     @Column(name = "address", length = 255) private String address;
-    @Column(name = "manager_id") private Long managerId;
     @Column(name = "is_active", nullable = false) private Boolean isActive;
     @CreationTimestamp @Column(name = "created_at", nullable = false, updatable = false) private LocalDateTime createdAt;
     @UpdateTimestamp @Column(name = "updated_at", nullable = false) private LocalDateTime updatedAt;

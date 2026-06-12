@@ -3,7 +3,6 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/shared/components/layout/MainLayout';
 import { RequireAuth } from '@/core/auth/RequireAuth';
 
-const UserListPage            = lazy(() => import('@/features/users/pages/UserListPage'));
 const RegisterEmployeePage    = lazy(() => import('@/features/users/pages/RegisterEmployeePage'));
 const LoginPage               = lazy(() => import('@/features/auth/pages/LoginPage'));
 const ActivatePage            = lazy(() => import('@/features/auth/pages/ActivatePage'));
@@ -30,6 +29,8 @@ const KhoHangPage     = lazy(() => import('@/features/kho-hang/pages/KhoHangPage
 const WarehouseImportPage = lazy(() => import('@/features/kho-hang/pages/WarehouseImportPage'));
 const PhanQuyenPage   = lazy(() => import('@/features/phan-quyen/pages/PhanQuyenPage'));
 const ThungRacPage    = lazy(() => import('@/features/thung-rac/pages/ThungRacPage'));
+const ChinhSachGiaPage = lazy(() => import('@/features/chinh-sach-gia/pages/ChinhSachGiaPage'));
+const ChinhSachGiaDetailPage = lazy(() => import('@/features/chinh-sach-gia/pages/ChinhSachGiaDetailPage'));
 
 const fallback = <div className="p-6 text-gray-400">Đang tải...</div>;
 
@@ -38,7 +39,6 @@ export const router = createBrowserRouter([
         element: <RequireAuth><MainLayout /></RequireAuth>,
         children: [
             { path: '/',                     element: <Navigate to="/dashboard" replace /> },
-            { path: '/users',                element: <Suspense fallback={fallback}><UserListPage /></Suspense> },
             { path: '/dang-ky-nhan-vien',    element: <Suspense fallback={fallback}><RegisterEmployeePage /></Suspense> },
             { path: '/dashboard',            element: <Suspense fallback={fallback}><DashboardPage /></Suspense> },
             { path: '/tiem-nang',              element: <Suspense fallback={fallback}><TiemNangPage /></Suspense> },
@@ -61,6 +61,8 @@ export const router = createBrowserRouter([
             { path: '/san-pham/nhap-file',    element: <Suspense fallback={fallback}><ProductImportPage /></Suspense> },
             { path: '/kho-hang',              element: <Suspense fallback={fallback}><KhoHangPage /></Suspense> },
             { path: '/kho-hang/nhap-file',    element: <Suspense fallback={fallback}><WarehouseImportPage /></Suspense> },
+            { path: '/chinh-sach-gia',        element: <Suspense fallback={fallback}><ChinhSachGiaPage /></Suspense> },
+            { path: '/chinh-sach-gia/:id',   element: <Suspense fallback={fallback}><ChinhSachGiaDetailPage /></Suspense> },
             { path: '/phan-quyen',           element: <Suspense fallback={fallback}><PhanQuyenPage /></Suspense> },
             { path: '/thung-rac',            element: <Suspense fallback={fallback}><ThungRacPage /></Suspense> },
         ],

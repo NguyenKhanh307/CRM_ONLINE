@@ -11,13 +11,13 @@ interface Props {
 export function WarehouseEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateWarehouse();
     const [form, setForm] = useState<UpdateWarehousePayload>({
-        name: '', address: null, managerId: null, isActive: true,
+        name: '', address: null, isActive: true,
     });
 
     useEffect(() => {
         if (!item) return;
         setForm({
-            name: item.name, address: item.address, managerId: item.managerId, isActive: item.isActive,
+            name: item.name, address: item.address, isActive: item.isActive,
         });
     }, [item]);
 

@@ -20,7 +20,8 @@ import vn.com.be_crm.domain.auth.repository.*;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityStageRepository;
 import vn.com.be_crm.domain.product.repository.*;
-import vn.com.be_crm.domain.warehouse.repository.*;
+import vn.com.be_crm.domain.warehouse.repository.IInventoryStockRepository;
+import vn.com.be_crm.domain.warehouse.repository.IWarehouseRepository;
 
 /**
  * Wire tất cả UseCase với Repository tương ứng qua @Bean.
@@ -312,11 +313,6 @@ public class BeanConfig {
     @Bean public GetInventoryStockUseCase getInventoryStockUseCase(IInventoryStockRepository r) { return new GetInventoryStockUseCase(r); }
     /** @return ListInventoryStockUseCase */
     @Bean public ListInventoryStockUseCase listInventoryStockUseCase(IInventoryStockRepository r) { return new ListInventoryStockUseCase(r); }
-    /** @return AssignWarehousePermissionUseCase */
-    @Bean public AssignWarehousePermissionUseCase assignWarehousePermissionUseCase(IWarehousePermissionRepository r) { return new AssignWarehousePermissionUseCase(r); }
-    /** @return RevokeWarehousePermissionUseCase */
-    @Bean public RevokeWarehousePermissionUseCase revokeWarehousePermissionUseCase(IWarehousePermissionRepository r) { return new RevokeWarehousePermissionUseCase(r); }
-
     // =====================================================================
     // MODULE CUSTOMER
     // =====================================================================
@@ -336,25 +332,6 @@ public class BeanConfig {
     @Bean public vn.com.be_crm.application.customer.command.RevokeCustomerShareUseCase revokeCustomerShareUseCase(vn.com.be_crm.domain.customer.repository.ICustomerShareRepository r) { return new vn.com.be_crm.application.customer.command.RevokeCustomerShareUseCase(r); }
     /** @return ListCustomerShareUseCase */
     @Bean public vn.com.be_crm.application.customer.query.ListCustomerShareUseCase listCustomerShareUseCase(vn.com.be_crm.domain.customer.repository.ICustomerShareRepository r) { return new vn.com.be_crm.application.customer.query.ListCustomerShareUseCase(r); }
-    /** @return CreateInventoryCheckUseCase */
-    @Bean public vn.com.be_crm.application.customer.command.CreateInventoryCheckUseCase createInventoryCheckUseCase(vn.com.be_crm.domain.customer.repository.IInventoryCheckRepository r) { return new vn.com.be_crm.application.customer.command.CreateInventoryCheckUseCase(r); }
-    /** @return UpdateInventoryCheckUseCase */
-    @Bean public vn.com.be_crm.application.customer.command.UpdateInventoryCheckUseCase updateInventoryCheckUseCase(vn.com.be_crm.domain.customer.repository.IInventoryCheckRepository r) { return new vn.com.be_crm.application.customer.command.UpdateInventoryCheckUseCase(r); }
-    /** @return DeleteInventoryCheckUseCase */
-    @Bean public vn.com.be_crm.application.customer.command.DeleteInventoryCheckUseCase deleteInventoryCheckUseCase(vn.com.be_crm.domain.customer.repository.IInventoryCheckRepository r) { return new vn.com.be_crm.application.customer.command.DeleteInventoryCheckUseCase(r); }
-    /** @return GetInventoryCheckUseCase */
-    @Bean public vn.com.be_crm.application.customer.query.GetInventoryCheckUseCase getInventoryCheckUseCase(vn.com.be_crm.domain.customer.repository.IInventoryCheckRepository r) { return new vn.com.be_crm.application.customer.query.GetInventoryCheckUseCase(r); }
-    /** @return ListInventoryCheckUseCase */
-    @Bean public vn.com.be_crm.application.customer.query.ListInventoryCheckUseCase listInventoryCheckUseCase(vn.com.be_crm.domain.customer.repository.IInventoryCheckRepository r) { return new vn.com.be_crm.application.customer.query.ListInventoryCheckUseCase(r); }
-    /** @return CreateInventoryCheckItemUseCase */
-    @Bean public vn.com.be_crm.application.customer.command.CreateInventoryCheckItemUseCase createInventoryCheckItemUseCase(vn.com.be_crm.domain.customer.repository.IInventoryCheckItemRepository r) { return new vn.com.be_crm.application.customer.command.CreateInventoryCheckItemUseCase(r); }
-    /** @return UpdateInventoryCheckItemUseCase */
-    @Bean public vn.com.be_crm.application.customer.command.UpdateInventoryCheckItemUseCase updateInventoryCheckItemUseCase(vn.com.be_crm.domain.customer.repository.IInventoryCheckItemRepository r) { return new vn.com.be_crm.application.customer.command.UpdateInventoryCheckItemUseCase(r); }
-    /** @return DeleteInventoryCheckItemUseCase */
-    @Bean public vn.com.be_crm.application.customer.command.DeleteInventoryCheckItemUseCase deleteInventoryCheckItemUseCase(vn.com.be_crm.domain.customer.repository.IInventoryCheckItemRepository r) { return new vn.com.be_crm.application.customer.command.DeleteInventoryCheckItemUseCase(r); }
-    /** @return ListInventoryCheckItemUseCase */
-    @Bean public vn.com.be_crm.application.customer.query.ListInventoryCheckItemUseCase listInventoryCheckItemUseCase(vn.com.be_crm.domain.customer.repository.IInventoryCheckItemRepository r) { return new vn.com.be_crm.application.customer.query.ListInventoryCheckItemUseCase(r); }
-
     // =====================================================================
     // MODULE CONTACT
     // =====================================================================
@@ -398,14 +375,6 @@ public class BeanConfig {
     @Bean public vn.com.be_crm.application.lead.command.DeleteLeadActivityUseCase deleteLeadActivityUseCase(vn.com.be_crm.domain.lead.repository.ILeadActivityRepository r) { return new vn.com.be_crm.application.lead.command.DeleteLeadActivityUseCase(r); }
     /** @return ListLeadActivityUseCase */
     @Bean public vn.com.be_crm.application.lead.query.ListLeadActivityUseCase listLeadActivityUseCase(vn.com.be_crm.domain.lead.repository.ILeadActivityRepository r) { return new vn.com.be_crm.application.lead.query.ListLeadActivityUseCase(r); }
-    /** @return CreateLeadAttachmentUseCase */
-    @Bean public vn.com.be_crm.application.lead.command.CreateLeadAttachmentUseCase createLeadAttachmentUseCase(vn.com.be_crm.domain.lead.repository.ILeadAttachmentRepository r) { return new vn.com.be_crm.application.lead.command.CreateLeadAttachmentUseCase(r); }
-    /** @return UpdateLeadAttachmentUseCase */
-    @Bean public vn.com.be_crm.application.lead.command.UpdateLeadAttachmentUseCase updateLeadAttachmentUseCase(vn.com.be_crm.domain.lead.repository.ILeadAttachmentRepository r) { return new vn.com.be_crm.application.lead.command.UpdateLeadAttachmentUseCase(r); }
-    /** @return DeleteLeadAttachmentUseCase */
-    @Bean public vn.com.be_crm.application.lead.command.DeleteLeadAttachmentUseCase deleteLeadAttachmentUseCase(vn.com.be_crm.domain.lead.repository.ILeadAttachmentRepository r) { return new vn.com.be_crm.application.lead.command.DeleteLeadAttachmentUseCase(r); }
-    /** @return ListLeadAttachmentUseCase */
-    @Bean public vn.com.be_crm.application.lead.query.ListLeadAttachmentUseCase listLeadAttachmentUseCase(vn.com.be_crm.domain.lead.repository.ILeadAttachmentRepository r) { return new vn.com.be_crm.application.lead.query.ListLeadAttachmentUseCase(r); }
     /** @return CreateLeadTransferUseCase */
     @Bean public vn.com.be_crm.application.lead.command.CreateLeadTransferUseCase createLeadTransferUseCase(vn.com.be_crm.domain.lead.repository.ILeadTransferRepository r) { return new vn.com.be_crm.application.lead.command.CreateLeadTransferUseCase(r); }
     /** @return UpdateLeadTransferUseCase */

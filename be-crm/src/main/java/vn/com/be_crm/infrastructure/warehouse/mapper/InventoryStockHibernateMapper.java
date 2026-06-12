@@ -14,14 +14,16 @@ public class InventoryStockHibernateMapper {
         InventoryStockHibernate h = new InventoryStockHibernate();
         h.setId(d.getId()); h.setProductId(d.getProductId()); h.setWarehouseId(d.getWarehouseId());
         h.setQuantity(d.getQuantity() != null ? d.getQuantity() : BigDecimal.ZERO);
-        h.setReservedQuantity(d.getReservedQuantity() != null ? d.getReservedQuantity() : BigDecimal.ZERO);
+        h.setCountedQuantity(d.getCountedQuantity());
+        h.setNote(d.getNote());
+        h.setUpdatedBy(d.getUpdatedBy());
         return h;
     }
     /** @param h hibernate @return domain */
     public InventoryStock toDomain(InventoryStockHibernate h) {
         return InventoryStock.builder().id(h.getId()).productId(h.getProductId())
                 .warehouseId(h.getWarehouseId()).quantity(h.getQuantity())
-                .reservedQuantity(h.getReservedQuantity()).availableQuantity(h.getAvailableQuantity())
-                .updatedAt(h.getUpdatedAt()).build();
+                .countedQuantity(h.getCountedQuantity()).differenceQuantity(h.getDifferenceQuantity())
+                .note(h.getNote()).updatedBy(h.getUpdatedBy()).updatedAt(h.getUpdatedAt()).build();
     }
 }

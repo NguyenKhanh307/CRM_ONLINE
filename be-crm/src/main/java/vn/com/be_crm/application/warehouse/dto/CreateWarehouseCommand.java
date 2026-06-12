@@ -13,6 +13,5 @@ public class CreateWarehouseCommand {
     @NotBlank(message = "Mã kho không được để trống") @Size(max = 20) private String code;
     @NotBlank(message = "Tên kho không được để trống") @Size(max = 40) private String name;
     @Size(max = 255) private String address;
-    private Long managerId;
     private Boolean isActive;
 }

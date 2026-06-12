@@ -15,5 +15,7 @@ public class UpsertInventoryStockCommand {
     @NotNull(message = "productId không được để trống") private Long productId;
     @NotNull(message = "warehouseId không được để trống") private Long warehouseId;
     @NotNull(message = "quantity không được để trống") private BigDecimal quantity;
-    private BigDecimal reservedQuantity;
+    private BigDecimal countedQuantity;
+    private String note;
+    private Long updatedBy;
 }

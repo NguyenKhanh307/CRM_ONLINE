@@ -15,6 +15,7 @@
    - [Pricing — Chính sách giá](#29-pricing--chính-sách-giá)
    - [Quotation — Báo giá](#210-quotation--báo-giá)
    - [Warehouse — Kho hàng](#211-warehouse--kho-hàng)
+   - [Handover — Bàn giao công việc](#212-handover--bàn-giao-công-việc)
 3. [Cấu trúc folder/file](#3-cấu-trúc-folderfile)
 4. [Quy ước chung](#4-quy-ước-chung)
 
@@ -108,7 +109,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
 | `POST` | `/api/users` | Tạo người dùng |
-| `GET` | `/api/users` | Danh sách người dùng (phân trang) |
+| `GET` | `/api/users` | Danh sách người dùng (phân trang) — hỗ trợ `?status=active` để lọc chỉ user đang hoạt động |
 | `GET` | `/api/users/{id}` | Lấy người dùng theo ID |
 | `PUT` | `/api/users/{id}` | Cập nhật người dùng (bao gồm `dataAccessFromYear`) |
 | `DELETE` | `/api/users/{id}` | Xóa mềm người dùng |
@@ -200,6 +201,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/customers/{id}/restore` | Khôi phục khách hàng từ thùng rác |
 | `DELETE` | `/api/customers/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 | `POST` | `/api/customers/import-bulk` | Nhập hàng loạt khách hàng từ file Excel/CSV |
+| `POST` | `/api/customers/handover-bulk` | Bàn giao nhiều khách hàng sang người dùng khác — body: `{ ids, toUserId, reason? }` |
 
 #### Chia sẻ khách hàng — `/api/customers/{customerId}/shares`
 
@@ -208,25 +210,6 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/customers/{customerId}/shares` | Chia sẻ khách hàng cho user |
 | `GET` | `/api/customers/{customerId}/shares` | Danh sách user được chia sẻ |
 | `DELETE` | `/api/customers/{customerId}/shares/{userId}` | Thu hồi quyền truy cập |
-
-#### Kiểm kê hàng tồn kho — `/api/inventory-checks`
-
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `POST` | `/api/inventory-checks` | Tạo phiếu kiểm kê |
-| `GET` | `/api/inventory-checks` | Danh sách phiếu kiểm kê (phân trang) |
-| `GET` | `/api/inventory-checks/{id}` | Lấy phiếu kiểm kê theo ID |
-| `PUT` | `/api/inventory-checks/{id}` | Cập nhật phiếu kiểm kê |
-| `DELETE` | `/api/inventory-checks/{id}` | Xóa phiếu kiểm kê |
-
-#### Chi tiết kiểm kê — `/api/inventory-checks/{checkId}/items`
-
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `POST` | `/api/inventory-checks/{checkId}/items` | Thêm dòng hàng vào phiếu kiểm kê |
-| `GET` | `/api/inventory-checks/{checkId}/items` | Danh sách dòng hàng |
-| `PUT` | `/api/inventory-checks/{checkId}/items/{id}` | Cập nhật dòng hàng |
-| `DELETE` | `/api/inventory-checks/{checkId}/items/{id}` | Xóa dòng hàng |
 
 ---
 
@@ -245,6 +228,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/leads/{id}/restore` | Khôi phục lead từ thùng rác |
 | `DELETE` | `/api/leads/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác (ẩn UI, DB giữ) |
 | `POST` | `/api/leads/import-bulk` | Nhập hàng loạt lead từ file Excel/CSV (hỗ trợ CREATE/UPDATE/BOTH) |
+| `POST` | `/api/leads/handover-bulk` | Bàn giao nhiều lead sang người dùng khác — body: `{ ids, toUserId, reason? }` |
 
 #### Hoạt động của lead — `/api/leads/{leadId}/activities`
 
@@ -254,15 +238,6 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/leads/{leadId}/activities` | Lịch sử hoạt động của lead |
 | `PUT` | `/api/leads/{leadId}/activities/{id}` | Cập nhật hoạt động |
 | `DELETE` | `/api/leads/{leadId}/activities/{id}` | Xóa hoạt động |
-
-#### Đính kèm lead — `/api/leads/{leadId}/attachments`
-
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `POST` | `/api/leads/{leadId}/attachments` | Thêm tệp đính kèm |
-| `GET` | `/api/leads/{leadId}/attachments` | Danh sách đính kèm |
-| `PUT` | `/api/leads/{leadId}/attachments/{id}` | Cập nhật đính kèm |
-| `DELETE` | `/api/leads/{leadId}/attachments/{id}` | Xóa đính kèm |
 
 #### Chuyển giao lead — `/api/leads/{leadId}/transfers`
 
@@ -290,6 +265,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/opportunities/{id}/restore` | Khôi phục cơ hội từ thùng rác |
 | `DELETE` | `/api/opportunities/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 | `POST` | `/api/opportunities/import-bulk` | Nhập hàng loạt cơ hội từ file Excel/CSV |
+| `POST` | `/api/opportunities/handover-bulk` | Bàn giao nhiều cơ hội sang người dùng khác — body: `{ ids, toUserId, reason? }` |
 
 #### Giai đoạn cơ hội — `/api/opportunity-stages`
 
@@ -327,6 +303,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/orders/{id}/restore` | Khôi phục đơn hàng từ thùng rác |
 | `DELETE` | `/api/orders/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 | `POST` | `/api/orders/import-bulk` | Nhập hàng loạt đơn hàng từ file Excel/CSV |
+| `POST` | `/api/orders/handover-bulk` | Bàn giao nhiều đơn hàng sang người dùng khác — body: `{ ids, toUserId, reason? }` |
 
 #### Dòng hàng đơn — `/api/orders/{orderId}/items`
 
@@ -464,6 +441,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/quotations/{id}/restore` | Khôi phục báo giá từ thùng rác |
 | `DELETE` | `/api/quotations/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 | `POST` | `/api/quotations/import-bulk` | Nhập hàng loạt báo giá từ file Excel/CSV |
+| `POST` | `/api/quotations/handover-bulk` | Bàn giao nhiều báo giá sang người dùng khác — body: `{ ids, toUserId, reason? }` |
 
 #### Dòng sản phẩm báo giá — `/api/quotations/{quotationId}/items`
 
@@ -485,6 +463,23 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 ---
 
+### 2.12 Handover — Bàn giao công việc
+
+#### Bàn giao toàn bộ — `/api/handover`
+
+| Method | Endpoint | Mô tả | Auth yêu cầu |
+|--------|----------|-------|--------------|
+| `POST` | `/api/handover/all` | Bàn giao toàn bộ bản ghi của fromUser sang toUser trên 5 module (leads, customers, opportunities, quotations, orders) | Chỉ ADMIN / SALES_MANAGER |
+
+**Request body:**
+```json
+{ "fromUserId": 2, "toUserId": 3, "reason": "Lý do bàn giao (tùy chọn)" }
+```
+
+**Quyền:** `SecurityUtils.isAdminOrManager()` kiểm tra trong Spring SecurityContext — trả 403 nếu không đủ quyền.
+
+---
+
 ### 2.11 Warehouse — Kho hàng
 
 #### Kho hàng — `/api/warehouses`
@@ -496,8 +491,6 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/warehouses/{id}` | Lấy kho theo ID |
 | `PUT` | `/api/warehouses/{id}` | Cập nhật kho |
 | `DELETE` | `/api/warehouses/{id}` | Xóa kho |
-| `POST` | `/api/warehouses/{id}/permissions` | Gán quyền truy cập kho cho user |
-| `DELETE` | `/api/warehouses/{id}/permissions/{userId}` | Thu hồi quyền truy cập kho |
 | `POST` | `/api/warehouses/import-bulk` | Nhập hàng loạt kho hàng từ file Excel/CSV |
 
 #### Tồn kho — `/api/inventory-stocks`
@@ -625,18 +618,13 @@ be-crm/src/main/java/vn/com/be_crm/
 |---------------|------|-----------|
 | `domain/customer/entity/Customer.java` | Domain | Entity khách hàng (soft delete) |
 | `domain/customer/entity/CustomerShare.java` | Domain | Bản ghi chia sẻ khách hàng cho user |
-| `domain/customer/entity/InventoryCheck.java` | Domain | Phiếu kiểm kê hàng tại kho của khách |
-| `domain/customer/entity/InventoryCheckItem.java` | Domain | Dòng hàng trong phiếu kiểm kê |
 | `domain/customer/enums/CustomerStatus.java` | Domain | Trạng thái khách hàng |
 | `domain/customer/enums/CustomerType.java` | Domain | Loại khách hàng |
 | `domain/customer/enums/CustomerSharePermission.java` | Domain | Mức quyền chia sẻ (view/edit) |
-| `domain/customer/enums/InventoryCheckStatus.java` | Domain | Trạng thái phiếu kiểm kê |
-| `domain/customer/repository/I*Repository.java` | Domain | 4 interface repository |
-| `application/customer/...` | Application | Use case CRUD + query cho cả 4 entity |
+| `domain/customer/repository/I*Repository.java` | Domain | 2 interface repository |
+| `application/customer/...` | Application | Use case CRUD + query cho Customer & CustomerShare |
 | `presentation/customer/CustomerController.java` | Presentation | REST `/api/customers` |
 | `presentation/customer/CustomerShareController.java` | Presentation | REST `/api/customers/{id}/shares` |
-| `presentation/customer/InventoryCheckController.java` | Presentation | REST `/api/inventory-checks` |
-| `presentation/customer/InventoryCheckItemController.java` | Presentation | REST `/api/inventory-checks/{id}/items` |
 | `infrastructure/customer/...` | Infrastructure | Hibernate entity, mapper, repository impl |
 
 ### 3.6 Module Lead
@@ -645,15 +633,13 @@ be-crm/src/main/java/vn/com/be_crm/
 |---------------|------|-----------|
 | `domain/lead/entity/Lead.java` | Domain | Entity lead bán hàng (soft delete) |
 | `domain/lead/entity/LeadActivity.java` | Domain | Hoạt động gắn với lead |
-| `domain/lead/entity/LeadAttachment.java` | Domain | Tệp đính kèm của lead |
 | `domain/lead/entity/LeadTransfer.java` | Domain | Lịch sử chuyển giao lead giữa nhân viên |
 | `domain/lead/enums/LeadStatus.java` | Domain | Trạng thái lead — `new_` thay cho `new` (Java keyword) |
 | `domain/lead/enums/LeadActivityType.java` | Domain | Loại hoạt động lead |
-| `domain/lead/repository/I*Repository.java` | Domain | 4 interface repository |
-| `application/lead/...` | Application | Use case cho Lead và 3 sub-entity |
+| `domain/lead/repository/I*Repository.java` | Domain | 3 interface repository |
+| `application/lead/...` | Application | Use case cho Lead và 2 sub-entity |
 | `presentation/lead/LeadController.java` | Presentation | REST `/api/leads` |
 | `presentation/lead/LeadActivityController.java` | Presentation | REST `/api/leads/{id}/activities` |
-| `presentation/lead/LeadAttachmentController.java` | Presentation | REST `/api/leads/{id}/attachments` |
 | `presentation/lead/LeadTransferController.java` | Presentation | REST `/api/leads/{id}/transfers` |
 | `infrastructure/lead/converter/LeadStatusConverter.java` | Infrastructure | `AttributeConverter` map DB `"new"` ↔ Java `LeadStatus.new_` |
 | `infrastructure/lead/...` | Infrastructure | Hibernate entity, mapper, repository impl |
@@ -751,12 +737,10 @@ be-crm/src/main/java/vn/com/be_crm/
 
 | File / Folder | Tầng | Công dụng |
 |---------------|------|-----------|
-| `domain/warehouse/entity/Warehouse.java` | Domain | Entity kho hàng |
-| `domain/warehouse/entity/InventoryStock.java` | Domain | Tồn kho của từng sản phẩm trong kho (dùng @Formula computed column) |
-| `domain/warehouse/entity/WarehousePermission.java` | Domain | Quyền truy cập kho cho từng user |
-| `domain/warehouse/enums/WarehousePermissionType.java` | Domain | Loại quyền kho (view/manage) |
-| `domain/warehouse/repository/I*Repository.java` | Domain | 3 interface repository |
-| `application/warehouse/...` | Application | Use case cho cả 3 entity |
+| `domain/warehouse/entity/Warehouse.java` | Domain | Entity kho hàng (không còn managerId kể từ V5) |
+| `domain/warehouse/entity/InventoryStock.java` | Domain | Tồn kho: `quantity`, `countedQuantity`, `@Formula differenceQuantity`, `note`, `updatedBy` |
+| `domain/warehouse/repository/I*Repository.java` | Domain | 2 interface repository |
+| `application/warehouse/...` | Application | Use case cho Warehouse + InventoryStock |
 | `presentation/warehouse/WarehouseController.java` | Presentation | REST `/api/warehouses` |
 | `presentation/warehouse/InventoryStockController.java` | Presentation | REST `/api/inventory-stocks` |
 | `infrastructure/warehouse/...` | Infrastructure | Hibernate entity, mapper, repository impl |

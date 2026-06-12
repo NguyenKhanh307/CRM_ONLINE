@@ -15,7 +15,9 @@ public class InventoryStockResult {
     private Long productId;
     private Long warehouseId;
     private BigDecimal quantity;
-    private BigDecimal reservedQuantity;
-    private BigDecimal availableQuantity;
+    private BigDecimal countedQuantity;
+    private BigDecimal differenceQuantity;
+    private String note;
+    private Long updatedBy;
     private LocalDateTime updatedAt;
 }

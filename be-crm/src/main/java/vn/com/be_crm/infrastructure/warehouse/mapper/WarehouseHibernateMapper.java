@@ -11,13 +11,13 @@ public class WarehouseHibernateMapper {
     public WarehouseHibernate toHibernate(Warehouse d) {
         WarehouseHibernate h = new WarehouseHibernate();
         h.setId(d.getId()); h.setCode(d.getCode()); h.setName(d.getName());
-        h.setAddress(d.getAddress()); h.setManagerId(d.getManagerId());
+        h.setAddress(d.getAddress());
         h.setIsActive(d.getIsActive() != null ? d.getIsActive() : true); return h;
     }
     /** @param h hibernate @return domain */
     public Warehouse toDomain(WarehouseHibernate h) {
         return Warehouse.builder().id(h.getId()).code(h.getCode()).name(h.getName())
-                .address(h.getAddress()).managerId(h.getManagerId()).isActive(h.getIsActive())
+                .address(h.getAddress()).isActive(h.getIsActive())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).build();
     }
 }

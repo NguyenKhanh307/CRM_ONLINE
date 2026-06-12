@@ -205,19 +205,40 @@ export function useUpdateLead() {
 
 ### Data modules (list view + edit/delete)
 
-Tất cả 9 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (ConfirmModal), chọn nhiều hàng + Xóa hàng loạt.
+Tất cả 9 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (ConfirmModal), chọn nhiều hàng + Xóa hàng loạt. 5 module nghiệp vụ chính có thêm nút **Bàn giao** (chọn hàng → `POST /api/{module}/handover-bulk`).
 
-| Module | Route | Endpoint GET | Endpoint PUT | Endpoint DELETE |
-|--------|-------|-------------|-------------|----------------|
-| Tiềm năng | `/tiem-nang` | `GET /api/leads` | `PUT /api/leads/{id}` | `DELETE /api/leads/{id}` |
-| Liên hệ | `/lien-he` | `GET /api/contacts` | `PUT /api/contacts/{id}` | `DELETE /api/contacts/{id}` |
-| Khách hàng | `/khach-hang` | `GET /api/customers` | `PUT /api/customers/{id}` | `DELETE /api/customers/{id}` |
-| Cơ hội | `/co-hoi` | `GET /api/opportunities` | `PUT /api/opportunities/{id}` | `DELETE /api/opportunities/{id}` |
-| Báo giá | `/bao-gia` | `GET /api/quotations` | `PUT /api/quotations/{id}` | `DELETE /api/quotations/{id}` |
-| Đơn hàng | `/don-hang` | `GET /api/orders` | `PUT /api/orders/{id}` | `DELETE /api/orders/{id}` |
-| Hoạt động | `/hoat-dong` | `GET /api/activities` | `PUT /api/activities/{id}` | `DELETE /api/activities/{id}` |
-| Sản phẩm | `/san-pham` | `GET /api/products` | `PUT /api/products/{id}` | `DELETE /api/products/{id}` |
-| Kho hàng | `/kho-hang` | `GET /api/warehouses` | `PUT /api/warehouses/{id}` | `DELETE /api/warehouses/{id}` |
+| Module | Route | Endpoint GET | Endpoint PUT | Endpoint DELETE | Handover |
+|--------|-------|-------------|-------------|----------------|---------|
+| Tiềm năng | `/tiem-nang` | `GET /api/leads` | `PUT /api/leads/{id}` | `DELETE /api/leads/{id}` | ✓ |
+| Liên hệ | `/lien-he` | `GET /api/contacts` | `PUT /api/contacts/{id}` | `DELETE /api/contacts/{id}` | — |
+| Khách hàng | `/khach-hang` | `GET /api/customers` | `PUT /api/customers/{id}` | `DELETE /api/customers/{id}` | ✓ |
+| Cơ hội | `/co-hoi` | `GET /api/opportunities` | `PUT /api/opportunities/{id}` | `DELETE /api/opportunities/{id}` | ✓ |
+| Báo giá | `/bao-gia` | `GET /api/quotations` | `PUT /api/quotations/{id}` | `DELETE /api/quotations/{id}` | ✓ |
+| Đơn hàng | `/don-hang` | `GET /api/orders` | `PUT /api/orders/{id}` | `DELETE /api/orders/{id}` | ✓ |
+| Hoạt động | `/hoat-dong` | `GET /api/activities` | `PUT /api/activities/{id}` | `DELETE /api/activities/{id}` | — |
+| Sản phẩm | `/san-pham` | `GET /api/products` | `PUT /api/products/{id}` | `DELETE /api/products/{id}` | — |
+| Kho hàng | `/kho-hang` | `GET /api/warehouses` | `PUT /api/warehouses/{id}` | `DELETE /api/warehouses/{id}` | — |
+
+### Chính sách giá — `/chinh-sach-gia` (admin only)
+
+Trang quản lý chính sách giá. Chỉ ADMIN thấy trên sidebar.
+
+- **Danh sách** (`/chinh-sach-gia`): bảng price policies + tạo mới/sửa/xóa/bulk-delete
+- **Chi tiết** (`/chinh-sach-gia/:id`): header thông tin policy + 5 tab sub-entity
+
+| Endpoint | Mô tả |
+|----------|-------|
+| `GET /api/price-policies` | Danh sách chính sách |
+| `POST /api/price-policies` | Tạo mới |
+| `PUT /api/price-policies/{id}` | Cập nhật |
+| `DELETE /api/price-policies/{id}` | Xóa |
+| `GET/POST/PUT/DELETE /api/price-policies/{id}/products` | Sản phẩm trong chính sách |
+| `GET/POST/DELETE /api/price-policies/{id}/customers` | Khách hàng áp dụng |
+| `GET/POST/DELETE /api/price-policies/{id}/customer-categories` | Nhóm KH áp dụng |
+| `GET/POST/DELETE /api/price-policies/{id}/product-types` | Loại SP áp dụng |
+| `GET/POST/DELETE /api/price-policies/{id}/employees` | Nhân viên áp dụng |
+
+Files: `features/chinh-sach-gia/` — types, services, hooks (9 hooks), config, components (PricePolicyFormModal + 5 tabs), pages (ChinhSachGiaPage + ChinhSachGiaDetailPage)
 
 ### Phân quyền — `/phan-quyen`
 
@@ -255,8 +276,23 @@ Trang hiển thị bản ghi đã xóa mềm trong 30 ngày gần nhất. Admin 
 
 Files: `features/thung-rac/` — types/thungRacTypes.ts, services/trashService.ts, hooks/useTrash.ts, config/trashColumns.tsx, pages/ThungRacPage.tsx
 
+### Bàn giao công việc (2026-06-12)
+
+**Per-module** — 5 trang danh sách (Tiềm năng, Khách hàng, Cơ hội, Báo giá, Đơn hàng): chọn hàng → nút "Bàn giao (n)" → `HandoverModal` → `POST /api/{module}/handover-bulk`.
+
+**Toàn bộ** — `TransferWorkModal` (icon header): chọn "từ user A → user B" → `POST /api/handover/all` — chuyển toàn bộ 5 module cùng lúc. Chỉ ADMIN/SALES_MANAGER có quyền.
+
+| File mới | Vai trò |
+|----------|---------|
+| `shared/components/HandoverModal.tsx` | Modal chọn người nhận + lý do; fetch user active qua `userService.listActive()` |
+| `features/users/hooks/useHandoverAll.ts` | `useMutation` → `POST /api/handover/all` |
+| `features/{module}/hooks/useHandoverBulk*.ts` × 5 | `useMutation` → `POST /api/{module}/handover-bulk`, invalidate queryKey |
+
+**Quyền:** ADMIN/SALES_MANAGER bàn giao bất kỳ bản ghi; nhân viên chỉ bàn giao bản ghi do mình là `owner_id`.
+
 ### Shared component
 - `shared/components/ConfirmModal.tsx` — modal xác nhận dùng chung, thay thế `window.confirm()`
+- `shared/components/HandoverModal.tsx` — modal bàn giao, dùng chung cho 5 module list page
 
 ### Cấu trúc thư mục đầy đủ (updated)
 
@@ -274,7 +310,8 @@ features/
 ├── don-hang/          # Order — có OrderImportPage
 ├── hoat-dong/         # Activity — có ActivityImportPage
 ├── san-pham/          # Product — có ProductImportPage
-└── kho-hang/          # Warehouse — có WarehouseImportPage
+├── kho-hang/          # Warehouse — có WarehouseImportPage
+└── chinh-sach-gia/    # Price Policy — danh sách + chi tiết 5 tab sub-entity
 ```
 
 ### Nhập file Excel/CSV — 9 module (2026-06-11)

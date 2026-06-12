@@ -14,7 +14,6 @@ public class WarehouseResult {
     private String code;
     private String name;
     private String address;
-    private Long managerId;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

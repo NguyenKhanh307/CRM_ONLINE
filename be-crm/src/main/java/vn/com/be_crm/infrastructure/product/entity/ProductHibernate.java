@@ -31,6 +31,24 @@ public class ProductHibernate {
     private ProductType type;
     @Column(name = "unit", length = 20)
     private String unit;
+    @Column(name = "secondary_unit", length = 20)
+    private String secondaryUnit;
+    @Column(name = "conversion_rate", precision = 18, scale = 6)
+    private BigDecimal conversionRate;
+    @Column(name = "composition", length = 100)
+    private String composition;
+    @Column(name = "yarn_count", length = 30)
+    private String yarnCount;
+    @Column(name = "color", length = 50)
+    private String color;
+    @Column(name = "fabric_width", precision = 8, scale = 2)
+    private BigDecimal fabricWidth;
+    @Column(name = "weight_gsm", precision = 8, scale = 2)
+    private BigDecimal weightGsm;
+    @Column(name = "brand", length = 100)
+    private String brand;
+    @Column(name = "origin", length = 100)
+    private String origin;
     @Column(name = "base_price", nullable = false, precision = 18, scale = 2)
     private BigDecimal basePrice;
     @Column(name = "cost_price", nullable = false, precision = 18, scale = 2)
@@ -45,6 +63,8 @@ public class ProductHibernate {
     private Boolean isDiscontinued;
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
+    @Column(name = "created_by") private Long createdBy;
+    @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     @UpdateTimestamp @Column(name = "updated_at", nullable = false)
