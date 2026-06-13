@@ -33,6 +33,7 @@ public class QuotationItemController {
                                                                     @Valid @RequestBody CreateQuotationItemCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(
                 CreateQuotationItemCommand.builder().quotationId(quotationId).productId(cmd.getProductId())
+                        .unit(cmd.getUnit())
                         .quantity(cmd.getQuantity()).unitPrice(cmd.getUnitPrice()).discount(cmd.getDiscount())
                         .taxRate(cmd.getTaxRate()).amount(cmd.getAmount()).note(cmd.getNote()).build())));
     }

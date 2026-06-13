@@ -17,9 +17,12 @@ public class QuotationResult {
     private String code;
     private Long customerId;
     private Long contactId;
+    private Long opportunityId;
     private Long ownerId;
     private LocalDate quoteDate;
     private LocalDate validUntil;
+    private String currency;
+    private BigDecimal exchangeRate;
     private QuotationStatus status;
     private BigDecimal subtotal;
     private BigDecimal discount;

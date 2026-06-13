@@ -77,8 +77,13 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderResult>> update(@PathVariable Long id, @Valid @RequestBody UpdateOrderCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateOrderCommand.builder().id(id).customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
+                        .quotationId(cmd.getQuotationId()).opportunityId(cmd.getOpportunityId())
                         .ownerId(cmd.getOwnerId()).executorUnitId(cmd.getExecutorUnitId()).warehouseId(cmd.getWarehouseId())
-                        .orderDate(cmd.getOrderDate()).status(cmd.getStatus()).paymentStatus(cmd.getPaymentStatus())
+                        .orderDate(cmd.getOrderDate())
+                        .currency(cmd.getCurrency()).exchangeRate(cmd.getExchangeRate())
+                        .status(cmd.getStatus()).paymentStatus(cmd.getPaymentStatus())
+                        .creditDays(cmd.getCreditDays()).paymentDueDate(cmd.getPaymentDueDate())
+                        .isInvoiced(cmd.getIsInvoiced()).receiverName(cmd.getReceiverName()).receiverPhone(cmd.getReceiverPhone())
                         .subtotal(cmd.getSubtotal()).discount(cmd.getDiscount()).tax(cmd.getTax())
                         .total(cmd.getTotal()).note(cmd.getNote()).build())));
     }

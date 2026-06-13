@@ -30,11 +30,32 @@ public class Activity {
     /** Nội dung chi tiết. */
     private String content;
 
+    /** Mức ưu tiên (low/medium/high). */
+    private String priority;
+
     /** Loại đối tượng đích (vd: customer, lead, opportunity). */
     private String targetType;
 
     /** ID đối tượng đích. */
     private Long targetId;
+
+    /** Loại đối tượng liên quan phụ. */
+    private String relatedType;
+
+    /** ID đối tượng liên quan phụ. */
+    private Long relatedId;
+
+    /** Địa điểm (lịch hẹn). */
+    private String location;
+
+    /** Hướng cuộc gọi (in/out). */
+    private String callDirection;
+
+    /** Kết quả cuộc gọi. */
+    private String callResult;
+
+    /** Thời lượng cuộc gọi (giây). */
+    private Integer callDuration;
 
     /** ID người dùng được giao. */
     private Long assignedUserId;

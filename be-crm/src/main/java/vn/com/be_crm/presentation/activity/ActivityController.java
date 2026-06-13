@@ -57,7 +57,11 @@ public class ActivityController {
     public ResponseEntity<ApiResponse<ActivityResult>> create(@Valid @RequestBody CreateActivityRequest request) {
         CreateActivityCommand cmd = CreateActivityCommand.builder()
                 .type(request.getType()).subject(request.getSubject()).content(request.getContent())
+                .priority(request.getPriority())
                 .targetType(request.getTargetType()).targetId(request.getTargetId())
+                .relatedType(request.getRelatedType()).relatedId(request.getRelatedId())
+                .location(request.getLocation()).callDirection(request.getCallDirection())
+                .callResult(request.getCallResult()).callDuration(request.getCallDuration())
                 .assignedUserId(request.getAssignedUserId()).status(request.getStatus())
                 .dueAt(request.getDueAt()).build();
         return ResponseEntity.status(201).body(ApiResponse.created(createUseCase.execute(cmd)));
@@ -106,6 +110,9 @@ public class ActivityController {
                                                                @Valid @RequestBody UpdateActivityRequest request) {
         UpdateActivityCommand cmd = UpdateActivityCommand.builder()
                 .id(id).type(request.getType()).subject(request.getSubject()).content(request.getContent())
+                .priority(request.getPriority()).location(request.getLocation())
+                .callDirection(request.getCallDirection()).callResult(request.getCallResult())
+                .callDuration(request.getCallDuration())
                 .assignedUserId(request.getAssignedUserId()).status(request.getStatus())
                 .dueAt(request.getDueAt()).completedAt(request.getCompletedAt()).build();
         return ResponseEntity.ok(ApiResponse.ok(updateUseCase.execute(cmd)));

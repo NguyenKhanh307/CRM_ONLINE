@@ -21,8 +21,15 @@ public class ActivityResult {
     private ActivityType type;
     private String subject;
     private String content;
+    private String priority;
     private String targetType;
     private Long targetId;
+    private String relatedType;
+    private Long relatedId;
+    private String location;
+    private String callDirection;
+    private String callResult;
+    private Integer callDuration;
     private Long assignedUserId;
     private ActivityStatus status;
     private LocalDateTime dueAt;

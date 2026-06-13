@@ -4,7 +4,9 @@ import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.contact.entity.Contact;
+import vn.com.be_crm.domain.contact.entity.ContactPhone;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -17,6 +19,14 @@ public interface IContactRepository {
      * @param contact domain entity @return entity sau khi lưu
      */
     Contact save(Contact contact);
+
+    /**
+     * Lưu liên hệ kèm danh sách số điện thoại trong một transaction.
+     * @param contact domain entity liên hệ
+     * @param phones  danh sách số điện thoại (contactId sẽ được gán sau khi lưu liên hệ)
+     * @return liên hệ sau khi lưu
+     */
+    Contact saveWithPhones(Contact contact, List<ContactPhone> phones);
 
     /**
      * Tìm liên hệ theo ID (chưa xóa mềm).

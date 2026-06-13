@@ -21,13 +21,22 @@ public class Opportunity {
     private Long id;
     private String code;
     private String name;
+    /** Loại cơ hội (KH mới/cũ...). */
+    private String opportunityType;
     private Long customerId;
     private Long contactId;
     private Long ownerId;
     private Long stageId;
     private BigDecimal amount;
+    /** Doanh số kỳ vọng. */
+    private BigDecimal expectedRevenue;
     private BigDecimal probability;
     private LocalDate expectedCloseDate;
+    /** Nguồn gốc cơ hội. */
+    private String source;
+    /** Lý do thắng/thua. */
+    private String winLossReason;
+    private String description;
     private OpportunityStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -77,10 +77,13 @@ public class OpportunityController {
     public ResponseEntity<ApiResponse<OpportunityResult>> update(@PathVariable Long id,
                                                                   @Valid @RequestBody UpdateOpportunityCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
-                UpdateOpportunityCommand.builder().id(id).name(cmd.getName()).customerId(cmd.getCustomerId())
+                UpdateOpportunityCommand.builder().id(id).name(cmd.getName()).opportunityType(cmd.getOpportunityType())
+                        .customerId(cmd.getCustomerId())
                         .contactId(cmd.getContactId()).ownerId(cmd.getOwnerId()).stageId(cmd.getStageId())
-                        .amount(cmd.getAmount()).probability(cmd.getProbability())
-                        .expectedCloseDate(cmd.getExpectedCloseDate()).status(cmd.getStatus()).build())));
+                        .amount(cmd.getAmount()).expectedRevenue(cmd.getExpectedRevenue()).probability(cmd.getProbability())
+                        .expectedCloseDate(cmd.getExpectedCloseDate())
+                        .source(cmd.getSource()).winLossReason(cmd.getWinLossReason()).description(cmd.getDescription())
+                        .status(cmd.getStatus()).build())));
     }
 
     /** Xóa mềm cơ hội. @param id ID @param req HTTP request @return 204 */

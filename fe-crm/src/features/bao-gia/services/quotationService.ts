@@ -1,11 +1,13 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
-import type { QuotationResult, UpdateQuotationPayload } from '../types/quotationTypes';
+import type { CreateQuotationPayload, QuotationResult, UpdateQuotationPayload } from '../types/quotationTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 
 export const quotationService = {
     getList: (params?: PageParams) =>
         axiosInstance.get<ApiResponse<PageResult<QuotationResult>>>('/api/quotations', { params }),
+    create: (payload: CreateQuotationPayload) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>('/api/quotations', payload),
     getById: (id: number) =>
         axiosInstance.get<ApiResponse<QuotationResult>>(`/api/quotations/${id}`),
     update: (id: number, payload: UpdateQuotationPayload) =>

@@ -4,6 +4,7 @@ import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
+import vn.com.be_crm.domain.opportunity.entity.OpportunityItem;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +19,14 @@ public interface IOpportunityRepository {
      * @param opportunity domain entity @return entity sau khi lưu
      */
     Opportunity save(Opportunity opportunity);
+
+    /**
+     * Lưu cơ hội kèm danh sách dòng hàng trong một transaction.
+     * @param opportunity domain entity cơ hội
+     * @param items       danh sách dòng hàng (opportunityId sẽ được gán sau khi lưu cơ hội)
+     * @return cơ hội sau khi lưu
+     */
+    Opportunity saveWithItems(Opportunity opportunity, List<OpportunityItem> items);
 
     /**
      * Tìm cơ hội theo ID (chưa xóa mềm).

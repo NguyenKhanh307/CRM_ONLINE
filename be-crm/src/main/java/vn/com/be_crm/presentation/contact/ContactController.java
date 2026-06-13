@@ -76,9 +76,13 @@ public class ContactController {
                                                               @Valid @RequestBody UpdateContactCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateContactCommand.builder().id(id).customerId(cmd.getCustomerId())
-                        .assignedUserId(cmd.getAssignedUserId()).fullName(cmd.getFullName())
-                        .position(cmd.getPosition()).email(cmd.getEmail()).gender(cmd.getGender())
+                        .assignedUserId(cmd.getAssignedUserId()).salutation(cmd.getSalutation())
+                        .fullName(cmd.getFullName()).title(cmd.getTitle()).department(cmd.getDepartment())
+                        .position(cmd.getPosition()).email(cmd.getEmail())
+                        .workEmail(cmd.getWorkEmail()).personalEmail(cmd.getPersonalEmail())
+                        .zalo(cmd.getZalo()).source(cmd.getSource()).gender(cmd.getGender())
                         .dateOfBirth(cmd.getDateOfBirth()).address(cmd.getAddress())
+                        .doNotCall(cmd.getDoNotCall()).doNotEmail(cmd.getDoNotEmail())
                         .isPrimary(cmd.getIsPrimary()).build())));
     }
 

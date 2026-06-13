@@ -23,8 +23,15 @@ public class ActivityHibernateMapper {
         h.setType(domain.getType());
         h.setSubject(domain.getSubject());
         h.setContent(domain.getContent());
+        h.setPriority(domain.getPriority());
         h.setTargetType(domain.getTargetType());
         h.setTargetId(domain.getTargetId());
+        h.setRelatedType(domain.getRelatedType());
+        h.setRelatedId(domain.getRelatedId());
+        h.setLocation(domain.getLocation());
+        h.setCallDirection(domain.getCallDirection());
+        h.setCallResult(domain.getCallResult());
+        h.setCallDuration(domain.getCallDuration());
         h.setAssignedUserId(domain.getAssignedUserId());
         h.setStatus(domain.getStatus() != null ? domain.getStatus() : ActivityStatus.planned);
         h.setDueAt(domain.getDueAt());
@@ -41,8 +48,12 @@ public class ActivityHibernateMapper {
     public Activity toDomain(ActivityHibernate h) {
         return Activity.builder()
                 .id(h.getId()).type(h.getType()).subject(h.getSubject())
-                .content(h.getContent()).targetType(h.getTargetType())
-                .targetId(h.getTargetId()).assignedUserId(h.getAssignedUserId())
+                .content(h.getContent()).priority(h.getPriority())
+                .targetType(h.getTargetType()).targetId(h.getTargetId())
+                .relatedType(h.getRelatedType()).relatedId(h.getRelatedId())
+                .location(h.getLocation()).callDirection(h.getCallDirection())
+                .callResult(h.getCallResult()).callDuration(h.getCallDuration())
+                .assignedUserId(h.getAssignedUserId())
                 .status(h.getStatus()).dueAt(h.getDueAt())
                 .completedAt(h.getCompletedAt()).createdAt(h.getCreatedAt())
                 .updatedAt(h.getUpdatedAt())

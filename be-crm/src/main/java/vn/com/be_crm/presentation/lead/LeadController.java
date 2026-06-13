@@ -75,10 +75,17 @@ public class LeadController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<LeadResult>> update(@PathVariable Long id, @Valid @RequestBody UpdateLeadCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
-                UpdateLeadCommand.builder().id(id).name(cmd.getName()).ownerId(cmd.getOwnerId())
-                        .customerId(cmd.getCustomerId()).contactId(cmd.getContactId()).source(cmd.getSource())
+                UpdateLeadCommand.builder().id(id).name(cmd.getName())
+                        .companyName(cmd.getCompanyName()).leadType(cmd.getLeadType())
+                        .ownerId(cmd.getOwnerId())
+                        .customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
+                        .title(cmd.getTitle()).department(cmd.getDepartment())
+                        .taxCode(cmd.getTaxCode()).website(cmd.getWebsite()).industry(cmd.getIndustry())
+                        .source(cmd.getSource())
                         .status(cmd.getStatus()).estimatedValue(cmd.getEstimatedValue()).phone(cmd.getPhone())
-                        .email(cmd.getEmail()).note(cmd.getNote()).build())));
+                        .email(cmd.getEmail())
+                        .doNotCall(cmd.getDoNotCall()).doNotEmail(cmd.getDoNotEmail())
+                        .note(cmd.getNote()).build())));
     }
 
     /** Xóa mềm tiềm năng. @param id ID @param req HTTP request @return 204 */

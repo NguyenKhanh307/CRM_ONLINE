@@ -80,9 +80,15 @@ public class CustomerController {
     public ResponseEntity<ApiResponse<CustomerResult>> update(@PathVariable Long id,
                                                                @Valid @RequestBody UpdateCustomerCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
-                UpdateCustomerCommand.builder().id(id).name(cmd.getName()).type(cmd.getType())
+                UpdateCustomerCommand.builder().id(id).name(cmd.getName()).shortName(cmd.getShortName())
+                        .type(cmd.getType())
                         .taxCode(cmd.getTaxCode()).phone(cmd.getPhone()).email(cmd.getEmail())
-                        .address(cmd.getAddress()).source(cmd.getSource()).status(cmd.getStatus())
+                        .website(cmd.getWebsite()).address(cmd.getAddress())
+                        .industry(cmd.getIndustry()).source(cmd.getSource()).status(cmd.getStatus())
+                        .creditDays(cmd.getCreditDays()).creditLimit(cmd.getCreditLimit())
+                        .bankAccount(cmd.getBankAccount()).bankName(cmd.getBankName())
+                        .rating(cmd.getRating()).annualRevenue(cmd.getAnnualRevenue())
+                        .employeeSize(cmd.getEmployeeSize()).isDistributor(cmd.getIsDistributor())
                         .ownerId(cmd.getOwnerId()).unitId(cmd.getUnitId()).build())));
     }
 

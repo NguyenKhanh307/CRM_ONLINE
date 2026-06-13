@@ -19,6 +19,8 @@ public class OrderItem {
     private Long orderId;
     private Long productId;
     private Long warehouseId;
+    /** Đơn vị tính dòng hàng. */
+    private String unit;
     private BigDecimal quantity;
     private BigDecimal unitPrice;
     private BigDecimal discount;

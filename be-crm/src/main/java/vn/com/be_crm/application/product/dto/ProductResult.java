@@ -18,6 +18,15 @@ public class ProductResult {
     private Long categoryId;
     private ProductType type;
     private String unit;
+    private String secondaryUnit;
+    private BigDecimal conversionRate;
+    private String composition;
+    private String yarnCount;
+    private String color;
+    private BigDecimal fabricWidth;
+    private BigDecimal weightGsm;
+    private String brand;
+    private String origin;
     private BigDecimal basePrice;
     private BigDecimal costPrice;
     private BigDecimal vatRate;

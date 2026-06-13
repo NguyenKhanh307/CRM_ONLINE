@@ -1,92 +1,151 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { QuoteDetailSection } from '../components/QuoteDetailSection';
-import { QuoteItemsTable } from '../components/QuoteItemsTable';
+import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
+import { FormSection } from '@/shared/components/form/FormSection';
+import { FieldRow } from '@/shared/components/form/FieldRow';
+import { inputCls } from '@/shared/components/form/formStyles';
+import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
+import {
+    type LineItemRow,
+    type ProductOption,
+    emptyLineItem,
+    computeTotals,
+    toItemPayloads,
+} from '@/shared/components/form/productLineItem';
+import { useAlert } from '@/shared/alert/useAlert';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
+import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
+import { useContactList } from '@/features/lien-he/hooks/useContactList';
+import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { useCreateQuotation } from '../hooks/useCreateQuotation';
+import type { CreateQuotationPayload } from '../types/quotationTypes';
 
-const Section = ({ title, children }: { title: string; children: ReactNode }) => (
-    <div>
-        <h2 className="text-md font-semibold text-text-main mb-4 pb-2 border-b border-gray-200">
-            {title}
-        </h2>
-        {children}
-    </div>
-);
+const STATUS_OPTIONS = [
+    { value: 'draft', label: 'Nháp' },
+    { value: 'sent', label: 'Đã gửi' },
+    { value: 'approved', label: 'Đã duyệt' },
+    { value: 'rejected', label: 'Từ chối' },
+    { value: 'expired', label: 'Hết hạn' },
+];
 
-const btnBase = 'px-4 py-1.5 rounded-btn text-md transition-colors';
+interface HeaderState {
+    code: string; customerId: string; contactId: string; ownerId: string;
+    quoteDate: string; validUntil: string; currency: string; exchangeRate: string;
+    status: string; note: string;
+}
 
-/**
- * Trang thêm báo giá mới — form 4 section, standalone trong MainLayout.
- */
+const INITIAL: HeaderState = {
+    code: '', customerId: '', contactId: '', ownerId: '', quoteDate: '', validUntil: '',
+    currency: 'VND', exchangeRate: '1', status: 'draft', note: '',
+};
+
+/** Trang thêm báo giá mới — header + bảng hàng hóa (layout AMIS). */
 const QuoteAddPage = () => {
     const navigate = useNavigate();
-    const [description, setDescription] = useState('');
-    const [isShared, setIsShared] = useState(false);
+    const { showAlert } = useAlert();
+    const [form, setForm] = useState<HeaderState>(INITIAL);
+    const [rows, setRows] = useState<LineItemRow[]>([emptyLineItem()]);
+    const { mutate, isPending } = useCreateQuotation();
+
+    const { data: users = [] } = useActiveUsers();
+    const { data: customers = [] } = useCustomerList();
+    const { data: contacts = [] } = useContactList();
+    const { data: products = [] } = useProductList();
+
+    const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
+    const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
+    const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
+    const productOptions = useMemo<ProductOption[]>(
+        () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
+        [products],
+    );
+
+    const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
+    const reset = () => { setForm(INITIAL); setRows([emptyLineItem()]); };
+
+    const submit = (andNew: boolean) => {
+        if (!form.code.trim()) { showAlert('Mã báo giá không được để trống'); return; }
+        const totals = computeTotals(rows);
+        const payload: CreateQuotationPayload = {
+            code: form.code.trim(),
+            customerId: form.customerId ? Number(form.customerId) : null,
+            contactId: form.contactId ? Number(form.contactId) : null,
+            opportunityId: null,
+            ownerId: form.ownerId ? Number(form.ownerId) : null,
+            quoteDate: form.quoteDate || null,
+            validUntil: form.validUntil || null,
+            currency: form.currency || 'VND',
+            exchangeRate: Number(form.exchangeRate) || 1,
+            status: form.status,
+            subtotal: totals.subtotal,
+            discount: totals.discount,
+            tax: totals.tax,
+            total: totals.total,
+            note: form.note || null,
+            items: toItemPayloads(rows),
+        };
+        mutate(payload, {
+            onSuccess: () => {
+                if (andNew) { reset(); showAlert('Đã lưu báo giá thành công'); }
+                else navigate('/bao-gia');
+            },
+            onError: (err: unknown) => {
+                const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+                    ?? 'Có lỗi xảy ra khi lưu báo giá';
+                showAlert(msg);
+            },
+        });
+    };
 
     return (
         <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                    <h1 className="text-lg font-semibold text-text-main">Thêm Báo giá</h1>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        className={`${btnBase} border border-gray-300 text-gray-600 hover:bg-gray-50`}
-                    >
-                        Hủy
-                    </button>
-                    <button
-                        type="button"
-                        className={`${btnBase} border border-primary text-primary hover:bg-blue-50`}
-                    >
-                        Lưu và thêm
-                    </button>
-                    <button
-                        type="button"
-                        className={`${btnBase} bg-primary text-white hover:bg-blue-600`}
-                    >
-                        Lưu
-                    </button>
-                </div>
-            </div>
+            <FormPageHeader title="Thêm Báo giá" saving={isPending}
+                onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
 
-            {/* Nội dung form */}
             <div className="bg-white rounded-card shadow-sm p-6 space-y-8">
-                <Section title="Thông tin chi tiết">
-                    <QuoteDetailSection />
-                </Section>
-
-                <Section title="Thông tin hàng hóa">
-                    <QuoteItemsTable />
-                </Section>
-
-                <Section title="Thông tin mô tả">
-                    <div className="flex items-start gap-3">
-                        <span className="text-sm text-gray-600 w-[148px] flex-shrink-0 pt-1.5">
-                            Mô tả
-                        </span>
-                        <textarea
-                            rows={3}
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="flex-1 border border-gray-300 rounded-btn px-3 py-2 text-md text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none transition-colors"
-                        />
+                <FormSection title="Thông tin chi tiết">
+                    <div className="grid grid-cols-2 gap-x-10 gap-y-4">
+                        <div className="space-y-4">
+                            <FieldRow label="Số báo giá" required>
+                                <input type="text" value={form.code} onChange={(e) => set({ code: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Khách hàng">
+                                <SearchableSelect value={form.customerId} onChange={(v) => set({ customerId: v })} options={customerOptions} />
+                            </FieldRow>
+                            <FieldRow label="Liên hệ">
+                                <SearchableSelect value={form.contactId} onChange={(v) => set({ contactId: v })} options={contactOptions} />
+                            </FieldRow>
+                            <FieldRow label="Người phụ trách">
+                                <SearchableSelect value={form.ownerId} onChange={(v) => set({ ownerId: v })} options={userOptions} />
+                            </FieldRow>
+                        </div>
+                        <div className="space-y-4">
+                            <FieldRow label="Ngày báo giá">
+                                <input type="date" value={form.quoteDate} onChange={(e) => set({ quoteDate: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Hiệu lực đến">
+                                <input type="date" value={form.validUntil} onChange={(e) => set({ validUntil: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Trạng thái">
+                                <SearchableSelect value={form.status} onChange={(v) => set({ status: v })} options={STATUS_OPTIONS} />
+                            </FieldRow>
+                            <FieldRow label="Tiền tệ">
+                                <input type="text" value={form.currency} onChange={(e) => set({ currency: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                        </div>
                     </div>
-                </Section>
+                </FormSection>
 
-                <Section title="Thông tin hệ thống">
-                    <label className="flex items-center gap-2 cursor-pointer w-fit">
-                        <input
-                            type="checkbox"
-                            checked={isShared}
-                            onChange={(e) => setIsShared(e.target.checked)}
-                            className="w-4 h-4 accent-primary"
-                        />
-                        <span className="text-md text-text-main">Dùng chung</span>
-                    </label>
-                </Section>
+                <FormSection title="Hàng hóa">
+                    <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />
+                </FormSection>
+
+                <FormSection title="Thông tin mô tả">
+                    <FieldRow label="Ghi chú" alignTop>
+                        <textarea rows={3} value={form.note} onChange={(e) => set({ note: e.target.value })} className={`${inputCls} resize-none`} />
+                    </FieldRow>
+                </FormSection>
             </div>
         </div>
     );

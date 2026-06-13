@@ -76,7 +76,12 @@ public class ProductController {
                                                               @Valid @RequestBody UpdateProductCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateProductCommand.builder().id(id).name(cmd.getName()).categoryId(cmd.getCategoryId())
-                        .type(cmd.getType()).unit(cmd.getUnit()).basePrice(cmd.getBasePrice())
+                        .type(cmd.getType()).unit(cmd.getUnit())
+                        .secondaryUnit(cmd.getSecondaryUnit()).conversionRate(cmd.getConversionRate())
+                        .composition(cmd.getComposition()).yarnCount(cmd.getYarnCount())
+                        .color(cmd.getColor()).fabricWidth(cmd.getFabricWidth()).weightGsm(cmd.getWeightGsm())
+                        .brand(cmd.getBrand()).origin(cmd.getOrigin())
+                        .basePrice(cmd.getBasePrice())
                         .costPrice(cmd.getCostPrice()).vatRate(cmd.getVatRate()).barcode(cmd.getBarcode())
                         .description(cmd.getDescription()).isDiscontinued(cmd.getIsDiscontinued())
                         .isActive(cmd.getIsActive()).build())));

@@ -1,11 +1,13 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
-import type { LeadResult, UpdateLeadPayload } from '../types/leadTypes';
+import type { CreateLeadPayload, LeadResult, UpdateLeadPayload } from '../types/leadTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 
 export const leadService = {
     getList: (params?: PageParams) =>
         axiosInstance.get<ApiResponse<PageResult<LeadResult>>>('/api/leads', { params }),
+    create: (payload: CreateLeadPayload) =>
+        axiosInstance.post<ApiResponse<LeadResult>>('/api/leads', payload),
     getById: (id: number) =>
         axiosInstance.get<ApiResponse<LeadResult>>(`/api/leads/${id}`),
     update: (id: number, payload: UpdateLeadPayload) =>

@@ -20,14 +20,30 @@ public class Lead {
     private Long id;
     private String code;
     private String name;
+    /** Tên tổ chức. */
+    private String companyName;
+    /** Loại tiềm năng (cá nhân/doanh nghiệp...). */
+    private String leadType;
     private Long ownerId;
     private Long customerId;
     private Long contactId;
+    /** Chức danh. */
+    private String title;
+    /** Phòng ban. */
+    private String department;
+    private String taxCode;
+    private String website;
+    /** Ngành nghề. */
+    private String industry;
     private String source;
     private LeadStatus status;
     private BigDecimal estimatedValue;
     private String phone;
     private String email;
+    /** Không gọi điện. */
+    private boolean doNotCall;
+    /** Không gửi email. */
+    private boolean doNotEmail;
     private String note;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

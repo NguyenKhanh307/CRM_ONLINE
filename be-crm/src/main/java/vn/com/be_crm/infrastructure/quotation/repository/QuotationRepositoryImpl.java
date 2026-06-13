@@ -8,9 +8,12 @@ import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
+import vn.com.be_crm.domain.quotation.entity.QuotationItem;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 import vn.com.be_crm.infrastructure.quotation.entity.QuotationHibernate;
+import vn.com.be_crm.infrastructure.quotation.entity.QuotationItemHibernate;
 import vn.com.be_crm.infrastructure.quotation.mapper.QuotationHibernateMapper;
+import vn.com.be_crm.infrastructure.quotation.mapper.QuotationItemHibernateMapper;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -25,10 +28,12 @@ import java.util.stream.Collectors;
 public class QuotationRepositoryImpl implements IQuotationRepository {
     private final SessionFactory sf;
     private final QuotationHibernateMapper mapper;
+    private final QuotationItemHibernateMapper itemMapper;
 
-    /** @param sf Hibernate SessionFactory @param mapper mapper */
-    public QuotationRepositoryImpl(SessionFactory sf, QuotationHibernateMapper mapper) {
-        this.sf = sf; this.mapper = mapper;
+    /** @param sf Hibernate SessionFactory @param mapper mapper @param itemMapper mapper dòng hàng */
+    public QuotationRepositoryImpl(SessionFactory sf, QuotationHibernateMapper mapper,
+                                   QuotationItemHibernateMapper itemMapper) {
+        this.sf = sf; this.mapper = mapper; this.itemMapper = itemMapper;
     }
 
     /** Lưu mới hoặc cập nhật Quotation. @param q @return entity sau khi lưu */
@@ -36,6 +41,25 @@ public class QuotationRepositoryImpl implements IQuotationRepository {
         try (Session s = sf.openSession()) {
             Transaction tx = s.beginTransaction();
             QuotationHibernate m = s.merge(mapper.toHibernate(q));
+            tx.commit(); return mapper.toDomain(m);
+        }
+    }
+
+    /**
+     * Lưu Quotation kèm danh sách dòng hàng trong MỘT transaction.
+     * @param q     domain entity báo giá
+     * @param items danh sách dòng hàng
+     * @return báo giá sau khi lưu
+     */
+    @Override public Quotation saveWithItems(Quotation q, List<QuotationItem> items) {
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            QuotationHibernate m = s.merge(mapper.toHibernate(q));
+            for (QuotationItem item : items) {
+                QuotationItemHibernate ih = itemMapper.toHibernate(item);
+                ih.setQuotationId(m.getId());
+                s.merge(ih);
+            }
             tx.commit(); return mapper.toDomain(m);
         }
     }

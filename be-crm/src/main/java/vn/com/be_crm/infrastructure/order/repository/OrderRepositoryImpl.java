@@ -8,9 +8,12 @@ import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.order.entity.Order;
+import vn.com.be_crm.domain.order.entity.OrderItem;
 import vn.com.be_crm.domain.order.repository.IOrderRepository;
 import vn.com.be_crm.infrastructure.order.entity.OrderHibernate;
+import vn.com.be_crm.infrastructure.order.entity.OrderItemHibernate;
 import vn.com.be_crm.infrastructure.order.mapper.OrderHibernateMapper;
+import vn.com.be_crm.infrastructure.order.mapper.OrderItemHibernateMapper;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -25,10 +28,12 @@ import java.util.stream.Collectors;
 public class OrderRepositoryImpl implements IOrderRepository {
     private final SessionFactory sf;
     private final OrderHibernateMapper mapper;
+    private final OrderItemHibernateMapper itemMapper;
 
-    /** @param sf Hibernate SessionFactory @param mapper mapper */
-    public OrderRepositoryImpl(SessionFactory sf, OrderHibernateMapper mapper) {
-        this.sf = sf; this.mapper = mapper;
+    /** @param sf Hibernate SessionFactory @param mapper mapper @param itemMapper mapper dòng hàng */
+    public OrderRepositoryImpl(SessionFactory sf, OrderHibernateMapper mapper,
+                               OrderItemHibernateMapper itemMapper) {
+        this.sf = sf; this.mapper = mapper; this.itemMapper = itemMapper;
     }
 
     /** Lưu mới hoặc cập nhật Order. @param o @return entity sau khi lưu */
@@ -36,6 +41,25 @@ public class OrderRepositoryImpl implements IOrderRepository {
         try (Session s = sf.openSession()) {
             Transaction tx = s.beginTransaction();
             OrderHibernate m = s.merge(mapper.toHibernate(o));
+            tx.commit(); return mapper.toDomain(m);
+        }
+    }
+
+    /**
+     * Lưu Order kèm danh sách dòng hàng trong MỘT transaction.
+     * @param o     domain entity đơn hàng
+     * @param items danh sách dòng hàng
+     * @return đơn hàng sau khi lưu
+     */
+    @Override public Order saveWithItems(Order o, List<OrderItem> items) {
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            OrderHibernate m = s.merge(mapper.toHibernate(o));
+            for (OrderItem item : items) {
+                OrderItemHibernate ih = itemMapper.toHibernate(item);
+                ih.setOrderId(m.getId());
+                s.merge(ih);
+            }
             tx.commit(); return mapper.toDomain(m);
         }
     }

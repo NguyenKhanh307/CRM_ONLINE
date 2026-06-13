@@ -1,11 +1,13 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
-import type { OpportunityResult, UpdateOpportunityPayload } from '../types/opportunityTypes';
+import type { CreateOpportunityPayload, OpportunityResult, UpdateOpportunityPayload } from '../types/opportunityTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 
 export const opportunityService = {
     getList: (params?: PageParams) =>
         axiosInstance.get<ApiResponse<PageResult<OpportunityResult>>>('/api/opportunities', { params }),
+    create: (payload: CreateOpportunityPayload) =>
+        axiosInstance.post<ApiResponse<OpportunityResult>>('/api/opportunities', payload),
     getById: (id: number) =>
         axiosInstance.get<ApiResponse<OpportunityResult>>(`/api/opportunities/${id}`),
     update: (id: number, payload: UpdateOpportunityPayload) =>

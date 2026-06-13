@@ -4,6 +4,7 @@ import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.order.entity.Order;
+import vn.com.be_crm.domain.order.entity.OrderItem;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,14 @@ public interface IOrderRepository {
 
     /** Lưu mới hoặc cập nhật đơn hàng. @param o @return entity sau khi lưu */
     Order save(Order o);
+
+    /**
+     * Lưu đơn hàng kèm danh sách dòng hàng trong một transaction.
+     * @param o     domain entity đơn hàng
+     * @param items danh sách dòng hàng (orderId sẽ được gán sau khi lưu đơn hàng)
+     * @return đơn hàng sau khi lưu
+     */
+    Order saveWithItems(Order o, List<OrderItem> items);
 
     /** Tìm đơn hàng theo ID. @param id @return Optional */
     Optional<Order> findById(Long id);

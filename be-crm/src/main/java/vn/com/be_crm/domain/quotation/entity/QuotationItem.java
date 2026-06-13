@@ -18,6 +18,8 @@ public class QuotationItem {
     private Long id;
     private Long quotationId;
     private Long productId;
+    /** Đơn vị tính dòng hàng. */
+    private String unit;
     private BigDecimal quantity;
     private BigDecimal unitPrice;
     private BigDecimal discount;

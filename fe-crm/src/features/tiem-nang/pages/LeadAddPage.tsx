@@ -1,116 +1,233 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LeadGeneralSection } from '../components/LeadGeneralSection';
-import { LeadOrgSection } from '../components/LeadOrgSection';
-import { LeadAddressSection } from '../components/LeadAddressSection';
+import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
+import { FormSection } from '@/shared/components/form/FormSection';
+import { FieldRow } from '@/shared/components/form/FieldRow';
+import { inputCls } from '@/shared/components/form/formStyles';
+import { useAlert } from '@/shared/alert/useAlert';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
+import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
+import { useContactList } from '@/features/lien-he/hooks/useContactList';
+import { useCreateLead } from '../hooks/useCreateLead';
+import type { CreateLeadPayload } from '../types/leadTypes';
 
-const Section = ({ title, children }: { title: string; children: ReactNode }) => (
-    <div>
-        <h2 className="text-md font-semibold text-text-main mb-4 pb-2 border-b border-gray-200">
-            {title}
-        </h2>
-        {children}
-    </div>
-);
+const STATUS_OPTIONS = [
+    { value: 'new', label: 'Mới' },
+    { value: 'contacting', label: 'Đang liên hệ' },
+    { value: 'qualified', label: 'Đủ điều kiện' },
+    { value: 'converted', label: 'Đã chuyển đổi' },
+    { value: 'lost', label: 'Thất bại' },
+];
 
-const btnBase = 'px-4 py-1.5 rounded-btn text-md transition-colors';
+const SOURCE_OPTIONS = [
+    { value: 'website', label: 'Website' },
+    { value: 'gioi-thieu', label: 'Giới thiệu' },
+    { value: 'dien-thoai', label: 'Điện thoại' },
+    { value: 'email', label: 'Email' },
+    { value: 'mxh', label: 'Mạng xã hội' },
+    { value: 'khac', label: 'Khác' },
+];
 
-/**
- * Trang thêm tiềm năng mới — form 5 section, standalone trong MainLayout.
- */
+const LEAD_TYPE_OPTIONS = [
+    { value: 'ca-nhan', label: 'Cá nhân' },
+    { value: 'doanh-nghiep', label: 'Doanh nghiệp' },
+    { value: 'ho-kinh-doanh', label: 'Hộ kinh doanh' },
+];
+
+interface FormState {
+    code: string;
+    name: string;
+    leadType: string;
+    title: string;
+    department: string;
+    phone: string;
+    email: string;
+    source: string;
+    status: string;
+    companyName: string;
+    taxCode: string;
+    website: string;
+    industry: string;
+    ownerId: string;
+    customerId: string;
+    contactId: string;
+    estimatedValue: string;
+    doNotCall: boolean;
+    doNotEmail: boolean;
+    note: string;
+}
+
+const INITIAL: FormState = {
+    code: '', name: '', leadType: '', title: '', department: '', phone: '', email: '',
+    source: '', status: 'new', companyName: '', taxCode: '', website: '', industry: '',
+    ownerId: '', customerId: '', contactId: '', estimatedValue: '', doNotCall: false,
+    doNotEmail: false, note: '',
+};
+
+const toPayload = (f: FormState): CreateLeadPayload => ({
+    code: f.code.trim(),
+    name: f.name.trim(),
+    companyName: f.companyName || null,
+    leadType: f.leadType || null,
+    ownerId: f.ownerId ? Number(f.ownerId) : null,
+    customerId: f.customerId ? Number(f.customerId) : null,
+    contactId: f.contactId ? Number(f.contactId) : null,
+    title: f.title || null,
+    department: f.department || null,
+    taxCode: f.taxCode || null,
+    website: f.website || null,
+    industry: f.industry || null,
+    source: f.source || null,
+    status: f.status,
+    estimatedValue: f.estimatedValue ? Number(f.estimatedValue) : null,
+    phone: f.phone || null,
+    email: f.email || null,
+    doNotCall: f.doNotCall,
+    doNotEmail: f.doNotEmail,
+    note: f.note || null,
+});
+
+/** Trang thêm tiềm năng mới — form full-page nhiều section (layout AMIS). */
 const LeadAddPage = () => {
     const navigate = useNavigate();
-    const [description, setDescription] = useState('');
-    const [isShared, setIsShared] = useState(false);
-    const [maCode, setMaCode] = useState('');
+    const { showAlert } = useAlert();
+    const [form, setForm] = useState<FormState>(INITIAL);
+    const { mutate, isPending } = useCreateLead();
+
+    const { data: users = [] } = useActiveUsers();
+    const { data: customers = [] } = useCustomerList();
+    const { data: contacts = [] } = useContactList();
+
+    const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
+    const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
+    const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
+
+    const set = (patch: Partial<FormState>) => setForm((p) => ({ ...p, ...patch }));
+
+    const submit = (andNew: boolean) => {
+        if (!form.code.trim()) { showAlert('Mã tiềm năng không được để trống'); return; }
+        if (!form.name.trim()) { showAlert('Tên tiềm năng không được để trống'); return; }
+        mutate(toPayload(form), {
+            onSuccess: () => {
+                if (andNew) { setForm(INITIAL); showAlert('Đã lưu tiềm năng thành công'); }
+                else navigate('/tiem-nang');
+            },
+            onError: (err: unknown) => {
+                const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+                    ?? 'Có lỗi xảy ra khi lưu tiềm năng';
+                showAlert(msg);
+            },
+        });
+    };
 
     return (
         <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-                <div>
-                    <h1 className="text-lg font-semibold text-text-main">Thêm Tiềm năng</h1>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        className={`${btnBase} border border-gray-300 text-gray-600 hover:bg-gray-50`}
-                    >
-                        Hủy
-                    </button>
-                    <button
-                        type="button"
-                        className={`${btnBase} border border-primary text-primary hover:bg-blue-50`}
-                    >
-                        Lưu và thêm
-                    </button>
-                    <button
-                        type="button"
-                        className={`${btnBase} bg-primary text-white hover:bg-blue-600`}
-                    >
-                        Lưu
-                    </button>
-                </div>
-            </div>
+            <FormPageHeader
+                title="Thêm Tiềm năng"
+                saving={isPending}
+                onCancel={() => navigate(-1)}
+                onSave={() => submit(false)}
+                onSaveAndNew={() => submit(true)}
+            />
 
-            {/* Nội dung form */}
             <div className="bg-white rounded-card shadow-sm p-6 space-y-8">
-                <Section title="Thông tin chung">
-                    <LeadGeneralSection />
-                </Section>
-
-                <Section title="Thông tin tổ chức">
-                    <LeadOrgSection />
-                </Section>
-
-                <Section title="Thông tin địa chỉ">
-                    <LeadAddressSection />
-                </Section>
-
-                <Section title="Thông tin mô tả">
-                    <div className="flex items-start gap-3">
-                        <span className="text-sm text-gray-600 w-[148px] flex-shrink-0 pt-1.5">
-                            Mô tả
-                        </span>
-                        <textarea
-                            rows={3}
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="flex-1 border border-gray-300 rounded-btn px-3 py-2 text-md text-text-main
-                                       focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary
-                                       resize-none transition-colors"
-                        />
-                    </div>
-                </Section>
-
-                <Section title="Thông tin hệ thống">
-                    <div className="space-y-3">
-                        <label className="flex items-center gap-2 cursor-pointer w-fit">
-                            <input
-                                type="checkbox"
-                                checked={isShared}
-                                onChange={(e) => setIsShared(e.target.checked)}
-                                className="w-4 h-4 accent-primary"
-                            />
-                            <span className="text-md text-text-main">Dùng chung</span>
-                        </label>
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm text-gray-600 w-[148px] flex-shrink-0">
-                                Mã tiềm năng
-                            </span>
-                            <input
-                                type="text"
-                                value={maCode}
-                                onChange={(e) => setMaCode(e.target.value)}
-                                placeholder="Mã tự sinh"
-                                className="w-64 border border-gray-300 rounded-btn px-3 py-1.5 text-md
-                                           text-text-main focus:outline-none focus:border-primary
-                                           focus:ring-1 focus:ring-primary transition-colors"
-                            />
+                <FormSection title="Thông tin chung">
+                    <div className="grid grid-cols-2 gap-x-10 gap-y-4">
+                        <div className="space-y-4">
+                            <FieldRow label="Mã tiềm năng" required>
+                                <input type="text" value={form.code} onChange={(e) => set({ code: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Tên tiềm năng" required>
+                                <input type="text" value={form.name} onChange={(e) => set({ name: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Chức danh">
+                                <input type="text" value={form.title} onChange={(e) => set({ title: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="ĐT di động">
+                                <input type="text" value={form.phone} onChange={(e) => set({ phone: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Nguồn gốc">
+                                <SearchableSelect value={form.source} onChange={(v) => set({ source: v })} options={SOURCE_OPTIONS} />
+                            </FieldRow>
+                        </div>
+                        <div className="space-y-4">
+                            <FieldRow label="Loại tiềm năng">
+                                <SearchableSelect value={form.leadType} onChange={(v) => set({ leadType: v })} options={LEAD_TYPE_OPTIONS} />
+                            </FieldRow>
+                            <FieldRow label="Phòng ban">
+                                <input type="text" value={form.department} onChange={(e) => set({ department: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Email">
+                                <input type="text" value={form.email} onChange={(e) => set({ email: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Trạng thái">
+                                <SearchableSelect value={form.status} onChange={(v) => set({ status: v })} options={STATUS_OPTIONS} />
+                            </FieldRow>
                         </div>
                     </div>
-                </Section>
+                </FormSection>
+
+                <FormSection title="Thông tin tổ chức">
+                    <div className="grid grid-cols-2 gap-x-10 gap-y-4">
+                        <div className="space-y-4">
+                            <FieldRow label="Tên tổ chức">
+                                <input type="text" value={form.companyName} onChange={(e) => set({ companyName: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Website">
+                                <input type="text" value={form.website} onChange={(e) => set({ website: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                        </div>
+                        <div className="space-y-4">
+                            <FieldRow label="Mã số thuế">
+                                <input type="text" value={form.taxCode} onChange={(e) => set({ taxCode: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Ngành nghề">
+                                <input type="text" value={form.industry} onChange={(e) => set({ industry: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                        </div>
+                    </div>
+                </FormSection>
+
+                <FormSection title="Thông tin bán hàng">
+                    <div className="grid grid-cols-2 gap-x-10 gap-y-4">
+                        <div className="space-y-4">
+                            <FieldRow label="Người phụ trách">
+                                <SearchableSelect value={form.ownerId} onChange={(v) => set({ ownerId: v })} options={userOptions} />
+                            </FieldRow>
+                            <FieldRow label="Khách hàng">
+                                <SearchableSelect value={form.customerId} onChange={(v) => set({ customerId: v })} options={customerOptions} />
+                            </FieldRow>
+                        </div>
+                        <div className="space-y-4">
+                            <FieldRow label="Liên hệ">
+                                <SearchableSelect value={form.contactId} onChange={(v) => set({ contactId: v })} options={contactOptions} />
+                            </FieldRow>
+                            <FieldRow label="Giá trị ước tính">
+                                <input type="number" value={form.estimatedValue} onChange={(e) => set({ estimatedValue: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                        </div>
+                    </div>
+                </FormSection>
+
+                <FormSection title="Tùy chọn liên hệ">
+                    <div className="flex items-center gap-8">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked={form.doNotCall} onChange={(e) => set({ doNotCall: e.target.checked })} className="w-4 h-4 accent-primary" />
+                            <span className="text-md text-text-main">Không gọi điện</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked={form.doNotEmail} onChange={(e) => set({ doNotEmail: e.target.checked })} className="w-4 h-4 accent-primary" />
+                            <span className="text-md text-text-main">Không gửi Email</span>
+                        </label>
+                    </div>
+                </FormSection>
+
+                <FormSection title="Thông tin mô tả">
+                    <FieldRow label="Mô tả" alignTop>
+                        <textarea rows={3} value={form.note} onChange={(e) => set({ note: e.target.value })} className={`${inputCls} resize-none`} />
+                    </FieldRow>
+                </FormSection>
             </div>
         </div>
     );

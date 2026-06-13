@@ -16,7 +16,10 @@ public class QuotationCommandMapper {
     public static Quotation toEntity(CreateQuotationCommand cmd) {
         return Quotation.builder()
                 .code(cmd.getCode()).customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
+                .opportunityId(cmd.getOpportunityId())
                 .ownerId(cmd.getOwnerId()).quoteDate(cmd.getQuoteDate()).validUntil(cmd.getValidUntil())
+                .currency(cmd.getCurrency() != null ? cmd.getCurrency() : "VND")
+                .exchangeRate(cmd.getExchangeRate() != null ? cmd.getExchangeRate() : BigDecimal.ONE)
                 .status(cmd.getStatus() != null ? cmd.getStatus() : QuotationStatus.draft)
                 .subtotal(cmd.getSubtotal() != null ? cmd.getSubtotal() : BigDecimal.ZERO)
                 .discount(cmd.getDiscount() != null ? cmd.getDiscount() : BigDecimal.ZERO)
@@ -34,9 +37,12 @@ public class QuotationCommandMapper {
                 .id(e.getId()).code(e.getCode())
                 .customerId(cmd.getCustomerId() != null ? cmd.getCustomerId() : e.getCustomerId())
                 .contactId(cmd.getContactId() != null ? cmd.getContactId() : e.getContactId())
+                .opportunityId(cmd.getOpportunityId() != null ? cmd.getOpportunityId() : e.getOpportunityId())
                 .ownerId(cmd.getOwnerId() != null ? cmd.getOwnerId() : e.getOwnerId())
                 .quoteDate(cmd.getQuoteDate() != null ? cmd.getQuoteDate() : e.getQuoteDate())
                 .validUntil(cmd.getValidUntil() != null ? cmd.getValidUntil() : e.getValidUntil())
+                .currency(cmd.getCurrency() != null ? cmd.getCurrency() : e.getCurrency())
+                .exchangeRate(cmd.getExchangeRate() != null ? cmd.getExchangeRate() : e.getExchangeRate())
                 .status(cmd.getStatus() != null ? cmd.getStatus() : e.getStatus())
                 .subtotal(cmd.getSubtotal() != null ? cmd.getSubtotal() : e.getSubtotal())
                 .discount(cmd.getDiscount() != null ? cmd.getDiscount() : e.getDiscount())
@@ -53,7 +59,9 @@ public class QuotationCommandMapper {
     public static QuotationResult toResult(Quotation e) {
         return QuotationResult.builder()
                 .id(e.getId()).code(e.getCode()).customerId(e.getCustomerId()).contactId(e.getContactId())
+                .opportunityId(e.getOpportunityId())
                 .ownerId(e.getOwnerId()).quoteDate(e.getQuoteDate()).validUntil(e.getValidUntil())
+                .currency(e.getCurrency()).exchangeRate(e.getExchangeRate())
                 .status(e.getStatus()).subtotal(e.getSubtotal()).discount(e.getDiscount())
                 .tax(e.getTax()).total(e.getTotal()).note(e.getNote())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();

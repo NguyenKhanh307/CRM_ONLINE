@@ -22,9 +22,15 @@ public class Quotation {
     private String code;
     private Long customerId;
     private Long contactId;
+    /** Cơ hội liên quan (truy vết nguồn). */
+    private Long opportunityId;
     private Long ownerId;
     private LocalDate quoteDate;
     private LocalDate validUntil;
+    /** Loại tiền tệ (mặc định VND). */
+    private String currency;
+    /** Tỷ giá quy đổi. */
+    private BigDecimal exchangeRate;
     private QuotationStatus status;
     private BigDecimal subtotal;
     private BigDecimal discount;

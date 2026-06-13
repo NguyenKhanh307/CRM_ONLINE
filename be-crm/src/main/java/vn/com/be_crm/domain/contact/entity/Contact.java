@@ -20,12 +20,29 @@ public class Contact {
     private Long id;
     private Long customerId;
     private Long assignedUserId;
+    /** Xưng hô (Anh/Chị/Ông/Bà...). */
+    private String salutation;
     private String fullName;
+    /** Chức danh. */
+    private String title;
+    /** Phòng ban. */
+    private String department;
     private String position;
     private String email;
+    /** Email cơ quan. */
+    private String workEmail;
+    /** Email cá nhân. */
+    private String personalEmail;
+    private String zalo;
+    /** Nguồn gốc liên hệ. */
+    private String source;
     private ContactGender gender;
     private LocalDate dateOfBirth;
     private String address;
+    /** Không gọi điện. */
+    private boolean doNotCall;
+    /** Không gửi email. */
+    private boolean doNotEmail;
     private Boolean isPrimary;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

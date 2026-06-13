@@ -18,10 +18,13 @@ public class OpportunityHibernateMapper {
     public OpportunityHibernate toHibernate(Opportunity d) {
         OpportunityHibernate h = new OpportunityHibernate();
         h.setId(d.getId()); h.setCode(d.getCode()); h.setName(d.getName());
+        h.setOpportunityType(d.getOpportunityType());
         h.setCustomerId(d.getCustomerId()); h.setContactId(d.getContactId());
         h.setOwnerId(d.getOwnerId()); h.setStageId(d.getStageId());
         h.setAmount(d.getAmount() != null ? d.getAmount() : BigDecimal.ZERO);
+        h.setExpectedRevenue(d.getExpectedRevenue());
         h.setProbability(d.getProbability()); h.setExpectedCloseDate(d.getExpectedCloseDate());
+        h.setSource(d.getSource()); h.setWinLossReason(d.getWinLossReason()); h.setDescription(d.getDescription());
         h.setStatus(d.getStatus() != null ? d.getStatus() : OpportunityStatus.open);
         h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
@@ -34,10 +37,13 @@ public class OpportunityHibernateMapper {
      */
     public Opportunity toDomain(OpportunityHibernate h) {
         return Opportunity.builder()
-                .id(h.getId()).code(h.getCode()).name(h.getName()).customerId(h.getCustomerId())
+                .id(h.getId()).code(h.getCode()).name(h.getName()).opportunityType(h.getOpportunityType())
+                .customerId(h.getCustomerId())
                 .contactId(h.getContactId()).ownerId(h.getOwnerId()).stageId(h.getStageId())
-                .amount(h.getAmount()).probability(h.getProbability())
-                .expectedCloseDate(h.getExpectedCloseDate()).status(h.getStatus())
+                .amount(h.getAmount()).expectedRevenue(h.getExpectedRevenue()).probability(h.getProbability())
+                .expectedCloseDate(h.getExpectedCloseDate())
+                .source(h.getSource()).winLossReason(h.getWinLossReason()).description(h.getDescription())
+                .status(h.getStatus())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }

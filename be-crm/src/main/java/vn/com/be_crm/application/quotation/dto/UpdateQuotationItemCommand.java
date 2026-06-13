@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 public class UpdateQuotationItemCommand {
     private Long id;
     private Long productId;
+    @Size(max = 20) private String unit;
     private BigDecimal quantity;
     private BigDecimal unitPrice;
     private BigDecimal discount;

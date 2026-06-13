@@ -13,11 +13,19 @@ public class LeadCommandMapper {
      */
     public static Lead toEntity(CreateLeadCommand cmd) {
         return Lead.builder()
-                .code(cmd.getCode()).name(cmd.getName()).ownerId(cmd.getOwnerId())
-                .customerId(cmd.getCustomerId()).contactId(cmd.getContactId()).source(cmd.getSource())
+                .code(cmd.getCode()).name(cmd.getName())
+                .companyName(cmd.getCompanyName()).leadType(cmd.getLeadType())
+                .ownerId(cmd.getOwnerId())
+                .customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
+                .title(cmd.getTitle()).department(cmd.getDepartment())
+                .taxCode(cmd.getTaxCode()).website(cmd.getWebsite()).industry(cmd.getIndustry())
+                .source(cmd.getSource())
                 .status(cmd.getStatus() != null ? cmd.getStatus() : LeadStatus.new_)
                 .estimatedValue(cmd.getEstimatedValue()).phone(cmd.getPhone())
-                .email(cmd.getEmail()).note(cmd.getNote()).build();
+                .email(cmd.getEmail())
+                .doNotCall(cmd.getDoNotCall() != null && cmd.getDoNotCall())
+                .doNotEmail(cmd.getDoNotEmail() != null && cmd.getDoNotEmail())
+                .note(cmd.getNote()).build();
     }
 
     /**
@@ -28,14 +36,23 @@ public class LeadCommandMapper {
         return Lead.builder()
                 .id(e.getId()).code(e.getCode())
                 .name(cmd.getName() != null ? cmd.getName() : e.getName())
+                .companyName(cmd.getCompanyName() != null ? cmd.getCompanyName() : e.getCompanyName())
+                .leadType(cmd.getLeadType() != null ? cmd.getLeadType() : e.getLeadType())
                 .ownerId(cmd.getOwnerId() != null ? cmd.getOwnerId() : e.getOwnerId())
                 .customerId(cmd.getCustomerId() != null ? cmd.getCustomerId() : e.getCustomerId())
                 .contactId(cmd.getContactId() != null ? cmd.getContactId() : e.getContactId())
+                .title(cmd.getTitle() != null ? cmd.getTitle() : e.getTitle())
+                .department(cmd.getDepartment() != null ? cmd.getDepartment() : e.getDepartment())
+                .taxCode(cmd.getTaxCode() != null ? cmd.getTaxCode() : e.getTaxCode())
+                .website(cmd.getWebsite() != null ? cmd.getWebsite() : e.getWebsite())
+                .industry(cmd.getIndustry() != null ? cmd.getIndustry() : e.getIndustry())
                 .source(cmd.getSource() != null ? cmd.getSource() : e.getSource())
                 .status(cmd.getStatus() != null ? cmd.getStatus() : e.getStatus())
                 .estimatedValue(cmd.getEstimatedValue() != null ? cmd.getEstimatedValue() : e.getEstimatedValue())
                 .phone(cmd.getPhone() != null ? cmd.getPhone() : e.getPhone())
                 .email(cmd.getEmail() != null ? cmd.getEmail() : e.getEmail())
+                .doNotCall(cmd.getDoNotCall() != null ? cmd.getDoNotCall() : e.isDoNotCall())
+                .doNotEmail(cmd.getDoNotEmail() != null ? cmd.getDoNotEmail() : e.isDoNotEmail())
                 .note(cmd.getNote() != null ? cmd.getNote() : e.getNote())
                 .createdAt(e.getCreatedAt()).build();
     }
@@ -46,10 +63,17 @@ public class LeadCommandMapper {
      */
     public static LeadResult toResult(Lead e) {
         return LeadResult.builder()
-                .id(e.getId()).code(e.getCode()).name(e.getName()).ownerId(e.getOwnerId())
-                .customerId(e.getCustomerId()).contactId(e.getContactId()).source(e.getSource())
+                .id(e.getId()).code(e.getCode()).name(e.getName())
+                .companyName(e.getCompanyName()).leadType(e.getLeadType())
+                .ownerId(e.getOwnerId())
+                .customerId(e.getCustomerId()).contactId(e.getContactId())
+                .title(e.getTitle()).department(e.getDepartment())
+                .taxCode(e.getTaxCode()).website(e.getWebsite()).industry(e.getIndustry())
+                .source(e.getSource())
                 .status(e.getStatus()).estimatedValue(e.getEstimatedValue()).phone(e.getPhone())
-                .email(e.getEmail()).note(e.getNote()).createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
+                .email(e.getEmail())
+                .doNotCall(e.isDoNotCall()).doNotEmail(e.isDoNotEmail())
+                .note(e.getNote()).createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 
     private LeadCommandMapper() {}

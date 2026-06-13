@@ -1,11 +1,13 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
-import type { WarehouseResult, UpdateWarehousePayload } from '../types/warehouseTypes';
+import type { WarehouseResult, CreateWarehousePayload, UpdateWarehousePayload } from '../types/warehouseTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 
 export const warehouseService = {
     getList: (params?: PageParams) =>
         axiosInstance.get<ApiResponse<PageResult<WarehouseResult>>>('/api/warehouses', { params }),
+    create: (payload: CreateWarehousePayload) =>
+        axiosInstance.post<ApiResponse<WarehouseResult>>('/api/warehouses', payload),
     getById: (id: number) =>
         axiosInstance.get<ApiResponse<WarehouseResult>>(`/api/warehouses/${id}`),
     update: (id: number, payload: UpdateWarehousePayload) =>

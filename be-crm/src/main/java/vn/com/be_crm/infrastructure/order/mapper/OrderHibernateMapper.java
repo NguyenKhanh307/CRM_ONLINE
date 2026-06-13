@@ -16,13 +16,20 @@ public class OrderHibernateMapper {
     public OrderHibernate toHibernate(Order d) {
         OrderHibernate h = new OrderHibernate();
         h.setId(d.getId()); h.setCode(d.getCode()); h.setCustomerId(d.getCustomerId());
-        h.setContactId(d.getContactId()); h.setOwnerId(d.getOwnerId());
+        h.setContactId(d.getContactId());
+        h.setQuotationId(d.getQuotationId()); h.setOpportunityId(d.getOpportunityId());
+        h.setOwnerId(d.getOwnerId());
         h.setExecutorUnitId(d.getExecutorUnitId()); h.setWarehouseId(d.getWarehouseId());
         h.setParentOrderId(d.getParentOrderId());
         h.setOrderType(d.getOrderType() != null ? d.getOrderType() : OrderType.standard);
         h.setOrderDate(d.getOrderDate());
+        h.setCurrency(d.getCurrency() != null ? d.getCurrency() : "VND");
+        h.setExchangeRate(d.getExchangeRate() != null ? d.getExchangeRate() : BigDecimal.ONE);
         h.setStatus(d.getStatus() != null ? d.getStatus() : OrderStatus.draft);
         h.setPaymentStatus(d.getPaymentStatus() != null ? d.getPaymentStatus() : PaymentStatus.unpaid);
+        h.setCreditDays(d.getCreditDays()); h.setPaymentDueDate(d.getPaymentDueDate());
+        h.setInvoiced(d.isInvoiced());
+        h.setReceiverName(d.getReceiverName()); h.setReceiverPhone(d.getReceiverPhone());
         h.setSubtotal(d.getSubtotal() != null ? d.getSubtotal() : BigDecimal.ZERO);
         h.setDiscount(d.getDiscount() != null ? d.getDiscount() : BigDecimal.ZERO);
         h.setTax(d.getTax() != null ? d.getTax() : BigDecimal.ZERO);
@@ -35,9 +42,14 @@ public class OrderHibernateMapper {
     public Order toDomain(OrderHibernate h) {
         return Order.builder()
                 .id(h.getId()).code(h.getCode()).customerId(h.getCustomerId()).contactId(h.getContactId())
+                .quotationId(h.getQuotationId()).opportunityId(h.getOpportunityId())
                 .ownerId(h.getOwnerId()).executorUnitId(h.getExecutorUnitId()).warehouseId(h.getWarehouseId())
                 .parentOrderId(h.getParentOrderId()).orderType(h.getOrderType()).orderDate(h.getOrderDate())
-                .status(h.getStatus()).paymentStatus(h.getPaymentStatus()).subtotal(h.getSubtotal())
+                .currency(h.getCurrency()).exchangeRate(h.getExchangeRate())
+                .status(h.getStatus()).paymentStatus(h.getPaymentStatus())
+                .creditDays(h.getCreditDays()).paymentDueDate(h.getPaymentDueDate())
+                .isInvoiced(h.isInvoiced()).receiverName(h.getReceiverName()).receiverPhone(h.getReceiverPhone())
+                .subtotal(h.getSubtotal())
                 .discount(h.getDiscount()).tax(h.getTax()).total(h.getTotal()).note(h.getNote())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();

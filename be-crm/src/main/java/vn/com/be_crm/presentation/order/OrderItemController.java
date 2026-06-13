@@ -33,7 +33,8 @@ public class OrderItemController {
                                                                 @Valid @RequestBody CreateOrderItemCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(
                 CreateOrderItemCommand.builder().orderId(orderId).productId(cmd.getProductId())
-                        .warehouseId(cmd.getWarehouseId()).quantity(cmd.getQuantity()).unitPrice(cmd.getUnitPrice())
+                        .warehouseId(cmd.getWarehouseId()).unit(cmd.getUnit())
+                        .quantity(cmd.getQuantity()).unitPrice(cmd.getUnitPrice())
                         .discount(cmd.getDiscount()).taxRate(cmd.getTaxRate()).amount(cmd.getAmount())
                         .note(cmd.getNote()).build())));
     }

@@ -1,12 +1,49 @@
 export interface UpdateCustomerPayload {
     name: string;
+    shortName?: string | null;
     type: string;
     taxCode: string | null;
     phone: string | null;
     email: string | null;
+    website?: string | null;
     address: string | null;
+    industry?: string | null;
     source: string | null;
     status: string;
+    creditDays?: number | null;
+    creditLimit?: number | null;
+    bankAccount?: string | null;
+    bankName?: string | null;
+    rating?: string | null;
+    annualRevenue?: number | null;
+    employeeSize?: string | null;
+    isDistributor?: boolean;
+    ownerId: number | null;
+    unitId: number | null;
+}
+
+/** Payload tạo mới khách hàng — POST /api/customers. */
+export interface CreateCustomerPayload {
+    code: string;
+    name: string;
+    shortName: string | null;
+    type: string;
+    taxCode: string | null;
+    phone: string | null;
+    email: string | null;
+    website: string | null;
+    address: string | null;
+    industry: string | null;
+    source: string | null;
+    status: string;
+    creditDays: number | null;
+    creditLimit: number | null;
+    bankAccount: string | null;
+    bankName: string | null;
+    rating: string | null;
+    annualRevenue: number | null;
+    employeeSize: string | null;
+    isDistributor: boolean;
     ownerId: number | null;
     unitId: number | null;
 }
@@ -15,13 +52,24 @@ export interface CustomerResult {
     id: number;
     code: string;
     name: string;
+    shortName: string | null;
     type: string;
     taxCode: string | null;
     phone: string | null;
     email: string | null;
+    website: string | null;
     address: string | null;
+    industry: string | null;
     source: string | null;
     status: string;
+    creditDays: number | null;
+    creditLimit: number | null;
+    bankAccount: string | null;
+    bankName: string | null;
+    rating: string | null;
+    annualRevenue: number | null;
+    employeeSize: string | null;
+    isDistributor: boolean;
     ownerId: number | null;
     unitId: number | null;
     createdAt: string;

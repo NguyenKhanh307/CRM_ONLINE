@@ -19,12 +19,23 @@ public class CreateActivityRequest {
     @NotNull(message = "Loại hoạt động không được để trống")
     private ActivityType type;
     @NotBlank(message = "Tiêu đề không được để trống")
-    @Size(max = 30)
+    @Size(max = 100)
     private String subject;
     @Size(max = 255)
     private String content;
+    @Size(max = 10)
+    private String priority;
     private String targetType;
     private Long targetId;
+    private String relatedType;
+    private Long relatedId;
+    @Size(max = 255)
+    private String location;
+    @Size(max = 5)
+    private String callDirection;
+    @Size(max = 50)
+    private String callResult;
+    private Integer callDuration;
     private Long assignedUserId;
     private ActivityStatus status;
     private LocalDateTime dueAt;

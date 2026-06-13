@@ -16,13 +16,18 @@ public class OpportunityResult {
     private Long id;
     private String code;
     private String name;
+    private String opportunityType;
     private Long customerId;
     private Long contactId;
     private Long ownerId;
     private Long stageId;
     private BigDecimal amount;
+    private BigDecimal expectedRevenue;
     private BigDecimal probability;
     private LocalDate expectedCloseDate;
+    private String source;
+    private String winLossReason;
+    private String description;
     private OpportunityStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

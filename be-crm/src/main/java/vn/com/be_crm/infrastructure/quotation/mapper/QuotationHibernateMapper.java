@@ -14,8 +14,11 @@ public class QuotationHibernateMapper {
     public QuotationHibernate toHibernate(Quotation d) {
         QuotationHibernate h = new QuotationHibernate();
         h.setId(d.getId()); h.setCode(d.getCode()); h.setCustomerId(d.getCustomerId());
-        h.setContactId(d.getContactId()); h.setOwnerId(d.getOwnerId());
+        h.setContactId(d.getContactId()); h.setOpportunityId(d.getOpportunityId());
+        h.setOwnerId(d.getOwnerId());
         h.setQuoteDate(d.getQuoteDate()); h.setValidUntil(d.getValidUntil());
+        h.setCurrency(d.getCurrency() != null ? d.getCurrency() : "VND");
+        h.setExchangeRate(d.getExchangeRate() != null ? d.getExchangeRate() : BigDecimal.ONE);
         h.setStatus(d.getStatus() != null ? d.getStatus() : QuotationStatus.draft);
         h.setSubtotal(d.getSubtotal() != null ? d.getSubtotal() : BigDecimal.ZERO);
         h.setDiscount(d.getDiscount() != null ? d.getDiscount() : BigDecimal.ZERO);
@@ -29,7 +32,9 @@ public class QuotationHibernateMapper {
     public Quotation toDomain(QuotationHibernate h) {
         return Quotation.builder()
                 .id(h.getId()).code(h.getCode()).customerId(h.getCustomerId()).contactId(h.getContactId())
+                .opportunityId(h.getOpportunityId())
                 .ownerId(h.getOwnerId()).quoteDate(h.getQuoteDate()).validUntil(h.getValidUntil())
+                .currency(h.getCurrency()).exchangeRate(h.getExchangeRate())
                 .status(h.getStatus()).subtotal(h.getSubtotal()).discount(h.getDiscount())
                 .tax(h.getTax()).total(h.getTotal()).note(h.getNote())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())

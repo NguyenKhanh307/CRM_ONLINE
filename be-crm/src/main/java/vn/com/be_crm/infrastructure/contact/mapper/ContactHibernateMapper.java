@@ -15,8 +15,13 @@ public class ContactHibernateMapper {
     public ContactHibernate toHibernate(Contact d) {
         ContactHibernate h = new ContactHibernate();
         h.setId(d.getId()); h.setCustomerId(d.getCustomerId()); h.setAssignedUserId(d.getAssignedUserId());
-        h.setFullName(d.getFullName()); h.setPosition(d.getPosition()); h.setEmail(d.getEmail());
+        h.setSalutation(d.getSalutation());
+        h.setFullName(d.getFullName()); h.setTitle(d.getTitle()); h.setDepartment(d.getDepartment());
+        h.setPosition(d.getPosition()); h.setEmail(d.getEmail());
+        h.setWorkEmail(d.getWorkEmail()); h.setPersonalEmail(d.getPersonalEmail());
+        h.setZalo(d.getZalo()); h.setSource(d.getSource());
         h.setGender(d.getGender()); h.setDateOfBirth(d.getDateOfBirth()); h.setAddress(d.getAddress());
+        h.setDoNotCall(d.isDoNotCall()); h.setDoNotEmail(d.isDoNotEmail());
         h.setIsPrimary(d.getIsPrimary() != null ? d.getIsPrimary() : false);
         h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
@@ -30,8 +35,13 @@ public class ContactHibernateMapper {
     public Contact toDomain(ContactHibernate h) {
         return Contact.builder()
                 .id(h.getId()).customerId(h.getCustomerId()).assignedUserId(h.getAssignedUserId())
-                .fullName(h.getFullName()).position(h.getPosition()).email(h.getEmail())
+                .salutation(h.getSalutation())
+                .fullName(h.getFullName()).title(h.getTitle()).department(h.getDepartment())
+                .position(h.getPosition()).email(h.getEmail())
+                .workEmail(h.getWorkEmail()).personalEmail(h.getPersonalEmail())
+                .zalo(h.getZalo()).source(h.getSource())
                 .gender(h.getGender()).dateOfBirth(h.getDateOfBirth()).address(h.getAddress())
+                .doNotCall(h.isDoNotCall()).doNotEmail(h.isDoNotEmail())
                 .isPrimary(h.getIsPrimary()).createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt())
                 .deletedAt(h.getDeletedAt()).deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }

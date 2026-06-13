@@ -1,6 +1,5 @@
 package vn.com.be_crm.application.order.dto;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,9 +11,11 @@ import java.math.BigDecimal;
 /** Input DTO khi tạo mới dòng đơn hàng. */
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class CreateOrderItemCommand {
-    @NotNull private Long orderId;
+    /** ID đơn hàng — controller set từ path; bỏ trống khi tạo nested kèm đơn hàng. */
+    private Long orderId;
     private Long productId;
     private Long warehouseId;
+    @Size(max = 20) private String unit;
     private BigDecimal quantity;
     private BigDecimal unitPrice;
     private BigDecimal discount;

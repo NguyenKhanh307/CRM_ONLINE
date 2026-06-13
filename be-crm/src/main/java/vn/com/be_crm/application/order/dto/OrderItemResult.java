@@ -14,6 +14,7 @@ public class OrderItemResult {
     private Long orderId;
     private Long productId;
     private Long warehouseId;
+    private String unit;
     private BigDecimal quantity;
     private BigDecimal unitPrice;
     private BigDecimal discount;

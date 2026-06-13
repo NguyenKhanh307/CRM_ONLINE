@@ -4,6 +4,7 @@ import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
+import vn.com.be_crm.domain.quotation.entity.QuotationItem;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,14 @@ public interface IQuotationRepository {
 
     /** Lưu mới hoặc cập nhật báo giá. @param q @return entity sau khi lưu */
     Quotation save(Quotation q);
+
+    /**
+     * Lưu báo giá kèm danh sách dòng hàng trong một transaction.
+     * @param q     domain entity báo giá
+     * @param items danh sách dòng hàng (quotationId sẽ được gán sau khi lưu báo giá)
+     * @return báo giá sau khi lưu
+     */
+    Quotation saveWithItems(Quotation q, List<QuotationItem> items);
 
     /** Tìm báo giá theo ID. @param id @return Optional */
     Optional<Quotation> findById(Long id);

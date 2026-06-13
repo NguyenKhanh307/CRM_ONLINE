@@ -8,9 +8,12 @@ import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
+import vn.com.be_crm.domain.opportunity.entity.OpportunityItem;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 import vn.com.be_crm.infrastructure.opportunity.entity.OpportunityHibernate;
+import vn.com.be_crm.infrastructure.opportunity.entity.OpportunityItemHibernate;
 import vn.com.be_crm.infrastructure.opportunity.mapper.OpportunityHibernateMapper;
+import vn.com.be_crm.infrastructure.opportunity.mapper.OpportunityItemHibernateMapper;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -26,10 +29,12 @@ import java.util.stream.Collectors;
 public class OpportunityRepositoryImpl implements IOpportunityRepository {
     private final SessionFactory sf;
     private final OpportunityHibernateMapper mapper;
+    private final OpportunityItemHibernateMapper itemMapper;
 
-    /** @param sf Hibernate SessionFactory @param mapper mapper */
-    public OpportunityRepositoryImpl(SessionFactory sf, OpportunityHibernateMapper mapper) {
-        this.sf = sf; this.mapper = mapper;
+    /** @param sf Hibernate SessionFactory @param mapper mapper @param itemMapper mapper dòng hàng */
+    public OpportunityRepositoryImpl(SessionFactory sf, OpportunityHibernateMapper mapper,
+                                     OpportunityItemHibernateMapper itemMapper) {
+        this.sf = sf; this.mapper = mapper; this.itemMapper = itemMapper;
     }
 
     /** Lưu mới hoặc cập nhật Opportunity. @param o domain entity @return entity sau khi lưu */
@@ -37,6 +42,25 @@ public class OpportunityRepositoryImpl implements IOpportunityRepository {
         try (Session s = sf.openSession()) {
             Transaction tx = s.beginTransaction();
             OpportunityHibernate m = s.merge(mapper.toHibernate(o));
+            tx.commit(); return mapper.toDomain(m);
+        }
+    }
+
+    /**
+     * Lưu Opportunity kèm danh sách dòng hàng trong MỘT transaction.
+     * @param o     domain entity cơ hội
+     * @param items danh sách dòng hàng
+     * @return cơ hội sau khi lưu
+     */
+    @Override public Opportunity saveWithItems(Opportunity o, List<OpportunityItem> items) {
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            OpportunityHibernate m = s.merge(mapper.toHibernate(o));
+            for (OpportunityItem item : items) {
+                OpportunityItemHibernate ih = itemMapper.toHibernate(item);
+                ih.setOpportunityId(m.getId());
+                s.merge(ih);
+            }
             tx.commit(); return mapper.toDomain(m);
         }
     }

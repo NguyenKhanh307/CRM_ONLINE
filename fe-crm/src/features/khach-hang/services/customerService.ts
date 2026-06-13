@@ -1,11 +1,13 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
-import type { CustomerResult, UpdateCustomerPayload } from '../types/customerTypes';
+import type { CreateCustomerPayload, CustomerResult, UpdateCustomerPayload } from '../types/customerTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 
 export const customerService = {
     getList: (params?: PageParams) =>
         axiosInstance.get<ApiResponse<PageResult<CustomerResult>>>('/api/customers', { params }),
+    create: (payload: CreateCustomerPayload) =>
+        axiosInstance.post<ApiResponse<CustomerResult>>('/api/customers', payload),
     getById: (id: number) =>
         axiosInstance.get<ApiResponse<CustomerResult>>(`/api/customers/${id}`),
     update: (id: number, payload: UpdateCustomerPayload) =>

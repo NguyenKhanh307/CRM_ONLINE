@@ -165,7 +165,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/contacts` | Tạo liên hệ |
+| `POST` | `/api/contacts` | Tạo liên hệ — nhận `phones[]` để lưu kèm SĐT trong 1 transaction; bổ sung field V6 (salutation, title, department, workEmail, personalEmail, zalo, source, doNotCall, doNotEmail) |
 | `GET` | `/api/contacts` | Danh sách liên hệ (phân trang) |
 | `GET` | `/api/contacts/{id}` | Lấy liên hệ theo ID |
 | `PUT` | `/api/contacts/{id}` | Cập nhật liên hệ |
@@ -256,7 +256,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/opportunities` | Tạo cơ hội |
+| `POST` | `/api/opportunities` | Tạo cơ hội — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; bổ sung field V6 (opportunityType, expectedRevenue, source, winLossReason, description) |
 | `GET` | `/api/opportunities` | Danh sách cơ hội (phân trang) |
 | `GET` | `/api/opportunities/{id}` | Lấy cơ hội theo ID |
 | `PUT` | `/api/opportunities/{id}` | Cập nhật cơ hội |
@@ -294,7 +294,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/orders` | Tạo đơn hàng |
+| `POST` | `/api/orders` | Tạo đơn hàng — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; bổ sung field V6 (quotationId, opportunityId, currency, exchangeRate, creditDays, paymentDueDate, isInvoiced, receiverName, receiverPhone) |
 | `GET` | `/api/orders` | Danh sách đơn hàng (phân trang) |
 | `GET` | `/api/orders/{id}` | Lấy đơn hàng theo ID |
 | `PUT` | `/api/orders/{id}` | Cập nhật đơn hàng |
@@ -432,7 +432,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/quotations` | Tạo báo giá |
+| `POST` | `/api/quotations` | Tạo báo giá — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; bổ sung field V6 (opportunityId, currency, exchangeRate) |
 | `GET` | `/api/quotations` | Danh sách báo giá (phân trang) |
 | `GET` | `/api/quotations/{id}` | Lấy báo giá theo ID |
 | `PUT` | `/api/quotations/{id}` | Cập nhật báo giá |

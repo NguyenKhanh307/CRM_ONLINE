@@ -8,18 +8,31 @@ import lombok.NoArgsConstructor;
 import vn.com.be_crm.domain.customer.enums.CustomerStatus;
 import vn.com.be_crm.domain.customer.enums.CustomerType;
 
+import java.math.BigDecimal;
+
 /** Input DTO khi cập nhật khách hàng. */
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class UpdateCustomerCommand {
     private Long id;
     @Size(max = 100) private String name;
+    @Size(max = 50) private String shortName;
     private CustomerType type;
     @Size(max = 15) private String taxCode;
     @Size(max = 11) private String phone;
     @Size(max = 50) private String email;
+    @Size(max = 100) private String website;
     @Size(max = 255) private String address;
+    @Size(max = 50) private String industry;
     @Size(max = 20) private String source;
     private CustomerStatus status;
+    private Integer creditDays;
+    private BigDecimal creditLimit;
+    @Size(max = 30) private String bankAccount;
+    @Size(max = 100) private String bankName;
+    @Size(max = 10) private String rating;
+    private BigDecimal annualRevenue;
+    @Size(max = 30) private String employeeSize;
+    private Boolean isDistributor;
     private Long ownerId;
     private Long unitId;
 }

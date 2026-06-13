@@ -23,6 +23,21 @@ public class Product {
     private Long categoryId;
     private ProductType type;
     private String unit;
+    /** Đơn vị phụ (vd mét/cây). */
+    private String secondaryUnit;
+    /** 1 đơn vị chính = ? đơn vị phụ. */
+    private BigDecimal conversionRate;
+    /** Thành phần (vd 100% Polyester). */
+    private String composition;
+    /** Chỉ số sợi (vd 30/1, 75/36/1). */
+    private String yarnCount;
+    private String color;
+    /** Khổ vải (cm). */
+    private BigDecimal fabricWidth;
+    /** Định lượng vải (g/m2). */
+    private BigDecimal weightGsm;
+    private String brand;
+    private String origin;
     private BigDecimal basePrice;
     private BigDecimal costPrice;
     private BigDecimal vatRate;

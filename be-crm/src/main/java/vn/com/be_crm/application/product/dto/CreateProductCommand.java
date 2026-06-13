@@ -19,6 +19,15 @@ public class CreateProductCommand {
     private Long categoryId;
     @NotNull(message = "Loại hàng hóa không được để trống") private ProductType type;
     @Size(max = 20) private String unit;
+    @Size(max = 20) private String secondaryUnit;
+    private BigDecimal conversionRate;
+    @Size(max = 100) private String composition;
+    @Size(max = 30) private String yarnCount;
+    @Size(max = 50) private String color;
+    private BigDecimal fabricWidth;
+    private BigDecimal weightGsm;
+    @Size(max = 100) private String brand;
+    @Size(max = 100) private String origin;
     private BigDecimal basePrice;
     private BigDecimal costPrice;
     private BigDecimal vatRate;

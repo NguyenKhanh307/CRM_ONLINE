@@ -13,6 +13,7 @@ public class QuotationItemResult {
     private Long id;
     private Long quotationId;
     private Long productId;
+    private String unit;
     private BigDecimal quantity;
     private BigDecimal unitPrice;
     private BigDecimal discount;

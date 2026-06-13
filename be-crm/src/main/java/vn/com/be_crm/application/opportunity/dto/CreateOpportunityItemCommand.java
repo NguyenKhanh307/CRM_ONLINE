@@ -1,6 +1,5 @@
 package vn.com.be_crm.application.opportunity.dto;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +11,8 @@ import java.math.BigDecimal;
 /** Input DTO khi tạo mới dòng sản phẩm trong cơ hội. */
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class CreateOpportunityItemCommand {
-    @NotNull private Long opportunityId;
+    /** ID cơ hội — controller set từ path; bỏ trống khi tạo nested kèm cơ hội. */
+    private Long opportunityId;
     private Long productId;
     private BigDecimal quantity;
     private BigDecimal unitPrice;

@@ -15,6 +15,7 @@ public class QuotationItemCommandMapper {
     public static QuotationItem toEntity(CreateQuotationItemCommand cmd) {
         return QuotationItem.builder()
                 .quotationId(cmd.getQuotationId()).productId(cmd.getProductId())
+                .unit(cmd.getUnit())
                 .quantity(cmd.getQuantity() != null ? cmd.getQuantity() : BigDecimal.ONE)
                 .unitPrice(cmd.getUnitPrice() != null ? cmd.getUnitPrice() : BigDecimal.ZERO)
                 .discount(cmd.getDiscount() != null ? cmd.getDiscount() : BigDecimal.ZERO)
@@ -31,6 +32,7 @@ public class QuotationItemCommandMapper {
         return QuotationItem.builder()
                 .id(e.getId()).quotationId(e.getQuotationId())
                 .productId(cmd.getProductId() != null ? cmd.getProductId() : e.getProductId())
+                .unit(cmd.getUnit() != null ? cmd.getUnit() : e.getUnit())
                 .quantity(cmd.getQuantity() != null ? cmd.getQuantity() : e.getQuantity())
                 .unitPrice(cmd.getUnitPrice() != null ? cmd.getUnitPrice() : e.getUnitPrice())
                 .discount(cmd.getDiscount() != null ? cmd.getDiscount() : e.getDiscount())
@@ -46,6 +48,7 @@ public class QuotationItemCommandMapper {
     public static QuotationItemResult toResult(QuotationItem e) {
         return QuotationItemResult.builder()
                 .id(e.getId()).quotationId(e.getQuotationId()).productId(e.getProductId())
+                .unit(e.getUnit())
                 .quantity(e.getQuantity()).unitPrice(e.getUnitPrice()).discount(e.getDiscount())
                 .taxRate(e.getTaxRate()).amount(e.getAmount()).note(e.getNote()).build();
     }

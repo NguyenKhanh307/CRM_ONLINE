@@ -15,10 +15,13 @@ public class OpportunityCommandMapper {
      */
     public static Opportunity toEntity(CreateOpportunityCommand cmd) {
         return Opportunity.builder()
-                .code(cmd.getCode()).name(cmd.getName()).customerId(cmd.getCustomerId())
+                .code(cmd.getCode()).name(cmd.getName()).opportunityType(cmd.getOpportunityType())
+                .customerId(cmd.getCustomerId())
                 .contactId(cmd.getContactId()).ownerId(cmd.getOwnerId()).stageId(cmd.getStageId())
                 .amount(cmd.getAmount() != null ? cmd.getAmount() : BigDecimal.ZERO)
+                .expectedRevenue(cmd.getExpectedRevenue())
                 .probability(cmd.getProbability()).expectedCloseDate(cmd.getExpectedCloseDate())
+                .source(cmd.getSource()).winLossReason(cmd.getWinLossReason()).description(cmd.getDescription())
                 .status(cmd.getStatus() != null ? cmd.getStatus() : OpportunityStatus.open).build();
     }
 
@@ -30,13 +33,18 @@ public class OpportunityCommandMapper {
         return Opportunity.builder()
                 .id(e.getId()).code(e.getCode())
                 .name(cmd.getName() != null ? cmd.getName() : e.getName())
+                .opportunityType(cmd.getOpportunityType() != null ? cmd.getOpportunityType() : e.getOpportunityType())
                 .customerId(cmd.getCustomerId() != null ? cmd.getCustomerId() : e.getCustomerId())
                 .contactId(cmd.getContactId() != null ? cmd.getContactId() : e.getContactId())
                 .ownerId(cmd.getOwnerId() != null ? cmd.getOwnerId() : e.getOwnerId())
                 .stageId(cmd.getStageId() != null ? cmd.getStageId() : e.getStageId())
                 .amount(cmd.getAmount() != null ? cmd.getAmount() : e.getAmount())
+                .expectedRevenue(cmd.getExpectedRevenue() != null ? cmd.getExpectedRevenue() : e.getExpectedRevenue())
                 .probability(cmd.getProbability() != null ? cmd.getProbability() : e.getProbability())
                 .expectedCloseDate(cmd.getExpectedCloseDate() != null ? cmd.getExpectedCloseDate() : e.getExpectedCloseDate())
+                .source(cmd.getSource() != null ? cmd.getSource() : e.getSource())
+                .winLossReason(cmd.getWinLossReason() != null ? cmd.getWinLossReason() : e.getWinLossReason())
+                .description(cmd.getDescription() != null ? cmd.getDescription() : e.getDescription())
                 .status(cmd.getStatus() != null ? cmd.getStatus() : e.getStatus())
                 .createdAt(e.getCreatedAt()).build();
     }
@@ -47,10 +55,13 @@ public class OpportunityCommandMapper {
      */
     public static OpportunityResult toResult(Opportunity e) {
         return OpportunityResult.builder()
-                .id(e.getId()).code(e.getCode()).name(e.getName()).customerId(e.getCustomerId())
+                .id(e.getId()).code(e.getCode()).name(e.getName()).opportunityType(e.getOpportunityType())
+                .customerId(e.getCustomerId())
                 .contactId(e.getContactId()).ownerId(e.getOwnerId()).stageId(e.getStageId())
-                .amount(e.getAmount()).probability(e.getProbability())
-                .expectedCloseDate(e.getExpectedCloseDate()).status(e.getStatus())
+                .amount(e.getAmount()).expectedRevenue(e.getExpectedRevenue()).probability(e.getProbability())
+                .expectedCloseDate(e.getExpectedCloseDate())
+                .source(e.getSource()).winLossReason(e.getWinLossReason()).description(e.getDescription())
+                .status(e.getStatus())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 

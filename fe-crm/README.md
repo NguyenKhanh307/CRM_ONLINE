@@ -314,6 +314,42 @@ features/
 └── chinh-sach-gia/    # Price Policy — danh sách + chi tiết 5 tab sub-entity
 ```
 
+### Form thêm mới full-page — 9 module (2026-06-13)
+
+Mỗi module data có trang thêm mới full-page (layout AMIS), truy cập qua nút "Thêm mới" (FiPlus) trên trang danh sách.
+
+| Module | Route thêm mới | Endpoint backend |
+|--------|---------------|-----------------|
+| Tiềm năng | `/tiem-nang/them-moi` | `POST /api/leads` |
+| Liên hệ | `/lien-he/them-moi` | `POST /api/contacts` (nhận `phones[]`) |
+| Khách hàng | `/khach-hang/them-moi` | `POST /api/customers` |
+| Cơ hội | `/co-hoi/them-moi` | `POST /api/opportunities` (nhận `items[]`) |
+| Báo giá | `/bao-gia/them-moi` | `POST /api/quotations` (nhận `items[]`) |
+| Đơn hàng | `/don-hang/them-moi` | `POST /api/orders` (nhận `items[]`) |
+| Hoạt động | `/hoat-dong/them-moi` | `POST /api/activities` |
+| Sản phẩm | `/san-pham/them-moi` | `POST /api/products` |
+| Kho hàng | `/kho-hang/them-moi` | `POST /api/warehouses` |
+
+**Shared form components** — `src/shared/components/form/`:
+
+| File | Vai trò |
+|------|---------|
+| `formStyles.ts` | `inputCls`, `btnBase` dùng chung |
+| `FormSection.tsx` | Section có tiêu đề (h2 + border-b) |
+| `FieldRow.tsx` | Hàng field label 148px + dấu `*` required, prop `alignTop` cho textarea |
+| `FormPageHeader.tsx` | Header form: Hủy / Lưu và thêm / Lưu, prop `saving` |
+| `ProductLineItemsTable.tsx` | Bảng hàng hóa controlled cho báo giá/đơn hàng/cơ hội (props `showUnit`/`showTax`/`showWarehouse`) |
+| `productLineItem.ts` | Type `LineItemRow`/`ProductOption` + helper `computeTotals`, `toItemPayloads` |
+
+**Pattern mỗi module**: `types/<m>Types.ts` (thêm `Create*Payload`) → `services/<m>Service.ts` (`create()`) → `hooks/useCreate<X>.ts` → `pages/<X>AddPage.tsx`. State lift lên page (`useState<FormState>` + `set(patch)`); "Lưu" → `navigate` về list, "Lưu và thêm" → reset form. Mã (code) bắt buộc nhập tay.
+
+**Lookup hooks dùng cho dropdown**:
+- `features/users/hooks/useActiveUsers.ts` — `GET /api/users?status=active`
+- `features/users/hooks/useOrgUnits.ts` — `GET /api/org-units`
+- `features/co-hoi/hooks/useOpportunityStages.ts` — `GET /api/opportunity-stages`
+- `features/san-pham/hooks/useProductCategories.ts` — `GET /api/product-categories`
+- Tái sử dụng `useCustomerList` / `useContactList` / `useProductList` / `useWarehouseList`
+
 ### Nhập file Excel/CSV — 9 module (2026-06-11)
 
 Mỗi module data có trang nhập file 4 bước riêng, truy cập qua nút "Nhập file" trên trang danh sách.

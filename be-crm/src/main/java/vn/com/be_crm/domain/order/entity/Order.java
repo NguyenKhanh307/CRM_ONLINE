@@ -24,14 +24,31 @@ public class Order {
     private String code;
     private Long customerId;
     private Long contactId;
+    /** Từ báo giá. */
+    private Long quotationId;
+    /** Từ cơ hội. */
+    private Long opportunityId;
     private Long ownerId;
     private Long executorUnitId;
     private Long warehouseId;
     private Long parentOrderId;
     private OrderType orderType;
     private LocalDate orderDate;
+    /** Loại tiền tệ (mặc định VND). */
+    private String currency;
+    /** Tỷ giá quy đổi. */
+    private BigDecimal exchangeRate;
     private OrderStatus status;
     private PaymentStatus paymentStatus;
+    /** Số ngày được nợ. */
+    private Integer creditDays;
+    /** Hạn thanh toán. */
+    private LocalDate paymentDueDate;
+    /** Đã xuất hóa đơn. */
+    private boolean isInvoiced;
+    /** Người nhận hàng. */
+    private String receiverName;
+    private String receiverPhone;
     private BigDecimal subtotal;
     private BigDecimal discount;
     private BigDecimal tax;

@@ -16,9 +16,12 @@ public class UpdateQuotationCommand {
     private Long id;
     private Long customerId;
     private Long contactId;
+    private Long opportunityId;
     private Long ownerId;
     private LocalDate quoteDate;
     private LocalDate validUntil;
+    @Size(max = 3) private String currency;
+    private BigDecimal exchangeRate;
     private QuotationStatus status;
     private BigDecimal subtotal;
     private BigDecimal discount;
