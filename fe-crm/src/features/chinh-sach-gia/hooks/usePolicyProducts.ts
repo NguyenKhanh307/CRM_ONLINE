@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { pricingService } from '../services/pricingService';
 import type { CreatePricePolicyProductPayload, UpdatePricePolicyProductPayload } from '../types/pricingTypes';
 
+/** Lấy danh sách sản phẩm của chính sách. */
 export function usePolicyProducts(policyId: number) {
     return useQuery({
         queryKey: ['price-policy-products', policyId],
@@ -10,6 +11,7 @@ export function usePolicyProducts(policyId: number) {
     });
 }
 
+/** Tạo mới sản phẩm của chính sách — invalidate danh sách sau khi thành công. */
 export function useCreatePolicyProduct(policyId: number) {
     const qc = useQueryClient();
     return useMutation({
@@ -19,6 +21,7 @@ export function useCreatePolicyProduct(policyId: number) {
     });
 }
 
+/** Cập nhật sản phẩm của chính sách — invalidate danh sách sau khi thành công. */
 export function useUpdatePolicyProduct(policyId: number) {
     const qc = useQueryClient();
     return useMutation({
@@ -28,6 +31,7 @@ export function useUpdatePolicyProduct(policyId: number) {
     });
 }
 
+/** Xóa sản phẩm của chính sách — invalidate danh sách sau khi thành công. */
 export function useDeletePolicyProduct(policyId: number) {
     const qc = useQueryClient();
     return useMutation({

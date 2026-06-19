@@ -37,6 +37,14 @@ public class WarehouseRepositoryImpl implements IWarehouseRepository {
             return Optional.ofNullable(s.find(WarehouseHibernate.class, id)).map(mapper::toDomain);
         }
     }
+    /** Tìm Warehouse theo mã. @param code mã kho @return Optional */
+    @Override public Optional<Warehouse> findByCode(String code) {
+        try (Session s = sf.openSession()) {
+            return s.createQuery("FROM WarehouseHibernate WHERE code = :code", WarehouseHibernate.class)
+                    .setParameter("code", code).setMaxResults(1).list()
+                    .stream().map(mapper::toDomain).findFirst();
+        }
+    }
     /** @param id ID to delete */
     @Override public void deleteById(Long id) {
         try (Session s = sf.openSession()) {

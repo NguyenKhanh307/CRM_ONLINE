@@ -53,6 +53,15 @@ public class ProductRepositoryImpl implements IProductRepository {
         }
     }
 
+    /** Tìm Product theo SKU (chưa xóa mềm). @param sku SKU @return Optional */
+    @Override public Optional<Product> findBySku(String sku) {
+        try (Session s = sf.openSession()) {
+            return s.createQuery("FROM ProductHibernate WHERE sku = :sku AND deletedAt IS NULL", ProductHibernate.class)
+                    .setParameter("sku", sku).setMaxResults(1).list()
+                    .stream().map(mapper::toDomain).findFirst();
+        }
+    }
+
     /** Xóa mềm Product, ghi nhận người xóa. @param id ID @param deletedBy userId người xóa */
     @Override public void deleteById(Long id, Long deletedBy) {
         try (Session s = sf.openSession()) {
@@ -66,12 +75,16 @@ public class ProductRepositoryImpl implements IProductRepository {
     /** Lấy danh sách Product trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
     @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
         try (Session s = sf.openSession()) {
+            // Mốc 30 ngày: chỉ hiện bản ghi đã xóa trong 30 ngày gần đây
             LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+            // Không phải admin → chỉ xem bản ghi do chính mình xóa
             String userFilter = isAdmin ? "" : " AND p.deleted_by = :userId";
+            // Native query LEFT JOIN users để lấy tên người xóa
             String sql = "SELECT p.id, p.name, p.deleted_at, u.full_name FROM products p" +
                     " LEFT JOIN users u ON u.id = p.deleted_by" +
                     " WHERE p.deleted_at IS NOT NULL AND p.deleted_at >= :cutoff AND p.is_purged = 0" +
                     userFilter + " ORDER BY p.deleted_at DESC";
+            // Chạy query phân trang rồi map Object[] → DeletedItemResult (xử lý Timestamp của TiDB)
             var q = s.createNativeQuery(sql, Object[].class)
                     .setParameter("cutoff", cutoff)
                     .setFirstResult(req.getOffset()).setMaxResults(req.getSize());
@@ -82,6 +95,7 @@ public class ProductRepositoryImpl implements IProductRepository {
                             row[2] instanceof Timestamp ts ? ts.toLocalDateTime() : (LocalDateTime) row[2],
                             (String) row[3]))
                     .collect(Collectors.toList());
+            // Query đếm tổng số bản ghi đã xóa để phân trang
             String countSql = "SELECT COUNT(*) FROM products p WHERE p.deleted_at IS NOT NULL AND p.deleted_at >= :cutoff AND p.is_purged = 0" + userFilter;
             var cq = s.createNativeQuery(countSql, Object.class).setParameter("cutoff", cutoff);
             if (!isAdmin) cq.setParameter("userId", userId);

@@ -15,13 +15,20 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductCategory {
+    /** ID danh mục. */
     private Long id;
+    /** Mã danh mục. */
     private String code;
+    /** Tên danh mục. */
     private String name;
     /** ID danh mục cha (null nếu là gốc). */
     private Long parentId;
+    /** Thứ tự sắp xếp. */
     private Integer sortOrder;
+    /** Đang hoạt động. */
     private Boolean isActive;
+    /** Thời điểm tạo. */
     private LocalDateTime createdAt;
+    /** Thời điểm cập nhật gần nhất. */
     private LocalDateTime updatedAt;
 }

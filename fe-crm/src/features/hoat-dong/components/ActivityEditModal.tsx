@@ -22,6 +22,7 @@ export function ActivityEditModal({ item, onClose }: Props) {
     const [form, setForm] = useState<UpdateActivityPayload>({
         type: 'call', subject: '', content: null, targetType: null,
         targetId: null, assignedUserId: null, status: 'pending', dueAt: null,
+        priority: 'medium', location: null, callDirection: null, callResult: null, callDuration: null,
     });
 
     useEffect(() => {
@@ -30,6 +31,8 @@ export function ActivityEditModal({ item, onClose }: Props) {
             type: item.type, subject: item.subject, content: item.content, targetType: item.targetType,
             targetId: item.targetId, assignedUserId: item.assignedUserId, status: item.status,
             dueAt: item.dueAt ? item.dueAt.substring(0, 16) : null,
+            priority: item.priority ?? 'medium', location: item.location,
+            callDirection: item.callDirection, callResult: item.callResult, callDuration: item.callDuration,
         });
     }, [item]);
 
@@ -69,10 +72,44 @@ export function ActivityEditModal({ item, onClose }: Props) {
                             </select>
                         </div>
                     </div>
-                    <div>
-                        <label className={lbl}>Hạn chót</label>
-                        <input type="datetime-local" className={inp} value={form.dueAt ?? ''} onChange={e => setForm(f => ({ ...f, dueAt: e.target.value || null }))} />
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Mức ưu tiên</label>
+                            <select className={inp} value={form.priority ?? 'medium'} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}>
+                                <option value="low">Thấp</option>
+                                <option value="medium">Trung bình</option>
+                                <option value="high">Cao</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className={lbl}>Hạn chót</label>
+                            <input type="datetime-local" className={inp} value={form.dueAt ?? ''} onChange={e => setForm(f => ({ ...f, dueAt: e.target.value || null }))} />
+                        </div>
                     </div>
+                    <div>
+                        <label className={lbl}>Địa điểm</label>
+                        <input className={inp} value={form.location ?? ''} onChange={e => setForm(f => ({ ...f, location: e.target.value || null }))} />
+                    </div>
+                    {form.type === 'call' && (
+                        <div className="grid grid-cols-3 gap-3">
+                            <div>
+                                <label className={lbl}>Hướng gọi</label>
+                                <select className={inp} value={form.callDirection ?? ''} onChange={e => setForm(f => ({ ...f, callDirection: e.target.value || null }))}>
+                                    <option value="">-- Chọn --</option>
+                                    <option value="in">Gọi đến</option>
+                                    <option value="out">Gọi đi</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className={lbl}>Kết quả</label>
+                                <input className={inp} value={form.callResult ?? ''} onChange={e => setForm(f => ({ ...f, callResult: e.target.value || null }))} />
+                            </div>
+                            <div>
+                                <label className={lbl}>Thời lượng (s)</label>
+                                <input type="number" className={inp} value={form.callDuration ?? ''} onChange={e => setForm(f => ({ ...f, callDuration: e.target.value ? +e.target.value : null }))} />
+                            </div>
+                        </div>
+                    )}
                     <div>
                         <label className={lbl}>Nội dung</label>
                         <textarea className={inp} rows={3} value={form.content ?? ''} onChange={e => setForm(f => ({ ...f, content: e.target.value || null }))} />

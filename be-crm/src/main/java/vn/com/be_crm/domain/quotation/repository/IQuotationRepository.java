@@ -18,6 +18,12 @@ public interface IQuotationRepository {
     Quotation save(Quotation q);
 
     /**
+     * Tìm báo giá theo mã (code) chưa xóa mềm — dùng cho import UPDATE/BOTH.
+     * @param code mã báo giá @return Optional
+     */
+    Optional<Quotation> findByCode(String code);
+
+    /**
      * Lưu báo giá kèm danh sách dòng hàng trong một transaction.
      * @param q     domain entity báo giá
      * @param items danh sách dòng hàng (quotationId sẽ được gán sau khi lưu báo giá)

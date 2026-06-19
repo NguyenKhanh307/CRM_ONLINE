@@ -18,26 +18,39 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Customer {
+    /** ID khách hàng. */
     private Long id;
+    /** Mã khách hàng. */
     private String code;
+    /** Tên khách hàng. */
     private String name;
     /** Tên viết tắt. */
     private String shortName;
+    /** Loại khách hàng (cá nhân/doanh nghiệp). */
     private CustomerType type;
+    /** Mã số thuế. */
     private String taxCode;
+    /** Số điện thoại. */
     private String phone;
+    /** Email. */
     private String email;
+    /** Website. */
     private String website;
+    /** Địa chỉ. */
     private String address;
     /** Ngành nghề. */
     private String industry;
+    /** Nguồn khách hàng. */
     private String source;
+    /** Trạng thái khách hàng. */
     private CustomerStatus status;
     /** Số ngày được nợ. */
     private Integer creditDays;
     /** Hạn mức nợ tối đa. */
     private BigDecimal creditLimit;
+    /** Số tài khoản ngân hàng. */
     private String bankAccount;
+    /** Tên ngân hàng. */
     private String bankName;
     /** Xếp hạng khách hàng (A/B/C). */
     private String rating;
@@ -47,9 +60,13 @@ public class Customer {
     private String employeeSize;
     /** Là nhà phân phối. */
     private boolean isDistributor;
+    /** ID nhân viên phụ trách. */
     private Long ownerId;
+    /** ID đơn vị. */
     private Long unitId;
+    /** Thời điểm tạo. */
     private LocalDateTime createdAt;
+    /** Thời điểm cập nhật gần nhất. */
     private LocalDateTime updatedAt;
     /** Thời điểm xóa mềm. */
     private LocalDateTime deletedAt;

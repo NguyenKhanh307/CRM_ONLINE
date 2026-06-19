@@ -21,15 +21,15 @@ import java.util.stream.Collectors;
 @Repository
 public class ActivityRepositoryImpl implements IActivityRepository {
 
-    private final SessionFactory sessionFactory;
+    private final SessionFactory sf;
     private final ActivityHibernateMapper mapper;
 
     /**
-     * @param sessionFactory Hibernate SessionFactory
+     * @param sf Hibernate SessionFactory
      * @param mapper         mapper domain ↔ hibernate
      */
-    public ActivityRepositoryImpl(SessionFactory sessionFactory, ActivityHibernateMapper mapper) {
-        this.sessionFactory = sessionFactory;
+    public ActivityRepositoryImpl(SessionFactory sf, ActivityHibernateMapper mapper) {
+        this.sf = sf;
         this.mapper = mapper;
     }
 
@@ -41,9 +41,9 @@ public class ActivityRepositoryImpl implements IActivityRepository {
      */
     @Override
     public Activity save(Activity activity) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            ActivityHibernate merged = session.merge(mapper.toHibernate(activity));
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            ActivityHibernate merged = s.merge(mapper.toHibernate(activity));
             tx.commit();
             return mapper.toDomain(merged);
         }
@@ -57,8 +57,8 @@ public class ActivityRepositoryImpl implements IActivityRepository {
      */
     @Override
     public Optional<Activity> findById(Long id) {
-        try (Session session = sessionFactory.openSession()) {
-            ActivityHibernate h = session.find(ActivityHibernate.class, id);
+        try (Session s = sf.openSession()) {
+            ActivityHibernate h = s.find(ActivityHibernate.class, id);
             return Optional.ofNullable(h).map(mapper::toDomain);
         }
     }
@@ -70,10 +70,10 @@ public class ActivityRepositoryImpl implements IActivityRepository {
      */
     @Override
     public void deleteById(Long id) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            ActivityHibernate h = session.find(ActivityHibernate.class, id);
-            if (h != null) session.remove(h);
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            ActivityHibernate h = s.find(ActivityHibernate.class, id);
+            if (h != null) s.remove(h);
             tx.commit();
         }
     }
@@ -86,15 +86,15 @@ public class ActivityRepositoryImpl implements IActivityRepository {
      */
     @Override
     public PageResult<Activity> findAll(PageRequest request) {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session s = sf.openSession()) {
             String yearFilter = request.getDataAccessFromYear() != null ? " WHERE YEAR(createdAt) >= :fromYear" : "";
-            var q = session.createQuery(
+            var q = s.createQuery(
                     "FROM ActivityHibernate" + yearFilter + " ORDER BY " + request.getSortBy() + " " + request.getSortDir(),
                     ActivityHibernate.class)
                     .setFirstResult(request.getOffset()).setMaxResults(request.getSize());
             if (request.getDataAccessFromYear() != null) q.setParameter("fromYear", request.getDataAccessFromYear());
             List<Activity> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            var cq = session.createQuery("SELECT COUNT(a) FROM ActivityHibernate a" + (request.getDataAccessFromYear() != null ? " WHERE YEAR(a.createdAt) >= :fromYear" : ""), Long.class);
+            var cq = s.createQuery("SELECT COUNT(a) FROM ActivityHibernate a" + (request.getDataAccessFromYear() != null ? " WHERE YEAR(a.createdAt) >= :fromYear" : ""), Long.class);
             if (request.getDataAccessFromYear() != null) cq.setParameter("fromYear", request.getDataAccessFromYear());
             long total = cq.uniqueResult();
             return PageResult.<Activity>builder()

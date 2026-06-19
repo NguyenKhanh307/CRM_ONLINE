@@ -26,6 +26,15 @@ export interface ContactPhonePayload {
     isPrimary: boolean;
 }
 
+/** Số điện thoại trả về từ GET /api/contacts/{id}/phones. */
+export interface ContactPhoneResult {
+    id: number;
+    contactId: number;
+    phone: string;
+    phoneType: 'mobile' | 'office' | 'home' | 'other';
+    isPrimary: boolean;
+}
+
 /** Payload tạo mới liên hệ — POST /api/contacts (kèm phones[]). */
 export interface CreateContactPayload {
     customerId: number | null;

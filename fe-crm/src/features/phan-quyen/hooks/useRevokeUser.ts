@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { phanQuyenService } from '@/features/phan-quyen/services/phanQuyenService';
+import { phanQuyenService } from '../services/phanQuyenService';
 
 /** Thu hồi tài khoản nhân viên, cập nhật cache danh sách thành viên của nhóm. */
 export const useRevokeUser = (roleId: number) => {

@@ -1,5 +1,5 @@
 import { FiPlus, FiShield } from 'react-icons/fi';
-import type { RoleGroup } from '@/features/phan-quyen/types/phanQuyenTypes';
+import type { RoleGroup } from '../types/phanQuyenTypes';
 
 interface Props {
     groups: RoleGroup[];

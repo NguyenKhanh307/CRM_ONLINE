@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { useAllPermissions } from '@/features/phan-quyen/hooks/useAllPermissions';
-import { useRolePermissions } from '@/features/phan-quyen/hooks/useRolePermissions';
-import { useTogglePermission } from '@/features/phan-quyen/hooks/useTogglePermission';
-import { MODULE_LABELS } from '@/features/phan-quyen/constants/phanQuyenData';
-import PhanHeSection from '@/features/phan-quyen/components/PhanHeSection';
+import { useAllPermissions } from '../hooks/useAllPermissions';
+import { useRolePermissions } from '../hooks/useRolePermissions';
+import { useTogglePermission } from '../hooks/useTogglePermission';
+import { MODULE_LABELS } from '../constants/phanQuyenData';
+import PhanHeSection from './PhanHeSection';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useState } from 'react';
 

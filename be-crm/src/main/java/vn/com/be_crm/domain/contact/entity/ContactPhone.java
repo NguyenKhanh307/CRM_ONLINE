@@ -16,10 +16,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContactPhone {
+    /** ID số điện thoại. */
     private Long id;
+    /** ID liên hệ. */
     private Long contactId;
+    /** Số điện thoại. */
     private String phone;
+    /** Loại số (di động/cố định/fax...). */
     private PhoneType phoneType;
+    /** Là số điện thoại chính. */
     private Boolean isPrimary;
+    /** Thời điểm tạo. */
     private LocalDateTime createdAt;
 }

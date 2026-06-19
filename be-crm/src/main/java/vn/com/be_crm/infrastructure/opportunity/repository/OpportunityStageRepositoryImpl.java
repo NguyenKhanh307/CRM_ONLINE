@@ -24,36 +24,36 @@ public class OpportunityStageRepositoryImpl implements IOpportunityStageReposito
      * @param sf SessionFactory @param mapper mapper
      */
     public OpportunityStageRepositoryImpl(SessionFactory sf, OpportunityStageHibernateMapper mapper) { this.sf = sf; this.mapper = mapper; }
-    /** @param s entity @return saved */
-    @Override public OpportunityStage save(OpportunityStage s) {
-        try (Session session = sf.openSession()) {
-            Transaction tx = session.beginTransaction();
-            OpportunityStageHibernate m = session.merge(mapper.toHibernate(s));
+    /** @param stage entity @return saved */
+    @Override public OpportunityStage save(OpportunityStage stage) {
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            OpportunityStageHibernate m = s.merge(mapper.toHibernate(stage));
             tx.commit(); return mapper.toDomain(m);
         }
     }
     /** @param id ID @return Optional */
     @Override public Optional<OpportunityStage> findById(Long id) {
-        try (Session session = sf.openSession()) {
-            return Optional.ofNullable(session.find(OpportunityStageHibernate.class, id)).map(mapper::toDomain);
+        try (Session s = sf.openSession()) {
+            return Optional.ofNullable(s.find(OpportunityStageHibernate.class, id)).map(mapper::toDomain);
         }
     }
     /** @param id ID to delete */
     @Override public void deleteById(Long id) {
-        try (Session session = sf.openSession()) {
-            Transaction tx = session.beginTransaction();
-            OpportunityStageHibernate h = session.find(OpportunityStageHibernate.class, id);
-            if (h != null) session.remove(h); tx.commit();
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            OpportunityStageHibernate h = s.find(OpportunityStageHibernate.class, id);
+            if (h != null) s.remove(h); tx.commit();
         }
     }
     /** @param r page request @return PageResult */
     @Override public PageResult<OpportunityStage> findAll(PageRequest r) {
-        try (Session session = sf.openSession()) {
-            List<OpportunityStage> items = session.createQuery(
+        try (Session s = sf.openSession()) {
+            List<OpportunityStage> items = s.createQuery(
                     "FROM OpportunityStageHibernate ORDER BY " + r.getSortBy() + " " + r.getSortDir(), OpportunityStageHibernate.class)
                     .setFirstResult(r.getOffset()).setMaxResults(r.getSize())
                     .list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            long total = session.createQuery("SELECT COUNT(s) FROM OpportunityStageHibernate s", Long.class).uniqueResult();
+            long total = s.createQuery("SELECT COUNT(s) FROM OpportunityStageHibernate s", Long.class).uniqueResult();
             return PageResult.<OpportunityStage>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
         }
     }

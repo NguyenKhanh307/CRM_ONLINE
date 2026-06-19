@@ -21,15 +21,15 @@ import java.util.stream.Collectors;
 @Repository
 public class OrgUnitRepositoryImpl implements IOrgUnitRepository {
 
-    private final SessionFactory sessionFactory;
+    private final SessionFactory sf;
     private final OrgUnitHibernateMapper mapper;
 
     /**
-     * @param sessionFactory Hibernate SessionFactory
+     * @param sf Hibernate SessionFactory
      * @param mapper         mapper domain ↔ hibernate
      */
-    public OrgUnitRepositoryImpl(SessionFactory sessionFactory, OrgUnitHibernateMapper mapper) {
-        this.sessionFactory = sessionFactory;
+    public OrgUnitRepositoryImpl(SessionFactory sf, OrgUnitHibernateMapper mapper) {
+        this.sf = sf;
         this.mapper = mapper;
     }
 
@@ -41,10 +41,10 @@ public class OrgUnitRepositoryImpl implements IOrgUnitRepository {
      */
     @Override
     public OrgUnit save(OrgUnit orgUnit) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
             OrgUnitHibernate h = mapper.toHibernate(orgUnit);
-            OrgUnitHibernate merged = session.merge(h);
+            OrgUnitHibernate merged = s.merge(h);
             tx.commit();
             return mapper.toDomain(merged);
         }
@@ -58,8 +58,8 @@ public class OrgUnitRepositoryImpl implements IOrgUnitRepository {
      */
     @Override
     public Optional<OrgUnit> findById(Long id) {
-        try (Session session = sessionFactory.openSession()) {
-            OrgUnitHibernate h = session.find(OrgUnitHibernate.class, id);
+        try (Session s = sf.openSession()) {
+            OrgUnitHibernate h = s.find(OrgUnitHibernate.class, id);
             return Optional.ofNullable(h).map(mapper::toDomain);
         }
     }
@@ -71,10 +71,10 @@ public class OrgUnitRepositoryImpl implements IOrgUnitRepository {
      */
     @Override
     public void deleteById(Long id) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            OrgUnitHibernate h = session.find(OrgUnitHibernate.class, id);
-            if (h != null) session.remove(h);
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            OrgUnitHibernate h = s.find(OrgUnitHibernate.class, id);
+            if (h != null) s.remove(h);
             tx.commit();
         }
     }
@@ -87,14 +87,14 @@ public class OrgUnitRepositoryImpl implements IOrgUnitRepository {
      */
     @Override
     public PageResult<OrgUnit> findAll(PageRequest request) {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session s = sf.openSession()) {
             String hql = "FROM OrgUnitHibernate ORDER BY " + request.getSortBy() + " " + request.getSortDir();
-            List<OrgUnit> items = session.createQuery(hql, OrgUnitHibernate.class)
+            List<OrgUnit> items = s.createQuery(hql, OrgUnitHibernate.class)
                     .setFirstResult(request.getOffset())
                     .setMaxResults(request.getSize())
                     .list()
                     .stream().map(mapper::toDomain).collect(Collectors.toList());
-            long total = session.createQuery("SELECT COUNT(o) FROM OrgUnitHibernate o", Long.class)
+            long total = s.createQuery("SELECT COUNT(o) FROM OrgUnitHibernate o", Long.class)
                     .uniqueResult();
             return PageResult.<OrgUnit>builder()
                     .items(items).total(total).page(request.getPage()).size(request.getSize()).build();

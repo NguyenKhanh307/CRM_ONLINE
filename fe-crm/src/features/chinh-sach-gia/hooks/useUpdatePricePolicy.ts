@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { pricingService } from '../services/pricingService';
 import type { UpdatePricePolicyPayload } from '../types/pricingTypes';
 
+/** Cập nhật chính sách giá — invalidate danh sách sau khi thành công. */
 export function useUpdatePricePolicy() {
     const qc = useQueryClient();
     return useMutation({

@@ -18,6 +18,9 @@ export function CustomerEditModal({ item, onClose }: Props) {
     const [form, setForm] = useState<UpdateCustomerPayload>({
         name: '', type: 'individual', taxCode: null, phone: null,
         email: null, address: null, source: null, status: 'active', ownerId: null, unitId: null,
+        shortName: null, website: null, industry: null, creditDays: null, creditLimit: null,
+        bankAccount: null, bankName: null, rating: null, annualRevenue: null,
+        employeeSize: null, isDistributor: false,
     });
 
     useEffect(() => {
@@ -26,6 +29,10 @@ export function CustomerEditModal({ item, onClose }: Props) {
             name: item.name, type: item.type, taxCode: item.taxCode, phone: item.phone,
             email: item.email, address: item.address, source: item.source, status: item.status,
             ownerId: item.ownerId, unitId: item.unitId,
+            shortName: item.shortName, website: item.website, industry: item.industry,
+            creditDays: item.creditDays, creditLimit: item.creditLimit, bankAccount: item.bankAccount,
+            bankName: item.bankName, rating: item.rating, annualRevenue: item.annualRevenue,
+            employeeSize: item.employeeSize, isDistributor: item.isDistributor,
         });
     }, [item]);
 
@@ -83,9 +90,67 @@ export function CustomerEditModal({ item, onClose }: Props) {
                         <label className={lbl}>Địa chỉ</label>
                         <input className={inp} value={form.address ?? ''} onChange={e => setForm(f => ({ ...f, address: e.target.value || null }))} />
                     </div>
-                    <div>
-                        <label className={lbl}>Nguồn</label>
-                        <input className={inp} value={form.source ?? ''} onChange={e => setForm(f => ({ ...f, source: e.target.value || null }))} />
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Nguồn</label>
+                            <input className={inp} value={form.source ?? ''} onChange={e => setForm(f => ({ ...f, source: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Tên viết tắt</label>
+                            <input className={inp} value={form.shortName ?? ''} onChange={e => setForm(f => ({ ...f, shortName: e.target.value || null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Website</label>
+                            <input className={inp} value={form.website ?? ''} onChange={e => setForm(f => ({ ...f, website: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Ngành nghề</label>
+                            <input className={inp} value={form.industry ?? ''} onChange={e => setForm(f => ({ ...f, industry: e.target.value || null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Số ngày được nợ</label>
+                            <input type="number" className={inp} value={form.creditDays ?? ''} onChange={e => setForm(f => ({ ...f, creditDays: e.target.value ? +e.target.value : null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Hạn mức nợ</label>
+                            <input type="number" className={inp} value={form.creditLimit ?? ''} onChange={e => setForm(f => ({ ...f, creditLimit: e.target.value ? +e.target.value : null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Số tài khoản</label>
+                            <input className={inp} value={form.bankAccount ?? ''} onChange={e => setForm(f => ({ ...f, bankAccount: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Ngân hàng</label>
+                            <input className={inp} value={form.bankName ?? ''} onChange={e => setForm(f => ({ ...f, bankName: e.target.value || null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Xếp hạng</label>
+                            <input className={inp} value={form.rating ?? ''} onChange={e => setForm(f => ({ ...f, rating: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Doanh thu năm</label>
+                            <input type="number" className={inp} value={form.annualRevenue ?? ''} onChange={e => setForm(f => ({ ...f, annualRevenue: e.target.value ? +e.target.value : null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Quy mô nhân sự</label>
+                            <input className={inp} value={form.employeeSize ?? ''} onChange={e => setForm(f => ({ ...f, employeeSize: e.target.value || null }))} />
+                        </div>
+                        <div className="flex items-end pb-1.5">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isDistributor ?? false} onChange={e => setForm(f => ({ ...f, isDistributor: e.target.checked }))} />
+                                <span className="text-sm text-text-main">Là nhà phân phối</span>
+                            </label>
+                        </div>
                     </div>
                     <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
                         <button type="button" onClick={onClose} className="px-4 py-1.5 rounded-btn border border-gray-300 text-md text-text-main hover:bg-gray-50">Hủy</button>

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { pricingService } from '../services/pricingService';
 import type { CreatePricePolicyCustomerCategoryPayload } from '../types/pricingTypes';
 
+/** Lấy danh sách nhóm KH của chính sách. */
 export function usePolicyCustomerCategories(policyId: number) {
     return useQuery({
         queryKey: ['price-policy-customer-categories', policyId],
@@ -10,6 +11,7 @@ export function usePolicyCustomerCategories(policyId: number) {
     });
 }
 
+/** Tạo mới nhóm KH của chính sách — invalidate danh sách sau khi thành công. */
 export function useCreatePolicyCustomerCategory(policyId: number) {
     const qc = useQueryClient();
     return useMutation({
@@ -19,6 +21,7 @@ export function useCreatePolicyCustomerCategory(policyId: number) {
     });
 }
 
+/** Xóa nhóm KH của chính sách — invalidate danh sách sau khi thành công. */
 export function useDeletePolicyCustomerCategory(policyId: number) {
     const qc = useQueryClient();
     return useMutation({

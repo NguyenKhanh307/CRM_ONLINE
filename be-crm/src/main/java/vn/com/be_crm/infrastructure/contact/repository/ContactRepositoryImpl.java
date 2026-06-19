@@ -59,13 +59,25 @@ public class ContactRepositoryImpl implements IContactRepository {
     @Override public Contact saveWithPhones(Contact c, List<ContactPhone> phones) {
         try (Session s = sf.openSession()) {
             Transaction tx = s.beginTransaction();
+            // Lưu liên hệ trước để lấy ID
             ContactHibernate m = s.merge(mapper.toHibernate(c));
+            // Gán contactId vừa có cho từng số điện thoại rồi lưu trong cùng transaction
             for (ContactPhone p : phones) {
                 ContactPhoneHibernate ph = phoneMapper.toHibernate(p);
                 ph.setContactId(m.getId());
                 s.merge(ph);
             }
+            // Commit và trả về domain entity đã lưu
             tx.commit(); return mapper.toDomain(m);
+        }
+    }
+
+    /** Tìm Contact theo email (chưa xóa mềm). @param email email @return Optional */
+    @Override public Optional<Contact> findByEmail(String email) {
+        try (Session s = sf.openSession()) {
+            return s.createQuery("FROM ContactHibernate WHERE email = :email AND deletedAt IS NULL", ContactHibernate.class)
+                    .setParameter("email", email).setMaxResults(1).list()
+                    .stream().map(mapper::toDomain).findFirst();
         }
     }
 
@@ -91,12 +103,16 @@ public class ContactRepositoryImpl implements IContactRepository {
     /** Lấy danh sách Contact trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
     @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
         try (Session s = sf.openSession()) {
+            // Mốc 30 ngày: chỉ hiện bản ghi đã xóa trong 30 ngày gần đây
             LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+            // Không phải admin → chỉ xem bản ghi do chính mình xóa
             String userFilter = isAdmin ? "" : " AND c.deleted_by = :userId";
+            // Native query LEFT JOIN users để lấy tên người xóa
             String sql = "SELECT c.id, c.full_name, c.deleted_at, u.full_name FROM contacts c" +
                     " LEFT JOIN users u ON u.id = c.deleted_by" +
                     " WHERE c.deleted_at IS NOT NULL AND c.deleted_at >= :cutoff AND c.is_purged = 0" +
                     userFilter + " ORDER BY c.deleted_at DESC";
+            // Chạy query phân trang rồi map Object[] → DeletedItemResult (xử lý Timestamp của TiDB)
             var q = s.createNativeQuery(sql, Object[].class)
                     .setParameter("cutoff", cutoff)
                     .setFirstResult(req.getOffset()).setMaxResults(req.getSize());
@@ -107,6 +123,7 @@ public class ContactRepositoryImpl implements IContactRepository {
                             row[2] instanceof Timestamp ts ? ts.toLocalDateTime() : (LocalDateTime) row[2],
                             (String) row[3]))
                     .collect(Collectors.toList());
+            // Query đếm tổng số bản ghi đã xóa để phân trang
             String countSql = "SELECT COUNT(*) FROM contacts c WHERE c.deleted_at IS NOT NULL AND c.deleted_at >= :cutoff AND c.is_purged = 0" + userFilter;
             var cq = s.createNativeQuery(countSql, Object.class).setParameter("cutoff", cutoff);
             if (!isAdmin) cq.setParameter("userId", userId);

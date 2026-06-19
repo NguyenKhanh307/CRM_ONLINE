@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { phanQuyenService } from '@/features/phan-quyen/services/phanQuyenService';
+import { phanQuyenService } from '../services/phanQuyenService';
 
 /** Cập nhật năm được xem data cho nhân viên, cập nhật cache danh sách thành viên. */
 export const useUpdateDataAccess = (roleId: number) => {

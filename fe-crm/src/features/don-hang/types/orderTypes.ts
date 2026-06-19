@@ -1,12 +1,23 @@
 export interface UpdateOrderPayload {
     customerId: number | null;
     contactId: number | null;
+    quotationId?: number | null;
+    opportunityId?: number | null;
     ownerId: number | null;
+    executorUnitId?: number | null;
     warehouseId: number | null;
+    parentOrderId?: number | null;
     orderType: string;
     orderDate: string | null;
+    currency?: string | null;
+    exchangeRate?: number | null;
     status: string;
     paymentStatus: string;
+    creditDays?: number | null;
+    paymentDueDate?: string | null;
+    isInvoiced?: boolean;
+    receiverName?: string | null;
+    receiverPhone?: string | null;
     subtotal: number | null;
     discount: number | null;
     tax: number | null;
@@ -56,17 +67,43 @@ export interface CreateOrderPayload {
     items: OrderItemPayload[];
 }
 
+/** Dòng hàng trả về từ GET /api/orders/{id}/items. */
+export interface OrderItemResult {
+    id: number;
+    orderId: number;
+    productId: number | null;
+    warehouseId: number | null;
+    unit: string | null;
+    quantity: number;
+    unitPrice: number;
+    discount: number;
+    taxRate: number;
+    amount: number;
+    note: string | null;
+}
+
 export interface OrderResult {
     id: number;
     code: string;
     customerId: number | null;
     contactId: number | null;
+    quotationId: number | null;
+    opportunityId: number | null;
     ownerId: number | null;
+    executorUnitId: number | null;
     warehouseId: number | null;
+    parentOrderId: number | null;
     orderType: string;
     orderDate: string | null;
+    currency: string | null;
+    exchangeRate: number | null;
     status: string;
     paymentStatus: string;
+    creditDays: number | null;
+    paymentDueDate: string | null;
+    isInvoiced: boolean;
+    receiverName: string | null;
+    receiverPhone: string | null;
     subtotal: number | null;
     discount: number | null;
     tax: number | null;

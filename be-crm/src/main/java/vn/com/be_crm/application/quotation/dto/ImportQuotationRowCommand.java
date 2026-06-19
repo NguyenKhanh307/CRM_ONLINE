@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 /** Một dòng dữ liệu Quotation từ file import. */
 public record ImportQuotationRowCommand(
+        String code,
         String quoteDate,
         String validUntil,
         String status,

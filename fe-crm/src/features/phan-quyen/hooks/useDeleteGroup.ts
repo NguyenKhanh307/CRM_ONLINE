@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { phanQuyenService } from '@/features/phan-quyen/services/phanQuyenService';
+import { phanQuyenService } from '../services/phanQuyenService';
 
 /**
  * Xóa nhóm người dùng (chỉ áp dụng với non-system roles).

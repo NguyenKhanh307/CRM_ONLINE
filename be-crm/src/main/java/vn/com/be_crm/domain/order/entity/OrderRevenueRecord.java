@@ -16,11 +16,18 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderRevenueRecord {
+    /** ID bản ghi doanh thu. */
     private Long id;
+    /** ID đơn hàng. */
     private Long orderId;
+    /** ID nhân viên được ghi nhận doanh số. */
     private Long userId;
+    /** Doanh số ghi nhận. */
     private BigDecimal revenueAmount;
+    /** Tỷ lệ chia doanh số (%). */
     private BigDecimal percentage;
+    /** Ghi chú. */
     private String note;
+    /** Thời điểm tạo. */
     private LocalDateTime createdAt;
 }

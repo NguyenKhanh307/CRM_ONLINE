@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { contactService } from '../services/contactService';
 
+/** Lấy danh sách liên hệ (phân trang). */
 export function useContactList() {
     return useQuery({
         queryKey: ['contacts'],

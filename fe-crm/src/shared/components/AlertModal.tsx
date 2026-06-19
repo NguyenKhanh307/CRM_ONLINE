@@ -38,7 +38,7 @@ export const AlertModal = ({ message, onClose }: AlertModalProps) => (
                 <button
                     type="button"
                     onClick={onClose}
-                    className="bg-primary text-white text-md px-4 py-1.5 rounded-btn hover:bg-blue-600 transition-colors"
+                    className="bg-primary text-white text-md px-4 py-1.5 rounded-btn hover:opacity-90 transition-colors"
                 >
                     Đóng
                 </button>

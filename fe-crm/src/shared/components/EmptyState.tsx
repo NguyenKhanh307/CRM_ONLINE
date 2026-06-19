@@ -45,7 +45,7 @@ export const EmptyState = ({
                 <button
                     type="button"
                     onClick={onImport}
-                    className="bg-primary text-white rounded-btn px-4 py-2 text-md hover:bg-blue-600 transition-colors flex items-center gap-2"
+                    className="bg-primary text-white rounded-btn px-4 py-2 text-md hover:opacity-90 transition-colors flex items-center gap-2"
                 >
                     <FiUpload size={15} />
                     {importLabel}

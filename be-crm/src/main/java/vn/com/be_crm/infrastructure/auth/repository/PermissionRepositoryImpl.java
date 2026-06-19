@@ -21,15 +21,15 @@ import java.util.stream.Collectors;
 @Repository
 public class PermissionRepositoryImpl implements IPermissionRepository {
 
-    private final SessionFactory sessionFactory;
+    private final SessionFactory sf;
     private final PermissionHibernateMapper mapper;
 
     /**
-     * @param sessionFactory Hibernate SessionFactory
+     * @param sf Hibernate SessionFactory
      * @param mapper         mapper domain ↔ hibernate
      */
-    public PermissionRepositoryImpl(SessionFactory sessionFactory, PermissionHibernateMapper mapper) {
-        this.sessionFactory = sessionFactory;
+    public PermissionRepositoryImpl(SessionFactory sf, PermissionHibernateMapper mapper) {
+        this.sf = sf;
         this.mapper = mapper;
     }
 
@@ -41,9 +41,9 @@ public class PermissionRepositoryImpl implements IPermissionRepository {
      */
     @Override
     public Permission save(Permission permission) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            PermissionHibernate merged = session.merge(mapper.toHibernate(permission));
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            PermissionHibernate merged = s.merge(mapper.toHibernate(permission));
             tx.commit();
             return mapper.toDomain(merged);
         }
@@ -57,8 +57,8 @@ public class PermissionRepositoryImpl implements IPermissionRepository {
      */
     @Override
     public Optional<Permission> findById(Long id) {
-        try (Session session = sessionFactory.openSession()) {
-            PermissionHibernate h = session.find(PermissionHibernate.class, id);
+        try (Session s = sf.openSession()) {
+            PermissionHibernate h = s.find(PermissionHibernate.class, id);
             return Optional.ofNullable(h).map(mapper::toDomain);
         }
     }
@@ -70,10 +70,10 @@ public class PermissionRepositoryImpl implements IPermissionRepository {
      */
     @Override
     public void deleteById(Long id) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            PermissionHibernate h = session.find(PermissionHibernate.class, id);
-            if (h != null) session.remove(h);
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            PermissionHibernate h = s.find(PermissionHibernate.class, id);
+            if (h != null) s.remove(h);
             tx.commit();
         }
     }
@@ -86,13 +86,13 @@ public class PermissionRepositoryImpl implements IPermissionRepository {
      */
     @Override
     public PageResult<Permission> findAll(PageRequest request) {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session s = sf.openSession()) {
             String hql = "FROM PermissionHibernate ORDER BY " + request.getSortBy() + " " + request.getSortDir();
-            List<Permission> items = session.createQuery(hql, PermissionHibernate.class)
+            List<Permission> items = s.createQuery(hql, PermissionHibernate.class)
                     .setFirstResult(request.getOffset())
                     .setMaxResults(request.getSize())
                     .list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            long total = session.createQuery("SELECT COUNT(p) FROM PermissionHibernate p", Long.class).uniqueResult();
+            long total = s.createQuery("SELECT COUNT(p) FROM PermissionHibernate p", Long.class).uniqueResult();
             return PageResult.<Permission>builder()
                     .items(items).total(total).page(request.getPage()).size(request.getSize()).build();
         }
@@ -107,7 +107,7 @@ public class PermissionRepositoryImpl implements IPermissionRepository {
     @Override
     @SuppressWarnings("unchecked")
     public List<String> findCodesByUserId(Long userId) {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session s = sf.openSession()) {
             String sql = """
                     SELECT DISTINCT p.code
                     FROM permissions p
@@ -116,7 +116,7 @@ public class PermissionRepositoryImpl implements IPermissionRepository {
                     WHERE ur.user_id = :userId
                     ORDER BY p.code
                     """;
-            return session.createNativeQuery(sql, String.class)
+            return s.createNativeQuery(sql, String.class)
                     .setParameter("userId", userId)
                     .list();
         }

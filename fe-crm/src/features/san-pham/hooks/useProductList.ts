@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { productService } from '../services/productService';
 
+/** Lấy danh sách sản phẩm (phân trang). */
 export function useProductList() {
     return useQuery({
         queryKey: ['products'],

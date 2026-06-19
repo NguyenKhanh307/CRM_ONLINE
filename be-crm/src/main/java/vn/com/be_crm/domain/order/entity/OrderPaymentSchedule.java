@@ -18,13 +18,22 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderPaymentSchedule {
+    /** ID đợt thanh toán. */
     private Long id;
+    /** ID đơn hàng. */
     private Long orderId;
+    /** Số thứ tự đợt thanh toán. */
     private Integer installmentNo;
+    /** Hạn thanh toán. */
     private LocalDate dueDate;
+    /** Số tiền phải trả đợt này. */
     private BigDecimal amount;
+    /** Số tiền đã trả. */
     private BigDecimal paidAmount;
+    /** Trạng thái đợt thanh toán. */
     private PaymentScheduleStatus status;
+    /** Thời điểm thanh toán. */
     private LocalDateTime paidAt;
+    /** Ghi chú. */
     private String note;
 }

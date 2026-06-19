@@ -1,6 +1,6 @@
 import { ImportWizard } from '@/shared/components/import/ImportWizard';
 import type { ImportField } from '@/shared/components/import/importTypes';
-import { customerService } from '../services/customerService';
+import { useImportCustomerBulk } from '../hooks/useImportCustomerBulk';
 
 const FIELDS: ImportField[] = [
     { key: 'name',    label: 'Tên khách hàng', required: true, type: 'text' },
@@ -13,13 +13,16 @@ const FIELDS: ImportField[] = [
     { key: 'status',  label: 'Trạng thái',                     type: 'enum', enumValues: ['active', 'inactive', 'potential'] },
 ];
 
-const CustomerImportPage = () => (
+const CustomerImportPage = () => {
+    const importBulk = useImportCustomerBulk();
+    return (
     <ImportWizard
         title="Khách hàng"
         fields={FIELDS}
-        onImport={(rows, opts) => customerService.importBulk(rows, opts).then(r => r.data.data)}
+        onImport={importBulk}
         backPath="/khach-hang"
     />
-);
+    );
+};
 
 export default CustomerImportPage;

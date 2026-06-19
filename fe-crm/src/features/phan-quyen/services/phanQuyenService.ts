@@ -1,6 +1,6 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult } from '@/shared/types/api';
-import type { RoleGroup, GroupPermission, GroupMember, GroupFormPayload } from '@/features/phan-quyen/types/phanQuyenTypes';
+import type { RoleGroup, GroupPermission, GroupMember, GroupFormPayload } from '../types/phanQuyenTypes';
 
 /**
  * Service tập trung tất cả API calls cho trang Phân quyền.

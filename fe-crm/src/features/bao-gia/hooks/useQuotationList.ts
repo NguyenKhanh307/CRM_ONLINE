@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { quotationService } from '../services/quotationService';
 
+/** Lấy danh sách báo giá (phân trang). */
 export function useQuotationList() {
     return useQuery({
         queryKey: ['quotations'],

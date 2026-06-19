@@ -13,8 +13,11 @@ import java.time.LocalDateTime;
  */
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class OpportunityStage {
+    /** ID giai đoạn. */
     private Long id;
+    /** Tên giai đoạn. */
     private String name;
+    /** Thứ tự trong pipeline. */
     private Integer sortOrder;
     /** Xác suất thắng (%). */
     private BigDecimal probability;
@@ -22,6 +25,8 @@ public class OpportunityStage {
     private Boolean isWon;
     /** true nếu là giai đoạn thua. */
     private Boolean isLost;
+    /** Thời điểm tạo. */
     private LocalDateTime createdAt;
+    /** Thời điểm cập nhật gần nhất. */
     private LocalDateTime updatedAt;
 }

@@ -24,15 +24,15 @@ import java.util.stream.Collectors;
 @Repository
 public class UserRepositoryImpl implements IUserRepository {
 
-    private final SessionFactory sessionFactory;
+    private final SessionFactory sf;
     private final UserHibernateMapper mapper;
 
     /**
-     * @param sessionFactory Hibernate SessionFactory
-     * @param mapper         mapper domain ↔ hibernate
+     * @param sf     Hibernate SessionFactory
+     * @param mapper mapper domain ↔ hibernate
      */
-    public UserRepositoryImpl(SessionFactory sessionFactory, UserHibernateMapper mapper) {
-        this.sessionFactory = sessionFactory;
+    public UserRepositoryImpl(SessionFactory sf, UserHibernateMapper mapper) {
+        this.sf = sf;
         this.mapper = mapper;
     }
 
@@ -44,10 +44,10 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public User save(User user) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
             UserHibernate h = mapper.toHibernate(user);
-            UserHibernate merged = session.merge(h);
+            UserHibernate merged = s.merge(h);
             tx.commit();
             return mapper.toDomain(merged);
         }
@@ -61,8 +61,8 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public Optional<User> findById(Long id) {
-        try (Session session = sessionFactory.openSession()) {
-            UserHibernate h = session.find(UserHibernate.class, id);
+        try (Session s = sf.openSession()) {
+            UserHibernate h = s.find(UserHibernate.class, id);
             if (h == null || h.getDeletedAt() != null) return Optional.empty();
             return Optional.of(mapper.toDomain(h));
         }
@@ -76,8 +76,8 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public Optional<User> findByEmail(String email) {
-        try (Session session = sessionFactory.openSession()) {
-            UserHibernate h = session.createQuery(
+        try (Session s = sf.openSession()) {
+            UserHibernate h = s.createQuery(
                     "FROM UserHibernate WHERE email = :email AND deletedAt IS NULL", UserHibernate.class)
                     .setParameter("email", email)
                     .uniqueResult();
@@ -93,12 +93,12 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public void deleteById(Long id) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            UserHibernate h = session.find(UserHibernate.class, id);
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            UserHibernate h = s.find(UserHibernate.class, id);
             if (h != null) {
                 h.setDeletedAt(LocalDateTime.now());
-                session.merge(h);
+                s.merge(h);
             }
             tx.commit();
         }
@@ -112,8 +112,8 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public Optional<User> findByActivationToken(String token) {
-        try (Session session = sessionFactory.openSession()) {
-            UserHibernate h = session.createQuery(
+        try (Session s = sf.openSession()) {
+            UserHibernate h = s.createQuery(
                     "FROM UserHibernate WHERE activationToken = :token AND deletedAt IS NULL",
                     UserHibernate.class)
                     .setParameter("token", token)
@@ -131,16 +131,16 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public PageResult<User> findAll(PageRequest request) {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session s = sf.openSession()) {
             String statusFilter = request.getStatus() != null ? " AND status = :status" : "";
             String hql = "FROM UserHibernate WHERE deletedAt IS NULL" + statusFilter + " ORDER BY " + request.getSortBy() + " " + request.getSortDir();
-            var q = session.createQuery(hql, UserHibernate.class)
+            var q = s.createQuery(hql, UserHibernate.class)
                     .setFirstResult(request.getOffset())
                     .setMaxResults(request.getSize());
             if (request.getStatus() != null) q.setParameter("status", request.getStatus());
             List<User> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
             String countHql = "SELECT COUNT(u) FROM UserHibernate u WHERE u.deletedAt IS NULL" + statusFilter;
-            var cq = session.createQuery(countHql, Long.class);
+            var cq = s.createQuery(countHql, Long.class);
             if (request.getStatus() != null) cq.setParameter("status", request.getStatus());
             long total = cq.uniqueResult();
             return PageResult.<User>builder()

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { FiX, FiSearch } from 'react-icons/fi';
-import type { GroupMember } from '@/features/phan-quyen/types/phanQuyenTypes';
+import type { GroupMember } from '../types/phanQuyenTypes';
 
 interface Props {
     allUsers: GroupMember[];
@@ -73,7 +73,7 @@ const AddMemberModal = ({ allUsers, existingMemberIds, onClose, onAdd, isLoading
                                 <button
                                     onClick={() => onAdd(user.id)}
                                     disabled={isLoading}
-                                    className="px-3 py-1 text-sm bg-primary text-white rounded-btn hover:bg-blue-600 disabled:opacity-50 transition-colors"
+                                    className="px-3 py-1 text-sm bg-primary text-white rounded-btn hover:opacity-90 disabled:opacity-50 transition-colors"
                                 >
                                     Thêm
                                 </button>

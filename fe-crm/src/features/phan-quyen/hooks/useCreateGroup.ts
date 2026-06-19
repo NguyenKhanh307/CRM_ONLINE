@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { phanQuyenService } from '@/features/phan-quyen/services/phanQuyenService';
-import type { GroupFormPayload } from '@/features/phan-quyen/types/phanQuyenTypes';
+import { phanQuyenService } from '../services/phanQuyenService';
+import type { GroupFormPayload } from '../types/phanQuyenTypes';
 
 /**
  * Tạo nhóm người dùng mới.

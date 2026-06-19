@@ -16,11 +16,18 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PricePolicyProduct {
+    /** ID dòng. */
     private Long id;
+    /** ID chính sách giá. */
     private Long pricePolicyId;
+    /** ID sản phẩm áp dụng. */
     private Long productId;
+    /** Giá áp dụng cho sản phẩm. */
     private BigDecimal price;
+    /** Kiểu chiết khấu (theo % hoặc số tiền). */
     private DiscountType discountType;
+    /** Giá trị chiết khấu. */
     private BigDecimal discountValue;
+    /** Số lượng tối thiểu để được áp dụng. */
     private BigDecimal minQty;
 }

@@ -55,13 +55,25 @@ public class OpportunityRepositoryImpl implements IOpportunityRepository {
     @Override public Opportunity saveWithItems(Opportunity o, List<OpportunityItem> items) {
         try (Session s = sf.openSession()) {
             Transaction tx = s.beginTransaction();
+            // Lưu header cơ hội trước để lấy ID
             OpportunityHibernate m = s.merge(mapper.toHibernate(o));
+            // Gán opportunityId vừa có cho từng dòng hàng rồi lưu trong cùng transaction
             for (OpportunityItem item : items) {
                 OpportunityItemHibernate ih = itemMapper.toHibernate(item);
                 ih.setOpportunityId(m.getId());
                 s.merge(ih);
             }
+            // Commit và trả về domain entity đã lưu
             tx.commit(); return mapper.toDomain(m);
+        }
+    }
+
+    /** Tìm Opportunity theo mã (chưa xóa mềm). @param code mã @return Optional */
+    @Override public Optional<Opportunity> findByCode(String code) {
+        try (Session s = sf.openSession()) {
+            return s.createQuery("FROM OpportunityHibernate WHERE code = :code AND deletedAt IS NULL", OpportunityHibernate.class)
+                    .setParameter("code", code).setMaxResults(1).list()
+                    .stream().map(mapper::toDomain).findFirst();
         }
     }
 
@@ -87,12 +99,16 @@ public class OpportunityRepositoryImpl implements IOpportunityRepository {
     /** Lấy danh sách Opportunity trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
     @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
         try (Session s = sf.openSession()) {
+            // Mốc 30 ngày: chỉ hiện bản ghi đã xóa trong 30 ngày gần đây
             LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+            // Không phải admin → chỉ xem bản ghi do chính mình xóa
             String userFilter = isAdmin ? "" : " AND o.deleted_by = :userId";
+            // Native query LEFT JOIN users để lấy tên người xóa
             String sql = "SELECT o.id, o.name, o.deleted_at, u.full_name FROM opportunities o" +
                     " LEFT JOIN users u ON u.id = o.deleted_by" +
                     " WHERE o.deleted_at IS NOT NULL AND o.deleted_at >= :cutoff AND o.is_purged = 0" +
                     userFilter + " ORDER BY o.deleted_at DESC";
+            // Chạy query phân trang rồi map Object[] → DeletedItemResult (xử lý Timestamp của TiDB)
             var q = s.createNativeQuery(sql, Object[].class)
                     .setParameter("cutoff", cutoff)
                     .setFirstResult(req.getOffset()).setMaxResults(req.getSize());
@@ -103,6 +119,7 @@ public class OpportunityRepositoryImpl implements IOpportunityRepository {
                             row[2] instanceof Timestamp ts ? ts.toLocalDateTime() : (LocalDateTime) row[2],
                             (String) row[3]))
                     .collect(Collectors.toList());
+            // Query đếm tổng số bản ghi đã xóa để phân trang
             String countSql = "SELECT COUNT(*) FROM opportunities o WHERE o.deleted_at IS NOT NULL AND o.deleted_at >= :cutoff AND o.is_purged = 0" + userFilter;
             var cq = s.createNativeQuery(countSql, Object.class).setParameter("cutoff", cutoff);
             if (!isAdmin) cq.setParameter("userId", userId);

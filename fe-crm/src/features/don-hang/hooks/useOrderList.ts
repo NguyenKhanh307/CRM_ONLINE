@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { orderService } from '../services/orderService';
 
+/** Lấy danh sách đơn hàng (phân trang). */
 export function useOrderList() {
     return useQuery({
         queryKey: ['orders'],

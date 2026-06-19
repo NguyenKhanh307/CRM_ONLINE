@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { phanQuyenService } from '@/features/phan-quyen/services/phanQuyenService';
+import { phanQuyenService } from '../services/phanQuyenService';
 
 /**
  * Lấy toàn bộ danh sách người dùng (dùng cho modal thêm thành viên).

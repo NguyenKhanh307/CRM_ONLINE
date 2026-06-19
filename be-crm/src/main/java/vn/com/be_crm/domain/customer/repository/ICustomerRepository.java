@@ -20,6 +20,12 @@ public interface ICustomerRepository {
     Customer save(Customer customer);
 
     /**
+     * Tìm khách hàng theo mã số thuế (chưa xóa mềm) — dùng cho import UPDATE/BOTH.
+     * @param taxCode mã số thuế @return Optional
+     */
+    Optional<Customer> findByTaxCode(String taxCode);
+
+    /**
      * Tìm khách hàng theo ID (chưa xóa mềm).
      * @param id ID @return Optional
      */

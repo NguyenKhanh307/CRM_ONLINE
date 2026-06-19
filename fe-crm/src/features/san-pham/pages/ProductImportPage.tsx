@@ -1,6 +1,6 @@
 import { ImportWizard } from '@/shared/components/import/ImportWizard';
 import type { ImportField } from '@/shared/components/import/importTypes';
-import { productService } from '../services/productService';
+import { useImportProductBulk } from '../hooks/useImportProductBulk';
 
 const FIELDS: ImportField[] = [
     { key: 'name',        label: 'Tên sản phẩm', required: true, type: 'text' },
@@ -14,13 +14,16 @@ const FIELDS: ImportField[] = [
     { key: 'description', label: 'Mô tả',                         type: 'text' },
 ];
 
-const ProductImportPage = () => (
+const ProductImportPage = () => {
+    const importBulk = useImportProductBulk();
+    return (
     <ImportWizard
         title="Sản phẩm"
         fields={FIELDS}
-        onImport={(rows, opts) => productService.importBulk(rows, opts).then(r => r.data.data)}
+        onImport={importBulk}
         backPath="/san-pham"
     />
-);
+    );
+};
 
 export default ProductImportPage;

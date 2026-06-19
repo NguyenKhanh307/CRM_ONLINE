@@ -1,13 +1,7 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { FiUserPlus, FiMail, FiUser, FiPhone, FiLayers, FiShield } from 'react-icons/fi';
 import { useRegisterEmployee } from '../hooks/useRegisterEmployee';
-
-const ROLE_OPTIONS = [
-    { value: 1, label: 'Admin' },
-    { value: 2, label: 'Manager' },
-    { value: 3, label: 'Staff' },
-    { value: 4, label: 'Viewer' },
-];
+import { useRoleGroups } from '@/features/phan-quyen/hooks/useRoleGroups';
 
 const inputCls =
     'w-full pl-9 pr-3 py-2 border border-gray-300 rounded-btn text-md text-text-main placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors';
@@ -19,11 +13,17 @@ const RegisterEmployeePage = () => {
     const [email, setEmail] = useState('');
     const [fullName, setFullName] = useState('');
     const [phone, setPhone] = useState('');
-    const [roleId, setRoleId] = useState<number>(3);
+    const [roleId, setRoleId] = useState<number | ''>('');
     const [gmailError, setGmailError] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
     const mutation = useRegisterEmployee();
+    const { data: roles = [] } = useRoleGroups();
+
+    // Chọn sẵn vai trò đầu tiên khi danh sách role tải xong (nếu chưa chọn).
+    useEffect(() => {
+        if (roleId === '' && roles.length > 0) setRoleId(roles[0].id);
+    }, [roles, roleId]);
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -35,6 +35,11 @@ const RegisterEmployeePage = () => {
             return;
         }
 
+        if (roleId === '') {
+            setGmailError('Vui lòng chọn vai trò');
+            return;
+        }
+
         mutation.mutate(
             { email: email.trim(), fullName: fullName.trim(), phone: phone.trim() || undefined, roleId },
             {
@@ -43,7 +48,7 @@ const RegisterEmployeePage = () => {
                     setEmail('');
                     setFullName('');
                     setPhone('');
-                    setRoleId(3);
+                    setRoleId(roles.length > 0 ? roles[0].id : '');
                 },
             }
         );
@@ -148,8 +153,9 @@ const RegisterEmployeePage = () => {
                                 onChange={(e) => setRoleId(Number(e.target.value))}
                                 className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-btn text-md text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white"
                             >
-                                {ROLE_OPTIONS.map((r) => (
-                                    <option key={r.value} value={r.value}>{r.label}</option>
+                                {roles.length === 0 && <option value="">Đang tải vai trò…</option>}
+                                {roles.map((r) => (
+                                    <option key={r.id} value={r.id}>{r.name}</option>
                                 ))}
                             </select>
                         </div>
@@ -173,7 +179,7 @@ const RegisterEmployeePage = () => {
                     <button
                         type="submit"
                         disabled={mutation.isPending || !email.trim() || !fullName.trim()}
-                        className="w-full bg-primary text-white py-2 rounded-btn text-md font-medium hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                        className="w-full bg-primary text-white py-2 rounded-btn text-md font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                     >
                         {mutation.isPending && (
                             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

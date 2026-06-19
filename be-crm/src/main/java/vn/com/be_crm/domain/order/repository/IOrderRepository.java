@@ -18,6 +18,12 @@ public interface IOrderRepository {
     Order save(Order o);
 
     /**
+     * Tìm đơn hàng theo mã (code) chưa xóa mềm — dùng cho import UPDATE/BOTH.
+     * @param code mã đơn hàng @return Optional
+     */
+    Optional<Order> findByCode(String code);
+
+    /**
      * Lưu đơn hàng kèm danh sách dòng hàng trong một transaction.
      * @param o     domain entity đơn hàng
      * @param items danh sách dòng hàng (orderId sẽ được gán sau khi lưu đơn hàng)

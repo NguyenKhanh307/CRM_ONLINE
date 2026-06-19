@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { quotationService } from '../services/quotationService';
 import type { UpdateQuotationPayload } from '../types/quotationTypes';
 
+/** Cập nhật báo giá — invalidate danh sách sau khi thành công. */
 export function useUpdateQuotation() {
     const qc = useQueryClient();
     return useMutation({

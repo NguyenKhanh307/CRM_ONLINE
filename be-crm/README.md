@@ -1,5 +1,8 @@
 # CRM Backend — Tài liệu kỹ thuật
 
+> 📕 Mới đọc code backend? Xem [`../CODE_GUIDE_BACKEND.md`](../CODE_GUIDE_BACKEND.md) — hướng
+> dẫn đọc hiểu code kiểu sách giáo khoa (cú pháp Java, Hibernate, UseCase, Security…).
+
 ## Mục lục
 
 1. [Tổng quan kiến trúc](#1-tổng-quan-kiến-trúc)
@@ -802,3 +805,7 @@ try (Session session = sessionFactory.openSession()) { ... }
 DB lưu chuỗi `"new"` nhưng `new` là keyword Java. Giải pháp:
 - Enum dùng `new_` với `@JsonValue`/`@JsonCreator` trả `"new"` trong JSON
 - `LeadStatusConverter` (`AttributeConverter`) map giữa DB và Java enum
+
+### Import UPDATE/BOTH (2026-06-13)
+
+`importType` của `POST /api/{module}/import-bulk` hỗ trợ `CREATE` / `UPDATE` / `BOTH` cho **8 module**: lead (phone/email), product (sku), warehouse (code), contact (email), customer (taxCode), opportunity / order / quotation (code). UPDATE dò bản ghi tồn tại qua repo `findBy*` (HQL `WHERE {key} = :v AND deletedAt IS NULL`); thấy → merge giữ id/code/FK/createdAt + cập nhật field từ row; không thấy & isCreate → tạo mới. Row DTO của opportunity/order/quotation có thêm field `code` để dò. **Activity chỉ CREATE** (không có khóa duy nhất).

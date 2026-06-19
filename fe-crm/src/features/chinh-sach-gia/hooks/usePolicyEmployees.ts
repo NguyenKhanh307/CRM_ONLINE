@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { pricingService } from '../services/pricingService';
 import type { CreatePricePolicyEmployeePayload } from '../types/pricingTypes';
 
+/** Lấy danh sách nhân viên của chính sách. */
 export function usePolicyEmployees(policyId: number) {
     return useQuery({
         queryKey: ['price-policy-employees', policyId],
@@ -10,6 +11,7 @@ export function usePolicyEmployees(policyId: number) {
     });
 }
 
+/** Tạo mới nhân viên của chính sách — invalidate danh sách sau khi thành công. */
 export function useCreatePolicyEmployee(policyId: number) {
     const qc = useQueryClient();
     return useMutation({
@@ -19,6 +21,7 @@ export function useCreatePolicyEmployee(policyId: number) {
     });
 }
 
+/** Xóa nhân viên của chính sách — invalidate danh sách sau khi thành công. */
 export function useDeletePolicyEmployee(policyId: number) {
     const qc = useQueryClient();
     return useMutation({

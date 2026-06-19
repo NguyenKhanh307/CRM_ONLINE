@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customerService } from '../services/customerService';
 
+/** Xóa khách hàng — invalidate danh sách sau khi thành công. */
 export function useDeleteCustomer() {
     const qc = useQueryClient();
     return useMutation({

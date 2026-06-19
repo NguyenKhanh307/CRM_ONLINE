@@ -1,6 +1,6 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
-import type { CreateOrderPayload, OrderResult, UpdateOrderPayload } from '../types/orderTypes';
+import type { CreateOrderPayload, OrderItemPayload, OrderItemResult, OrderResult, UpdateOrderPayload } from '../types/orderTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 
 export const orderService = {
@@ -8,6 +8,14 @@ export const orderService = {
         axiosInstance.get<ApiResponse<PageResult<OrderResult>>>('/api/orders', { params }),
     create: (payload: CreateOrderPayload) =>
         axiosInstance.post<ApiResponse<OrderResult>>('/api/orders', payload),
+    getItems: (orderId: number) =>
+        axiosInstance.get<ApiResponse<OrderItemResult[]>>(`/api/orders/${orderId}/items`),
+    createItem: (orderId: number, payload: OrderItemPayload) =>
+        axiosInstance.post<ApiResponse<OrderItemResult>>(`/api/orders/${orderId}/items`, payload),
+    updateItem: (orderId: number, itemId: number, payload: OrderItemPayload) =>
+        axiosInstance.put<ApiResponse<OrderItemResult>>(`/api/orders/${orderId}/items/${itemId}`, payload),
+    deleteItem: (orderId: number, itemId: number) =>
+        axiosInstance.delete(`/api/orders/${orderId}/items/${itemId}`),
     getById: (id: number) =>
         axiosInstance.get<ApiResponse<OrderResult>>(`/api/orders/${id}`),
     update: (id: number, payload: UpdateOrderPayload) =>

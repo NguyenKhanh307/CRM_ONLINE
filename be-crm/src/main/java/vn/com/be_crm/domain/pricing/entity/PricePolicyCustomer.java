@@ -13,7 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PricePolicyCustomer {
+    /** ID dòng. */
     private Long id;
+    /** ID chính sách giá. */
     private Long pricePolicyId;
+    /** ID khách hàng được áp dụng chính sách. */
     private Long customerId;
 }

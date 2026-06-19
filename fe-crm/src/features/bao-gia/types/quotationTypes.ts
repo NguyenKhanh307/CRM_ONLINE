@@ -1,9 +1,12 @@
 export interface UpdateQuotationPayload {
     customerId: number | null;
     contactId: number | null;
+    opportunityId?: number | null;
     ownerId: number | null;
     quoteDate: string | null;
     validUntil: string | null;
+    currency?: string | null;
+    exchangeRate?: number | null;
     status: string;
     subtotal: number | null;
     discount: number | null;
@@ -44,14 +47,31 @@ export interface CreateQuotationPayload {
     items: QuotationItemPayload[];
 }
 
+/** Dòng hàng trả về từ GET /api/quotations/{id}/items. */
+export interface QuotationItemResult {
+    id: number;
+    quotationId: number;
+    productId: number | null;
+    unit: string | null;
+    quantity: number;
+    unitPrice: number;
+    discount: number;
+    taxRate: number;
+    amount: number;
+    note: string | null;
+}
+
 export interface QuotationResult {
     id: number;
     code: string;
     customerId: number | null;
     contactId: number | null;
+    opportunityId: number | null;
     ownerId: number | null;
     quoteDate: string | null;
     validUntil: string | null;
+    currency: string | null;
+    exchangeRate: number | null;
     status: string;
     subtotal: number | null;
     discount: number | null;

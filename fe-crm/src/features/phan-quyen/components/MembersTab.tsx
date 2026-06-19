@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
 import { FiUserPlus, FiTrash2, FiLock, FiUnlock, FiEdit2, FiCheck, FiX } from 'react-icons/fi';
-import { useRoleMembers } from '@/features/phan-quyen/hooks/useRoleMembers';
-import { useAllUsers } from '@/features/phan-quyen/hooks/useAllUsers';
-import { useAddMember } from '@/features/phan-quyen/hooks/useAddMember';
-import { useRemoveMember } from '@/features/phan-quyen/hooks/useRemoveMember';
-import { useRevokeUser } from '@/features/phan-quyen/hooks/useRevokeUser';
-import { useReactivateUser } from '@/features/phan-quyen/hooks/useReactivateUser';
-import { useUpdateDataAccess } from '@/features/phan-quyen/hooks/useUpdateDataAccess';
-import AddMemberModal from '@/features/phan-quyen/components/AddMemberModal';
+import { useRoleMembers } from '../hooks/useRoleMembers';
+import { useAllUsers } from '../hooks/useAllUsers';
+import { useAddMember } from '../hooks/useAddMember';
+import { useRemoveMember } from '../hooks/useRemoveMember';
+import { useRevokeUser } from '../hooks/useRevokeUser';
+import { useReactivateUser } from '../hooks/useReactivateUser';
+import { useUpdateDataAccess } from '../hooks/useUpdateDataAccess';
+import AddMemberModal from './AddMemberModal';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { useAlert } from '@/shared/alert/useAlert';
 
@@ -122,7 +122,7 @@ const MembersTab = ({ roleId }: Props) => {
                 <p className="text-md text-gray-500">{members.length} thành viên</p>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-md bg-primary text-white rounded-btn hover:bg-blue-600 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-md bg-primary text-white rounded-btn hover:opacity-90 transition-colors"
                 >
                     <FiUserPlus size={14} />
                     Thêm thành viên

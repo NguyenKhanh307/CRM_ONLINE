@@ -140,7 +140,7 @@ const TransferWorkModal = ({ onClose }: ModalProps) => {
                     <button
                         onClick={handleSubmit}
                         disabled={!canSubmit || isPending}
-                        className="px-4 py-1.5 rounded-btn bg-primary text-white text-sm hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-1.5 rounded-btn bg-primary text-white text-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isPending ? 'Đang xử lý...' : 'Bàn giao'}
                     </button>

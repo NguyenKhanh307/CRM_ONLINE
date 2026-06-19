@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/useAuth';
 import { authService, type LoginPayload } from '../services/authService';
 
+/** Đăng nhập — gọi API login, lưu token và điều hướng. */
 export const useLogin = () => {
     const { login } = useAuth();
     const navigate = useNavigate();

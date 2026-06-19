@@ -22,6 +22,8 @@ export function ProductEditModal({ item, onClose }: Props) {
         description: null,
         isDiscontinued: false,
         isActive: true,
+        secondaryUnit: null, conversionRate: null, composition: null, yarnCount: null,
+        color: null, fabricWidth: null, weightGsm: null, brand: null, origin: null,
     });
 
     useEffect(() => {
@@ -38,6 +40,9 @@ export function ProductEditModal({ item, onClose }: Props) {
             description: item.description,
             isDiscontinued: item.isDiscontinued,
             isActive: item.isActive,
+            secondaryUnit: item.secondaryUnit, conversionRate: item.conversionRate,
+            composition: item.composition, yarnCount: item.yarnCount, color: item.color,
+            fabricWidth: item.fabricWidth, weightGsm: item.weightGsm, brand: item.brand, origin: item.origin,
         });
     }, [item]);
 
@@ -91,6 +96,50 @@ export function ProductEditModal({ item, onClose }: Props) {
                         <div>
                             <label className={lbl}>Mã vạch</label>
                             <input className={inp} value={form.barcode ?? ''} onChange={e => setForm(f => ({ ...f, barcode: e.target.value || null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Thương hiệu</label>
+                            <input className={inp} value={form.brand ?? ''} onChange={e => setForm(f => ({ ...f, brand: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Xuất xứ</label>
+                            <input className={inp} value={form.origin ?? ''} onChange={e => setForm(f => ({ ...f, origin: e.target.value || null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Đơn vị phụ</label>
+                            <input className={inp} value={form.secondaryUnit ?? ''} onChange={e => setForm(f => ({ ...f, secondaryUnit: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Tỷ lệ quy đổi</label>
+                            <input type="number" className={inp} value={form.conversionRate ?? ''} onChange={e => setForm(f => ({ ...f, conversionRate: e.target.value ? +e.target.value : null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Thành phần</label>
+                            <input className={inp} value={form.composition ?? ''} onChange={e => setForm(f => ({ ...f, composition: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Chỉ số sợi</label>
+                            <input className={inp} value={form.yarnCount ?? ''} onChange={e => setForm(f => ({ ...f, yarnCount: e.target.value || null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                        <div>
+                            <label className={lbl}>Màu sắc</label>
+                            <input className={inp} value={form.color ?? ''} onChange={e => setForm(f => ({ ...f, color: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Khổ vải (cm)</label>
+                            <input type="number" className={inp} value={form.fabricWidth ?? ''} onChange={e => setForm(f => ({ ...f, fabricWidth: e.target.value ? +e.target.value : null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Định lượng (g/m²)</label>
+                            <input type="number" className={inp} value={form.weightGsm ?? ''} onChange={e => setForm(f => ({ ...f, weightGsm: e.target.value ? +e.target.value : null }))} />
                         </div>
                     </div>
                     <div>

@@ -1,6 +1,6 @@
 import { ImportWizard } from '@/shared/components/import/ImportWizard';
 import type { ImportField } from '@/shared/components/import/importTypes';
-import { contactService } from '../services/contactService';
+import { useImportContactBulk } from '../hooks/useImportContactBulk';
 
 const FIELDS: ImportField[] = [
     { key: 'fullName',     label: 'Họ và tên',   required: true, type: 'text' },
@@ -11,13 +11,16 @@ const FIELDS: ImportField[] = [
     { key: 'address',      label: 'Địa chỉ',                      type: 'text' },
 ];
 
-const ContactImportPage = () => (
+const ContactImportPage = () => {
+    const importBulk = useImportContactBulk();
+    return (
     <ImportWizard
         title="Liên hệ"
         fields={FIELDS}
-        onImport={(rows, opts) => contactService.importBulk(rows, opts).then(r => r.data.data)}
+        onImport={importBulk}
         backPath="/lien-he"
     />
-);
+    );
+};
 
 export default ContactImportPage;

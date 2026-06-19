@@ -19,6 +19,8 @@ export function LeadEditModal({ item, onClose }: Props) {
     const [form, setForm] = useState<UpdateLeadPayload>({
         name: '', ownerId: null, customerId: null, contactId: null,
         source: null, status: 'new_', estimatedValue: null, phone: null, email: null, note: null,
+        companyName: null, leadType: null, title: null, department: null,
+        taxCode: null, website: null, industry: null, doNotCall: false, doNotEmail: false,
     });
 
     useEffect(() => {
@@ -27,6 +29,9 @@ export function LeadEditModal({ item, onClose }: Props) {
             name: item.name, ownerId: item.ownerId, customerId: item.customerId,
             contactId: item.contactId, source: item.source, status: item.status,
             estimatedValue: item.estimatedValue, phone: item.phone, email: item.email, note: item.note,
+            companyName: item.companyName, leadType: item.leadType, title: item.title,
+            department: item.department, taxCode: item.taxCode, website: item.website,
+            industry: item.industry, doNotCall: item.doNotCall, doNotEmail: item.doNotEmail,
         });
     }, [item]);
 
@@ -80,6 +85,52 @@ export function LeadEditModal({ item, onClose }: Props) {
                     <div>
                         <label className={lbl}>Giá trị dự kiến</label>
                         <input type="number" className={inp} value={form.estimatedValue ?? ''} onChange={e => setForm(f => ({ ...f, estimatedValue: e.target.value ? +e.target.value : null }))} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Chức danh</label>
+                            <input className={inp} value={form.title ?? ''} onChange={e => setForm(f => ({ ...f, title: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Phòng ban</label>
+                            <input className={inp} value={form.department ?? ''} onChange={e => setForm(f => ({ ...f, department: e.target.value || null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Tên tổ chức</label>
+                            <input className={inp} value={form.companyName ?? ''} onChange={e => setForm(f => ({ ...f, companyName: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Loại tiềm năng</label>
+                            <input className={inp} value={form.leadType ?? ''} onChange={e => setForm(f => ({ ...f, leadType: e.target.value || null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Mã số thuế</label>
+                            <input className={inp} value={form.taxCode ?? ''} onChange={e => setForm(f => ({ ...f, taxCode: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Website</label>
+                            <input className={inp} value={form.website ?? ''} onChange={e => setForm(f => ({ ...f, website: e.target.value || null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Ngành nghề</label>
+                            <input className={inp} value={form.industry ?? ''} onChange={e => setForm(f => ({ ...f, industry: e.target.value || null }))} />
+                        </div>
+                        <div className="flex items-end gap-4 pb-1">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.doNotCall ?? false} onChange={e => setForm(f => ({ ...f, doNotCall: e.target.checked }))} />
+                                <span className="text-sm text-text-main">Không gọi</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.doNotEmail ?? false} onChange={e => setForm(f => ({ ...f, doNotEmail: e.target.checked }))} />
+                                <span className="text-sm text-text-main">Không email</span>
+                            </label>
+                        </div>
                     </div>
                     <div>
                         <label className={lbl}>Ghi chú</label>

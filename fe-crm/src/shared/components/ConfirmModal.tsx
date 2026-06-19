@@ -58,7 +58,7 @@ export const ConfirmModal = ({
                     className={`text-md px-4 py-1.5 rounded-btn text-white transition-colors disabled:opacity-50 ${
                         confirmDanger
                             ? 'bg-danger hover:bg-red-600'
-                            : 'bg-primary hover:bg-blue-600'
+                            : 'bg-primary hover:opacity-90'
                     }`}
                 >
                     {confirmLabel}

@@ -21,6 +21,12 @@ public interface IOpportunityRepository {
     Opportunity save(Opportunity opportunity);
 
     /**
+     * Tìm cơ hội theo mã (code) chưa xóa mềm — dùng cho import UPDATE/BOTH.
+     * @param code mã cơ hội @return Optional
+     */
+    java.util.Optional<Opportunity> findByCode(String code);
+
+    /**
      * Lưu cơ hội kèm danh sách dòng hàng trong một transaction.
      * @param opportunity domain entity cơ hội
      * @param items       danh sách dòng hàng (opportunityId sẽ được gán sau khi lưu cơ hội)

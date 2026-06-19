@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { phanQuyenService } from '@/features/phan-quyen/services/phanQuyenService';
+import { phanQuyenService } from '../services/phanQuyenService';
 
 /**
  * Lấy danh sách quyền đã gán cho một nhóm.

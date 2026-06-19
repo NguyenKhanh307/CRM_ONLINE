@@ -28,17 +28,23 @@ public class ImportBulkActivityUseCase {
     public ImportBulkResult execute(ImportBulkActivityCommand cmd) {
         List<ImportRowError> errors = new ArrayList<>();
         int success = 0;
+        // Activity chỉ hỗ trợ tạo mới (không có khóa duy nhất nên không cập nhật)
+        // Duyệt từng dòng; rowNum = i + 2 vì dòng 1 là header trong file Excel
         for (int i = 0; i < cmd.rows().size(); i++) {
             int rowNum = i + 2;
             ImportActivityRowCommand row = cmd.rows().get(i);
             try {
+                // Bắt buộc có tiêu đề, thiếu thì ghi lỗi dòng và bỏ qua
                 if (row.subject() == null || row.subject().isBlank()) {
                     errors.add(new ImportRowError(rowNum, "Trường 'Tiêu đề' là bắt buộc"));
                     continue;
                 }
+                // Xác định người phụ trách: gán cố định theo cấu hình hoặc null
                 Long assignedUserId = "SPECIFIC".equals(cmd.ownerMode()) ? cmd.specificOwnerId() : null;
+                // Parse enum, để null nếu rỗng/không hợp lệ rồi fallback mặc định khi build
                 ActivityType type = parseType(row.type());
                 ActivityStatus status = parseStatus(row.status());
+                // Tạo mới hoạt động
                 repo.save(Activity.builder()
                         .type(type != null ? type : ActivityType.task)
                         .subject(row.subject()).content(row.content())
@@ -48,6 +54,7 @@ public class ImportBulkActivityUseCase {
                         .build());
                 success++;
             } catch (Exception ex) {
+                // Gom lỗi theo từng dòng, không hủy cả lô — các dòng hợp lệ vẫn được lưu
                 errors.add(new ImportRowError(rowNum, ex.getMessage() != null ? ex.getMessage() : "Lỗi không xác định"));
             }
         }

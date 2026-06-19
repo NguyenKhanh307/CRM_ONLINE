@@ -1,6 +1,6 @@
 import { ImportWizard } from '@/shared/components/import/ImportWizard';
 import type { ImportField } from '@/shared/components/import/importTypes';
-import { warehouseService } from '../services/warehouseService';
+import { useImportWarehouseBulk } from '../hooks/useImportWarehouseBulk';
 
 const FIELDS: ImportField[] = [
     { key: 'name',    label: 'Tên kho',  required: true, type: 'text' },
@@ -8,13 +8,16 @@ const FIELDS: ImportField[] = [
     { key: 'address', label: 'Địa chỉ',                   type: 'text' },
 ];
 
-const WarehouseImportPage = () => (
+const WarehouseImportPage = () => {
+    const importBulk = useImportWarehouseBulk();
+    return (
     <ImportWizard
         title="Kho hàng"
         fields={FIELDS}
-        onImport={(rows, opts) => warehouseService.importBulk(rows, opts).then(r => r.data.data)}
+        onImport={importBulk}
         backPath="/kho-hang"
     />
-);
+    );
+};
 
 export default WarehouseImportPage;

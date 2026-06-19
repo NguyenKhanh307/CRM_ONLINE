@@ -44,7 +44,7 @@ export const FormPageHeader = ({
                 type="button"
                 onClick={onSave}
                 disabled={saving}
-                className={`${btnBase} bg-primary text-white hover:bg-blue-600 disabled:opacity-50`}
+                className={`${btnBase} bg-primary text-white hover:opacity-90 disabled:opacity-50`}
             >
                 {saving ? 'Đang lưu…' : 'Lưu'}
             </button>

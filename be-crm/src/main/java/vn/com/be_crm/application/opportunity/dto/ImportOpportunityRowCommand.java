@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 /** Một dòng dữ liệu Opportunity từ file import. */
 public record ImportOpportunityRowCommand(
+        String code,
         String name,
         BigDecimal amount,
         BigDecimal probability,

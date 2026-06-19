@@ -1,6 +1,6 @@
 import { ImportWizard } from '@/shared/components/import/ImportWizard';
 import type { ImportField } from '@/shared/components/import/importTypes';
-import { leadService } from '../services/leadService';
+import { useImportLeadBulk } from '../hooks/useImportLeadBulk';
 
 const FIELDS: ImportField[] = [
     { key: 'name',           label: 'Họ và tên',        required: true, type: 'text' },
@@ -12,13 +12,16 @@ const FIELDS: ImportField[] = [
     { key: 'note',           label: 'Ghi chú',                           type: 'text' },
 ];
 
-const LeadImportPage = () => (
+const LeadImportPage = () => {
+    const importBulk = useImportLeadBulk();
+    return (
     <ImportWizard
         title="Tiềm năng"
         fields={FIELDS}
-        onImport={(rows, opts) => leadService.importBulk(rows, opts).then(r => r.data.data)}
+        onImport={importBulk}
         backPath="/tiem-nang"
     />
-);
+    );
+};
 
 export default LeadImportPage;

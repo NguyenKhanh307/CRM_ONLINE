@@ -1,8 +1,9 @@
 import { ImportWizard } from '@/shared/components/import/ImportWizard';
 import type { ImportField } from '@/shared/components/import/importTypes';
-import { orderService } from '../services/orderService';
+import { useImportOrderBulk } from '../hooks/useImportOrderBulk';
 
 const FIELDS: ImportField[] = [
+    { key: 'code',          label: 'Mã đơn hàng (để cập nhật)',     type: 'text' },
     { key: 'orderType',     label: 'Loại đơn hàng', required: true, type: 'enum', enumValues: ['sale', 'purchase', 'return'] },
     { key: 'orderDate',     label: 'Ngày đặt hàng',                 type: 'date' },
     { key: 'status',        label: 'Trạng thái',                     type: 'enum', enumValues: ['draft', 'confirmed', 'delivering', 'completed', 'cancelled'] },
@@ -14,13 +15,16 @@ const FIELDS: ImportField[] = [
     { key: 'note',          label: 'Ghi chú',                        type: 'text' },
 ];
 
-const OrderImportPage = () => (
+const OrderImportPage = () => {
+    const importBulk = useImportOrderBulk();
+    return (
     <ImportWizard
         title="Đơn hàng"
         fields={FIELDS}
-        onImport={(rows, opts) => orderService.importBulk(rows, opts).then(r => r.data.data)}
+        onImport={importBulk}
         backPath="/don-hang"
     />
-);
+    );
+};
 
 export default OrderImportPage;

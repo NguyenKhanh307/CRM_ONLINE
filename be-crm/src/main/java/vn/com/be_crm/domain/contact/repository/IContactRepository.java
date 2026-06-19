@@ -29,6 +29,12 @@ public interface IContactRepository {
     Contact saveWithPhones(Contact contact, List<ContactPhone> phones);
 
     /**
+     * Tìm liên hệ theo email (chưa xóa mềm) — dùng cho import UPDATE/BOTH.
+     * @param email email @return Optional
+     */
+    Optional<Contact> findByEmail(String email);
+
+    /**
      * Tìm liên hệ theo ID (chưa xóa mềm).
      * @param id ID @return Optional
      */

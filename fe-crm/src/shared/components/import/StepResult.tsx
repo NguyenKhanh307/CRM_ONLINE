@@ -48,7 +48,7 @@ export const StepResult = ({ result, backPath, onReset }: Props) => (
         <div className="flex gap-3">
             <a
                 href={backPath}
-                className="flex items-center gap-2 px-4 py-2 rounded-btn bg-primary text-white text-md hover:bg-blue-600 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-btn bg-primary text-white text-md hover:opacity-90 transition-colors"
             >
                 <FiArrowLeft size={14} />
                 Quay về danh sách

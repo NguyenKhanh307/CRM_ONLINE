@@ -18,15 +18,15 @@ import java.util.stream.Collectors;
 @Repository
 public class UserRoleRepositoryImpl implements IUserRoleRepository {
 
-    private final SessionFactory sessionFactory;
+    private final SessionFactory sf;
     private final UserRoleHibernateMapper mapper;
 
     /**
-     * @param sessionFactory Hibernate SessionFactory
+     * @param sf Hibernate SessionFactory
      * @param mapper         mapper domain ↔ hibernate
      */
-    public UserRoleRepositoryImpl(SessionFactory sessionFactory, UserRoleHibernateMapper mapper) {
-        this.sessionFactory = sessionFactory;
+    public UserRoleRepositoryImpl(SessionFactory sf, UserRoleHibernateMapper mapper) {
+        this.sf = sf;
         this.mapper = mapper;
     }
 
@@ -38,9 +38,9 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
      */
     @Override
     public UserRole save(UserRole userRole) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            UserRoleHibernate merged = session.merge(mapper.toHibernate(userRole));
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            UserRoleHibernate merged = s.merge(mapper.toHibernate(userRole));
             tx.commit();
             return mapper.toDomain(merged);
         }
@@ -54,9 +54,9 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
      */
     @Override
     public void deleteByUserIdAndRoleId(Long userId, Long roleId) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.createMutationQuery(
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            s.createMutationQuery(
                     "DELETE FROM UserRoleHibernate WHERE userId = :userId AND roleId = :roleId")
                     .setParameter("userId", userId)
                     .setParameter("roleId", roleId)
@@ -73,8 +73,8 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
      */
     @Override
     public List<UserRole> findByUserId(Long userId) {
-        try (Session session = sessionFactory.openSession()) {
-            return session.createQuery(
+        try (Session s = sf.openSession()) {
+            return s.createQuery(
                     "FROM UserRoleHibernate WHERE userId = :userId", UserRoleHibernate.class)
                     .setParameter("userId", userId)
                     .list()
@@ -90,8 +90,8 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
      */
     @Override
     public List<String> findRoleCodesByUserId(Long userId) {
-        try (Session session = sessionFactory.openSession()) {
-            return session.createQuery(
+        try (Session s = sf.openSession()) {
+            return s.createQuery(
                     "SELECT r.code FROM RoleHibernate r WHERE r.id IN " +
                     "(SELECT ur.roleId FROM UserRoleHibernate ur WHERE ur.userId = :userId)",
                     String.class)
@@ -108,8 +108,8 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
      */
     @Override
     public List<UserRole> findByRoleId(Long roleId) {
-        try (Session session = sessionFactory.openSession()) {
-            return session.createQuery(
+        try (Session s = sf.openSession()) {
+            return s.createQuery(
                     "FROM UserRoleHibernate WHERE roleId = :roleId", UserRoleHibernate.class)
                     .setParameter("roleId", roleId)
                     .list()

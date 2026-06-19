@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { FiShield, FiEdit2, FiTrash2 } from 'react-icons/fi';
-import { useRoleGroups } from '@/features/phan-quyen/hooks/useRoleGroups';
-import { useCreateGroup } from '@/features/phan-quyen/hooks/useCreateGroup';
-import { useUpdateGroup } from '@/features/phan-quyen/hooks/useUpdateGroup';
-import { useDeleteGroup } from '@/features/phan-quyen/hooks/useDeleteGroup';
-import GroupList from '@/features/phan-quyen/components/GroupList';
-import GroupFormModal from '@/features/phan-quyen/components/GroupFormModal';
-import MembersTab from '@/features/phan-quyen/components/MembersTab';
-import PermissionsTab from '@/features/phan-quyen/components/PermissionsTab';
-import type { RoleGroup } from '@/features/phan-quyen/types/phanQuyenTypes';
+import { useRoleGroups } from '../hooks/useRoleGroups';
+import { useCreateGroup } from '../hooks/useCreateGroup';
+import { useUpdateGroup } from '../hooks/useUpdateGroup';
+import { useDeleteGroup } from '../hooks/useDeleteGroup';
+import GroupList from '../components/GroupList';
+import GroupFormModal from '../components/GroupFormModal';
+import MembersTab from '../components/MembersTab';
+import PermissionsTab from '../components/PermissionsTab';
+import type { RoleGroup } from '../types/phanQuyenTypes';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { useAlert } from '@/shared/alert/useAlert';
 

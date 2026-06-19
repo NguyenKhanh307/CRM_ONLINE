@@ -17,35 +17,51 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Lead {
+    /** ID tiềm năng. */
     private Long id;
+    /** Mã tiềm năng. */
     private String code;
+    /** Tên tiềm năng (người liên hệ). */
     private String name;
     /** Tên tổ chức. */
     private String companyName;
     /** Loại tiềm năng (cá nhân/doanh nghiệp...). */
     private String leadType;
+    /** ID người phụ trách. */
     private Long ownerId;
+    /** ID khách hàng (sau khi chuyển đổi). */
     private Long customerId;
+    /** ID liên hệ. */
     private Long contactId;
     /** Chức danh. */
     private String title;
     /** Phòng ban. */
     private String department;
+    /** Mã số thuế. */
     private String taxCode;
+    /** Website. */
     private String website;
     /** Ngành nghề. */
     private String industry;
+    /** Nguồn tiềm năng. */
     private String source;
+    /** Trạng thái tiềm năng. */
     private LeadStatus status;
+    /** Giá trị ước tính. */
     private BigDecimal estimatedValue;
+    /** Số điện thoại. */
     private String phone;
+    /** Email. */
     private String email;
     /** Không gọi điện. */
     private boolean doNotCall;
     /** Không gửi email. */
     private boolean doNotEmail;
+    /** Ghi chú. */
     private String note;
+    /** Thời điểm tạo. */
     private LocalDateTime createdAt;
+    /** Thời điểm cập nhật gần nhất. */
     private LocalDateTime updatedAt;
     /** Thời điểm xóa mềm. */
     private LocalDateTime deletedAt;

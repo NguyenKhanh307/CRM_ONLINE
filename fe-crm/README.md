@@ -1,5 +1,8 @@
 # CRM Frontend — Tài liệu kỹ thuật
 
+> 📘 Mới đọc code frontend? Xem [`../CODE_GUIDE_FRONTEND.md`](../CODE_GUIDE_FRONTEND.md) — hướng
+> dẫn đọc hiểu code kiểu sách giáo khoa (TypeScript, hooks, React Query, các pattern…).
+
 ## Mục lục
 
 1. [Tổng quan](#1-tổng-quan)
@@ -136,6 +139,7 @@ features/<ten-module>/
 ├── hooks/use<Module>List.ts          # useQuery hook danh sách
 ├── hooks/useDelete<Module>.ts        # useMutation → DELETE /api/<module>/{id}
 ├── hooks/useUpdate<Module>.ts        # useMutation → PUT /api/<module>/{id}
+├── hooks/useImport<Module>Bulk.ts    # wrap service.importBulk (page Import gọi qua hook, không gọi thẳng service)
 ├── config/<module>Columns.tsx        # ColumnDef[] cho DataTable (không có cột actions)
 ├── components/<Module>EditModal.tsx  # Modal chỉnh sửa đầy đủ
 └── pages/<Module>Page.tsx            # Trang list view (thêm actions column + modals)
@@ -313,6 +317,12 @@ features/
 ├── kho-hang/          # Warehouse — có WarehouseImportPage
 └── chinh-sach-gia/    # Price Policy — danh sách + chi tiết 5 tab sub-entity
 ```
+
+### Hoàn thiện 3 hạng mục (2026-06-13)
+
+- **Roles động**: `RegisterEmployeePage` dùng `useRoleGroups()` (`features/phan-quyen/hooks`) thay ROLE_OPTIONS hardcode — dropdown vai trò lấy từ `GET /api/roles`.
+- **Import UPDATE/BOTH**: 3 trang import opp/order/quotation thêm field "Mã (để cập nhật)" trong `FIELDS` để map cột Mã; backend dò trùng theo mã. Sản phẩm/kho/khách hàng/liên hệ dò theo sku/code/taxCode/email (không cần thêm field).
+- **Edit modal field V6 + sửa dòng con**: 8 edit modal (trừ kho) hiển thị đầy đủ field V6. Báo giá/Đơn hàng/Cơ hội: edit modal nạp `getItems()`, sửa bằng `ProductLineItemsTable`, lưu bằng diff (`diffLineItems`/`fromItemResult`/`toItemPayload` trong `shared/components/form/productLineItem.ts`) → `createItem`/`updateItem`/`deleteItem`. Liên hệ: trình sửa danh sách SĐT (`getPhones`/`createPhone`/`updatePhone`/`deletePhone`). Service con thêm vào `quotationService`/`orderService`/`opportunityService`/`contactService`.
 
 ### Form thêm mới full-page — 9 module (2026-06-13)
 

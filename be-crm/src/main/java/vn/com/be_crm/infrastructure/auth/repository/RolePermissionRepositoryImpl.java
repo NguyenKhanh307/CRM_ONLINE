@@ -18,15 +18,15 @@ import java.util.stream.Collectors;
 @Repository
 public class RolePermissionRepositoryImpl implements IRolePermissionRepository {
 
-    private final SessionFactory sessionFactory;
+    private final SessionFactory sf;
     private final RolePermissionHibernateMapper mapper;
 
     /**
-     * @param sessionFactory Hibernate SessionFactory
+     * @param sf Hibernate SessionFactory
      * @param mapper         mapper domain ↔ hibernate
      */
-    public RolePermissionRepositoryImpl(SessionFactory sessionFactory, RolePermissionHibernateMapper mapper) {
-        this.sessionFactory = sessionFactory;
+    public RolePermissionRepositoryImpl(SessionFactory sf, RolePermissionHibernateMapper mapper) {
+        this.sf = sf;
         this.mapper = mapper;
     }
 
@@ -38,9 +38,9 @@ public class RolePermissionRepositoryImpl implements IRolePermissionRepository {
      */
     @Override
     public RolePermission save(RolePermission rolePermission) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            RolePermissionHibernate merged = session.merge(mapper.toHibernate(rolePermission));
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            RolePermissionHibernate merged = s.merge(mapper.toHibernate(rolePermission));
             tx.commit();
             return mapper.toDomain(merged);
         }
@@ -54,9 +54,9 @@ public class RolePermissionRepositoryImpl implements IRolePermissionRepository {
      */
     @Override
     public void deleteByRoleIdAndPermissionId(Long roleId, Long permissionId) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.createMutationQuery(
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            s.createMutationQuery(
                     "DELETE FROM RolePermissionHibernate WHERE roleId = :roleId AND permissionId = :permId")
                     .setParameter("roleId", roleId)
                     .setParameter("permId", permissionId)
@@ -73,8 +73,8 @@ public class RolePermissionRepositoryImpl implements IRolePermissionRepository {
      */
     @Override
     public List<RolePermission> findByRoleId(Long roleId) {
-        try (Session session = sessionFactory.openSession()) {
-            return session.createQuery(
+        try (Session s = sf.openSession()) {
+            return s.createQuery(
                     "FROM RolePermissionHibernate WHERE roleId = :roleId", RolePermissionHibernate.class)
                     .setParameter("roleId", roleId)
                     .list()

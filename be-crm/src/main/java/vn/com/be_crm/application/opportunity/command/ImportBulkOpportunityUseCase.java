@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /** Use case nhập hàng loạt Opportunity từ file Excel/CSV. */
 public class ImportBulkOpportunityUseCase {
@@ -27,26 +28,59 @@ public class ImportBulkOpportunityUseCase {
     public ImportBulkResult execute(ImportBulkOpportunityCommand cmd) {
         List<ImportRowError> errors = new ArrayList<>();
         int success = 0;
+        // Duyệt từng dòng; rowNum = i + 2 vì dòng 1 là header trong file Excel
         for (int i = 0; i < cmd.rows().size(); i++) {
             int rowNum = i + 2;
             ImportOpportunityRowCommand row = cmd.rows().get(i);
             try {
                 if (row.name() == null || row.name().isBlank()) {
+                    // Gom lỗi theo từng dòng, không hủy cả lô — các dòng hợp lệ vẫn được lưu
                     errors.add(new ImportRowError(rowNum, "Trường 'Tên cơ hội' là bắt buộc"));
                     continue;
                 }
+                // Xác định owner: gán cố định theo cấu hình hoặc null (lấy từ dòng/bản ghi cũ)
                 Long ownerId = "SPECIFIC".equals(cmd.ownerMode()) ? cmd.specificOwnerId() : null;
-                String code = "CO-" + System.currentTimeMillis() + "-" + rowNum;
                 OpportunityStatus status = parseStatus(row.status());
                 LocalDate closeDate = parseDate(row.expectedCloseDate());
-                repo.save(Opportunity.builder()
-                        .code(code).name(row.name()).ownerId(ownerId)
-                        .amount(row.amount()).probability(row.probability())
-                        .expectedCloseDate(closeDate)
-                        .status(status != null ? status : OpportunityStatus.open)
-                        .build());
-                success++;
+
+                // Xác định nhánh thao tác theo importType: CREATE / UPDATE / BOTH
+                boolean isUpdate = "UPDATE".equals(cmd.importType()) || "BOTH".equals(cmd.importType());
+                boolean isCreate = "CREATE".equals(cmd.importType()) || "BOTH".equals(cmd.importType());
+
+                // Tìm bản ghi trùng theo khóa duy nhất để cập nhật (chỉ khi cho phép UPDATE)
+                Optional<Opportunity> existing = Optional.empty();
+                if (isUpdate && row.code() != null && !row.code().isBlank())
+                    existing = repo.findByCode(row.code());
+
+                // Có bản ghi → cập nhật (giữ field cũ, ghi đè field có trong file)
+                if (existing.isPresent()) {
+                    Opportunity e = existing.get();
+                    repo.save(Opportunity.builder()
+                            .id(e.getId()).code(e.getCode()).name(row.name())
+                            .opportunityType(e.getOpportunityType())
+                            .customerId(e.getCustomerId()).contactId(e.getContactId())
+                            .ownerId(ownerId != null ? ownerId : e.getOwnerId()).stageId(e.getStageId())
+                            .amount(row.amount() != null ? row.amount() : e.getAmount())
+                            .expectedRevenue(e.getExpectedRevenue())
+                            .probability(row.probability() != null ? row.probability() : e.getProbability())
+                            .expectedCloseDate(closeDate != null ? closeDate : e.getExpectedCloseDate())
+                            .source(e.getSource()).winLossReason(e.getWinLossReason()).description(e.getDescription())
+                            .status(status != null ? status : e.getStatus())
+                            .createdAt(e.getCreatedAt()).build());
+                    success++;
+                // Chưa có và được phép tạo mới → thêm mới
+                } else if (isCreate) {
+                    String code = "CO-" + System.currentTimeMillis() + "-" + rowNum;
+                    repo.save(Opportunity.builder()
+                            .code(code).name(row.name()).ownerId(ownerId)
+                            .amount(row.amount()).probability(row.probability())
+                            .expectedCloseDate(closeDate)
+                            .status(status != null ? status : OpportunityStatus.open)
+                            .build());
+                    success++;
+                }
             } catch (Exception ex) {
+                // Gom lỗi theo từng dòng, không hủy cả lô — các dòng hợp lệ vẫn được lưu
                 errors.add(new ImportRowError(rowNum, ex.getMessage() != null ? ex.getMessage() : "Lỗi không xác định"));
             }
         }

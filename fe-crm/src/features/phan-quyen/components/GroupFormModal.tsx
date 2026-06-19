@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
-import type { RoleGroup } from '@/features/phan-quyen/types/phanQuyenTypes';
+import type { RoleGroup } from '../types/phanQuyenTypes';
 
 interface Props {
     mode: 'create' | 'edit';
@@ -103,7 +103,7 @@ const GroupFormModal = ({ mode, group, onClose, onSubmit, isLoading }: Props) =>
                         <button
                             type="submit"
                             disabled={isLoading || !name.trim()}
-                            className="px-4 py-1.5 text-md bg-primary text-white rounded-btn hover:bg-blue-600 disabled:opacity-50 transition-colors"
+                            className="px-4 py-1.5 text-md bg-primary text-white rounded-btn hover:opacity-90 disabled:opacity-50 transition-colors"
                         >
                             {isLoading ? 'Đang lưu...' : 'Lưu'}
                         </button>

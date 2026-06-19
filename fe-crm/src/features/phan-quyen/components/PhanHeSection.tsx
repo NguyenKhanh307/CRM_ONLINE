@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
-import type { GroupPermission } from '@/features/phan-quyen/types/phanQuyenTypes';
+import type { GroupPermission } from '../types/phanQuyenTypes';
 
 interface Props {
     moduleId: string;

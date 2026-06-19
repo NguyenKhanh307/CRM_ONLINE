@@ -184,7 +184,7 @@ export const ImportWizard = ({ title, fields, onImport, backPath }: Props) => {
                                     type="button"
                                     onClick={() => setStep(s => s + 1)}
                                     disabled={!canNext}
-                                    className="px-5 py-2 rounded-btn bg-primary text-white text-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-5 py-2 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Tiếp theo
                                 </button>
@@ -194,7 +194,7 @@ export const ImportWizard = ({ title, fields, onImport, backPath }: Props) => {
                                     type="button"
                                     onClick={handleImport}
                                     disabled={isImporting}
-                                    className="px-5 py-2 rounded-btn bg-primary text-white text-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-5 py-2 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isImporting ? 'Đang nhập...' : 'Bắt đầu nhập'}
                                 </button>

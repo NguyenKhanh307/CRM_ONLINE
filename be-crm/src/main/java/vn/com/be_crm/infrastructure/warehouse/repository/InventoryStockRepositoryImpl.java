@@ -24,26 +24,26 @@ public class InventoryStockRepositoryImpl implements IInventoryStockRepository {
      * @param sf SessionFactory @param mapper mapper
      */
     public InventoryStockRepositoryImpl(SessionFactory sf, InventoryStockHibernateMapper mapper) { this.sf = sf; this.mapper = mapper; }
-    /** @param s entity @return saved */
-    @Override public InventoryStock save(InventoryStock s) {
-        try (Session session = sf.openSession()) {
-            Transaction tx = session.beginTransaction();
-            InventoryStockHibernate m = session.merge(mapper.toHibernate(s)); tx.commit(); return mapper.toDomain(m);
+    /** @param stock entity @return saved */
+    @Override public InventoryStock save(InventoryStock stock) {
+        try (Session s = sf.openSession()) {
+            Transaction tx = s.beginTransaction();
+            InventoryStockHibernate m = s.merge(mapper.toHibernate(stock)); tx.commit(); return mapper.toDomain(m);
         }
     }
     /** @param id ID @return Optional */
     @Override public Optional<InventoryStock> findById(Long id) {
-        try (Session session = sf.openSession()) {
-            return Optional.ofNullable(session.find(InventoryStockHibernate.class, id)).map(mapper::toDomain);
+        try (Session s = sf.openSession()) {
+            return Optional.ofNullable(s.find(InventoryStockHibernate.class, id)).map(mapper::toDomain);
         }
     }
     /** @param r page request @return PageResult */
     @Override public PageResult<InventoryStock> findAll(PageRequest r) {
-        try (Session session = sf.openSession()) {
-            List<InventoryStock> items = session.createQuery("FROM InventoryStockHibernate ORDER BY " + r.getSortBy() + " " + r.getSortDir(), InventoryStockHibernate.class)
+        try (Session s = sf.openSession()) {
+            List<InventoryStock> items = s.createQuery("FROM InventoryStockHibernate ORDER BY " + r.getSortBy() + " " + r.getSortDir(), InventoryStockHibernate.class)
                     .setFirstResult(r.getOffset()).setMaxResults(r.getSize())
                     .list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            long total = session.createQuery("SELECT COUNT(i) FROM InventoryStockHibernate i", Long.class).uniqueResult();
+            long total = s.createQuery("SELECT COUNT(i) FROM InventoryStockHibernate i", Long.class).uniqueResult();
             return PageResult.<InventoryStock>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
         }
     }

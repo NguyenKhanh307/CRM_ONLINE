@@ -15,10 +15,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LeadTransfer {
+    /** ID bản ghi chuyển giao. */
     private Long id;
+    /** ID tiềm năng. */
     private Long leadId;
+    /** ID người bàn giao (chuyển đi). */
     private Long fromUserId;
+    /** ID người nhận bàn giao. */
     private Long toUserId;
+    /** Lý do chuyển giao. */
     private String reason;
+    /** Thời điểm chuyển giao. */
     private LocalDateTime transferredAt;
 }

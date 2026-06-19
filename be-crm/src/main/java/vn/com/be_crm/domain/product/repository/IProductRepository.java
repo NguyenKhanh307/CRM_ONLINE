@@ -17,6 +17,12 @@ public interface IProductRepository {
     Optional<Product> findById(Long id);
 
     /**
+     * Tìm hàng hóa theo SKU (chưa xóa mềm) — dùng cho import UPDATE/BOTH.
+     * @param sku mã SKU @return Optional
+     */
+    Optional<Product> findBySku(String sku);
+
+    /**
      * Xóa mềm hàng hóa theo ID, ghi nhận người xóa.
      * @param id        ID cần xóa
      * @param deletedBy ID người thực hiện xóa

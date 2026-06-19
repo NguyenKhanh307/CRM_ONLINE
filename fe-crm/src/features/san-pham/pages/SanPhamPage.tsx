@@ -62,7 +62,7 @@ const SanPhamPage = () => {
                     </button>
                     <button
                         onClick={() => navigate('/san-pham/them-moi')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn bg-primary text-white text-md hover:bg-blue-600"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90"
                     >
                         <FiPlus size={14} />
                         Thêm mới
