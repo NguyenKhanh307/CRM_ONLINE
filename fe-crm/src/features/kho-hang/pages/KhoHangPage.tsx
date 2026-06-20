@@ -99,8 +99,8 @@ const KhoHangPage = () => {
                     emptyText="Chưa có kho hàng nào"
                     onSelectionChange={setSelectedRows}
                     quickFilters={[
-                        { id: 'active',   label: 'Đang hoạt động',  isActive: false, onToggle: () => {} },
-                        { id: 'inactive', label: 'Ngừng hoạt động', isActive: false, onToggle: () => {} },
+                        { id: 'active',   label: 'Đang hoạt động',  field: 'isActive', value: 'true' },
+                        { id: 'inactive', label: 'Ngừng hoạt động', field: 'isActive', value: 'false' },
                     ]}
                 />
             </div>

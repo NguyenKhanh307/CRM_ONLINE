@@ -9,12 +9,23 @@ export interface ColumnMeta {
 
 export type SortDirection = 'asc' | 'desc';
 
-/** Tag filter nhanh hiển thị bên trái toolbar. */
+/** Tag filter nhanh hiển thị bên trái toolbar (đã gắn trạng thái — cho TableToolbar). */
 export interface QuickFilter {
     id: string;
     label: string;
     isActive: boolean;
     onToggle: () => void;
+}
+
+/**
+ * Khai báo tag lọc nhanh ở page (DataTable tự quản lý đóng/mở + lọc).
+ * Khớp khi `String(row[field]) === value`.
+ */
+export interface QuickFilterDef {
+    id: string;
+    label: string;
+    field: string;
+    value: string;
 }
 
 export type FilterOperator =

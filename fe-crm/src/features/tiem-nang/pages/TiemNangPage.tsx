@@ -7,10 +7,14 @@ import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
+import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
+import { useContactList } from '@/features/lien-he/hooks/useContactList';
+import { toIdNameMap } from '@/shared/utils/lookup';
 import { useLeadList } from '../hooks/useLeadList';
 import { useDeleteLead } from '../hooks/useDeleteLead';
 import { useHandoverBulkLead } from '../hooks/useHandoverBulkLead';
-import { leadColumns } from '../config/leadColumns';
+import { getLeadColumns } from '../config/leadColumns';
 import { leadExportColumns } from '../config/leadExportColumns';
 import { LeadEditModal } from '../components/LeadEditModal';
 import type { LeadResult } from '../types/leadTypes';
@@ -20,6 +24,9 @@ const TiemNangPage = () => {
     const { data = [], isLoading } = useLeadList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteLead();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkLead();
+    const { data: users } = useActiveUsers();
+    const { data: customers } = useCustomerList();
+    const { data: contacts } = useContactList();
 
     const [editTarget, setEditTarget] = useState<LeadResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -31,7 +38,11 @@ const TiemNangPage = () => {
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<LeadResult>[]>(() => [
-        ...leadColumns,
+        ...getLeadColumns({
+            users: toIdNameMap(users, 'id', 'fullName'),
+            customers: toIdNameMap(customers, 'id', 'name'),
+            contacts: toIdNameMap(contacts, 'id', 'fullName'),
+        }),
         {
             id: 'actions',
             header: '',
@@ -56,7 +67,7 @@ const TiemNangPage = () => {
                 </div>
             ),
         },
-    ], []);
+    ], [users, customers, contacts]);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -112,9 +123,9 @@ const TiemNangPage = () => {
                     emptyText="Chưa có tiềm năng nào"
                     onSelectionChange={setSelectedRows}
                     quickFilters={[
-                        { id: 'new_',      label: 'Mới',        isActive: false, onToggle: () => {} },
-                        { id: 'contacted', label: 'Đã liên hệ', isActive: false, onToggle: () => {} },
-                        { id: 'qualified', label: 'Tiềm năng',  isActive: false, onToggle: () => {} },
+                        { id: 'new_',      label: 'Mới',        field: 'status', value: 'new_' },
+                        { id: 'contacted', label: 'Đã liên hệ', field: 'status', value: 'contacted' },
+                        { id: 'qualified', label: 'Tiềm năng',  field: 'status', value: 'qualified' },
                     ]}
                 />
             </div>

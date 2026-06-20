@@ -1,14 +1,13 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useMemo, type FormEvent } from 'react';
 import { FiPlus, FiTrash2, FiEdit2, FiX } from 'react-icons/fi';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
+import { toIdNameMap } from '@/shared/utils/lookup';
+import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import AddEntityModal from '../AddEntityModal';
 import { usePolicyProducts, useCreatePolicyProduct, useUpdatePolicyProduct, useDeletePolicyProduct } from '../../hooks/usePolicyProducts';
-import type { PricePolicyProductResult, CreatePricePolicyProductPayload, UpdatePricePolicyProductPayload, DiscountType } from '../../types/pricingTypes';
+import type { PricePolicyProductResult, UpdatePricePolicyProductPayload, DiscountType } from '../../types/pricingTypes';
 
 interface Props { policyId: number; }
-
-const EMPTY_CREATE: Omit<CreatePricePolicyProductPayload, 'pricePolicyId'> = {
-    productId: 0, price: null, discountType: null, discountValue: null, minQty: null,
-};
 
 export function PolicyProductsTab({ policyId }: Props) {
     const { data = [], isLoading } = usePolicyProducts(policyId);
@@ -16,19 +15,20 @@ export function PolicyProductsTab({ policyId }: Props) {
     const { mutate: updateFn, isPending: isUpdating } = useUpdatePolicyProduct(policyId);
     const { mutate: deleteFn, isPending: isDeleting } = useDeletePolicyProduct(policyId);
 
+    const { data: products = [] } = useProductList();
+    const options = useMemo(() => products.map((p) => ({ id: p.id, label: `${p.sku} — ${p.name}`, sub: p.name })), [products]);
+    const nameMap = useMemo(() => toIdNameMap(products, 'id', 'name'), [products]);
+    const existingIds = useMemo(() => new Set(data.map(d => d.productId)), [data]);
+
     const [showAdd, setShowAdd] = useState(false);
-    const [addForm, setAddForm] = useState(EMPTY_CREATE);
     const [editTarget, setEditTarget] = useState<PricePolicyProductResult | null>(null);
     const [editForm, setEditForm] = useState<UpdatePricePolicyProductPayload>({ price: null, discountType: null, discountValue: null, minQty: null });
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
     const inp = 'w-full border border-gray-300 rounded-btn px-2 py-1 text-sm text-text-main focus:outline-none focus:border-primary';
 
-    const handleAdd = (e: FormEvent) => {
-        e.preventDefault();
-        createFn({ pricePolicyId: policyId, ...addForm }, {
-            onSuccess: () => { setShowAdd(false); setAddForm(EMPTY_CREATE); },
-        });
+    const handleAdd = (productId: number) => {
+        createFn({ pricePolicyId: policyId, productId, price: null, discountType: null, discountValue: null, minQty: null });
     };
 
     const openEdit = (item: PricePolicyProductResult) => {
@@ -48,47 +48,12 @@ export function PolicyProductsTab({ policyId }: Props) {
         <div className="space-y-3">
             <div className="flex justify-end">
                 <button
-                    onClick={() => setShowAdd(v => !v)}
+                    onClick={() => setShowAdd(true)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn bg-primary text-white text-sm hover:opacity-90"
                 >
                     <FiPlus size={14} /> Thêm sản phẩm
                 </button>
             </div>
-
-            {showAdd && (
-                <form onSubmit={handleAdd} className="bg-gray-50 border border-gray-200 rounded-card p-3 grid grid-cols-5 gap-2 items-end">
-                    <div>
-                        <label className="block text-xs text-gray-500 mb-0.5">ID Sản phẩm <span className="text-danger">*</span></label>
-                        <input className={inp} type="number" required min={1} value={addForm.productId || ''} onChange={e => setAddForm(f => ({ ...f, productId: Number(e.target.value) }))} />
-                    </div>
-                    <div>
-                        <label className="block text-xs text-gray-500 mb-0.5">Giá</label>
-                        <input className={inp} type="number" min={0} value={addForm.price ?? ''} onChange={e => setAddForm(f => ({ ...f, price: e.target.value ? Number(e.target.value) : null }))} />
-                    </div>
-                    <div>
-                        <label className="block text-xs text-gray-500 mb-0.5">Loại giảm giá</label>
-                        <select className={inp} value={addForm.discountType ?? ''} onChange={e => setAddForm(f => ({ ...f, discountType: (e.target.value as DiscountType) || null }))}>
-                            <option value="">—</option>
-                            <option value="percent">%</option>
-                            <option value="amount">Số tiền</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-xs text-gray-500 mb-0.5">Giá trị giảm</label>
-                        <input className={inp} type="number" min={0} value={addForm.discountValue ?? ''} onChange={e => setAddForm(f => ({ ...f, discountValue: e.target.value ? Number(e.target.value) : null }))} />
-                    </div>
-                    <div>
-                        <label className="block text-xs text-gray-500 mb-0.5">SL tối thiểu</label>
-                        <input className={inp} type="number" min={0} value={addForm.minQty ?? ''} onChange={e => setAddForm(f => ({ ...f, minQty: e.target.value ? Number(e.target.value) : null }))} />
-                    </div>
-                    <div className="col-span-5 flex justify-end gap-2 pt-1">
-                        <button type="button" onClick={() => setShowAdd(false)} className="px-3 py-1 text-sm border border-gray-300 rounded-btn hover:bg-gray-50">Hủy</button>
-                        <button type="submit" disabled={isCreating} className="px-3 py-1 text-sm bg-primary text-white rounded-btn hover:opacity-90 disabled:opacity-50">
-                            {isCreating ? 'Đang thêm...' : 'Thêm'}
-                        </button>
-                    </div>
-                </form>
-            )}
 
             {data.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-6">Chưa có sản phẩm nào trong chính sách này</p>
@@ -96,7 +61,6 @@ export function PolicyProductsTab({ policyId }: Props) {
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="border-b border-gray-200 text-gray-500 text-left">
-                            <th className="pb-2 font-medium">ID SP</th>
                             <th className="pb-2 font-medium">Tên sản phẩm</th>
                             <th className="pb-2 font-medium">Giá</th>
                             <th className="pb-2 font-medium">Giảm giá</th>
@@ -107,8 +71,7 @@ export function PolicyProductsTab({ policyId }: Props) {
                     <tbody>
                         {data.map(item => (
                             <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                <td className="py-2 text-gray-600">{item.productId}</td>
-                                <td className="py-2">{item.productName ?? '—'}</td>
+                                <td className="py-2">{nameMap.get(item.productId) ?? '—'}</td>
                                 <td className="py-2">{item.price != null ? item.price.toLocaleString() : '—'}</td>
                                 <td className="py-2">
                                     {item.discountValue != null
@@ -126,6 +89,17 @@ export function PolicyProductsTab({ policyId }: Props) {
                         ))}
                     </tbody>
                 </table>
+            )}
+
+            {showAdd && (
+                <AddEntityModal
+                    title="Thêm sản phẩm"
+                    options={options}
+                    existingIds={existingIds}
+                    onAdd={handleAdd}
+                    onClose={() => setShowAdd(false)}
+                    isLoading={isCreating}
+                />
             )}
 
             {editTarget && (

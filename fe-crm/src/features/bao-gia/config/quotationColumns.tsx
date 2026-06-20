@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { formatISODate } from '@/shared/utils/date';
+import { badgeCell, currencyCell, dateCell, fkCell, numberCell, textCell } from '@/shared/components/table/cells';
 import type { QuotationResult } from '../types/quotationTypes';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -15,37 +15,30 @@ const STATUS_LABELS: Record<string, string> = {
     rejected: 'Từ chối', expired: 'Hết hạn',
 };
 
-export const quotationColumns: ColumnDef<QuotationResult>[] = [
+/** Map ID → tên cho các cột khóa ngoại của Báo giá. */
+export interface QuotationColumnLookups {
+    customers: Map<number, string>;
+    contacts: Map<number, string>;
+    opportunities: Map<number, string>;
+    users: Map<number, string>;
+}
+
+/** Tạo danh sách cột Báo giá — hiển thị đầy đủ trường + tên khóa ngoại. */
+export const getQuotationColumns = (lk: QuotationColumnLookups): ColumnDef<QuotationResult>[] => [
     { accessorKey: 'code', header: 'Số báo giá', size: 130, enableSorting: true },
-    {
-        accessorKey: 'status',
-        header: 'Trạng thái',
-        size: 120,
-        cell: ({ getValue }) => {
-            const s = getValue<string>();
-            return (
-                <span className={`inline-block px-2 py-0.5 rounded text-sm font-medium ${STATUS_COLORS[s] ?? 'bg-gray-100 text-gray-600'}`}>
-                    {STATUS_LABELS[s] ?? s}
-                </span>
-            );
-        },
-    },
-    {
-        accessorKey: 'total',
-        header: 'Tổng tiền',
-        size: 150,
-        cell: ({ getValue }) => {
-            const v = getValue<number | null>();
-            return v != null ? v.toLocaleString('vi-VN') + ' đ' : '—';
-        },
-    },
-    { accessorKey: 'quoteDate', header: 'Ngày báo giá', size: 130 },
-    { accessorKey: 'validUntil', header: 'Hiệu lực đến', size: 130 },
-    {
-        accessorKey: 'createdAt',
-        header: 'Ngày tạo',
-        size: 120,
-        enableSorting: true,
-        cell: ({ getValue }) => formatISODate(getValue<string>()),
-    },
+    { accessorKey: 'customerId', header: 'Khách hàng', size: 180, cell: fkCell(lk.customers) },
+    { accessorKey: 'contactId', header: 'Liên hệ', size: 160, cell: fkCell(lk.contacts) },
+    { accessorKey: 'opportunityId', header: 'Cơ hội', size: 160, cell: fkCell(lk.opportunities) },
+    { accessorKey: 'ownerId', header: 'Người phụ trách', size: 160, cell: fkCell(lk.users) },
+    { accessorKey: 'status', header: 'Trạng thái', size: 120, cell: badgeCell(STATUS_LABELS, STATUS_COLORS) },
+    { accessorKey: 'quoteDate', header: 'Ngày báo giá', size: 130, cell: dateCell },
+    { accessorKey: 'validUntil', header: 'Hiệu lực đến', size: 130, cell: dateCell },
+    { accessorKey: 'currency', header: 'Tiền tệ', size: 90, cell: textCell },
+    { accessorKey: 'exchangeRate', header: 'Tỷ giá', size: 100, cell: numberCell },
+    { accessorKey: 'subtotal', header: 'Tạm tính', size: 150, cell: currencyCell },
+    { accessorKey: 'discount', header: 'Chiết khấu', size: 140, cell: currencyCell },
+    { accessorKey: 'tax', header: 'Thuế', size: 140, cell: currencyCell },
+    { accessorKey: 'total', header: 'Tổng tiền', size: 150, cell: currencyCell },
+    { accessorKey: 'note', header: 'Ghi chú', size: 200, cell: textCell },
+    { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
 ];

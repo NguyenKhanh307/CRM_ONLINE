@@ -7,10 +7,18 @@ import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
+import { useOrgUnits } from '@/features/users/hooks/useOrgUnits';
+import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
+import { useContactList } from '@/features/lien-he/hooks/useContactList';
+import { useOpportunityList } from '@/features/co-hoi/hooks/useOpportunityList';
+import { useQuotationList } from '@/features/bao-gia/hooks/useQuotationList';
+import { useWarehouseList } from '@/features/kho-hang/hooks/useWarehouseList';
+import { toIdNameMap } from '@/shared/utils/lookup';
 import { useOrderList } from '../hooks/useOrderList';
 import { useDeleteOrder } from '../hooks/useDeleteOrder';
 import { useHandoverBulkOrder } from '../hooks/useHandoverBulkOrder';
-import { orderColumns } from '../config/orderColumns';
+import { getOrderColumns } from '../config/orderColumns';
 import { orderExportColumns } from '../config/orderExportColumns';
 import { OrderEditModal } from '../components/OrderEditModal';
 import type { OrderResult } from '../types/orderTypes';
@@ -20,6 +28,13 @@ const DonHangPage = () => {
     const { data = [], isLoading } = useOrderList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteOrder();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkOrder();
+    const { data: users } = useActiveUsers();
+    const { data: orgUnits } = useOrgUnits();
+    const { data: customers } = useCustomerList();
+    const { data: contacts } = useContactList();
+    const { data: opportunities } = useOpportunityList();
+    const { data: quotations } = useQuotationList();
+    const { data: warehouses } = useWarehouseList();
 
     const [editTarget, setEditTarget] = useState<OrderResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -31,7 +46,16 @@ const DonHangPage = () => {
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<OrderResult>[]>(() => [
-        ...orderColumns,
+        ...getOrderColumns({
+            customers: toIdNameMap(customers, 'id', 'name'),
+            contacts: toIdNameMap(contacts, 'id', 'fullName'),
+            quotations: toIdNameMap(quotations, 'id', 'code'),
+            opportunities: toIdNameMap(opportunities, 'id', 'name'),
+            users: toIdNameMap(users, 'id', 'fullName'),
+            orgUnits: toIdNameMap(orgUnits, 'id', 'name'),
+            warehouses: toIdNameMap(warehouses, 'id', 'name'),
+            orders: toIdNameMap(data, 'id', 'code'),
+        }),
         {
             id: 'actions',
             header: '',
@@ -56,7 +80,7 @@ const DonHangPage = () => {
                 </div>
             ),
         },
-    ], []);
+    ], [data, users, orgUnits, customers, contacts, opportunities, quotations, warehouses]);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -112,9 +136,9 @@ const DonHangPage = () => {
                     emptyText="Chưa có đơn hàng nào"
                     onSelectionChange={setSelectedRows}
                     quickFilters={[
-                        { id: 'confirmed',  label: 'Đã xác nhận', isActive: false, onToggle: () => {} },
-                        { id: 'processing', label: 'Đang xử lý',  isActive: false, onToggle: () => {} },
-                        { id: 'delivered',  label: 'Đã giao',     isActive: false, onToggle: () => {} },
+                        { id: 'confirmed',  label: 'Đã xác nhận', field: 'status', value: 'confirmed' },
+                        { id: 'processing', label: 'Đang xử lý',  field: 'status', value: 'processing' },
+                        { id: 'delivered',  label: 'Đã giao',     field: 'status', value: 'delivered' },
                     ]}
                 />
             </div>

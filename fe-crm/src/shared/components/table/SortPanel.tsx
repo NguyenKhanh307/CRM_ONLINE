@@ -55,11 +55,11 @@ export const SortPanel = ({ columns, sorting, onApply, onClose }: SortPanelProps
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200">
                 <span className="flex items-center gap-1.5 text-title font-semibold text-text-main">
-                    Sort by fields
+                    Sắp xếp theo cột
                     <FiHelpCircle size={13} className="text-gray-400" />
                 </span>
                 <label className="flex items-center gap-2 text-table text-gray-500 cursor-pointer select-none">
-                    Automatic sorting
+                    Tự động sắp xếp
                     <button
                         role="switch"
                         aria-checked={autoSort}
@@ -120,7 +120,7 @@ export const SortPanel = ({ columns, sorting, onApply, onClose }: SortPanelProps
                         onChange={(e) => { if (e.target.value) addField(e.target.value); }}
                         className="text-table border border-gray-300 rounded-btn px-3 py-1.5 w-40 focus:outline-none focus:border-primary cursor-pointer"
                     >
-                        <option value="">Choose field ▾</option>
+                        <option value="">Chọn cột ▾</option>
                         {availableToAdd.map((c) => (
                             <option key={c.id} value={c.id}>{c.header}</option>
                         ))}
@@ -134,13 +134,13 @@ export const SortPanel = ({ columns, sorting, onApply, onClose }: SortPanelProps
                     onClick={onClose}
                     className="text-table px-4 py-1.5 rounded-btn border border-gray-300 hover:bg-gray-50 transition-colors"
                 >
-                    Cancel
+                    Hủy
                 </button>
                 <button
                     onClick={() => { onApply(local); onClose(); }}
                     className="text-table px-4 py-1.5 rounded-btn bg-primary text-white hover:opacity-90 transition-opacity"
                 >
-                    Apply
+                    Áp dụng
                 </button>
             </div>
         </div>

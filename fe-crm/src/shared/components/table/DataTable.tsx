@@ -14,6 +14,7 @@ import {
 import type {
     ColumnMeta,
     QuickFilter,
+    QuickFilterDef,
     FilterCondition,
     ConditionalRule,
     FilterOperator,
@@ -31,7 +32,7 @@ interface DataTableProps<T> {
     columns: ColumnDef<T>[];
     isLoading?: boolean;
     emptyText?: string;
-    quickFilters?: QuickFilter[];
+    quickFilters?: QuickFilterDef[];
     onSelectionChange?: (selectedRows: T[]) => void;
 }
 
@@ -58,6 +59,7 @@ export const DataTable = <T extends Record<string, unknown>>({
     const [filterConditions, setFilterConditions] = useState<FilterCondition[]>([]);
     const [conditionalRules, setConditionalRules] = useState<ConditionalRule[]>([]);
     const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
+    const [activeQuickFilter, setActiveQuickFilter] = useState<string | null>(null);
 
     const togglePanel = (panel: OpenPanel) =>
         setOpenPanel((cur) => (cur === panel ? null : panel));
@@ -101,8 +103,31 @@ export const DataTable = <T extends Record<string, unknown>>({
         [data, filterConditions]
     );
 
+    /** Lọc tiếp theo tag lọc nhanh đang chọn (so khớp String(row[field]) === value). */
+    const displayData = useMemo(() => {
+        if (!activeQuickFilter) return preFilteredData;
+        const tag = quickFilters?.find((q) => q.id === activeQuickFilter);
+        if (!tag) return preFilteredData;
+        return preFilteredData.filter(
+            (row) => String((row as Record<string, unknown>)[tag.field] ?? '') === tag.value
+        );
+    }, [preFilteredData, activeQuickFilter, quickFilters]);
+
+    /** Map khai báo QuickFilterDef → QuickFilter (gắn isActive + onToggle) cho toolbar. */
+    const toolbarQuickFilters = useMemo<QuickFilter[]>(
+        () =>
+            (quickFilters ?? []).map((q) => ({
+                id: q.id,
+                label: q.label,
+                isActive: q.id === activeQuickFilter,
+                onToggle: () =>
+                    setActiveQuickFilter((cur) => (cur === q.id ? null : q.id)),
+            })),
+        [quickFilters, activeQuickFilter]
+    );
+
     const table = useReactTable({
-        data: preFilteredData,
+        data: displayData,
         columns: columnsWithSelection,
         state: { sorting, columnVisibility, globalFilter, rowSelection },
         onSortingChange: setSorting,
@@ -141,6 +166,7 @@ export const DataTable = <T extends Record<string, unknown>>({
         setColumnVisibility({});
         setFilterConditions([]);
         setConditionalRules([]);
+        setActiveQuickFilter(null);
     }, []);
 
     /** Tính màu cho một row từ conditionalRules (scope=row). */
@@ -184,7 +210,7 @@ export const DataTable = <T extends Record<string, unknown>>({
                 <TableToolbar
                     globalFilter={globalFilter}
                     onGlobalFilterChange={setGlobalFilter}
-                    quickFilters={quickFilters}
+                    quickFilters={toolbarQuickFilters}
                     selectedCount={selectedCount}
                     onClearSelection={() => setRowSelection({})}
                     isFilterOpen={openPanel === 'filter'}

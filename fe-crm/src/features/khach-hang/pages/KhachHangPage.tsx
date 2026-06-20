@@ -7,10 +7,13 @@ import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
+import { useOrgUnits } from '@/features/users/hooks/useOrgUnits';
+import { toIdNameMap } from '@/shared/utils/lookup';
 import { useCustomerList } from '../hooks/useCustomerList';
 import { useDeleteCustomer } from '../hooks/useDeleteCustomer';
 import { useHandoverBulkCustomer } from '../hooks/useHandoverBulkCustomer';
-import { customerColumns } from '../config/customerColumns';
+import { getCustomerColumns } from '../config/customerColumns';
 import { customerExportColumns } from '../config/customerExportColumns';
 import { CustomerEditModal } from '../components/CustomerEditModal';
 import type { CustomerResult } from '../types/customerTypes';
@@ -20,6 +23,8 @@ const KhachHangPage = () => {
     const { data = [], isLoading } = useCustomerList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteCustomer();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkCustomer();
+    const { data: users } = useActiveUsers();
+    const { data: orgUnits } = useOrgUnits();
 
     const [editTarget, setEditTarget] = useState<CustomerResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -31,7 +36,10 @@ const KhachHangPage = () => {
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<CustomerResult>[]>(() => [
-        ...customerColumns,
+        ...getCustomerColumns({
+            users: toIdNameMap(users, 'id', 'fullName'),
+            orgUnits: toIdNameMap(orgUnits, 'id', 'name'),
+        }),
         {
             id: 'actions',
             header: '',
@@ -56,7 +64,7 @@ const KhachHangPage = () => {
                 </div>
             ),
         },
-    ], []);
+    ], [users, orgUnits]);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -112,8 +120,8 @@ const KhachHangPage = () => {
                     emptyText="Chưa có khách hàng nào"
                     onSelectionChange={setSelectedRows}
                     quickFilters={[
-                        { id: 'active',   label: 'Hoạt động',       isActive: false, onToggle: () => {} },
-                        { id: 'inactive', label: 'Không hoạt động',  isActive: false, onToggle: () => {} },
+                        { id: 'active',   label: 'Hoạt động',       field: 'status', value: 'active' },
+                        { id: 'inactive', label: 'Không hoạt động',  field: 'status', value: 'inactive' },
                     ]}
                 />
             </div>

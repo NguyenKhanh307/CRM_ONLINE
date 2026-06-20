@@ -1,5 +1,18 @@
 import type { FilterCondition, FilterOperator } from '@/shared/types/table';
 
+/** Danh sách toán tử lọc + nhãn tiếng Việt — dùng chung cho panel Lọc & Tô màu. */
+export const OPERATOR_OPTIONS: { value: FilterOperator; label: string }[] = [
+    { value: 'is',               label: 'Bằng' },
+    { value: 'is_not',           label: 'Không bằng' },
+    { value: 'contains',         label: 'Chứa' },
+    { value: 'does_not_contain', label: 'Không chứa' },
+    { value: 'is_empty',         label: 'Để trống' },
+    { value: 'is_not_empty',     label: 'Không để trống' },
+];
+
+/** Các toán tử không cần ô nhập giá trị. */
+export const HIDE_VALUE_OPERATORS: FilterOperator[] = ['is_empty', 'is_not_empty'];
+
 /**
  * Kiểm tra một giá trị cell có thoả điều kiện operator không.
  */

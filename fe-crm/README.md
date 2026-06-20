@@ -420,6 +420,23 @@ Mỗi trang danh sách (9 module data) có nút **"Xuất file"** (`FiDownload`)
 
 **Per-module** — `features/<module>/config/<module>ExportColumns.ts`: mảng `ExportColumn[]` định nghĩa cột xuất, tái dùng nhãn enum (`STATUS_LABELS`…) + `formatISODate` để ghi giá trị thuần đã format.
 
+### Hiển thị đầy đủ trường DB + resolve tên khóa ngoại — 9 module (2026-06-20)
+
+Các bảng danh sách trước đây chỉ hiện một phần nhỏ số cột. Nay **hiển thị đầy đủ mọi trường nghiệp vụ** giống DB, và **đổi ID khóa ngoại sang tên** (người phụ trách, khách hàng, liên hệ, giai đoạn, kho, đơn vị, danh mục…).
+
+- Column config chuyển từ mảng tĩnh sang **factory** `get<Module>Columns(lookups)` — nhận `Map<id, tên>`.
+- Page gọi lookup hook (`useActiveUsers`, `useCustomerList`…), dựng map bằng `toIdNameMap`, truyền vào factory trong `useMemo`.
+- Tiện ích mới: `shared/utils/lookup.ts` (`toIdNameMap`, `lookupName`) + `shared/components/table/cells.tsx` (`fkCell`, `currencyCell`, `dateCell`, `boolBadge`, `labelCell`, `badgeCell`…).
+- Mặc định hiện tất cả cột — người dùng ẩn bớt qua panel **"ẩn/hiện cột"** có sẵn của DataTable.
+- Bổ sung 9 field dệt may V6 còn thiếu vào `ProductResult` (FE) — backend đã trả về sẵn.
+
+Chi tiết pattern: xem `CODE_GUIDE_FRONTEND.md` mục 8b.
+
+### Chuẩn hóa tiếng Việt filter bảng + tag lọc nhanh hoạt động — DataTable (2026-06-20)
+
+- **Việt hóa toàn bộ** các panel của DataTable (icon trên thanh công cụ): Lọc bản ghi, Sắp xếp theo cột, Tô màu có điều kiện — gồm toán tử (Bằng/Không bằng/Chứa/Không chứa/Để trống/Không để trống), nút (Áp dụng/Hủy/Thêm điều kiện/Thêm quy tắc), placeholder, phạm vi Ô/Hàng. Toán tử gom về `OPERATOR_OPTIONS` trong `shared/components/table/filterConditions.helpers.ts` (hết lặp giữa 2 panel).
+- **Tag lọc nhanh giờ thực sự lọc**: đổi prop `quickFilters` sang khai báo `QuickFilterDef[]` (`{id,label,field,value}`). `DataTable` tự quản trạng thái chọn (single-select), lọc `String(row[field]) === value` (hợp cả boolean). 9 trang lọc theo `status` hoặc cờ boolean (`isActive`/`isPrimary`).
+
 ### Chưa implement
 - Form tạo mới cho tất cả module (chỉ có edit modal, chưa có create modal)
 - Pricing module chưa có frontend page
@@ -448,7 +465,8 @@ Mỗi trang danh sách (9 module data) có nút **"Xuất file"** (`FiDownload`)
 ### Thêm cột bảng
 - Tạo file `features/<name>/config/<name>Columns.tsx`
 - Dùng `ColumnDef[]` từ `@tanstack/react-table`
-- Dùng `formatISODate` từ `@/shared/utils/date` cho các cột ngày
+- Dùng helper cell dùng chung trong `@/shared/components/table/cells` (`dateCell`, `currencyCell`, `textCell`, `boolBadge`, `labelCell`, `fkCell`…) thay vì viết lại format
+- Cột khóa ngoại: export config dạng factory `get<Module>Columns(lookups)` nhận `Map<id, tên>`, render bằng `fkCell(map)`; page dựng map bằng `toIdNameMap` từ `@/shared/utils/lookup` (xem `CODE_GUIDE_FRONTEND.md` mục 8b)
 
 ### Màu sắc & style
 - Chỉ dùng token đã định nghĩa trong `tailwind.config.js`

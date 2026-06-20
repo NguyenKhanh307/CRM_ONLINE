@@ -5,9 +5,7 @@ import { usePricePolicyDetail } from '../hooks/usePricePolicyDetail';
 import { PricePolicyFormModal } from '../components/PricePolicyFormModal';
 import { PolicyProductsTab } from '../components/tabs/PolicyProductsTab';
 import { PolicyCustomersTab } from '../components/tabs/PolicyCustomersTab';
-import { PolicyCustomerCategoriesTab } from '../components/tabs/PolicyCustomerCategoriesTab';
 import { PolicyProductTypesTab } from '../components/tabs/PolicyProductTypesTab';
-import { PolicyEmployeesTab } from '../components/tabs/PolicyEmployeesTab';
 import type { PricePolicyStatus } from '../types/pricingTypes';
 
 const STATUS_LABEL: Record<PricePolicyStatus, string> = {
@@ -22,11 +20,9 @@ const STATUS_CLASS: Record<PricePolicyStatus, string> = {
 };
 
 const TABS = [
-    { key: 'products',            label: 'Sản phẩm' },
-    { key: 'customers',           label: 'Khách hàng' },
-    { key: 'customer-categories', label: 'Nhóm KH' },
-    { key: 'product-types',       label: 'Loại sản phẩm' },
-    { key: 'employees',           label: 'Nhân viên' },
+    { key: 'products',      label: 'Sản phẩm' },
+    { key: 'customers',     label: 'Khách hàng' },
+    { key: 'product-types', label: 'Loại sản phẩm' },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -98,11 +94,9 @@ const ChinhSachGiaDetailPage = () => {
                     ))}
                 </div>
                 <div className="p-4">
-                    {activeTab === 'products'            && <PolicyProductsTab policyId={policyId} />}
-                    {activeTab === 'customers'           && <PolicyCustomersTab policyId={policyId} />}
-                    {activeTab === 'customer-categories' && <PolicyCustomerCategoriesTab policyId={policyId} />}
-                    {activeTab === 'product-types'       && <PolicyProductTypesTab policyId={policyId} />}
-                    {activeTab === 'employees'           && <PolicyEmployeesTab policyId={policyId} />}
+                    {activeTab === 'products'      && <PolicyProductsTab policyId={policyId} />}
+                    {activeTab === 'customers'     && <PolicyCustomersTab policyId={policyId} />}
+                    {activeTab === 'product-types' && <PolicyProductTypesTab policyId={policyId} />}
                 </div>
             </div>
 

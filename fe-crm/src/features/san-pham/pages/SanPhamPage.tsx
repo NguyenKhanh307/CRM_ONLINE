@@ -6,9 +6,11 @@ import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
+import { toIdNameMap } from '@/shared/utils/lookup';
 import { useProductList } from '../hooks/useProductList';
+import { useProductCategories } from '../hooks/useProductCategories';
 import { useDeleteProduct } from '../hooks/useDeleteProduct';
-import { productColumns } from '../config/productColumns';
+import { getProductColumns } from '../config/productColumns';
 import { productExportColumns } from '../config/productExportColumns';
 import { ProductEditModal } from '../components/ProductEditModal';
 import type { ProductResult } from '../types/productTypes';
@@ -17,6 +19,7 @@ const SanPhamPage = () => {
     const navigate = useNavigate();
     const { data = [], isLoading } = useProductList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteProduct();
+    const { data: categories } = useProductCategories();
 
     const [editTarget, setEditTarget] = useState<ProductResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -27,7 +30,9 @@ const SanPhamPage = () => {
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<ProductResult>[]>(() => [
-        ...productColumns,
+        ...getProductColumns({
+            categories: toIdNameMap(categories, 'id', 'name'),
+        }),
         {
             id: 'actions',
             header: '',
@@ -52,7 +57,7 @@ const SanPhamPage = () => {
                 </div>
             ),
         },
-    ], []);
+    ], [categories]);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -99,8 +104,8 @@ const SanPhamPage = () => {
                     emptyText="Chưa có sản phẩm nào"
                     onSelectionChange={setSelectedRows}
                     quickFilters={[
-                        { id: 'active',       label: 'Đang bán',  isActive: false, onToggle: () => {} },
-                        { id: 'discontinued', label: 'Ngừng bán', isActive: false, onToggle: () => {} },
+                        { id: 'active',       label: 'Đang bán',  field: 'isActive', value: 'true' },
+                        { id: 'discontinued', label: 'Ngừng bán', field: 'isActive', value: 'false' },
                     ]}
                 />
             </div>

@@ -1,5 +1,6 @@
 import { FiX, FiHelpCircle, FiPlus } from 'react-icons/fi';
 import type { ColumnMeta, FilterCondition, FilterOperator } from '@/shared/types/table';
+import { OPERATOR_OPTIONS, HIDE_VALUE_OPERATORS } from './filterConditions.helpers';
 
 interface FilterRecordsPanelProps {
     columns: ColumnMeta[];
@@ -7,17 +8,6 @@ interface FilterRecordsPanelProps {
     onChange: (conditions: FilterCondition[]) => void;
     onClose: () => void;
 }
-
-const OPERATORS: { value: FilterOperator; label: string }[] = [
-    { value: 'is',               label: 'is' },
-    { value: 'is_not',           label: 'is not' },
-    { value: 'contains',         label: 'contains' },
-    { value: 'does_not_contain', label: 'does not contain' },
-    { value: 'is_empty',         label: 'is empty' },
-    { value: 'is_not_empty',     label: 'is not empty' },
-];
-
-const HIDE_VALUE_OPS: FilterOperator[] = ['is_empty', 'is_not_empty'];
 
 /**
  * Panel lọc bản ghi theo điều kiện từng cột (AND logic).
@@ -53,7 +43,7 @@ export const FilterRecordsPanel = ({
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200">
                 <span className="flex items-center gap-1.5 text-title font-semibold text-text-main">
-                    Filter records
+                    Lọc bản ghi
                     <FiHelpCircle size={13} className="text-gray-400" />
                 </span>
                 <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -65,7 +55,7 @@ export const FilterRecordsPanel = ({
             <div className="px-4 py-3 space-y-2 max-h-72 overflow-y-auto">
                 {conditions.length === 0 && (
                     <p className="text-table text-gray-400 text-center py-2">
-                        Chưa có điều kiện nào. Nhấn "+ Add Condition" để thêm.
+                        Chưa có điều kiện nào. Nhấn "+ Thêm điều kiện" để thêm.
                     </p>
                 )}
                 {conditions.map((cond) => (
@@ -87,22 +77,22 @@ export const FilterRecordsPanel = ({
                             onChange={(e) => updateCondition(cond.id, { operator: e.target.value as FilterOperator, value: '' })}
                             className="text-table border border-gray-300 rounded-btn px-2 py-1.5 focus:outline-none focus:border-primary flex-shrink-0 w-36"
                         >
-                            {OPERATORS.map((op) => (
+                            {OPERATOR_OPTIONS.map((op) => (
                                 <option key={op.value} value={op.value}>{op.label}</option>
                             ))}
                         </select>
 
                         {/* Value input */}
-                        {!HIDE_VALUE_OPS.includes(cond.operator) && (
+                        {!HIDE_VALUE_OPERATORS.includes(cond.operator) && (
                             <input
                                 type="text"
                                 value={cond.value}
                                 onChange={(e) => updateCondition(cond.id, { value: e.target.value })}
-                                placeholder="Enter here"
+                                placeholder="Nhập giá trị"
                                 className="text-table border border-gray-300 rounded-btn px-2.5 py-1.5 flex-1 min-w-0 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                             />
                         )}
-                        {HIDE_VALUE_OPS.includes(cond.operator) && (
+                        {HIDE_VALUE_OPERATORS.includes(cond.operator) && (
                             <div className="flex-1" />
                         )}
 
@@ -124,7 +114,7 @@ export const FilterRecordsPanel = ({
                     className="flex items-center gap-1 text-table text-primary hover:underline"
                 >
                     <FiPlus size={13} />
-                    Add Condition
+                    Thêm điều kiện
                 </button>
             </div>
         </div>

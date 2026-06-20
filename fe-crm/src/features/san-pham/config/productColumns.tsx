@@ -1,36 +1,38 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { formatISODate } from '@/shared/utils/date';
+import { boolBadge, currencyCell, dateCell, fkCell, labelCell, numberCell, textCell, yesNoCell } from '@/shared/components/table/cells';
 import type { ProductResult } from '../types/productTypes';
 
-export const productColumns: ColumnDef<ProductResult>[] = [
+const TYPE_LABELS: Record<string, string> = {
+    goods: 'Hàng hóa', service: 'Dịch vụ', material: 'Nguyên vật liệu',
+};
+
+/** Map ID → tên cho cột khóa ngoại của Sản phẩm. */
+export interface ProductColumnLookups {
+    categories: Map<number, string>;
+}
+
+/** Tạo danh sách cột Sản phẩm — hiển thị đầy đủ trường (kể cả field dệt may V6). */
+export const getProductColumns = (lk: ProductColumnLookups): ColumnDef<ProductResult>[] => [
     { accessorKey: 'sku', header: 'Mã SKU', size: 120, enableSorting: true },
-    { accessorKey: 'name', header: 'Tên sản phẩm', enableSorting: true },
-    { accessorKey: 'type', header: 'Loại', size: 100 },
-    { accessorKey: 'unit', header: 'Đơn vị', size: 80 },
-    {
-        accessorKey: 'basePrice',
-        header: 'Giá bán',
-        size: 140,
-        cell: ({ getValue }) => {
-            const v = getValue<number | null>();
-            return v != null ? v.toLocaleString('vi-VN') + ' đ' : '—';
-        },
-    },
-    {
-        accessorKey: 'isActive',
-        header: 'Trạng thái',
-        size: 120,
-        cell: ({ getValue }) => (
-            <span className={`inline-block px-2 py-0.5 rounded text-sm font-medium ${getValue<boolean>() ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                {getValue<boolean>() ? 'Đang bán' : 'Ngừng bán'}
-            </span>
-        ),
-    },
-    {
-        accessorKey: 'createdAt',
-        header: 'Ngày tạo',
-        size: 120,
-        enableSorting: true,
-        cell: ({ getValue }) => formatISODate(getValue<string>()),
-    },
+    { accessorKey: 'name', header: 'Tên sản phẩm', size: 200, enableSorting: true },
+    { accessorKey: 'categoryId', header: 'Danh mục', size: 150, cell: fkCell(lk.categories) },
+    { accessorKey: 'type', header: 'Loại', size: 120, cell: labelCell(TYPE_LABELS) },
+    { accessorKey: 'unit', header: 'Đơn vị', size: 90, cell: textCell },
+    { accessorKey: 'secondaryUnit', header: 'Đơn vị phụ', size: 110, cell: textCell },
+    { accessorKey: 'conversionRate', header: 'Tỷ lệ quy đổi', size: 120, cell: numberCell },
+    { accessorKey: 'composition', header: 'Thành phần', size: 160, cell: textCell },
+    { accessorKey: 'yarnCount', header: 'Chi số sợi', size: 110, cell: textCell },
+    { accessorKey: 'color', header: 'Màu sắc', size: 110, cell: textCell },
+    { accessorKey: 'fabricWidth', header: 'Khổ vải', size: 100, cell: numberCell },
+    { accessorKey: 'weightGsm', header: 'Định lượng (GSM)', size: 140, cell: numberCell },
+    { accessorKey: 'brand', header: 'Thương hiệu', size: 130, cell: textCell },
+    { accessorKey: 'origin', header: 'Xuất xứ', size: 120, cell: textCell },
+    { accessorKey: 'basePrice', header: 'Giá bán', size: 140, cell: currencyCell },
+    { accessorKey: 'costPrice', header: 'Giá vốn', size: 140, cell: currencyCell },
+    { accessorKey: 'vatRate', header: 'Thuế VAT (%)', size: 110, cell: numberCell },
+    { accessorKey: 'barcode', header: 'Mã vạch', size: 130, cell: textCell },
+    { accessorKey: 'description', header: 'Mô tả', size: 200, cell: textCell },
+    { accessorKey: 'isDiscontinued', header: 'Ngừng KD', size: 100, cell: yesNoCell },
+    { accessorKey: 'isActive', header: 'Trạng thái', size: 120, cell: boolBadge('Đang bán', 'Ngừng bán') },
+    { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
 ];

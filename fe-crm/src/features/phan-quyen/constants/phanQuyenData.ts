@@ -10,5 +10,5 @@ export const MODULE_LABELS: Record<string, string> = {
     warehouse: 'Kho hàng',
     activity: 'Hoạt động',
     user: 'Người dùng',
-    pricing: 'Bảng giá',
+    pricing: 'Chính sách giá',
 };

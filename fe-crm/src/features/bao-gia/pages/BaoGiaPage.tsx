@@ -7,10 +7,15 @@ import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
+import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
+import { useContactList } from '@/features/lien-he/hooks/useContactList';
+import { useOpportunityList } from '@/features/co-hoi/hooks/useOpportunityList';
+import { toIdNameMap } from '@/shared/utils/lookup';
 import { useQuotationList } from '../hooks/useQuotationList';
 import { useDeleteQuotation } from '../hooks/useDeleteQuotation';
 import { useHandoverBulkQuotation } from '../hooks/useHandoverBulkQuotation';
-import { quotationColumns } from '../config/quotationColumns';
+import { getQuotationColumns } from '../config/quotationColumns';
 import { quotationExportColumns } from '../config/quotationExportColumns';
 import { QuotationEditModal } from '../components/QuotationEditModal';
 import type { QuotationResult } from '../types/quotationTypes';
@@ -20,6 +25,10 @@ const BaoGiaPage = () => {
     const { data = [], isLoading } = useQuotationList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteQuotation();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkQuotation();
+    const { data: users } = useActiveUsers();
+    const { data: customers } = useCustomerList();
+    const { data: contacts } = useContactList();
+    const { data: opportunities } = useOpportunityList();
 
     const [editTarget, setEditTarget] = useState<QuotationResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -31,7 +40,12 @@ const BaoGiaPage = () => {
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<QuotationResult>[]>(() => [
-        ...quotationColumns,
+        ...getQuotationColumns({
+            customers: toIdNameMap(customers, 'id', 'name'),
+            contacts: toIdNameMap(contacts, 'id', 'fullName'),
+            opportunities: toIdNameMap(opportunities, 'id', 'name'),
+            users: toIdNameMap(users, 'id', 'fullName'),
+        }),
         {
             id: 'actions',
             header: '',
@@ -56,7 +70,7 @@ const BaoGiaPage = () => {
                 </div>
             ),
         },
-    ], []);
+    ], [users, customers, contacts, opportunities]);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -105,9 +119,9 @@ const BaoGiaPage = () => {
                     emptyText="Chưa có báo giá nào"
                     onSelectionChange={setSelectedRows}
                     quickFilters={[
-                        { id: 'draft',    label: 'Nháp',     isActive: false, onToggle: () => {} },
-                        { id: 'sent',     label: 'Đã gửi',   isActive: false, onToggle: () => {} },
-                        { id: 'approved', label: 'Đã duyệt', isActive: false, onToggle: () => {} },
+                        { id: 'draft',    label: 'Nháp',     field: 'status', value: 'draft' },
+                        { id: 'sent',     label: 'Đã gửi',   field: 'status', value: 'sent' },
+                        { id: 'approved', label: 'Đã duyệt', field: 'status', value: 'approved' },
                     ]}
                 />
             </div>

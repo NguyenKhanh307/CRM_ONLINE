@@ -8,6 +8,16 @@ interface Props {
     onClose: () => void;
 }
 
+/** Các loại hàng hóa — khớp enum ProductType ở backend. */
+const PRODUCT_TYPE_OPTIONS: { value: string; label: string }[] = [
+    { value: 'goods', label: 'Hàng hóa' },
+    { value: 'service', label: 'Dịch vụ' },
+    { value: 'combo', label: 'Combo' },
+    { value: 'material', label: 'Nguyên vật liệu' },
+    { value: 'finished_goods', label: 'Thành phẩm' },
+    { value: 'description_only', label: 'Chỉ mô tả' },
+];
+
 export function ProductEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateProduct();
     const [form, setForm] = useState<UpdateProductPayload>({
@@ -71,7 +81,11 @@ export function ProductEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Loại</label>
-                            <input className={inp} value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} />
+                            <select className={inp} value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+                                {PRODUCT_TYPE_OPTIONS.map(o => (
+                                    <option key={o.value} value={o.value}>{o.label}</option>
+                                ))}
+                            </select>
                         </div>
                         <div>
                             <label className={lbl}>Đơn vị</label>

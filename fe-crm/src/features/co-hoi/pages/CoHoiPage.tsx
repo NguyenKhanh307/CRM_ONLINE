@@ -7,10 +7,15 @@ import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
+import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
+import { useContactList } from '@/features/lien-he/hooks/useContactList';
+import { toIdNameMap } from '@/shared/utils/lookup';
 import { useOpportunityList } from '../hooks/useOpportunityList';
+import { useOpportunityStages } from '../hooks/useOpportunityStages';
 import { useDeleteOpportunity } from '../hooks/useDeleteOpportunity';
 import { useHandoverBulkOpportunity } from '../hooks/useHandoverBulkOpportunity';
-import { opportunityColumns } from '../config/opportunityColumns';
+import { getOpportunityColumns } from '../config/opportunityColumns';
 import { opportunityExportColumns } from '../config/opportunityExportColumns';
 import { OpportunityEditModal } from '../components/OpportunityEditModal';
 import type { OpportunityResult } from '../types/opportunityTypes';
@@ -20,6 +25,10 @@ const CoHoiPage = () => {
     const { data = [], isLoading } = useOpportunityList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteOpportunity();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkOpportunity();
+    const { data: users } = useActiveUsers();
+    const { data: customers } = useCustomerList();
+    const { data: contacts } = useContactList();
+    const { data: stages } = useOpportunityStages();
 
     const [editTarget, setEditTarget] = useState<OpportunityResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -31,7 +40,12 @@ const CoHoiPage = () => {
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<OpportunityResult>[]>(() => [
-        ...opportunityColumns,
+        ...getOpportunityColumns({
+            customers: toIdNameMap(customers, 'id', 'name'),
+            contacts: toIdNameMap(contacts, 'id', 'fullName'),
+            users: toIdNameMap(users, 'id', 'fullName'),
+            stages: toIdNameMap(stages, 'id', 'name'),
+        }),
         {
             id: 'actions',
             header: '',
@@ -56,7 +70,7 @@ const CoHoiPage = () => {
                 </div>
             ),
         },
-    ], []);
+    ], [users, customers, contacts, stages]);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -112,9 +126,9 @@ const CoHoiPage = () => {
                     emptyText="Chưa có cơ hội nào"
                     onSelectionChange={setSelectedRows}
                     quickFilters={[
-                        { id: 'open', label: 'Đang mở',  isActive: false, onToggle: () => {} },
-                        { id: 'won',  label: 'Đã thắng', isActive: false, onToggle: () => {} },
-                        { id: 'lost', label: 'Đã thua',  isActive: false, onToggle: () => {} },
+                        { id: 'open', label: 'Đang mở',  field: 'status', value: 'open' },
+                        { id: 'won',  label: 'Đã thắng', field: 'status', value: 'won' },
+                        { id: 'lost', label: 'Đã thua',  field: 'status', value: 'lost' },
                     ]}
                 />
             </div>

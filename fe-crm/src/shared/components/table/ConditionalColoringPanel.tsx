@@ -1,5 +1,6 @@
 import { FiX, FiHelpCircle, FiPlus } from 'react-icons/fi';
 import type { ColumnMeta, ConditionalRule, FilterOperator } from '@/shared/types/table';
+import { OPERATOR_OPTIONS, HIDE_VALUE_OPERATORS } from './filterConditions.helpers';
 
 interface ConditionalColoringPanelProps {
     columns: ColumnMeta[];
@@ -7,17 +8,6 @@ interface ConditionalColoringPanelProps {
     onChange: (rules: ConditionalRule[]) => void;
     onClose: () => void;
 }
-
-const OPERATORS: { value: FilterOperator; label: string }[] = [
-    { value: 'is',               label: 'is' },
-    { value: 'is_not',           label: 'is not' },
-    { value: 'contains',         label: 'contains' },
-    { value: 'does_not_contain', label: 'does not contain' },
-    { value: 'is_empty',         label: 'is empty' },
-    { value: 'is_not_empty',     label: 'is not empty' },
-];
-
-const HIDE_VALUE_OPS: FilterOperator[] = ['is_empty', 'is_not_empty'];
 
 const DEFAULT_COLORS = ['#fadb14', '#ff7875', '#95de64', '#69b1ff', '#b37feb', '#ff9c6e'];
 
@@ -59,12 +49,12 @@ export const ConditionalColoringPanel = ({
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200">
                 <span className="flex items-center gap-1.5 text-title font-semibold text-text-main">
-                    Conditional coloring
+                    Tô màu có điều kiện
                     <FiHelpCircle size={13} className="text-gray-400" />
                 </span>
                 <div className="flex items-center gap-3">
                     <span className="flex items-center gap-1 text-sm text-gray-400 cursor-default select-none">
-                        ✎ Apply Smart Color to All
+                        ✎ Tô màu thông minh cho tất cả
                         <FiHelpCircle size={12} className="text-gray-400" />
                     </span>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -77,7 +67,7 @@ export const ConditionalColoringPanel = ({
             <div className="px-4 py-3 space-y-2 max-h-72 overflow-y-auto">
                 {rules.length === 0 && (
                     <p className="text-table text-gray-400 text-center py-2">
-                        Chưa có rule nào. Nhấn "+ New Condition" để thêm.
+                        Chưa có quy tắc nào. Nhấn "+ Thêm quy tắc" để thêm.
                     </p>
                 )}
                 {rules.map((rule) => (
@@ -104,8 +94,8 @@ export const ConditionalColoringPanel = ({
                             onChange={(e) => updateRule(rule.id, { scope: e.target.value as 'cell' | 'row' })}
                             className="text-table border border-gray-300 rounded-btn px-2 py-1.5 focus:outline-none focus:border-primary flex-shrink-0 w-20"
                         >
-                            <option value="cell">Cell</option>
-                            <option value="row">Row</option>
+                            <option value="cell">Ô</option>
+                            <option value="row">Hàng</option>
                         </select>
 
                         {/* Field selector */}
@@ -125,18 +115,18 @@ export const ConditionalColoringPanel = ({
                             onChange={(e) => updateRule(rule.id, { operator: e.target.value as FilterOperator, value: '' })}
                             className="text-table border border-gray-300 rounded-btn px-2 py-1.5 focus:outline-none focus:border-primary flex-shrink-0 w-36"
                         >
-                            {OPERATORS.map((op) => (
+                            {OPERATOR_OPTIONS.map((op) => (
                                 <option key={op.value} value={op.value}>{op.label}</option>
                             ))}
                         </select>
 
                         {/* Value input */}
-                        {!HIDE_VALUE_OPS.includes(rule.operator) ? (
+                        {!HIDE_VALUE_OPERATORS.includes(rule.operator) ? (
                             <input
                                 type="text"
                                 value={rule.value}
                                 onChange={(e) => updateRule(rule.id, { value: e.target.value })}
-                                placeholder="Enter value"
+                                placeholder="Nhập giá trị"
                                 className="text-table border border-gray-300 rounded-btn px-2.5 py-1.5 flex-1 min-w-0 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                             />
                         ) : (
@@ -161,7 +151,7 @@ export const ConditionalColoringPanel = ({
                     className="flex items-center gap-1 text-table text-primary hover:underline"
                 >
                     <FiPlus size={13} />
-                    New Condition
+                    Thêm quy tắc
                 </button>
             </div>
         </div>

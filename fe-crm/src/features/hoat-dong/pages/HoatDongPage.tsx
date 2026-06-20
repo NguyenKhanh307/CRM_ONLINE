@@ -6,9 +6,11 @@ import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
+import { toIdNameMap } from '@/shared/utils/lookup';
 import { useActivityList } from '../hooks/useActivityList';
 import { useDeleteActivity } from '../hooks/useDeleteActivity';
-import { activityColumns } from '../config/activityColumns';
+import { getActivityColumns } from '../config/activityColumns';
 import { activityExportColumns } from '../config/activityExportColumns';
 import { ActivityEditModal } from '../components/ActivityEditModal';
 import type { ActivityResult } from '../types/activityTypes';
@@ -17,6 +19,7 @@ const HoatDongPage = () => {
     const navigate = useNavigate();
     const { data = [], isLoading } = useActivityList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteActivity();
+    const { data: users } = useActiveUsers();
 
     const [editTarget, setEditTarget] = useState<ActivityResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -27,7 +30,9 @@ const HoatDongPage = () => {
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<ActivityResult>[]>(() => [
-        ...activityColumns,
+        ...getActivityColumns({
+            users: toIdNameMap(users, 'id', 'fullName'),
+        }),
         {
             id: 'actions',
             header: '',
@@ -52,7 +57,7 @@ const HoatDongPage = () => {
                 </div>
             ),
         },
-    ], []);
+    ], [users]);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -99,8 +104,8 @@ const HoatDongPage = () => {
                     emptyText="Chưa có hoạt động nào"
                     onSelectionChange={setSelectedRows}
                     quickFilters={[
-                        { id: 'pending',   label: 'Chờ xử lý',  isActive: false, onToggle: () => {} },
-                        { id: 'completed', label: 'Hoàn thành', isActive: false, onToggle: () => {} },
+                        { id: 'pending',   label: 'Chờ xử lý',  field: 'status', value: 'pending' },
+                        { id: 'completed', label: 'Hoàn thành', field: 'status', value: 'completed' },
                     ]}
                 />
             </div>

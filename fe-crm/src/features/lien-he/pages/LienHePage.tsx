@@ -6,9 +6,12 @@ import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
+import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
+import { toIdNameMap } from '@/shared/utils/lookup';
 import { useContactList } from '../hooks/useContactList';
 import { useDeleteContact } from '../hooks/useDeleteContact';
-import { contactColumns } from '../config/contactColumns';
+import { getContactColumns } from '../config/contactColumns';
 import { contactExportColumns } from '../config/contactExportColumns';
 import { ContactEditModal } from '../components/ContactEditModal';
 import type { ContactResult } from '../types/contactTypes';
@@ -17,6 +20,8 @@ const LienHePage = () => {
     const navigate = useNavigate();
     const { data = [], isLoading } = useContactList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteContact();
+    const { data: users } = useActiveUsers();
+    const { data: customers } = useCustomerList();
 
     const [editTarget, setEditTarget] = useState<ContactResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -27,7 +32,10 @@ const LienHePage = () => {
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<ContactResult>[]>(() => [
-        ...contactColumns,
+        ...getContactColumns({
+            customers: toIdNameMap(customers, 'id', 'name'),
+            users: toIdNameMap(users, 'id', 'fullName'),
+        }),
         {
             id: 'actions',
             header: '',
@@ -52,7 +60,7 @@ const LienHePage = () => {
                 </div>
             ),
         },
-    ], []);
+    ], [users, customers]);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -99,7 +107,7 @@ const LienHePage = () => {
                     emptyText="Chưa có liên hệ nào"
                     onSelectionChange={setSelectedRows}
                     quickFilters={[
-                        { id: 'primary', label: 'Liên hệ chính', isActive: false, onToggle: () => {} },
+                        { id: 'primary', label: 'Liên hệ chính', field: 'isPrimary', value: 'true' },
                     ]}
                 />
             </div>

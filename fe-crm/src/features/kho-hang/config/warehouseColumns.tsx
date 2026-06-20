@@ -23,4 +23,14 @@ export const warehouseColumns: ColumnDef<WarehouseResult>[] = [
         enableSorting: true,
         cell: ({ getValue }) => formatISODate(getValue<string>()),
     },
+    {
+        accessorKey: 'updatedAt',
+        header: 'Ngày cập nhật',
+        size: 130,
+        enableSorting: true,
+        cell: ({ getValue }) => {
+            const v = getValue<string | null>();
+            return v ? formatISODate(v) : '—';
+        },
+    },
 ];
