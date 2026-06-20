@@ -115,13 +115,17 @@ fe-crm/src/
     │   ├── table/
     │   │   └── DataTable.tsx          # Component bảng dùng chung
     │   ├── ConfirmModal.tsx            # Modal xác nhận dùng chung
-    │   └── import/                    # Shared wizard nhập file Excel/CSV
-    │       ├── importTypes.ts
-    │       ├── ImportWizard.tsx
-    │       ├── StepUploadFile.tsx
-    │       ├── StepMapColumns.tsx
-    │       ├── StepOptions.tsx
-    │       └── StepResult.tsx
+    │   ├── import/                    # Shared wizard nhập file Excel/CSV
+    │   │   ├── importTypes.ts
+    │   │   ├── ImportWizard.tsx
+    │   │   ├── StepUploadFile.tsx
+    │   │   ├── StepMapColumns.tsx
+    │   │   ├── StepOptions.tsx
+    │   │   └── StepResult.tsx
+    │   └── export/                    # Shared xuất file Excel/CSV (chọn cột)
+    │       ├── exportTypes.ts         # ExportColumn<T>, ExportFormat
+    │       ├── exportFile.ts          # exportRows() — build xlsx/csv (SheetJS)
+    │       └── ExportModal.tsx        # Modal chọn cột + định dạng
     ├── types/
     │   └── api.ts              # ApiResponse<T>, PageResult<T>, PageParams
     └── utils/
@@ -397,6 +401,24 @@ importBulk: (payload: ImportBulkLeadCommand) =>
 **Dependency**: `xlsx` (SheetJS) — parse file trong trình duyệt, backend chỉ nhận JSON.
 
 **Lưu ý**: Import UPDATE/BOTH chỉ hoạt động cho module Lead (có `findByPhone`/`findByEmail`). 8 module còn lại chỉ hỗ trợ CREATE.
+
+### Xuất file Excel/CSV — 9 module (2026-06-19)
+
+Mỗi trang danh sách (9 module data) có nút **"Xuất file"** (`FiDownload`) cạnh nút "Nhập file". Xuất **hoàn toàn ở frontend** (dùng `xlsx` đã có sẵn) — không cần endpoint backend.
+
+- **Phạm vi dòng**: có dòng đang tick → xuất các dòng đó; không tick → xuất toàn bộ danh sách (`rowsToExport = selectedRows.length > 0 ? selectedRows : data`).
+- **Chọn cột**: `ExportModal` liệt kê toàn bộ cột (mặc định tick tất cả), có nút Chọn/Bỏ chọn tất cả.
+- **Định dạng**: `.xlsx` hoặc `.csv` (CSV prepend BOM UTF-8 cho tiếng Việt). Tên file: `<module>_yyyymmdd.<ext>`.
+
+**Shared** — `src/shared/components/export/`:
+
+| File | Vai trò |
+|------|---------|
+| `exportTypes.ts` | `ExportColumn<T>` (`key`, `label`, `format?(row)`), `ExportFormat` |
+| `exportFile.ts` | `exportRows(rows, columns, selectedKeys, format, fileName)` — build AOA → xlsx/csv |
+| `ExportModal.tsx` | Modal chọn cột (checkbox) + radio định dạng + nút Xuất file |
+
+**Per-module** — `features/<module>/config/<module>ExportColumns.ts`: mảng `ExportColumn[]` định nghĩa cột xuất, tái dùng nhãn enum (`STATUS_LABELS`…) + `formatISODate` để ghi giá trị thuần đã format.
 
 ### Chưa implement
 - Form tạo mới cho tất cả module (chỉ có edit modal, chưa có create modal)

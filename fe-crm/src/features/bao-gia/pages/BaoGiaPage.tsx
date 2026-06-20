@@ -1,14 +1,17 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2 } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
+import { ExportModal } from '@/shared/components/export/ExportModal';
+import { exportRows } from '@/shared/components/export/exportFile';
 import { useQuotationList } from '../hooks/useQuotationList';
 import { useDeleteQuotation } from '../hooks/useDeleteQuotation';
 import { useHandoverBulkQuotation } from '../hooks/useHandoverBulkQuotation';
 import { quotationColumns } from '../config/quotationColumns';
+import { quotationExportColumns } from '../config/quotationExportColumns';
 import { QuotationEditModal } from '../components/QuotationEditModal';
 import type { QuotationResult } from '../types/quotationTypes';
 
@@ -23,6 +26,9 @@ const BaoGiaPage = () => {
     const [selectedRows, setSelectedRows] = useState<QuotationResult[]>([]);
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [handoverOpen, setHandoverOpen] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
+
+    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<QuotationResult>[]>(() => [
         ...quotationColumns,
@@ -63,6 +69,13 @@ const BaoGiaPage = () => {
                     >
                         <FiUpload size={14} />
                         Nhập file
+                    </button>
+                    <button
+                        onClick={() => setExportOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50"
+                    >
+                        <FiDownload size={14} />
+                        Xuất file{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
                     </button>
                     {selectedRows.length > 0 && (
                         <>
@@ -123,6 +136,17 @@ const BaoGiaPage = () => {
                     onCancel={() => setBulkDeleteOpen(false)}
                 />
             )}
+
+            <ExportModal
+                open={exportOpen}
+                columns={quotationExportColumns}
+                rowCount={rowsToExport.length}
+                onClose={() => setExportOpen(false)}
+                onExport={(keys, format) => {
+                    exportRows(rowsToExport, quotationExportColumns, keys, format, 'bao-gia');
+                    setExportOpen(false);
+                }}
+            />
 
             <QuotationEditModal item={editTarget} onClose={() => setEditTarget(null)} />
 

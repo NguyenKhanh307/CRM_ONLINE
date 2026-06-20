@@ -1,14 +1,17 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
+import { ExportModal } from '@/shared/components/export/ExportModal';
+import { exportRows } from '@/shared/components/export/exportFile';
 import { useLeadList } from '../hooks/useLeadList';
 import { useDeleteLead } from '../hooks/useDeleteLead';
 import { useHandoverBulkLead } from '../hooks/useHandoverBulkLead';
 import { leadColumns } from '../config/leadColumns';
+import { leadExportColumns } from '../config/leadExportColumns';
 import { LeadEditModal } from '../components/LeadEditModal';
 import type { LeadResult } from '../types/leadTypes';
 
@@ -23,6 +26,9 @@ const TiemNangPage = () => {
     const [selectedRows, setSelectedRows] = useState<LeadResult[]>([]);
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [handoverOpen, setHandoverOpen] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
+
+    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<LeadResult>[]>(() => [
         ...leadColumns,
@@ -63,6 +69,13 @@ const TiemNangPage = () => {
                     >
                         <FiUpload size={14} />
                         Nhập file
+                    </button>
+                    <button
+                        onClick={() => setExportOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50"
+                    >
+                        <FiDownload size={14} />
+                        Xuất file{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
                     </button>
                     <button
                         onClick={() => navigate('/tiem-nang/them-moi')}
@@ -130,6 +143,17 @@ const TiemNangPage = () => {
                     onCancel={() => setBulkDeleteOpen(false)}
                 />
             )}
+
+            <ExportModal
+                open={exportOpen}
+                columns={leadExportColumns}
+                rowCount={rowsToExport.length}
+                onClose={() => setExportOpen(false)}
+                onExport={(keys, format) => {
+                    exportRows(rowsToExport, leadExportColumns, keys, format, 'tiem-nang');
+                    setExportOpen(false);
+                }}
+            />
 
             <LeadEditModal item={editTarget} onClose={() => setEditTarget(null)} />
 

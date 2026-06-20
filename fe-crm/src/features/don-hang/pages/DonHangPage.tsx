@@ -1,14 +1,17 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
+import { ExportModal } from '@/shared/components/export/ExportModal';
+import { exportRows } from '@/shared/components/export/exportFile';
 import { useOrderList } from '../hooks/useOrderList';
 import { useDeleteOrder } from '../hooks/useDeleteOrder';
 import { useHandoverBulkOrder } from '../hooks/useHandoverBulkOrder';
 import { orderColumns } from '../config/orderColumns';
+import { orderExportColumns } from '../config/orderExportColumns';
 import { OrderEditModal } from '../components/OrderEditModal';
 import type { OrderResult } from '../types/orderTypes';
 
@@ -23,6 +26,9 @@ const DonHangPage = () => {
     const [selectedRows, setSelectedRows] = useState<OrderResult[]>([]);
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [handoverOpen, setHandoverOpen] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
+
+    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<OrderResult>[]>(() => [
         ...orderColumns,
@@ -63,6 +69,13 @@ const DonHangPage = () => {
                     >
                         <FiUpload size={14} />
                         Nhập file
+                    </button>
+                    <button
+                        onClick={() => setExportOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50"
+                    >
+                        <FiDownload size={14} />
+                        Xuất file{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
                     </button>
                     <button
                         onClick={() => navigate('/don-hang/them-moi')}
@@ -130,6 +143,17 @@ const DonHangPage = () => {
                     onCancel={() => setBulkDeleteOpen(false)}
                 />
             )}
+
+            <ExportModal
+                open={exportOpen}
+                columns={orderExportColumns}
+                rowCount={rowsToExport.length}
+                onClose={() => setExportOpen(false)}
+                onExport={(keys, format) => {
+                    exportRows(rowsToExport, orderExportColumns, keys, format, 'don-hang');
+                    setExportOpen(false);
+                }}
+            />
 
             <OrderEditModal item={editTarget} onClose={() => setEditTarget(null)} />
 

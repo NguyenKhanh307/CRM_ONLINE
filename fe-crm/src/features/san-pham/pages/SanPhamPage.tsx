@@ -1,12 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiPlus } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiUpload, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
+import { ExportModal } from '@/shared/components/export/ExportModal';
+import { exportRows } from '@/shared/components/export/exportFile';
 import { useProductList } from '../hooks/useProductList';
 import { useDeleteProduct } from '../hooks/useDeleteProduct';
 import { productColumns } from '../config/productColumns';
+import { productExportColumns } from '../config/productExportColumns';
 import { ProductEditModal } from '../components/ProductEditModal';
 import type { ProductResult } from '../types/productTypes';
 
@@ -19,6 +22,9 @@ const SanPhamPage = () => {
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
     const [selectedRows, setSelectedRows] = useState<ProductResult[]>([]);
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
+
+    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<ProductResult>[]>(() => [
         ...productColumns,
@@ -59,6 +65,13 @@ const SanPhamPage = () => {
                     >
                         <FiUpload size={14} />
                         Nhập file
+                    </button>
+                    <button
+                        onClick={() => setExportOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50"
+                    >
+                        <FiDownload size={14} />
+                        Xuất file{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
                     </button>
                     <button
                         onClick={() => navigate('/san-pham/them-moi')}
@@ -116,6 +129,17 @@ const SanPhamPage = () => {
                     onCancel={() => setBulkDeleteOpen(false)}
                 />
             )}
+
+            <ExportModal
+                open={exportOpen}
+                columns={productExportColumns}
+                rowCount={rowsToExport.length}
+                onClose={() => setExportOpen(false)}
+                onExport={(keys, format) => {
+                    exportRows(rowsToExport, productExportColumns, keys, format, 'san-pham');
+                    setExportOpen(false);
+                }}
+            />
 
             <ProductEditModal item={editTarget} onClose={() => setEditTarget(null)} />
         </div>

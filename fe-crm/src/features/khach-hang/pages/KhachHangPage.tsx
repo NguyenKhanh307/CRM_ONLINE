@@ -1,14 +1,17 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
+import { ExportModal } from '@/shared/components/export/ExportModal';
+import { exportRows } from '@/shared/components/export/exportFile';
 import { useCustomerList } from '../hooks/useCustomerList';
 import { useDeleteCustomer } from '../hooks/useDeleteCustomer';
 import { useHandoverBulkCustomer } from '../hooks/useHandoverBulkCustomer';
 import { customerColumns } from '../config/customerColumns';
+import { customerExportColumns } from '../config/customerExportColumns';
 import { CustomerEditModal } from '../components/CustomerEditModal';
 import type { CustomerResult } from '../types/customerTypes';
 
@@ -23,6 +26,9 @@ const KhachHangPage = () => {
     const [selectedRows, setSelectedRows] = useState<CustomerResult[]>([]);
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [handoverOpen, setHandoverOpen] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
+
+    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<CustomerResult>[]>(() => [
         ...customerColumns,
@@ -63,6 +69,13 @@ const KhachHangPage = () => {
                     >
                         <FiUpload size={14} />
                         Nhập file
+                    </button>
+                    <button
+                        onClick={() => setExportOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50"
+                    >
+                        <FiDownload size={14} />
+                        Xuất file{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
                     </button>
                     <button
                         onClick={() => navigate('/khach-hang/them-moi')}
@@ -129,6 +142,17 @@ const KhachHangPage = () => {
                     onCancel={() => setBulkDeleteOpen(false)}
                 />
             )}
+
+            <ExportModal
+                open={exportOpen}
+                columns={customerExportColumns}
+                rowCount={rowsToExport.length}
+                onClose={() => setExportOpen(false)}
+                onExport={(keys, format) => {
+                    exportRows(rowsToExport, customerExportColumns, keys, format, 'khach-hang');
+                    setExportOpen(false);
+                }}
+            />
 
             <CustomerEditModal item={editTarget} onClose={() => setEditTarget(null)} />
 

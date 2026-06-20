@@ -1,12 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiPlus, FiTrash2, FiUpload } from 'react-icons/fi';
+import { FiEdit2, FiPlus, FiTrash2, FiUpload, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
+import { ExportModal } from '@/shared/components/export/ExportModal';
+import { exportRows } from '@/shared/components/export/exportFile';
 import { useContactList } from '../hooks/useContactList';
 import { useDeleteContact } from '../hooks/useDeleteContact';
 import { contactColumns } from '../config/contactColumns';
+import { contactExportColumns } from '../config/contactExportColumns';
 import { ContactEditModal } from '../components/ContactEditModal';
 import type { ContactResult } from '../types/contactTypes';
 
@@ -19,6 +22,9 @@ const LienHePage = () => {
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
     const [selectedRows, setSelectedRows] = useState<ContactResult[]>([]);
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
+
+    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<ContactResult>[]>(() => [
         ...contactColumns,
@@ -59,6 +65,13 @@ const LienHePage = () => {
                     >
                         <FiUpload size={14} />
                         Nhập file
+                    </button>
+                    <button
+                        onClick={() => setExportOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50"
+                    >
+                        <FiDownload size={14} />
+                        Xuất file{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
                     </button>
                     <button
                         onClick={() => navigate('/lien-he/them-moi')}
@@ -115,6 +128,17 @@ const LienHePage = () => {
                     onCancel={() => setBulkDeleteOpen(false)}
                 />
             )}
+
+            <ExportModal
+                open={exportOpen}
+                columns={contactExportColumns}
+                rowCount={rowsToExport.length}
+                onClose={() => setExportOpen(false)}
+                onExport={(keys, format) => {
+                    exportRows(rowsToExport, contactExportColumns, keys, format, 'lien-he');
+                    setExportOpen(false);
+                }}
+            />
 
             <ContactEditModal item={editTarget} onClose={() => setEditTarget(null)} />
         </div>
