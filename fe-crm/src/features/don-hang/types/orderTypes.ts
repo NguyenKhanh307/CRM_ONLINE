@@ -5,7 +5,6 @@ export interface UpdateOrderPayload {
     opportunityId?: number | null;
     ownerId: number | null;
     executorUnitId?: number | null;
-    warehouseId: number | null;
     parentOrderId?: number | null;
     orderType: string;
     orderDate: string | null;
@@ -46,7 +45,6 @@ export interface CreateOrderPayload {
     opportunityId: number | null;
     ownerId: number | null;
     executorUnitId: number | null;
-    warehouseId: number | null;
     parentOrderId: number | null;
     orderType: string;
     orderDate: string | null;
@@ -72,7 +70,6 @@ export interface OrderItemResult {
     id: number;
     orderId: number;
     productId: number | null;
-    warehouseId: number | null;
     unit: string | null;
     quantity: number;
     unitPrice: number;
@@ -91,7 +88,6 @@ export interface OrderResult {
     opportunityId: number | null;
     ownerId: number | null;
     executorUnitId: number | null;
-    warehouseId: number | null;
     parentOrderId: number | null;
     orderType: string;
     orderDate: string | null;

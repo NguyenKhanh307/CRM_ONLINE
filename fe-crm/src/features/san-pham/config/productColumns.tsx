@@ -3,7 +3,7 @@ import { boolBadge, currencyCell, dateCell, fkCell, labelCell, numberCell, textC
 import type { ProductResult } from '../types/productTypes';
 
 const TYPE_LABELS: Record<string, string> = {
-    goods: 'Hàng hóa', service: 'Dịch vụ', material: 'Nguyên vật liệu',
+    goods: 'Vật tư hàng hóa', service: 'Dịch vụ',
 };
 
 /** Map ID → tên cho cột khóa ngoại của Sản phẩm. */
@@ -20,11 +20,6 @@ export const getProductColumns = (lk: ProductColumnLookups): ColumnDef<ProductRe
     { accessorKey: 'unit', header: 'Đơn vị', size: 90, cell: textCell },
     { accessorKey: 'secondaryUnit', header: 'Đơn vị phụ', size: 110, cell: textCell },
     { accessorKey: 'conversionRate', header: 'Tỷ lệ quy đổi', size: 120, cell: numberCell },
-    { accessorKey: 'composition', header: 'Thành phần', size: 160, cell: textCell },
-    { accessorKey: 'yarnCount', header: 'Chi số sợi', size: 110, cell: textCell },
-    { accessorKey: 'color', header: 'Màu sắc', size: 110, cell: textCell },
-    { accessorKey: 'fabricWidth', header: 'Khổ vải', size: 100, cell: numberCell },
-    { accessorKey: 'weightGsm', header: 'Định lượng (GSM)', size: 140, cell: numberCell },
     { accessorKey: 'brand', header: 'Thương hiệu', size: 130, cell: textCell },
     { accessorKey: 'origin', header: 'Xuất xứ', size: 120, cell: textCell },
     { accessorKey: 'basePrice', header: 'Giá bán', size: 140, cell: currencyCell },

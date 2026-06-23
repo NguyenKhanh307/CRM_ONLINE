@@ -5,7 +5,7 @@ import { useImportProductBulk } from '../hooks/useImportProductBulk';
 const FIELDS: ImportField[] = [
     { key: 'name',        label: 'Tên sản phẩm', required: true, type: 'text' },
     { key: 'sku',         label: 'Mã SKU',                        type: 'text' },
-    { key: 'type',        label: 'Loại',                          type: 'enum', enumValues: ['product', 'service', 'combo'] },
+    { key: 'type',        label: 'Loại',                          type: 'enum', enumValues: ['Vật tư hàng hóa', 'Dịch vụ'] },
     { key: 'unit',        label: 'Đơn vị tính',                   type: 'text' },
     { key: 'basePrice',   label: 'Giá bán',                       type: 'number' },
     { key: 'costPrice',   label: 'Giá vốn',                       type: 'number' },

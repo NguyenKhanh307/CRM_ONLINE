@@ -31,13 +31,11 @@ const ActivityImportPage = lazy(() => import('@/features/hoat-dong/pages/Activit
 const SanPhamPage     = lazy(() => import('@/features/san-pham/pages/SanPhamPage'));
 const ProductAddPage  = lazy(() => import('@/features/san-pham/pages/ProductAddPage'));
 const ProductImportPage = lazy(() => import('@/features/san-pham/pages/ProductImportPage'));
-const KhoHangPage     = lazy(() => import('@/features/kho-hang/pages/KhoHangPage'));
-const WarehouseAddPage = lazy(() => import('@/features/kho-hang/pages/WarehouseAddPage'));
-const WarehouseImportPage = lazy(() => import('@/features/kho-hang/pages/WarehouseImportPage'));
 const PhanQuyenPage   = lazy(() => import('@/features/phan-quyen/pages/PhanQuyenPage'));
 const ThungRacPage    = lazy(() => import('@/features/thung-rac/pages/ThungRacPage'));
 const ChinhSachGiaPage = lazy(() => import('@/features/chinh-sach-gia/pages/ChinhSachGiaPage'));
 const ChinhSachGiaDetailPage = lazy(() => import('@/features/chinh-sach-gia/pages/ChinhSachGiaDetailPage'));
+const TrackingDemoPage = lazy(() => import('@/features/tracking-demo/pages/TrackingDemoPage'));
 
 const fallback = <div className="p-6 text-gray-400">Đang tải...</div>;
 
@@ -72,14 +70,19 @@ export const router = createBrowserRouter([
             { path: '/san-pham',              element: <Suspense fallback={fallback}><SanPhamPage /></Suspense> },
             { path: '/san-pham/them-moi',     element: <Suspense fallback={fallback}><ProductAddPage /></Suspense> },
             { path: '/san-pham/nhap-file',    element: <Suspense fallback={fallback}><ProductImportPage /></Suspense> },
-            { path: '/kho-hang',              element: <Suspense fallback={fallback}><KhoHangPage /></Suspense> },
-            { path: '/kho-hang/them-moi',     element: <Suspense fallback={fallback}><WarehouseAddPage /></Suspense> },
-            { path: '/kho-hang/nhap-file',    element: <Suspense fallback={fallback}><WarehouseImportPage /></Suspense> },
             { path: '/chinh-sach-gia',        element: <Suspense fallback={fallback}><ChinhSachGiaPage /></Suspense> },
             { path: '/chinh-sach-gia/:id',   element: <Suspense fallback={fallback}><ChinhSachGiaDetailPage /></Suspense> },
             { path: '/phan-quyen',           element: <Suspense fallback={fallback}><PhanQuyenPage /></Suspense> },
             { path: '/thung-rac',            element: <Suspense fallback={fallback}><ThungRacPage /></Suspense> },
         ],
+    },
+    {
+        path: '/tracking-demo',
+        element: (
+            <Suspense fallback={<div className="min-h-screen bg-bg-main" />}>
+                <TrackingDemoPage />
+            </Suspense>
+        ),
     },
     {
         path: '/login',

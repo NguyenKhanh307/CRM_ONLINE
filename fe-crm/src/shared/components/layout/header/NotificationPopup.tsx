@@ -1,19 +1,16 @@
 import { useRef, useEffect, useState } from 'react';
-import { FiBell, FiSliders, FiCheckSquare } from 'react-icons/fi';
-
-const STATUS_OPTIONS = ['Tất cả', 'Chưa đọc'];
-const TYPE_OPTIONS = ['Tất cả', 'Hoạt động', 'Hệ thống'];
+import { FiBell, FiCheckSquare } from 'react-icons/fi';
+import { useNotificationList, useUnreadCount, useMarkNotifications } from '@/shared/notifications/useNotifications';
+import { formatISODate } from '@/shared/utils/date';
 
 interface Props {
     onClose: () => void;
 }
 
 export const NotificationPopup = ({ onClose }: Props) => {
-    const [showFilters, setShowFilters] = useState(false);
-    const [status, setStatus] = useState('Tất cả');
-    const [type, setType] = useState('Tất cả');
-    const [sender, setSender] = useState('');
     const ref = useRef<HTMLDivElement>(null);
+    const { data: items = [], isLoading } = useNotificationList();
+    const { markOne, markAll } = useMarkNotifications();
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -33,83 +30,49 @@ export const NotificationPopup = ({ onClose }: Props) => {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                 <span className="font-semibold text-md text-text-main">Thông báo</span>
-                <div className="flex items-center gap-1">
-                    <button
-                        title="Đánh dấu đã đọc tất cả"
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-text-main text-sm"
-                    >
-                        <FiCheckSquare size={15} />
-
-                    </button>
-                    <button
-                        onClick={() => setShowFilters(v => !v)}
-                        className={`p-1.5 rounded hover:bg-gray-100 ${showFilters ? 'text-primary bg-blue-50' : 'text-gray-500'}`}
-                        title="Bộ lọc"
-                    >
-                        <FiSliders size={16} />
-                    </button>
-                </div>
+                <button
+                    title="Đánh dấu đã đọc tất cả"
+                    onClick={() => markAll.mutate()}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-text-main text-sm"
+                >
+                    <FiCheckSquare size={15} />
+                </button>
             </div>
 
-            {/* Filter panel */}
-            {showFilters && (
-                <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-3">
-                    {/* Trạng thái */}
-                    <div className="flex flex-col gap-1 flex-1 min-w-[100px]">
-                        <span className="text-sm text-gray-500">Trạng thái</span>
-                        <select
-                            value={status}
-                            onChange={e => setStatus(e.target.value)}
-                            className="px-2 py-1.5 bg-white border border-gray-200 rounded text-sm text-text-main focus:outline-none focus:border-primary cursor-pointer"
+            {/* List */}
+            <div className="max-h-[360px] overflow-y-auto">
+                {isLoading ? (
+                    <div className="flex items-center justify-center py-14 text-sm text-gray-400">Đang tải...</div>
+                ) : items.length === 0 ? (
+                    <div className="flex items-center justify-center py-14 text-sm text-gray-400">
+                        Bạn chưa có thông báo nào!!
+                    </div>
+                ) : (
+                    items.map((n) => (
+                        <button
+                            key={n.id}
+                            onClick={() => !n.isRead && markOne.mutate(n.id)}
+                            className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 ${n.isRead ? '' : 'bg-blue-50/50'}`}
                         >
-                            {STATUS_OPTIONS.map(o => (
-                                <option key={o}>{o}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Loại thông báo */}
-                    <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
-                        <span className="text-sm text-gray-500">Loại thông báo</span>
-                        <select
-                            value={type}
-                            onChange={e => setType(e.target.value)}
-                            className="px-2 py-1.5 bg-white border border-gray-200 rounded text-sm text-text-main focus:outline-none focus:border-primary cursor-pointer"
-                        >
-                            {TYPE_OPTIONS.map(o => (
-                                <option key={o}>{o}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Người gửi */}
-                    <div className="flex flex-col gap-1 w-full">
-                        <span className="text-sm text-gray-500">Người gửi</span>
-                        <input
-                            type="text"
-                            value={sender}
-                            onChange={e => setSender(e.target.value)}
-                            placeholder="Tìm theo tên người gửi..."
-                            className="px-2 py-1.5 bg-white border border-gray-200 rounded text-sm text-text-main placeholder-gray-400 focus:outline-none focus:border-primary"
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Empty state */}
-            <div className="flex items-center justify-center py-14 text-sm text-gray-400">
-                Bạn chưa có thông báo nào!!
+                            <div className="flex items-start gap-2">
+                                {!n.isRead && <span className="mt-1.5 w-2 h-2 rounded-full bg-primary shrink-0" />}
+                                <div className={n.isRead ? 'pl-4' : ''}>
+                                    <div className="text-sm font-medium text-text-main">{n.title}</div>
+                                    <div className="text-xs text-gray-500 mt-0.5">{n.content}</div>
+                                    <div className="text-[11px] text-gray-400 mt-1">{formatISODate(n.createdAt)}</div>
+                                </div>
+                            </div>
+                        </button>
+                    ))
+                )}
             </div>
         </div>
     );
 };
 
-interface NotificationButtonProps {
-    count?: number;
-}
-
-export const NotificationButton = ({ count = 0 }: NotificationButtonProps) => {
+export const NotificationButton = () => {
     const [open, setOpen] = useState(false);
+    const { data: count = 0 } = useUnreadCount();
 
     return (
         <div className="relative">

@@ -66,6 +66,7 @@ export interface LeadResult {
     doNotCall: boolean;
     doNotEmail: boolean;
     note: string | null;
+    score: number;
     createdAt: string;
     updatedAt: string;
 }

@@ -22,7 +22,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
 
             {/* Right: action icons */}
             <div className="flex items-center gap-1">
-                <NotificationButton count={0} />
+                <NotificationButton />
                 <ShortcutsButton />
                 <TransferWorkButton />
                 <div className="w-px h-5 bg-gray-200 mx-1" />

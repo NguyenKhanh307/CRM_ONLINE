@@ -33,7 +33,6 @@ export interface OrderColumnLookups {
     opportunities: Map<number, string>;
     users: Map<number, string>;
     orgUnits: Map<number, string>;
-    warehouses: Map<number, string>;
     orders: Map<number, string>;
 }
 
@@ -47,7 +46,6 @@ export const getOrderColumns = (lk: OrderColumnLookups): ColumnDef<OrderResult>[
     { accessorKey: 'opportunityId', header: 'Cơ hội', size: 160, cell: fkCell(lk.opportunities) },
     { accessorKey: 'ownerId', header: 'Người phụ trách', size: 160, cell: fkCell(lk.users) },
     { accessorKey: 'executorUnitId', header: 'Đơn vị thực hiện', size: 160, cell: fkCell(lk.orgUnits) },
-    { accessorKey: 'warehouseId', header: 'Kho', size: 150, cell: fkCell(lk.warehouses) },
     { accessorKey: 'parentOrderId', header: 'Đơn hàng cha', size: 140, cell: fkCell(lk.orders) },
     { accessorKey: 'status', header: 'Trạng thái', size: 130, cell: badgeCell(ORDER_STATUS_LABELS, ORDER_STATUS_COLORS) },
     { accessorKey: 'paymentStatus', header: 'Thanh toán', size: 170, cell: badgeCell(PAYMENT_LABELS, PAYMENT_COLORS) },

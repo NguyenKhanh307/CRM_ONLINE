@@ -11,25 +11,20 @@ import { useCreateProduct } from '../hooks/useCreateProduct';
 import type { CreateProductPayload } from '../types/productTypes';
 
 const TYPE_OPTIONS = [
-    { value: 'goods', label: 'Hàng hóa' },
+    { value: 'goods', label: 'Vật tư hàng hóa' },
     { value: 'service', label: 'Dịch vụ' },
-    { value: 'combo', label: 'Combo' },
-    { value: 'material', label: 'Nguyên vật liệu' },
-    { value: 'finished_goods', label: 'Thành phẩm' },
-    { value: 'description_only', label: 'Chỉ mô tả' },
 ];
 
 interface FormState {
     sku: string; name: string; categoryId: string; type: string; brand: string; origin: string;
     unit: string; secondaryUnit: string; conversionRate: string;
-    composition: string; yarnCount: string; color: string; fabricWidth: string; weightGsm: string;
     basePrice: string; costPrice: string; vatRate: string; barcode: string;
     description: string; isDiscontinued: boolean; isActive: boolean;
 }
 
 const INITIAL: FormState = {
     sku: '', name: '', categoryId: '', type: 'goods', brand: '', origin: '', unit: '', secondaryUnit: '',
-    conversionRate: '', composition: '', yarnCount: '', color: '', fabricWidth: '', weightGsm: '',
+    conversionRate: '',
     basePrice: '', costPrice: '', vatRate: '', barcode: '', description: '', isDiscontinued: false, isActive: true,
 };
 
@@ -58,11 +53,6 @@ const ProductAddPage = () => {
             unit: form.unit || null,
             secondaryUnit: form.secondaryUnit || null,
             conversionRate: num(form.conversionRate),
-            composition: form.composition || null,
-            yarnCount: form.yarnCount || null,
-            color: form.color || null,
-            fabricWidth: num(form.fabricWidth),
-            weightGsm: num(form.weightGsm),
             brand: form.brand || null,
             origin: form.origin || null,
             basePrice: num(form.basePrice),
@@ -132,30 +122,6 @@ const ProductAddPage = () => {
                         <FieldRow label="Tỷ lệ quy đổi">
                             <input type="number" value={form.conversionRate} onChange={(e) => set({ conversionRate: e.target.value })} className={inputCls} />
                         </FieldRow>
-                    </div>
-                </FormSection>
-
-                <FormSection title="Thông số kỹ thuật">
-                    <div className="grid grid-cols-2 gap-x-10 gap-y-4">
-                        <div className="space-y-4">
-                            <FieldRow label="Thành phần">
-                                <input type="text" value={form.composition} onChange={(e) => set({ composition: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                            <FieldRow label="Chỉ số sợi">
-                                <input type="text" value={form.yarnCount} onChange={(e) => set({ yarnCount: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                            <FieldRow label="Màu sắc">
-                                <input type="text" value={form.color} onChange={(e) => set({ color: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                        </div>
-                        <div className="space-y-4">
-                            <FieldRow label="Khổ vải (cm)">
-                                <input type="number" value={form.fabricWidth} onChange={(e) => set({ fabricWidth: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                            <FieldRow label="Định lượng (g/m²)">
-                                <input type="number" value={form.weightGsm} onChange={(e) => set({ weightGsm: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                        </div>
                     </div>
                 </FormSection>
 

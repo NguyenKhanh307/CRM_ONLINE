@@ -20,9 +20,6 @@ interface Props {
     showUnit?: boolean;
     /** Hiện cột Thuế suất (báo giá/đơn hàng). */
     showTax?: boolean;
-    /** Hiện cột Kho (đơn hàng). */
-    showWarehouse?: boolean;
-    warehouseOptions?: { value: string; label: string }[];
 }
 
 const fmt = (n: number) => (n === 0 ? '0' : n.toLocaleString('vi-VN'));
@@ -42,8 +39,6 @@ export const ProductLineItemsTable = ({
     productOptions,
     showUnit = false,
     showTax = false,
-    showWarehouse = false,
-    warehouseOptions = [],
 }: Props) => {
     const totals = useMemo(() => computeTotals(rows), [rows]);
 
@@ -71,7 +66,6 @@ export const ProductLineItemsTable = ({
                         <tr>
                             <th className={`${thBase} text-center`} style={{ width: 44 }}>STT</th>
                             <th className={`${thBase} text-left`} style={{ width: 220 }}>Hàng hóa</th>
-                            {showWarehouse && <th className={`${thBase} text-left`} style={{ width: 150 }}>Kho</th>}
                             {showUnit && <th className={`${thBase} text-left`} style={{ width: 90 }}>ĐVT</th>}
                             <th className={`${thBase} text-right`} style={{ width: 80 }}>Số lượng</th>
                             <th className={`${thBase} text-right`} style={{ width: 110 }}>Đơn giá</th>
@@ -94,11 +88,6 @@ export const ProductLineItemsTable = ({
                                         placeholder="Chọn hàng hóa"
                                     />
                                 </td>
-                                {showWarehouse && (
-                                    <td className={tdBase}>
-                                        <input type="text" value={row.note} onChange={(e) => changeRow(row.id, { note: e.target.value })} className={txtIn} placeholder="Ghi chú" />
-                                    </td>
-                                )}
                                 {showUnit && (
                                     <td className={tdBase}>
                                         <input type="text" value={row.unit} onChange={(e) => changeRow(row.id, { unit: e.target.value })} className={txtIn} />

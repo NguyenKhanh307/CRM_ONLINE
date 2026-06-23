@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { badgeCell, currencyCell, dateCell, fkCell, textCell, yesNoCell } from '@/shared/components/table/cells';
+import { badgeCell, currencyCell, dateCell, fkCell, numberCell, textCell, yesNoCell } from '@/shared/components/table/cells';
 import type { LeadResult } from '../types/leadTypes';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -43,6 +43,7 @@ export const getLeadColumns = (lk: LeadColumnLookups): ColumnDef<LeadResult>[] =
         cell: badgeCell(STATUS_LABELS, STATUS_COLORS),
     },
     { accessorKey: 'estimatedValue', header: 'Giá trị dự kiến', size: 150, cell: currencyCell },
+    { accessorKey: 'score', header: 'Điểm', size: 90, enableSorting: true, cell: numberCell },
     { accessorKey: 'ownerId', header: 'Người phụ trách', size: 160, cell: fkCell(lk.users) },
     { accessorKey: 'customerId', header: 'Khách hàng', size: 180, cell: fkCell(lk.customers) },
     { accessorKey: 'contactId', header: 'Liên hệ', size: 160, cell: fkCell(lk.contacts) },

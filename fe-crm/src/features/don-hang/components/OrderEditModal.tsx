@@ -4,7 +4,6 @@ import type { OrderResult, UpdateOrderPayload } from '../types/orderTypes';
 import { useUpdateOrder } from '../hooks/useUpdateOrder';
 import { orderService } from '../services/orderService';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
-import { useWarehouseList } from '@/features/kho-hang/hooks/useWarehouseList';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import {
     type LineItemRow,
@@ -33,9 +32,8 @@ const ORDER_TYPE_LABELS: Record<string, string> = { standard: 'Tiêu chuẩn', p
 export function OrderEditModal({ item, onClose }: Props) {
     const { mutateAsync, isPending } = useUpdateOrder();
     const { data: products = [] } = useProductList();
-    const { data: warehouses = [] } = useWarehouseList();
     const [form, setForm] = useState<UpdateOrderPayload>({
-        customerId: null, contactId: null, ownerId: null, warehouseId: null,
+        customerId: null, contactId: null, ownerId: null,
         orderType: 'standard', orderDate: null, status: 'draft', paymentStatus: 'unpaid',
         currency: 'VND', exchangeRate: 1, creditDays: null, paymentDueDate: null, isInvoiced: false,
         receiverName: null, receiverPhone: null,
@@ -49,14 +47,13 @@ export function OrderEditModal({ item, onClose }: Props) {
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
         [products],
     );
-    const warehouseOptions = useMemo(() => warehouses.map((w) => ({ value: String(w.id), label: w.name })), [warehouses]);
 
     useEffect(() => {
         if (!item) return;
         setForm({
             customerId: item.customerId, contactId: item.contactId, quotationId: item.quotationId,
             opportunityId: item.opportunityId, ownerId: item.ownerId, executorUnitId: item.executorUnitId,
-            warehouseId: item.warehouseId, parentOrderId: item.parentOrderId,
+            parentOrderId: item.parentOrderId,
             orderType: item.orderType, orderDate: item.orderDate,
             currency: item.currency, exchangeRate: item.exchangeRate,
             status: item.status, paymentStatus: item.paymentStatus,
@@ -132,14 +129,7 @@ export function OrderEditModal({ item, onClose }: Props) {
                             </select>
                         </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                        <div>
-                            <label className={lbl}>Kho hàng</label>
-                            <select className={inp} value={form.warehouseId ?? ''} onChange={e => setForm(f => ({ ...f, warehouseId: e.target.value ? +e.target.value : null }))}>
-                                <option value="">-- Chọn --</option>
-                                {warehouseOptions.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}
-                            </select>
-                        </div>
+                    <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Hạn thanh toán</label>
                             <input type="date" className={inp} value={form.paymentDueDate ?? ''} onChange={e => setForm(f => ({ ...f, paymentDueDate: e.target.value || null }))} />
@@ -163,7 +153,7 @@ export function OrderEditModal({ item, onClose }: Props) {
                     </div>
                     <div>
                         <label className={lbl}>Hàng hóa</label>
-                        <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax showWarehouse warehouseOptions={warehouseOptions} />
+                        <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />
                     </div>
                     <div>
                         <label className={lbl}>Ghi chú</label>

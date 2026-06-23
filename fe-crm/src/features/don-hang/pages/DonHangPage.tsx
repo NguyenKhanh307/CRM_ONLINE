@@ -13,7 +13,6 @@ import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useContactList } from '@/features/lien-he/hooks/useContactList';
 import { useOpportunityList } from '@/features/co-hoi/hooks/useOpportunityList';
 import { useQuotationList } from '@/features/bao-gia/hooks/useQuotationList';
-import { useWarehouseList } from '@/features/kho-hang/hooks/useWarehouseList';
 import { toIdNameMap } from '@/shared/utils/lookup';
 import { useOrderList } from '../hooks/useOrderList';
 import { useDeleteOrder } from '../hooks/useDeleteOrder';
@@ -34,7 +33,6 @@ const DonHangPage = () => {
     const { data: contacts } = useContactList();
     const { data: opportunities } = useOpportunityList();
     const { data: quotations } = useQuotationList();
-    const { data: warehouses } = useWarehouseList();
 
     const [editTarget, setEditTarget] = useState<OrderResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -53,7 +51,6 @@ const DonHangPage = () => {
             opportunities: toIdNameMap(opportunities, 'id', 'name'),
             users: toIdNameMap(users, 'id', 'fullName'),
             orgUnits: toIdNameMap(orgUnits, 'id', 'name'),
-            warehouses: toIdNameMap(warehouses, 'id', 'name'),
             orders: toIdNameMap(data, 'id', 'code'),
         }),
         {
@@ -80,7 +77,7 @@ const DonHangPage = () => {
                 </div>
             ),
         },
-    ], [data, users, orgUnits, customers, contacts, opportunities, quotations, warehouses]);
+    ], [data, users, orgUnits, customers, contacts, opportunities, quotations]);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">

@@ -19,7 +19,6 @@ import { useOrgUnits } from '@/features/users/hooks/useOrgUnits';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useContactList } from '@/features/lien-he/hooks/useContactList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
-import { useWarehouseList } from '@/features/kho-hang/hooks/useWarehouseList';
 import { useCreateOrder } from '../hooks/useCreateOrder';
 import type { CreateOrderPayload } from '../types/orderTypes';
 
@@ -44,14 +43,14 @@ const PAYMENT_STATUS_OPTIONS = [
 interface HeaderState {
     code: string; orderDate: string; orderType: string; status: string;
     customerId: string; contactId: string; ownerId: string; executorUnitId: string;
-    warehouseId: string; currency: string; exchangeRate: string; paymentStatus: string;
+    currency: string; exchangeRate: string; paymentStatus: string;
     creditDays: string; paymentDueDate: string; isInvoiced: boolean;
     receiverName: string; receiverPhone: string; note: string;
 }
 
 const INITIAL: HeaderState = {
     code: '', orderDate: '', orderType: 'standard', status: 'draft', customerId: '', contactId: '',
-    ownerId: '', executorUnitId: '', warehouseId: '', currency: 'VND', exchangeRate: '1',
+    ownerId: '', executorUnitId: '', currency: 'VND', exchangeRate: '1',
     paymentStatus: 'unpaid', creditDays: '', paymentDueDate: '', isInvoiced: false,
     receiverName: '', receiverPhone: '', note: '',
 };
@@ -69,13 +68,11 @@ const OrderAddPage = () => {
     const { data: customers = [] } = useCustomerList();
     const { data: contacts = [] } = useContactList();
     const { data: products = [] } = useProductList();
-    const { data: warehouses = [] } = useWarehouseList();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const unitOptions = useMemo(() => units.map((u) => ({ value: String(u.id), label: u.name })), [units]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
     const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
-    const warehouseOptions = useMemo(() => warehouses.map((w) => ({ value: String(w.id), label: w.name })), [warehouses]);
     const productOptions = useMemo<ProductOption[]>(
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
         [products],
@@ -96,7 +93,6 @@ const OrderAddPage = () => {
             opportunityId: null,
             ownerId: form.ownerId ? Number(form.ownerId) : null,
             executorUnitId: form.executorUnitId ? Number(form.executorUnitId) : null,
-            warehouseId: form.warehouseId ? Number(form.warehouseId) : null,
             parentOrderId: null,
             orderType: form.orderType,
             orderDate: form.orderDate || null,
@@ -164,9 +160,6 @@ const OrderAddPage = () => {
                             <FieldRow label="Đơn vị thực hiện">
                                 <SearchableSelect value={form.executorUnitId} onChange={(v) => set({ executorUnitId: v })} options={unitOptions} />
                             </FieldRow>
-                            <FieldRow label="Kho hàng">
-                                <SearchableSelect value={form.warehouseId} onChange={(v) => set({ warehouseId: v })} options={warehouseOptions} />
-                            </FieldRow>
                         </div>
                     </div>
                 </FormSection>
@@ -211,7 +204,7 @@ const OrderAddPage = () => {
                 </FormSection>
 
                 <FormSection title="Hàng hóa">
-                    <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax showWarehouse warehouseOptions={warehouseOptions} />
+                    <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />
                 </FormSection>
 
                 <FormSection title="Thông tin mô tả">

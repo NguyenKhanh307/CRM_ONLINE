@@ -10,12 +10,8 @@ interface Props {
 
 /** Các loại hàng hóa — khớp enum ProductType ở backend. */
 const PRODUCT_TYPE_OPTIONS: { value: string; label: string }[] = [
-    { value: 'goods', label: 'Hàng hóa' },
+    { value: 'goods', label: 'Vật tư hàng hóa' },
     { value: 'service', label: 'Dịch vụ' },
-    { value: 'combo', label: 'Combo' },
-    { value: 'material', label: 'Nguyên vật liệu' },
-    { value: 'finished_goods', label: 'Thành phẩm' },
-    { value: 'description_only', label: 'Chỉ mô tả' },
 ];
 
 export function ProductEditModal({ item, onClose }: Props) {
@@ -32,8 +28,7 @@ export function ProductEditModal({ item, onClose }: Props) {
         description: null,
         isDiscontinued: false,
         isActive: true,
-        secondaryUnit: null, conversionRate: null, composition: null, yarnCount: null,
-        color: null, fabricWidth: null, weightGsm: null, brand: null, origin: null,
+        secondaryUnit: null, conversionRate: null, brand: null, origin: null,
     });
 
     useEffect(() => {
@@ -51,8 +46,7 @@ export function ProductEditModal({ item, onClose }: Props) {
             isDiscontinued: item.isDiscontinued,
             isActive: item.isActive,
             secondaryUnit: item.secondaryUnit, conversionRate: item.conversionRate,
-            composition: item.composition, yarnCount: item.yarnCount, color: item.color,
-            fabricWidth: item.fabricWidth, weightGsm: item.weightGsm, brand: item.brand, origin: item.origin,
+            brand: item.brand, origin: item.origin,
         });
     }, [item]);
 
@@ -130,30 +124,6 @@ export function ProductEditModal({ item, onClose }: Props) {
                         <div>
                             <label className={lbl}>Tỷ lệ quy đổi</label>
                             <input type="number" className={inp} value={form.conversionRate ?? ''} onChange={e => setForm(f => ({ ...f, conversionRate: e.target.value ? +e.target.value : null }))} />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>Thành phần</label>
-                            <input className={inp} value={form.composition ?? ''} onChange={e => setForm(f => ({ ...f, composition: e.target.value || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Chỉ số sợi</label>
-                            <input className={inp} value={form.yarnCount ?? ''} onChange={e => setForm(f => ({ ...f, yarnCount: e.target.value || null }))} />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-3">
-                        <div>
-                            <label className={lbl}>Màu sắc</label>
-                            <input className={inp} value={form.color ?? ''} onChange={e => setForm(f => ({ ...f, color: e.target.value || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Khổ vải (cm)</label>
-                            <input type="number" className={inp} value={form.fabricWidth ?? ''} onChange={e => setForm(f => ({ ...f, fabricWidth: e.target.value ? +e.target.value : null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Định lượng (g/m²)</label>
-                            <input type="number" className={inp} value={form.weightGsm ?? ''} onChange={e => setForm(f => ({ ...f, weightGsm: e.target.value ? +e.target.value : null }))} />
                         </div>
                     </div>
                     <div>

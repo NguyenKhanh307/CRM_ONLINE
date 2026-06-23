@@ -11,7 +11,6 @@ import {
     FiShield,
     FiTrash2,
     FiBox,
-    FiArchive,
     FiUserPlus,
 } from 'react-icons/fi';
 
@@ -37,7 +36,6 @@ export const NAV_ITEMS: NavItem[] = [
     { label: 'Đơn hàng',     path: '/don-hang',            icon: FiShoppingCart, module: 'order' },
     { label: 'Hoạt động',    path: '/hoat-dong',           icon: FiActivity,     module: 'activity' },
     { label: 'Sản phẩm',     path: '/san-pham',            icon: FiBox,          module: 'product' },
-    { label: 'Kho hàng',      path: '/kho-hang',            icon: FiArchive,      module: 'warehouse' },
     { label: 'Chính sách giá', path: '/chinh-sach-gia',   icon: FiTag,          module: 'pricing' },
     { label: 'Phân quyền',   path: '/phan-quyen',          icon: FiShield,       adminOnly: true },
     { label: 'Đăng ký NV',   path: '/dang-ky-nhan-vien',  icon: FiUserPlus,     adminOnly: true },
