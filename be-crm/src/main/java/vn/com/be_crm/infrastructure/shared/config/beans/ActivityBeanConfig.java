@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.application.activity.command.*;
 import vn.com.be_crm.application.activity.query.*;
+import vn.com.be_crm.application.lead.command.AddLeadScoreUseCase;
 import vn.com.be_crm.domain.activity.repository.IActivityRepository;
 
 /**
@@ -12,8 +13,8 @@ import vn.com.be_crm.domain.activity.repository.IActivityRepository;
 @Configuration
 public class ActivityBeanConfig {
 
-    /** @return CreateActivityUseCase được inject IActivityRepository */
-    @Bean public CreateActivityUseCase createActivityUseCase(IActivityRepository r) { return new CreateActivityUseCase(r); }
+    /** @return CreateActivityUseCase được inject IActivityRepository + AddLeadScoreUseCase */
+    @Bean public CreateActivityUseCase createActivityUseCase(IActivityRepository r, AddLeadScoreUseCase a) { return new CreateActivityUseCase(r, a); }
     /** @return UpdateActivityUseCase được inject IActivityRepository */
     @Bean public UpdateActivityUseCase updateActivityUseCase(IActivityRepository r) { return new UpdateActivityUseCase(r); }
     /** @return DeleteActivityUseCase được inject IActivityRepository */

@@ -59,7 +59,7 @@ public class ImportBulkOrderUseCase {
                             .customerId(e.getCustomerId()).contactId(e.getContactId())
                             .quotationId(e.getQuotationId()).opportunityId(e.getOpportunityId())
                             .ownerId(ownerId != null ? ownerId : e.getOwnerId())
-                            .executorUnitId(e.getExecutorUnitId()).warehouseId(e.getWarehouseId())
+                            .executorUnitId(e.getExecutorUnitId())
                             .parentOrderId(e.getParentOrderId())
                             .orderType(type)
                             .orderDate(parseDate(row.orderDate()) != null ? parseDate(row.orderDate()) : e.getOrderDate())

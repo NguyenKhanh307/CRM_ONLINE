@@ -106,7 +106,7 @@ fe-crm/src/
 │   ├── don-hang/               # Order
 │   ├── hoat-dong/              # Activity
 │   ├── san-pham/               # Product
-│   └── kho-hang/               # Warehouse
+│   └── tracking-demo/          # Landing page demo web tracking (/tracking-demo)
 └── shared/
     ├── components/
     │   ├── layout/
@@ -213,7 +213,7 @@ export function useUpdateLead() {
 
 ### Data modules (list view + edit/delete)
 
-Tất cả 9 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (ConfirmModal), chọn nhiều hàng + Xóa hàng loạt. 5 module nghiệp vụ chính có thêm nút **Bàn giao** (chọn hàng → `POST /api/{module}/handover-bulk`).
+Tất cả 8 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (ConfirmModal), chọn nhiều hàng + Xóa hàng loạt. 5 module nghiệp vụ chính có thêm nút **Bàn giao** (chọn hàng → `POST /api/{module}/handover-bulk`).
 
 | Module | Route | Endpoint GET | Endpoint PUT | Endpoint DELETE | Handover |
 |--------|-------|-------------|-------------|----------------|---------|
@@ -225,7 +225,13 @@ Tất cả 9 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (
 | Đơn hàng | `/don-hang` | `GET /api/orders` | `PUT /api/orders/{id}` | `DELETE /api/orders/{id}` | ✓ |
 | Hoạt động | `/hoat-dong` | `GET /api/activities` | `PUT /api/activities/{id}` | `DELETE /api/activities/{id}` | — |
 | Sản phẩm | `/san-pham` | `GET /api/products` | `PUT /api/products/{id}` | `DELETE /api/products/{id}` | — |
-| Kho hàng | `/kho-hang` | `GET /api/warehouses` | `PUT /api/warehouses/{id}` | `DELETE /api/warehouses/{id}` | — |
+
+> Module **Kho hàng** đã được gỡ (phân hệ Kho không còn ở backend).
+
+### Tiềm năng — chấm điểm, web tracking & thông báo
+
+- Trang `/tracking-demo` (`features/tracking-demo`): landing page mô phỏng — gọi `POST /api/tracking/visit|score|submit` (public) để tạo lead ẩn danh & cộng điểm `score`.
+- Header có **chuông thông báo** (`shared/components/layout/header/NotificationPopup.tsx`) dùng `shared/notifications/{notificationService,useNotifications}.ts` → `GET /api/notifications`, `/unread-count`, `POST /{id}/read`, `/read-all`.
 
 ### Chính sách giá — `/chinh-sach-gia` (admin only)
 
@@ -318,17 +324,17 @@ features/
 ├── don-hang/          # Order — có OrderImportPage
 ├── hoat-dong/         # Activity — có ActivityImportPage
 ├── san-pham/          # Product — có ProductImportPage
-├── kho-hang/          # Warehouse — có WarehouseImportPage
+├── tracking-demo/     # Landing page demo web tracking
 └── chinh-sach-gia/    # Price Policy — danh sách + chi tiết 5 tab sub-entity
 ```
 
 ### Hoàn thiện 3 hạng mục (2026-06-13)
 
 - **Roles động**: `RegisterEmployeePage` dùng `useRoleGroups()` (`features/phan-quyen/hooks`) thay ROLE_OPTIONS hardcode — dropdown vai trò lấy từ `GET /api/roles`.
-- **Import UPDATE/BOTH**: 3 trang import opp/order/quotation thêm field "Mã (để cập nhật)" trong `FIELDS` để map cột Mã; backend dò trùng theo mã. Sản phẩm/kho/khách hàng/liên hệ dò theo sku/code/taxCode/email (không cần thêm field).
-- **Edit modal field V6 + sửa dòng con**: 8 edit modal (trừ kho) hiển thị đầy đủ field V6. Báo giá/Đơn hàng/Cơ hội: edit modal nạp `getItems()`, sửa bằng `ProductLineItemsTable`, lưu bằng diff (`diffLineItems`/`fromItemResult`/`toItemPayload` trong `shared/components/form/productLineItem.ts`) → `createItem`/`updateItem`/`deleteItem`. Liên hệ: trình sửa danh sách SĐT (`getPhones`/`createPhone`/`updatePhone`/`deletePhone`). Service con thêm vào `quotationService`/`orderService`/`opportunityService`/`contactService`.
+- **Import UPDATE/BOTH**: 3 trang import opp/order/quotation thêm field "Mã (để cập nhật)" trong `FIELDS` để map cột Mã; backend dò trùng theo mã. Sản phẩm/khách hàng/liên hệ dò theo sku/taxCode/email (không cần thêm field).
+- **Edit modal field đầy đủ + sửa dòng con**: các edit modal hiển thị đầy đủ field. Báo giá/Đơn hàng/Cơ hội: edit modal nạp `getItems()`, sửa bằng `ProductLineItemsTable`, lưu bằng diff (`diffLineItems`/`fromItemResult`/`toItemPayload` trong `shared/components/form/productLineItem.ts`) → `createItem`/`updateItem`/`deleteItem`. Liên hệ: trình sửa danh sách SĐT (`getPhones`/`createPhone`/`updatePhone`/`deletePhone`). Service con thêm vào `quotationService`/`orderService`/`opportunityService`/`contactService`.
 
-### Form thêm mới full-page — 9 module (2026-06-13)
+### Form thêm mới full-page — 8 module (2026-06-13)
 
 Mỗi module data có trang thêm mới full-page (layout AMIS), truy cập qua nút "Thêm mới" (FiPlus) trên trang danh sách.
 
@@ -342,7 +348,6 @@ Mỗi module data có trang thêm mới full-page (layout AMIS), truy cập qua 
 | Đơn hàng | `/don-hang/them-moi` | `POST /api/orders` (nhận `items[]`) |
 | Hoạt động | `/hoat-dong/them-moi` | `POST /api/activities` |
 | Sản phẩm | `/san-pham/them-moi` | `POST /api/products` |
-| Kho hàng | `/kho-hang/them-moi` | `POST /api/warehouses` |
 
 **Shared form components** — `src/shared/components/form/`:
 
@@ -352,7 +357,7 @@ Mỗi module data có trang thêm mới full-page (layout AMIS), truy cập qua 
 | `FormSection.tsx` | Section có tiêu đề (h2 + border-b) |
 | `FieldRow.tsx` | Hàng field label 148px + dấu `*` required, prop `alignTop` cho textarea |
 | `FormPageHeader.tsx` | Header form: Hủy / Lưu và thêm / Lưu, prop `saving` |
-| `ProductLineItemsTable.tsx` | Bảng hàng hóa controlled cho báo giá/đơn hàng/cơ hội (props `showUnit`/`showTax`/`showWarehouse`) |
+| `ProductLineItemsTable.tsx` | Bảng hàng hóa controlled cho báo giá/đơn hàng/cơ hội (props `showUnit`/`showTax`) |
 | `productLineItem.ts` | Type `LineItemRow`/`ProductOption` + helper `computeTotals`, `toItemPayloads` |
 
 **Pattern mỗi module**: `types/<m>Types.ts` (thêm `Create*Payload`) → `services/<m>Service.ts` (`create()`) → `hooks/useCreate<X>.ts` → `pages/<X>AddPage.tsx`. State lift lên page (`useState<FormState>` + `set(patch)`); "Lưu" → `navigate` về list, "Lưu và thêm" → reset form. Mã (code) bắt buộc nhập tay.
@@ -362,9 +367,9 @@ Mỗi module data có trang thêm mới full-page (layout AMIS), truy cập qua 
 - `features/users/hooks/useOrgUnits.ts` — `GET /api/org-units`
 - `features/co-hoi/hooks/useOpportunityStages.ts` — `GET /api/opportunity-stages`
 - `features/san-pham/hooks/useProductCategories.ts` — `GET /api/product-categories`
-- Tái sử dụng `useCustomerList` / `useContactList` / `useProductList` / `useWarehouseList`
+- Tái sử dụng `useCustomerList` / `useContactList` / `useProductList`
 
-### Nhập file Excel/CSV — 9 module (2026-06-11)
+### Nhập file Excel/CSV — 8 module (2026-06-11)
 
 Mỗi module data có trang nhập file 4 bước riêng, truy cập qua nút "Nhập file" trên trang danh sách.
 
@@ -378,7 +383,6 @@ Mỗi module data có trang nhập file 4 bước riêng, truy cập qua nút "N
 | Đơn hàng | `/don-hang/nhap-file` | `POST /api/orders/import-bulk` |
 | Hoạt động | `/hoat-dong/nhap-file` | `POST /api/activities/import-bulk` |
 | Sản phẩm | `/san-pham/nhap-file` | `POST /api/products/import-bulk` |
-| Kho hàng | `/kho-hang/nhap-file` | `POST /api/warehouses/import-bulk` |
 
 **Shared wizard** — `src/shared/components/import/`:
 
@@ -400,11 +404,11 @@ importBulk: (payload: ImportBulkLeadCommand) =>
 
 **Dependency**: `xlsx` (SheetJS) — parse file trong trình duyệt, backend chỉ nhận JSON.
 
-**Lưu ý**: Import UPDATE/BOTH chỉ hoạt động cho module Lead (có `findByPhone`/`findByEmail`). 8 module còn lại chỉ hỗ trợ CREATE.
+**Lưu ý**: Import UPDATE/BOTH áp dụng cho các module có khóa duy nhất (lead, product, contact, customer, opportunity, order, quotation). **Hoạt động chỉ hỗ trợ CREATE** (không có khóa duy nhất).
 
-### Xuất file Excel/CSV — 9 module (2026-06-19)
+### Xuất file Excel/CSV — 8 module (2026-06-19)
 
-Mỗi trang danh sách (9 module data) có nút **"Xuất file"** (`FiDownload`) cạnh nút "Nhập file". Xuất **hoàn toàn ở frontend** (dùng `xlsx` đã có sẵn) — không cần endpoint backend.
+Mỗi trang danh sách (8 module data) có nút **"Xuất file"** (`FiDownload`) cạnh nút "Nhập file". Xuất **hoàn toàn ở frontend** (dùng `xlsx` đã có sẵn) — không cần endpoint backend.
 
 - **Phạm vi dòng**: có dòng đang tick → xuất các dòng đó; không tick → xuất toàn bộ danh sách (`rowsToExport = selectedRows.length > 0 ? selectedRows : data`).
 - **Chọn cột**: `ExportModal` liệt kê toàn bộ cột (mặc định tick tất cả), có nút Chọn/Bỏ chọn tất cả.
@@ -420,22 +424,22 @@ Mỗi trang danh sách (9 module data) có nút **"Xuất file"** (`FiDownload`)
 
 **Per-module** — `features/<module>/config/<module>ExportColumns.ts`: mảng `ExportColumn[]` định nghĩa cột xuất, tái dùng nhãn enum (`STATUS_LABELS`…) + `formatISODate` để ghi giá trị thuần đã format.
 
-### Hiển thị đầy đủ trường DB + resolve tên khóa ngoại — 9 module (2026-06-20)
+### Hiển thị đầy đủ trường DB + resolve tên khóa ngoại — 8 module (2026-06-20)
 
-Các bảng danh sách trước đây chỉ hiện một phần nhỏ số cột. Nay **hiển thị đầy đủ mọi trường nghiệp vụ** giống DB, và **đổi ID khóa ngoại sang tên** (người phụ trách, khách hàng, liên hệ, giai đoạn, kho, đơn vị, danh mục…).
+Các bảng danh sách trước đây chỉ hiện một phần nhỏ số cột. Nay **hiển thị đầy đủ mọi trường nghiệp vụ** giống DB, và **đổi ID khóa ngoại sang tên** (người phụ trách, khách hàng, liên hệ, giai đoạn, đơn vị, danh mục…).
 
 - Column config chuyển từ mảng tĩnh sang **factory** `get<Module>Columns(lookups)` — nhận `Map<id, tên>`.
 - Page gọi lookup hook (`useActiveUsers`, `useCustomerList`…), dựng map bằng `toIdNameMap`, truyền vào factory trong `useMemo`.
 - Tiện ích mới: `shared/utils/lookup.ts` (`toIdNameMap`, `lookupName`) + `shared/components/table/cells.tsx` (`fkCell`, `currencyCell`, `dateCell`, `boolBadge`, `labelCell`, `badgeCell`…).
 - Mặc định hiện tất cả cột — người dùng ẩn bớt qua panel **"ẩn/hiện cột"** có sẵn của DataTable.
-- Bổ sung 9 field dệt may V6 còn thiếu vào `ProductResult` (FE) — backend đã trả về sẵn.
+- `ProductResult` (FE) chỉ còn các trường cốt lõi (sku/name/category/type/unit/basePrice/costPrice/vatRate/description) — đã bỏ secondaryUnit/conversionRate/brand/origin/barcode và các field dệt may.
 
 Chi tiết pattern: xem `CODE_GUIDE_FRONTEND.md` mục 8b.
 
 ### Chuẩn hóa tiếng Việt filter bảng + tag lọc nhanh hoạt động — DataTable (2026-06-20)
 
 - **Việt hóa toàn bộ** các panel của DataTable (icon trên thanh công cụ): Lọc bản ghi, Sắp xếp theo cột, Tô màu có điều kiện — gồm toán tử (Bằng/Không bằng/Chứa/Không chứa/Để trống/Không để trống), nút (Áp dụng/Hủy/Thêm điều kiện/Thêm quy tắc), placeholder, phạm vi Ô/Hàng. Toán tử gom về `OPERATOR_OPTIONS` trong `shared/components/table/filterConditions.helpers.ts` (hết lặp giữa 2 panel).
-- **Tag lọc nhanh giờ thực sự lọc**: đổi prop `quickFilters` sang khai báo `QuickFilterDef[]` (`{id,label,field,value}`). `DataTable` tự quản trạng thái chọn (single-select), lọc `String(row[field]) === value` (hợp cả boolean). 9 trang lọc theo `status` hoặc cờ boolean (`isActive`/`isPrimary`).
+- **Tag lọc nhanh giờ thực sự lọc**: đổi prop `quickFilters` sang khai báo `QuickFilterDef[]` (`{id,label,field,value}`). `DataTable` tự quản trạng thái chọn (single-select), lọc `String(row[field]) === value` (hợp cả boolean). 8 trang lọc theo `status` hoặc cờ boolean (`isActive`/`isPrimary`).
 
 ### Chưa implement
 - Form tạo mới cho tất cả module (chỉ có edit modal, chưa có create modal)

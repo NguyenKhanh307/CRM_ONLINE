@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.product.enums.ProductType;
+import vn.com.be_crm.infrastructure.product.converter.ProductTypeConverter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,37 +27,17 @@ public class ProductHibernate {
     private String name;
     @Column(name = "category_id")
     private Long categoryId;
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = ProductTypeConverter.class)
     @Column(name = "type", nullable = false, length = 30)
     private ProductType type;
     @Column(name = "unit", length = 20)
     private String unit;
-    @Column(name = "secondary_unit", length = 20)
-    private String secondaryUnit;
-    @Column(name = "conversion_rate", precision = 18, scale = 6)
-    private BigDecimal conversionRate;
-    @Column(name = "composition", length = 100)
-    private String composition;
-    @Column(name = "yarn_count", length = 30)
-    private String yarnCount;
-    @Column(name = "color", length = 50)
-    private String color;
-    @Column(name = "fabric_width", precision = 8, scale = 2)
-    private BigDecimal fabricWidth;
-    @Column(name = "weight_gsm", precision = 8, scale = 2)
-    private BigDecimal weightGsm;
-    @Column(name = "brand", length = 100)
-    private String brand;
-    @Column(name = "origin", length = 100)
-    private String origin;
     @Column(name = "base_price", nullable = false, precision = 18, scale = 2)
     private BigDecimal basePrice;
     @Column(name = "cost_price", nullable = false, precision = 18, scale = 2)
     private BigDecimal costPrice;
     @Column(name = "vat_rate", nullable = false, precision = 5, scale = 2)
     private BigDecimal vatRate;
-    @Column(name = "barcode", length = 100)
-    private String barcode;
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
     @Column(name = "is_discontinued", nullable = false)

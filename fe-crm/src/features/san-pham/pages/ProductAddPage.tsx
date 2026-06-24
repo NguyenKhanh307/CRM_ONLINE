@@ -16,16 +16,15 @@ const TYPE_OPTIONS = [
 ];
 
 interface FormState {
-    sku: string; name: string; categoryId: string; type: string; brand: string; origin: string;
-    unit: string; secondaryUnit: string; conversionRate: string;
-    basePrice: string; costPrice: string; vatRate: string; barcode: string;
+    sku: string; name: string; categoryId: string; type: string;
+    unit: string;
+    basePrice: string; costPrice: string; vatRate: string;
     description: string; isDiscontinued: boolean; isActive: boolean;
 }
 
 const INITIAL: FormState = {
-    sku: '', name: '', categoryId: '', type: 'goods', brand: '', origin: '', unit: '', secondaryUnit: '',
-    conversionRate: '',
-    basePrice: '', costPrice: '', vatRate: '', barcode: '', description: '', isDiscontinued: false, isActive: true,
+    sku: '', name: '', categoryId: '', type: 'goods', unit: '',
+    basePrice: '', costPrice: '', vatRate: '', description: '', isDiscontinued: false, isActive: true,
 };
 
 const num = (s: string): number | null => (s.trim() ? Number(s) : null);
@@ -51,14 +50,9 @@ const ProductAddPage = () => {
             categoryId: form.categoryId ? Number(form.categoryId) : null,
             type: form.type,
             unit: form.unit || null,
-            secondaryUnit: form.secondaryUnit || null,
-            conversionRate: num(form.conversionRate),
-            brand: form.brand || null,
-            origin: form.origin || null,
             basePrice: num(form.basePrice),
             costPrice: num(form.costPrice),
             vatRate: num(form.vatRate),
-            barcode: form.barcode || null,
             description: form.description || null,
             isDiscontinued: form.isDiscontinued,
             isActive: form.isActive,
@@ -99,29 +93,10 @@ const ProductAddPage = () => {
                             <FieldRow label="Loại">
                                 <SearchableSelect value={form.type} onChange={(v) => set({ type: v })} options={TYPE_OPTIONS} />
                             </FieldRow>
-                            <FieldRow label="Thương hiệu">
-                                <input type="text" value={form.brand} onChange={(e) => set({ brand: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                            <FieldRow label="Xuất xứ">
-                                <input type="text" value={form.origin} onChange={(e) => set({ origin: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                        </div>
-                    </div>
-                </FormSection>
-
-                <FormSection title="Đơn vị tính">
-                    <div className="grid grid-cols-2 gap-x-10 gap-y-4">
-                        <div className="space-y-4">
-                            <FieldRow label="Đơn vị chính">
+                            <FieldRow label="Đơn vị tính">
                                 <input type="text" value={form.unit} onChange={(e) => set({ unit: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Đơn vị phụ">
-                                <input type="text" value={form.secondaryUnit} onChange={(e) => set({ secondaryUnit: e.target.value })} className={inputCls} />
-                            </FieldRow>
                         </div>
-                        <FieldRow label="Tỷ lệ quy đổi">
-                            <input type="number" value={form.conversionRate} onChange={(e) => set({ conversionRate: e.target.value })} className={inputCls} />
-                        </FieldRow>
                     </div>
                 </FormSection>
 
@@ -138,9 +113,6 @@ const ProductAddPage = () => {
                         <div className="space-y-4">
                             <FieldRow label="Thuế VAT (%)">
                                 <input type="number" value={form.vatRate} onChange={(e) => set({ vatRate: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                            <FieldRow label="Mã vạch">
-                                <input type="text" value={form.barcode} onChange={(e) => set({ barcode: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
                     </div>

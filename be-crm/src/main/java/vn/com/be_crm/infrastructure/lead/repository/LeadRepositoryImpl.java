@@ -133,6 +133,15 @@ public class LeadRepositoryImpl implements ILeadRepository {
         }
     }
 
+    /** Tìm Lead theo mã (chưa xóa mềm) — web tracking. @param code mã @return Optional */
+    @Override public Optional<Lead> findByCode(String code) {
+        try (Session s = sf.openSession()) {
+            return s.createQuery("FROM LeadHibernate WHERE code = :code AND deletedAt IS NULL", LeadHibernate.class)
+                    .setParameter("code", code).setMaxResults(1).list()
+                    .stream().map(mapper::toDomain).findFirst();
+        }
+    }
+
     /** Bàn giao toàn bộ Lead của fromUserId sang toUserId. @param fromUserId @param toUserId */
     @Override public void handoverAll(Long fromUserId, Long toUserId) {
         try (Session s = sf.openSession()) {

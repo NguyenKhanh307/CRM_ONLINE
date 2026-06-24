@@ -25,7 +25,6 @@ public class CreateOrderCommand {
     private Long opportunityId;
     private Long ownerId;
     private Long executorUnitId;
-    private Long warehouseId;
     private Long parentOrderId;
     private OrderType orderType;
     private LocalDate orderDate;

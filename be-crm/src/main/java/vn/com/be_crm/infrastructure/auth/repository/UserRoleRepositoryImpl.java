@@ -116,4 +116,23 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
                     .stream().map(mapper::toDomain).collect(Collectors.toList());
         }
     }
+
+    /**
+     * Lấy danh sách ID người dùng có vai trò thuộc tập code cho trước.
+     *
+     * @param roleCodes danh sách code vai trò
+     * @return danh sách userId không trùng
+     */
+    @Override
+    public List<Long> findUserIdsByRoleCodes(List<String> roleCodes) {
+        if (roleCodes == null || roleCodes.isEmpty()) return List.of();
+        try (Session s = sf.openSession()) {
+            return s.createQuery(
+                    "SELECT DISTINCT ur.userId FROM UserRoleHibernate ur WHERE ur.roleId IN " +
+                    "(SELECT r.id FROM RoleHibernate r WHERE r.code IN (:codes))",
+                    Long.class)
+                    .setParameter("codes", roleCodes)
+                    .list();
+        }
+    }
 }

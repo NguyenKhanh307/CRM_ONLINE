@@ -37,8 +37,8 @@ public class ActivityController {
      * @param importBulkUC  use case nhập hàng loạt
      */
     public ActivityController(CreateActivityUseCase createUseCase, UpdateActivityUseCase updateUseCase,
-                               DeleteActivityUseCase deleteUseCase, GetActivityUseCase getUseCase,
-                               ListActivityUseCase listUseCase, ImportBulkActivityUseCase importBulkUC) {
+            DeleteActivityUseCase deleteUseCase, GetActivityUseCase getUseCase,
+            ListActivityUseCase listUseCase, ImportBulkActivityUseCase importBulkUC) {
         this.createUseCase = createUseCase;
         this.updateUseCase = updateUseCase;
         this.deleteUseCase = deleteUseCase;
@@ -79,11 +79,14 @@ public class ActivityController {
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ActivityResult>>> list(
             HttpServletRequest req,
-            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "id") String sortBy, @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
         PageResult<ActivityResult> result = listUseCase.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).build());
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear)
+                        .build());
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(result)));
     }
 
@@ -107,7 +110,7 @@ public class ActivityController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ActivityResult>> update(@PathVariable Long id,
-                                                               @Valid @RequestBody UpdateActivityRequest request) {
+            @Valid @RequestBody UpdateActivityRequest request) {
         UpdateActivityCommand cmd = UpdateActivityCommand.builder()
                 .id(id).type(request.getType()).subject(request.getSubject()).content(request.getContent())
                 .priority(request.getPriority()).location(request.getLocation())

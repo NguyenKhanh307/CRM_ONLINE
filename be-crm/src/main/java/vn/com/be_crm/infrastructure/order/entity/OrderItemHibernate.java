@@ -18,7 +18,6 @@ public class OrderItemHibernate {
     private Long id;
     @Column(name = "order_id", nullable = false) private Long orderId;
     @Column(name = "product_id") private Long productId;
-    @Column(name = "warehouse_id") private Long warehouseId;
     @Column(name = "unit", length = 20) private String unit;
     @Column(name = "quantity", precision = 18, scale = 3) private BigDecimal quantity;
     @Column(name = "unit_price", precision = 18, scale = 2) private BigDecimal unitPrice;

@@ -52,6 +52,8 @@ public class LeadHibernate {
     private LeadStatus status;
     @Column(name = "estimated_value", precision = 18, scale = 2)
     private BigDecimal estimatedValue;
+    @Column(name = "score", nullable = false)
+    private Integer score;
     @Column(name = "phone", length = 11)
     private String phone;
     @Column(name = "email", length = 50)

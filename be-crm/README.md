@@ -17,8 +17,9 @@
    - [Product — Sản phẩm](#28-product--sản-phẩm)
    - [Pricing — Chính sách giá](#29-pricing--chính-sách-giá)
    - [Quotation — Báo giá](#210-quotation--báo-giá)
-   - [Warehouse — Kho hàng](#211-warehouse--kho-hàng)
-   - [Handover — Bàn giao công việc](#212-handover--bàn-giao-công-việc)
+   - [Handover — Bàn giao công việc](#211-handover--bàn-giao-công-việc)
+   - [Tracking — Web tracking & Chấm điểm tiềm năng](#212-tracking--web-tracking--chấm-điểm-tiềm-năng-public)
+   - [Notification — Thông báo](#213-notification--thông-báo)
 3. [Cấu trúc folder/file](#3-cấu-trúc-folderfile)
 4. [Quy ước chung](#4-quy-ước-chung)
 
@@ -233,14 +234,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/leads/import-bulk` | Nhập hàng loạt lead từ file Excel/CSV (hỗ trợ CREATE/UPDATE/BOTH) |
 | `POST` | `/api/leads/handover-bulk` | Bàn giao nhiều lead sang người dùng khác — body: `{ ids, toUserId, reason? }` |
 
-#### Hoạt động của lead — `/api/leads/{leadId}/activities`
-
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `POST` | `/api/leads/{leadId}/activities` | Ghi nhận hoạt động cho lead |
-| `GET` | `/api/leads/{leadId}/activities` | Lịch sử hoạt động của lead |
-| `PUT` | `/api/leads/{leadId}/activities/{id}` | Cập nhật hoạt động |
-| `DELETE` | `/api/leads/{leadId}/activities/{id}` | Xóa hoạt động |
+> **Hoạt động của lead** không còn endpoint riêng `/api/leads/{leadId}/activities` (đã gỡ `LeadActivityController`). Ghi nhận hoạt động cho lead qua phân hệ Hoạt động dùng chung: `POST /api/activities` với `targetType=lead`, `targetId={leadId}` — và sẽ tự cộng điểm `leads.score`. Cộng điểm/web tracking xem [Tracking](#212-tracking--web-tracking--chấm-điểm-tiềm-năng-public).
 
 #### Chuyển giao lead — `/api/leads/{leadId}/transfers`
 
@@ -466,7 +460,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 ---
 
-### 2.12 Handover — Bàn giao công việc
+### 2.11 Handover — Bàn giao công việc
 
 #### Bàn giao toàn bộ — `/api/handover`
 
@@ -483,26 +477,32 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 ---
 
-### 2.11 Warehouse — Kho hàng
+### 2.12 Tracking — Web tracking & Chấm điểm tiềm năng (public)
 
-#### Kho hàng — `/api/warehouses`
+#### `/api/tracking` — không yêu cầu đăng nhập
 
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `POST` | `/api/warehouses` | Tạo kho hàng |
-| `GET` | `/api/warehouses` | Danh sách kho (phân trang) |
-| `GET` | `/api/warehouses/{id}` | Lấy kho theo ID |
-| `PUT` | `/api/warehouses/{id}` | Cập nhật kho |
-| `DELETE` | `/api/warehouses/{id}` | Xóa kho |
-| `POST` | `/api/warehouses/import-bulk` | Nhập hàng loạt kho hàng từ file Excel/CSV |
-
-#### Tồn kho — `/api/inventory-stocks`
+Phục vụ trang landing demo: tạo tiềm năng ẩn danh, ghi sự kiện & cộng điểm `leads.score`.
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/inventory-stocks` | Tạo/cập nhật bản ghi tồn kho |
-| `GET` | `/api/inventory-stocks` | Danh sách tồn kho (phân trang) |
-| `GET` | `/api/inventory-stocks/{id}` | Lấy bản ghi tồn kho theo ID |
+| `POST` | `/api/tracking/visit` | Lượt truy cập — body `{ code? }`; trả lead theo mã hoặc tạo lead ẩn danh mới (mã `TNW…`, score=0) |
+| `POST` | `/api/tracking/score` | Ghi sự kiện (`lead_tracking_events`) + cộng điểm — body `{ code, action, label?, points? }` |
+| `POST` | `/api/tracking/submit` | Nộp form liên hệ + cộng điểm — body `{ code, name, companyName?, email?, phone?, note?, points? }` |
+
+> Khi tổng điểm vượt 50 (lần đầu): lead tự chuyển `qualified` + sinh thông báo cho owner và các user ADMIN/SALES_MANAGER/SALES_STAFF (`AddLeadScoreUseCase`). Tạo Activity gắn lead (`targetType=lead`) cũng cộng điểm (call=10, meeting=20, email=5, task=5, note=2).
+
+---
+
+### 2.13 Notification — Thông báo
+
+#### `/api/notifications` — theo `userId` trong JWT
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `GET` | `/api/notifications` | Danh sách thông báo của người dùng hiện tại |
+| `GET` | `/api/notifications/unread-count` | Đếm số thông báo chưa đọc |
+| `POST` | `/api/notifications/{id}/read` | Đánh dấu một thông báo đã đọc |
+| `POST` | `/api/notifications/read-all` | Đánh dấu tất cả đã đọc |
 
 ---
 
@@ -634,18 +634,21 @@ be-crm/src/main/java/vn/com/be_crm/
 
 | File / Folder | Tầng | Công dụng |
 |---------------|------|-----------|
-| `domain/lead/entity/Lead.java` | Domain | Entity lead bán hàng (soft delete) |
-| `domain/lead/entity/LeadActivity.java` | Domain | Hoạt động gắn với lead |
+| `domain/lead/entity/Lead.java` | Domain | Entity lead bán hàng (soft delete; có `score`) |
+| `domain/lead/entity/LeadTrackingEvent.java` | Domain | Sự kiện web tracking (action, label, points) |
 | `domain/lead/entity/LeadTransfer.java` | Domain | Lịch sử chuyển giao lead giữa nhân viên |
 | `domain/lead/enums/LeadStatus.java` | Domain | Trạng thái lead — `new_` thay cho `new` (Java keyword) |
-| `domain/lead/enums/LeadActivityType.java` | Domain | Loại hoạt động lead |
-| `domain/lead/repository/I*Repository.java` | Domain | 3 interface repository |
-| `application/lead/...` | Application | Use case cho Lead và 2 sub-entity |
+| `domain/lead/repository/I*Repository.java` | Domain | interface repository (Lead, LeadTrackingEvent, LeadTransfer) |
+| `application/lead/command/AddLeadScoreUseCase.java` | Application | Cộng điểm dùng chung; ngưỡng 50 → `qualified` + thông báo |
+| `application/lead/command/{TrackVisit,RecordTrackingEvent,SubmitTrackingForm}UseCase.java` | Application | Web tracking (visit/score/submit) |
+| `application/lead/...` | Application | Use case CRUD cho Lead và LeadTransfer |
 | `presentation/lead/LeadController.java` | Presentation | REST `/api/leads` |
-| `presentation/lead/LeadActivityController.java` | Presentation | REST `/api/leads/{id}/activities` |
 | `presentation/lead/LeadTransferController.java` | Presentation | REST `/api/leads/{id}/transfers` |
+| `presentation/tracking/TrackingController.java` | Presentation | REST `/api/tracking/*` (public) |
 | `infrastructure/lead/converter/LeadStatusConverter.java` | Infrastructure | `AttributeConverter` map DB `"new"` ↔ Java `LeadStatus.new_` |
 | `infrastructure/lead/...` | Infrastructure | Hibernate entity, mapper, repository impl |
+
+> Hoạt động của lead đã gộp vào module Activity (`targetType=lead`) — không còn `LeadActivity`/`LeadActivityController`/`LeadActivityType`.
 
 ### 3.7 Module Opportunity
 
@@ -736,17 +739,19 @@ be-crm/src/main/java/vn/com/be_crm/
 | `presentation/quotation/QuotationApprovalController.java` | Presentation | REST `/api/quotations/{id}/approvals` |
 | `infrastructure/quotation/...` | Infrastructure | Hibernate entity, mapper, repository impl |
 
-### 3.12 Module Warehouse
+### 3.12 Module Notification
 
 | File / Folder | Tầng | Công dụng |
 |---------------|------|-----------|
-| `domain/warehouse/entity/Warehouse.java` | Domain | Entity kho hàng (không còn managerId kể từ V5) |
-| `domain/warehouse/entity/InventoryStock.java` | Domain | Tồn kho: `quantity`, `countedQuantity`, `@Formula differenceQuantity`, `note`, `updatedBy` |
-| `domain/warehouse/repository/I*Repository.java` | Domain | 2 interface repository |
-| `application/warehouse/...` | Application | Use case cho Warehouse + InventoryStock |
-| `presentation/warehouse/WarehouseController.java` | Presentation | REST `/api/warehouses` |
-| `presentation/warehouse/InventoryStockController.java` | Presentation | REST `/api/inventory-stocks` |
-| `infrastructure/warehouse/...` | Infrastructure | Hibernate entity, mapper, repository impl |
+| `domain/notification/entity/Notification.java` | Domain | Entity thông báo (recipientUserId, type, title, content, leadId, isRead) |
+| `domain/notification/repository/INotificationRepository.java` | Domain | Interface repository |
+| `application/notification/command/{CreateNotification,MarkNotificationRead}UseCase.java` | Application | Tạo / đánh dấu đã đọc |
+| `application/notification/query/{ListMyNotifications,CountUnreadNotifications}UseCase.java` | Application | Danh sách / đếm chưa đọc |
+| `presentation/notification/NotificationController.java` | Presentation | REST `/api/notifications` |
+| `infrastructure/notification/...` | Infrastructure | Hibernate entity, mapper, repository impl |
+| `infrastructure/shared/config/beans/NotificationBeanConfig.java` | Infrastructure | Wire các use case Notification |
+
+> **Module Warehouse (Kho hàng) đã được gỡ hoàn toàn** — không còn `domain/application/infrastructure/presentation/warehouse`.
 
 ---
 
@@ -808,4 +813,4 @@ DB lưu chuỗi `"new"` nhưng `new` là keyword Java. Giải pháp:
 
 ### Import UPDATE/BOTH (2026-06-13)
 
-`importType` của `POST /api/{module}/import-bulk` hỗ trợ `CREATE` / `UPDATE` / `BOTH` cho **8 module**: lead (phone/email), product (sku), warehouse (code), contact (email), customer (taxCode), opportunity / order / quotation (code). UPDATE dò bản ghi tồn tại qua repo `findBy*` (HQL `WHERE {key} = :v AND deletedAt IS NULL`); thấy → merge giữ id/code/FK/createdAt + cập nhật field từ row; không thấy & isCreate → tạo mới. Row DTO của opportunity/order/quotation có thêm field `code` để dò. **Activity chỉ CREATE** (không có khóa duy nhất).
+`importType` của `POST /api/{module}/import-bulk` hỗ trợ `CREATE` / `UPDATE` / `BOTH` cho **7 module**: lead (phone/email), product (sku), contact (email), customer (taxCode), opportunity / order / quotation (code). UPDATE dò bản ghi tồn tại qua repo `findBy*` (HQL `WHERE {key} = :v AND deletedAt IS NULL`); thấy → merge giữ id/code/FK/createdAt + cập nhật field từ row; không thấy & isCreate → tạo mới. Row DTO của opportunity/order/quotation có thêm field `code` để dò. **Activity chỉ CREATE** (không có khóa duy nhất).

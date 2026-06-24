@@ -10,7 +10,6 @@ const FIELDS: ImportField[] = [
     { key: 'basePrice',   label: 'Giá bán',                       type: 'number' },
     { key: 'costPrice',   label: 'Giá vốn',                       type: 'number' },
     { key: 'vatRate',     label: 'Thuế VAT (%)',                   type: 'number' },
-    { key: 'barcode',     label: 'Barcode',                        type: 'text' },
     { key: 'description', label: 'Mô tả',                         type: 'text' },
 ];
 

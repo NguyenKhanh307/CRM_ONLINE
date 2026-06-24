@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 public class UpdateOrderItemCommand {
     private Long id;
     private Long productId;
-    private Long warehouseId;
     @Size(max = 20) private String unit;
     private BigDecimal quantity;
     private BigDecimal unitPrice;

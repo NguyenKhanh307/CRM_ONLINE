@@ -14,7 +14,6 @@ public class CreateOrderItemCommand {
     /** ID đơn hàng — controller set từ path; bỏ trống khi tạo nested kèm đơn hàng. */
     private Long orderId;
     private Long productId;
-    private Long warehouseId;
     @Size(max = 20) private String unit;
     private BigDecimal quantity;
     private BigDecimal unitPrice;

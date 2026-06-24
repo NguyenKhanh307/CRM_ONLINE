@@ -24,11 +24,9 @@ export function ProductEditModal({ item, onClose }: Props) {
         basePrice: null,
         costPrice: null,
         vatRate: null,
-        barcode: null,
         description: null,
         isDiscontinued: false,
         isActive: true,
-        secondaryUnit: null, conversionRate: null, brand: null, origin: null,
     });
 
     useEffect(() => {
@@ -41,12 +39,9 @@ export function ProductEditModal({ item, onClose }: Props) {
             basePrice: item.basePrice,
             costPrice: item.costPrice,
             vatRate: item.vatRate,
-            barcode: item.barcode,
             description: item.description,
             isDiscontinued: item.isDiscontinued,
             isActive: item.isActive,
-            secondaryUnit: item.secondaryUnit, conversionRate: item.conversionRate,
-            brand: item.brand, origin: item.origin,
         });
     }, [item]);
 
@@ -100,30 +95,6 @@ export function ProductEditModal({ item, onClose }: Props) {
                         <div>
                             <label className={lbl}>Thuế VAT (%)</label>
                             <input type="number" className={inp} value={form.vatRate ?? ''} onChange={e => setForm(f => ({ ...f, vatRate: e.target.value ? +e.target.value : null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Mã vạch</label>
-                            <input className={inp} value={form.barcode ?? ''} onChange={e => setForm(f => ({ ...f, barcode: e.target.value || null }))} />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>Thương hiệu</label>
-                            <input className={inp} value={form.brand ?? ''} onChange={e => setForm(f => ({ ...f, brand: e.target.value || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Xuất xứ</label>
-                            <input className={inp} value={form.origin ?? ''} onChange={e => setForm(f => ({ ...f, origin: e.target.value || null }))} />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>Đơn vị phụ</label>
-                            <input className={inp} value={form.secondaryUnit ?? ''} onChange={e => setForm(f => ({ ...f, secondaryUnit: e.target.value || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Tỷ lệ quy đổi</label>
-                            <input type="number" className={inp} value={form.conversionRate ?? ''} onChange={e => setForm(f => ({ ...f, conversionRate: e.target.value ? +e.target.value : null }))} />
                         </div>
                     </div>
                     <div>

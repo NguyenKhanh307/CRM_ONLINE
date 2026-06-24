@@ -14,7 +14,7 @@ public class OrderItemCommandMapper {
      */
     public static OrderItem toEntity(CreateOrderItemCommand cmd) {
         return OrderItem.builder()
-                .orderId(cmd.getOrderId()).productId(cmd.getProductId()).warehouseId(cmd.getWarehouseId())
+                .orderId(cmd.getOrderId()).productId(cmd.getProductId())
                 .unit(cmd.getUnit())
                 .quantity(cmd.getQuantity() != null ? cmd.getQuantity() : BigDecimal.ONE)
                 .unitPrice(cmd.getUnitPrice() != null ? cmd.getUnitPrice() : BigDecimal.ZERO)
@@ -32,7 +32,6 @@ public class OrderItemCommandMapper {
         return OrderItem.builder()
                 .id(e.getId()).orderId(e.getOrderId())
                 .productId(cmd.getProductId() != null ? cmd.getProductId() : e.getProductId())
-                .warehouseId(cmd.getWarehouseId() != null ? cmd.getWarehouseId() : e.getWarehouseId())
                 .unit(cmd.getUnit() != null ? cmd.getUnit() : e.getUnit())
                 .quantity(cmd.getQuantity() != null ? cmd.getQuantity() : e.getQuantity())
                 .unitPrice(cmd.getUnitPrice() != null ? cmd.getUnitPrice() : e.getUnitPrice())
@@ -48,7 +47,7 @@ public class OrderItemCommandMapper {
      */
     public static OrderItemResult toResult(OrderItem e) {
         return OrderItemResult.builder()
-                .id(e.getId()).orderId(e.getOrderId()).productId(e.getProductId()).warehouseId(e.getWarehouseId())
+                .id(e.getId()).orderId(e.getOrderId()).productId(e.getProductId())
                 .unit(e.getUnit())
                 .quantity(e.getQuantity()).unitPrice(e.getUnitPrice()).discount(e.getDiscount())
                 .taxRate(e.getTaxRate()).amount(e.getAmount()).note(e.getNote()).build();

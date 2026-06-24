@@ -55,14 +55,9 @@ public class ImportBulkProductUseCase {
                             .categoryId(e.getCategoryId())
                             .type(type != null ? type : e.getType())
                             .unit(row.unit() != null ? row.unit() : e.getUnit())
-                            .secondaryUnit(e.getSecondaryUnit()).conversionRate(e.getConversionRate())
-                            .composition(e.getComposition()).yarnCount(e.getYarnCount()).color(e.getColor())
-                            .fabricWidth(e.getFabricWidth()).weightGsm(e.getWeightGsm())
-                            .brand(e.getBrand()).origin(e.getOrigin())
                             .basePrice(row.basePrice() != null ? row.basePrice() : e.getBasePrice())
                             .costPrice(row.costPrice() != null ? row.costPrice() : e.getCostPrice())
                             .vatRate(row.vatRate() != null ? row.vatRate() : e.getVatRate())
-                            .barcode(row.barcode() != null ? row.barcode() : e.getBarcode())
                             .description(row.description() != null ? row.description() : e.getDescription())
                             .isActive(e.getIsActive()).isDiscontinued(e.getIsDiscontinued())
                             .createdAt(e.getCreatedAt()).build());
@@ -77,7 +72,7 @@ public class ImportBulkProductUseCase {
                             .type(type != null ? type : ProductType.goods)
                             .unit(row.unit()).basePrice(row.basePrice())
                             .costPrice(row.costPrice()).vatRate(row.vatRate())
-                            .barcode(row.barcode()).description(row.description())
+                            .description(row.description())
                             .isActive(true).isDiscontinued(false)
                             .build());
                     success++;
@@ -92,7 +87,10 @@ public class ImportBulkProductUseCase {
 
     private ProductType parseType(String s) {
         if (s == null || s.isBlank()) return null;
-        try { return ProductType.valueOf(s.trim().toLowerCase()); }
-        catch (Exception e) { return null; }
+        String v = s.trim();
+        // Chấp nhận nhãn tiếng Việt ('Dịch vụ') lẫn tên enum ('service')
+        if (v.equalsIgnoreCase("Dịch vụ") || v.equalsIgnoreCase("service")) return ProductType.service;
+        if (v.equalsIgnoreCase("Vật tư hàng hóa") || v.equalsIgnoreCase("goods")) return ProductType.goods;
+        return null;
     }
 }

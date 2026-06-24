@@ -19,15 +19,11 @@ public class ProductHibernateMapper {
         h.setId(d.getId()); h.setSku(d.getSku()); h.setName(d.getName());
         h.setCategoryId(d.getCategoryId());
         h.setType(d.getType() != null ? d.getType() : ProductType.goods);
-        h.setUnit(d.getUnit()); h.setSecondaryUnit(d.getSecondaryUnit());
-        h.setConversionRate(d.getConversionRate()); h.setComposition(d.getComposition());
-        h.setYarnCount(d.getYarnCount()); h.setColor(d.getColor());
-        h.setFabricWidth(d.getFabricWidth()); h.setWeightGsm(d.getWeightGsm());
-        h.setBrand(d.getBrand()); h.setOrigin(d.getOrigin());
+        h.setUnit(d.getUnit());
         h.setBasePrice(d.getBasePrice() != null ? d.getBasePrice() : BigDecimal.ZERO);
         h.setCostPrice(d.getCostPrice() != null ? d.getCostPrice() : BigDecimal.ZERO);
         h.setVatRate(d.getVatRate() != null ? d.getVatRate() : BigDecimal.ZERO);
-        h.setBarcode(d.getBarcode()); h.setDescription(d.getDescription());
+        h.setDescription(d.getDescription());
         h.setIsDiscontinued(d.getIsDiscontinued() != null ? d.getIsDiscontinued() : false);
         h.setIsActive(d.getIsActive() != null ? d.getIsActive() : true);
         h.setDeletedAt(d.getDeletedAt());
@@ -41,13 +37,9 @@ public class ProductHibernateMapper {
     public Product toDomain(ProductHibernate h) {
         return Product.builder()
                 .id(h.getId()).sku(h.getSku()).name(h.getName()).categoryId(h.getCategoryId())
-                .type(h.getType()).unit(h.getUnit()).secondaryUnit(h.getSecondaryUnit())
-                .conversionRate(h.getConversionRate()).composition(h.getComposition())
-                .yarnCount(h.getYarnCount()).color(h.getColor())
-                .fabricWidth(h.getFabricWidth()).weightGsm(h.getWeightGsm())
-                .brand(h.getBrand()).origin(h.getOrigin())
+                .type(h.getType()).unit(h.getUnit())
                 .basePrice(h.getBasePrice())
-                .costPrice(h.getCostPrice()).vatRate(h.getVatRate()).barcode(h.getBarcode())
+                .costPrice(h.getCostPrice()).vatRate(h.getVatRate())
                 .description(h.getDescription()).isDiscontinued(h.getIsDiscontinued())
                 .isActive(h.getIsActive()).createdAt(h.getCreatedAt())
                 .updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())

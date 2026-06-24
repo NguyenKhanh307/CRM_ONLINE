@@ -11,6 +11,5 @@ public record ImportProductRowCommand(
         BigDecimal basePrice,
         BigDecimal costPrice,
         BigDecimal vatRate,
-        String barcode,
         String description
 ) {}

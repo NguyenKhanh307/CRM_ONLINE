@@ -78,7 +78,7 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateOrderCommand.builder().id(id).customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
                         .quotationId(cmd.getQuotationId()).opportunityId(cmd.getOpportunityId())
-                        .ownerId(cmd.getOwnerId()).executorUnitId(cmd.getExecutorUnitId()).warehouseId(cmd.getWarehouseId())
+                        .ownerId(cmd.getOwnerId()).executorUnitId(cmd.getExecutorUnitId())
                         .orderDate(cmd.getOrderDate())
                         .currency(cmd.getCurrency()).exchangeRate(cmd.getExchangeRate())
                         .status(cmd.getStatus()).paymentStatus(cmd.getPaymentStatus())

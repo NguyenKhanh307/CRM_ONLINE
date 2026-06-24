@@ -28,6 +28,7 @@ public class LeadResult {
     private String source;
     private LeadStatus status;
     private BigDecimal estimatedValue;
+    private Integer score;
     private String phone;
     private String email;
     private boolean doNotCall;

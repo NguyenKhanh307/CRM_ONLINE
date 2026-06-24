@@ -36,8 +36,6 @@ public class Order {
     private Long ownerId;
     /** ID đơn vị thực hiện. */
     private Long executorUnitId;
-    /** ID kho xuất hàng. */
-    private Long warehouseId;
     /** Đơn cha (nếu là đơn con). */
     private Long parentOrderId;
     /** Loại đơn (thường/cha/con). */

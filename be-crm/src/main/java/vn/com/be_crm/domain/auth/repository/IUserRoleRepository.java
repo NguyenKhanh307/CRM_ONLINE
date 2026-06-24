@@ -48,4 +48,13 @@ public interface IUserRoleRepository {
      * @return danh sách UserRole
      */
     List<UserRole> findByRoleId(Long roleId);
+
+    /**
+     * Lấy danh sách ID người dùng có ít nhất một vai trò trong tập code cho trước.
+     * Dùng để xác định người nhận thông báo (vd ADMIN, SALES_MANAGER).
+     *
+     * @param roleCodes danh sách code vai trò
+     * @return danh sách userId không trùng
+     */
+    List<Long> findUserIdsByRoleCodes(List<String> roleCodes);
 }

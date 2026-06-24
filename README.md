@@ -64,6 +64,7 @@ Truy cập: http://localhost:5173
 | Đơn hàng (Order) | Hoàn thành | List view |
 | Hoạt động (Activity) | Hoàn thành | List view |
 | Sản phẩm (Product) | Hoàn thành | List view |
-| Kho hàng (Warehouse) | Hoàn thành | List view |
 | Chính sách giá (Pricing) | Hoàn thành | Chưa có |
+| Chấm điểm tiềm năng + Web tracking | Hoàn thành | Demo `/tracking-demo` |
+| Thông báo (Notification) | Hoàn thành | Chuông trên header |
 | Form tạo/sửa tất cả module | — | Chưa có |

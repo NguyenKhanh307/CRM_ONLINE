@@ -13,7 +13,7 @@ public class OrderItemHibernateMapper {
     public OrderItemHibernate toHibernate(OrderItem d) {
         OrderItemHibernate h = new OrderItemHibernate();
         h.setId(d.getId()); h.setOrderId(d.getOrderId()); h.setProductId(d.getProductId());
-        h.setWarehouseId(d.getWarehouseId()); h.setUnit(d.getUnit());
+        h.setUnit(d.getUnit());
         h.setQuantity(d.getQuantity() != null ? d.getQuantity() : BigDecimal.ONE);
         h.setUnitPrice(d.getUnitPrice() != null ? d.getUnitPrice() : BigDecimal.ZERO);
         h.setDiscount(d.getDiscount() != null ? d.getDiscount() : BigDecimal.ZERO);
@@ -25,7 +25,7 @@ public class OrderItemHibernateMapper {
     /** Chuyển Hibernate entity sang domain entity. @param h @return domain entity */
     public OrderItem toDomain(OrderItemHibernate h) {
         return OrderItem.builder()
-                .id(h.getId()).orderId(h.getOrderId()).productId(h.getProductId()).warehouseId(h.getWarehouseId())
+                .id(h.getId()).orderId(h.getOrderId()).productId(h.getProductId())
                 .unit(h.getUnit())
                 .quantity(h.getQuantity()).unitPrice(h.getUnitPrice()).discount(h.getDiscount())
                 .taxRate(h.getTaxRate()).amount(h.getAmount()).note(h.getNote()).build();

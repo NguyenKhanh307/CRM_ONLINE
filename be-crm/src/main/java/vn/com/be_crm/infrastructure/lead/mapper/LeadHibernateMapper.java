@@ -22,7 +22,9 @@ public class LeadHibernateMapper {
         h.setTaxCode(d.getTaxCode()); h.setWebsite(d.getWebsite()); h.setIndustry(d.getIndustry());
         h.setSource(d.getSource());
         h.setStatus(d.getStatus() != null ? d.getStatus() : LeadStatus.new_);
-        h.setEstimatedValue(d.getEstimatedValue()); h.setPhone(d.getPhone());
+        h.setEstimatedValue(d.getEstimatedValue());
+        h.setScore(d.getScore() != null ? d.getScore() : 0);
+        h.setPhone(d.getPhone());
         h.setEmail(d.getEmail());
         h.setDoNotCall(d.isDoNotCall()); h.setDoNotEmail(d.isDoNotEmail());
         h.setNote(d.getNote()); h.setDeletedAt(d.getDeletedAt());
@@ -43,7 +45,8 @@ public class LeadHibernateMapper {
                 .title(h.getTitle()).department(h.getDepartment())
                 .taxCode(h.getTaxCode()).website(h.getWebsite()).industry(h.getIndustry())
                 .source(h.getSource())
-                .status(h.getStatus()).estimatedValue(h.getEstimatedValue()).phone(h.getPhone())
+                .status(h.getStatus()).estimatedValue(h.getEstimatedValue()).score(h.getScore())
+                .phone(h.getPhone())
                 .email(h.getEmail())
                 .doNotCall(h.isDoNotCall()).doNotEmail(h.isDoNotEmail())
                 .note(h.getNote()).createdAt(h.getCreatedAt())

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * Domain entity đại diện cho tiềm năng bán hàng.
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Lead {
@@ -49,6 +49,8 @@ public class Lead {
     private LeadStatus status;
     /** Giá trị ước tính. */
     private BigDecimal estimatedValue;
+    /** Điểm tiềm năng (lead scoring) — tích lũy từ web tracking & hoạt động. */
+    private Integer score;
     /** Số điện thoại. */
     private String phone;
     /** Email. */

@@ -20,7 +20,7 @@ public class OrderHibernateMapper {
         h.setContactId(d.getContactId());
         h.setQuotationId(d.getQuotationId()); h.setOpportunityId(d.getOpportunityId());
         h.setOwnerId(d.getOwnerId());
-        h.setExecutorUnitId(d.getExecutorUnitId()); h.setWarehouseId(d.getWarehouseId());
+        h.setExecutorUnitId(d.getExecutorUnitId());
         h.setParentOrderId(d.getParentOrderId());
         // Giá trị mặc định khi null (loại đơn=standard, tiền tệ=VND, tỷ giá=1, trạng thái=draft/unpaid)
         h.setOrderType(d.getOrderType() != null ? d.getOrderType() : OrderType.standard);
@@ -47,7 +47,7 @@ public class OrderHibernateMapper {
         return Order.builder()
                 .id(h.getId()).code(h.getCode()).customerId(h.getCustomerId()).contactId(h.getContactId())
                 .quotationId(h.getQuotationId()).opportunityId(h.getOpportunityId())
-                .ownerId(h.getOwnerId()).executorUnitId(h.getExecutorUnitId()).warehouseId(h.getWarehouseId())
+                .ownerId(h.getOwnerId()).executorUnitId(h.getExecutorUnitId())
                 .parentOrderId(h.getParentOrderId()).orderType(h.getOrderType()).orderDate(h.getOrderDate())
                 .currency(h.getCurrency()).exchangeRate(h.getExchangeRate())
                 .status(h.getStatus()).paymentStatus(h.getPaymentStatus())

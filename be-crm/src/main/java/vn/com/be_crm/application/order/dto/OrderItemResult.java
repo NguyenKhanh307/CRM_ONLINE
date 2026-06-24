@@ -13,7 +13,6 @@ public class OrderItemResult {
     private Long id;
     private Long orderId;
     private Long productId;
-    private Long warehouseId;
     private String unit;
     private BigDecimal quantity;
     private BigDecimal unitPrice;

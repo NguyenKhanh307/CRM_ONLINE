@@ -30,7 +30,6 @@ public class OrderHibernate {
     @Column(name = "opportunity_id") private Long opportunityId;
     @Column(name = "owner_id") private Long ownerId;
     @Column(name = "executor_unit_id") private Long executorUnitId;
-    @Column(name = "warehouse_id") private Long warehouseId;
     @Column(name = "parent_order_id") private Long parentOrderId;
     @Enumerated(EnumType.STRING) @Column(name = "order_type", length = 20) private OrderType orderType;
     @Column(name = "order_date") private LocalDate orderDate;

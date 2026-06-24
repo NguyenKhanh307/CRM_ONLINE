@@ -72,6 +72,12 @@ public interface ILeadRepository {
     Optional<Lead> findByEmail(String email);
 
     /**
+     * Tìm tiềm năng theo mã (chưa xóa mềm) — dùng cho web tracking (mã TNW...).
+     * @param code mã tiềm năng @return Optional
+     */
+    Optional<Lead> findByCode(String code);
+
+    /**
      * Bàn giao hàng loạt tiềm năng sang người dùng mới.
      * @param ids              danh sách ID cần bàn giao
      * @param toUserId         ID người nhận

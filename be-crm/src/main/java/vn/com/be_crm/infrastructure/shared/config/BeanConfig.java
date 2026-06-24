@@ -8,12 +8,12 @@ import vn.com.be_crm.infrastructure.shared.config.beans.ContactBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.CustomerBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.HandoverBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.LeadBeanConfig;
+import vn.com.be_crm.infrastructure.shared.config.beans.NotificationBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.OpportunityBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.OrderBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.PricingBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.ProductBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.QuotationBeanConfig;
-import vn.com.be_crm.infrastructure.shared.config.beans.WarehouseBeanConfig;
 
 /**
  * Điểm gom cấu hình wire UseCase — mỗi module tách ra một @Configuration riêng trong package
@@ -25,14 +25,14 @@ import vn.com.be_crm.infrastructure.shared.config.beans.WarehouseBeanConfig;
         ActivityBeanConfig.class,
         ProductBeanConfig.class,
         OpportunityBeanConfig.class,
-        WarehouseBeanConfig.class,
         CustomerBeanConfig.class,
         ContactBeanConfig.class,
         LeadBeanConfig.class,
         QuotationBeanConfig.class,
         OrderBeanConfig.class,
         PricingBeanConfig.class,
-        HandoverBeanConfig.class
+        HandoverBeanConfig.class,
+        NotificationBeanConfig.class
 })
 public class BeanConfig {
 }

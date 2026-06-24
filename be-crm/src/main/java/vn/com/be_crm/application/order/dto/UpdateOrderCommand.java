@@ -21,7 +21,6 @@ public class UpdateOrderCommand {
     private Long opportunityId;
     private Long ownerId;
     private Long executorUnitId;
-    private Long warehouseId;
     private LocalDate orderDate;
     @Size(max = 3) private String currency;
     private BigDecimal exchangeRate;

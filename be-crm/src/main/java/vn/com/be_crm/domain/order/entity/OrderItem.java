@@ -21,8 +21,6 @@ public class OrderItem {
     private Long orderId;
     /** ID sản phẩm. */
     private Long productId;
-    /** ID kho xuất hàng. */
-    private Long warehouseId;
     /** Đơn vị tính dòng hàng. */
     private String unit;
     /** Số lượng. */
