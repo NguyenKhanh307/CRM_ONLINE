@@ -35,6 +35,8 @@ public class OpportunityHibernate {
     private Long ownerId;
     @Column(name = "stage_id")
     private Long stageId;
+    @Column(name = "price_policy_id")
+    private Long pricePolicyId;
     @Column(name = "amount", precision = 18, scale = 2)
     private BigDecimal amount;
     @Column(name = "expected_revenue", precision = 18, scale = 2)

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * Domain entity đại diện cho bước phê duyệt báo giá.
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuotationApproval {

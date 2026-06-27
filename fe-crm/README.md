@@ -103,7 +103,7 @@ fe-crm/src/
 │   ├── khach-hang/             # Customer
 │   ├── co-hoi/                 # Opportunity
 │   ├── bao-gia/                # Quotation
-│   ├── don-hang/               # Order
+│   ├── hoa-don/                # Invoice (thay Order)
 │   ├── hoat-dong/              # Activity
 │   ├── san-pham/               # Product
 │   └── tracking-demo/          # Landing page demo web tracking (/tracking-demo)
@@ -222,7 +222,7 @@ Tất cả 8 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (
 | Khách hàng | `/khach-hang` | `GET /api/customers` | `PUT /api/customers/{id}` | `DELETE /api/customers/{id}` | ✓ |
 | Cơ hội | `/co-hoi` | `GET /api/opportunities` | `PUT /api/opportunities/{id}` | `DELETE /api/opportunities/{id}` | ✓ |
 | Báo giá | `/bao-gia` | `GET /api/quotations` | `PUT /api/quotations/{id}` | `DELETE /api/quotations/{id}` | ✓ |
-| Đơn hàng | `/don-hang` | `GET /api/orders` | `PUT /api/orders/{id}` | `DELETE /api/orders/{id}` | ✓ |
+| Hóa đơn | `/hoa-don` | `GET /api/invoices` | `PUT /api/invoices/{id}` | `DELETE /api/invoices/{id}` | ✓ |
 | Hoạt động | `/hoat-dong` | `GET /api/activities` | `PUT /api/activities/{id}` | `DELETE /api/activities/{id}` | — |
 | Sản phẩm | `/san-pham` | `GET /api/products` | `PUT /api/products/{id}` | `DELETE /api/products/{id}` | — |
 
@@ -284,7 +284,7 @@ Files: `features/phan-quyen/` — types, services, hooks (11 hooks), components 
 
 Trang hiển thị bản ghi đã xóa mềm trong 30 ngày gần nhất. Admin thấy tất cả, nhân viên chỉ thấy bản ghi do mình xóa.
 
-- **7 tab**: Tiềm năng, Liên hệ, Khách hàng, Cơ hội, Báo giá, Đơn hàng, Sản phẩm
+- **7 tab**: Tiềm năng, Liên hệ, Khách hàng, Cơ hội, Báo giá, Hóa đơn, Sản phẩm
 - **Khôi phục**: `POST /api/{module}/{id}/restore`
 - **Xóa vĩnh viễn**: `DELETE /api/{module}/{id}/purge` — set `is_purged=1`, ẩn UI, DB giữ soft-delete
 
@@ -292,7 +292,7 @@ Files: `features/thung-rac/` — types/thungRacTypes.ts, services/trashService.t
 
 ### Bàn giao công việc (2026-06-12)
 
-**Per-module** — 5 trang danh sách (Tiềm năng, Khách hàng, Cơ hội, Báo giá, Đơn hàng): chọn hàng → nút "Bàn giao (n)" → `HandoverModal` → `POST /api/{module}/handover-bulk`.
+**Per-module** — 5 trang danh sách (Tiềm năng, Khách hàng, Cơ hội, Báo giá, Hóa đơn): chọn hàng → nút "Bàn giao (n)" → `HandoverModal` → `POST /api/{module}/handover-bulk`.
 
 **Toàn bộ** — `TransferWorkModal` (icon header): chọn "từ user A → user B" → `POST /api/handover/all` — chuyển toàn bộ 5 module cùng lúc. Chỉ ADMIN/SALES_MANAGER có quyền.
 
@@ -321,7 +321,7 @@ features/
 ├── khach-hang/        # Customer — có CustomerImportPage
 ├── co-hoi/            # Opportunity — có OpportunityImportPage
 ├── bao-gia/           # Quotation — có QuotationImportPage
-├── don-hang/          # Order — có OrderImportPage
+├── hoa-don/           # Invoice — có InvoiceImportPage
 ├── hoat-dong/         # Activity — có ActivityImportPage
 ├── san-pham/          # Product — có ProductImportPage
 ├── tracking-demo/     # Landing page demo web tracking
@@ -345,9 +345,11 @@ Mỗi module data có trang thêm mới full-page (layout AMIS), truy cập qua 
 | Khách hàng | `/khach-hang/them-moi` | `POST /api/customers` |
 | Cơ hội | `/co-hoi/them-moi` | `POST /api/opportunities` (nhận `items[]`) |
 | Báo giá | `/bao-gia/them-moi` | `POST /api/quotations` (nhận `items[]`) |
-| Đơn hàng | `/don-hang/them-moi` | `POST /api/orders` (nhận `items[]`) |
+| Hóa đơn | `/hoa-don/them-moi` | `POST /api/invoices` (nhận `items[]`) |
 | Hoạt động | `/hoat-dong/them-moi` | `POST /api/activities` |
 | Sản phẩm | `/san-pham/them-moi` | `POST /api/products` |
+
+> **Trạng thái + dropdown nổi (2026-06-24):** form thêm mới **không còn chọn `status`** (tự động/qua hành động); trường người phụ trách mặc định = user đăng nhập (`useAuth()`). Mỗi list page có **nút hành động** theo status gọi `features/<m>/hooks/use<Module>Workflow.ts` (lead convert/lose, customer activate/deactivate, activity start/complete/cancel, order confirm/process/complete/cancel, quotation submit/approve/reject/send). Route mới **`/co-hoi/pipeline`** (`OpportunityPipelinePage`) để CRUD giai đoạn — status cơ hội suy ra từ giai đoạn. `SearchableSelect` render qua **portal** (`createPortal` + `position:fixed`, `z-[10000]`) nên không bị section/bảng/modal đè. Lý do nhập qua `shared/components/ReasonModal.tsx`. Ngày/số dùng `@/shared/utils/date.ts` + `@/shared/utils/number.ts`.
 
 **Shared form components** — `src/shared/components/form/`:
 
@@ -380,7 +382,7 @@ Mỗi module data có trang nhập file 4 bước riêng, truy cập qua nút "N
 | Khách hàng | `/khach-hang/nhap-file` | `POST /api/customers/import-bulk` |
 | Cơ hội | `/co-hoi/nhap-file` | `POST /api/opportunities/import-bulk` |
 | Báo giá | `/bao-gia/nhap-file` | `POST /api/quotations/import-bulk` |
-| Đơn hàng | `/don-hang/nhap-file` | `POST /api/orders/import-bulk` |
+| Hóa đơn | `/hoa-don/nhap-file` | `POST /api/invoices/import-bulk` |
 | Hoạt động | `/hoat-dong/nhap-file` | `POST /api/activities/import-bulk` |
 | Sản phẩm | `/san-pham/nhap-file` | `POST /api/products/import-bulk` |
 

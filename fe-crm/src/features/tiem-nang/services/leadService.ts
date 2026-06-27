@@ -24,4 +24,9 @@ export const leadService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/leads/handover-bulk', payload),
+    /** Chuyển đổi tiềm năng (qualified → converted). */
+    convert: (id: number) => axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/convert`),
+    /** Đánh mất tiềm năng (→ lost). */
+    lose: (id: number, reason?: string) =>
+        axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/lose`, { reason }),
 };

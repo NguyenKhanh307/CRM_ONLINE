@@ -35,6 +35,12 @@ public interface IQuotationRepository {
     Optional<Quotation> findById(Long id);
 
     /**
+     * Lấy danh sách báo giá theo cơ hội (chưa xóa mềm) — dùng cho quản lý báo giá đồng bộ (primary).
+     * @param opportunityId ID cơ hội @return danh sách báo giá
+     */
+    List<Quotation> findAllByOpportunityId(Long opportunityId);
+
+    /**
      * Xóa mềm báo giá theo ID, ghi nhận người xóa.
      * @param id        ID cần xóa
      * @param deletedBy ID người thực hiện xóa

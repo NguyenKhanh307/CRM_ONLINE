@@ -7,7 +7,7 @@ export interface UpdateQuotationPayload {
     validUntil: string | null;
     currency?: string | null;
     exchangeRate?: number | null;
-    status: string;
+    // status: KHÔNG gửi — đổi qua hành động submit/approve/reject/send.
     subtotal: number | null;
     discount: number | null;
     tax: number | null;
@@ -38,7 +38,7 @@ export interface CreateQuotationPayload {
     validUntil: string | null;
     currency: string;
     exchangeRate: number;
-    status: string;
+    // status: KHÔNG gửi — báo giá luôn tạo ở trạng thái Nháp.
     subtotal: number;
     discount: number;
     tax: number;
@@ -67,6 +67,9 @@ export interface QuotationResult {
     customerId: number | null;
     contactId: number | null;
     opportunityId: number | null;
+    pricePolicyId: number | null;
+    isPrimary: boolean;
+    isLocked: boolean;
     ownerId: number | null;
     quoteDate: string | null;
     validUntil: string | null;

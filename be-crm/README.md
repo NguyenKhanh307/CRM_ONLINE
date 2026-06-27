@@ -13,7 +13,7 @@
    - [Customer — Khách hàng](#24-customer--khách-hàng)
    - [Lead — Tiềm năng](#25-lead--tiềm-năng)
    - [Opportunity — Cơ hội bán hàng](#26-opportunity--cơ-hội-bán-hàng)
-   - [Order — Đơn hàng](#27-order--đơn-hàng)
+   - [Invoice — Hóa đơn](#27-invoice--hóa-đơn-thay-cho-đơn-hàng)
    - [Product — Sản phẩm](#28-product--sản-phẩm)
    - [Pricing — Chính sách giá](#29-pricing--chính-sách-giá)
    - [Quotation — Báo giá](#210-quotation--báo-giá)
@@ -285,58 +285,53 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 ---
 
-### 2.7 Order — Đơn hàng
+### 2.7 Invoice — Hóa đơn (thay cho Đơn hàng)
 
-#### Đơn hàng — `/api/orders`
+> **Đổi tên Order → Invoice** theo "Thiết Kế Luồng Nghiệp Vụ CRM" (luồng Báo giá → Hóa đơn). Đã GỠ theo dõi giao hàng và các field đơn-hàng-đặc-thù.
 
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `POST` | `/api/orders` | Tạo đơn hàng — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; bổ sung field V6 (quotationId, opportunityId, currency, exchangeRate, creditDays, paymentDueDate, isInvoiced, receiverName, receiverPhone) |
-| `GET` | `/api/orders` | Danh sách đơn hàng (phân trang) |
-| `GET` | `/api/orders/{id}` | Lấy đơn hàng theo ID |
-| `PUT` | `/api/orders/{id}` | Cập nhật đơn hàng |
-| `DELETE` | `/api/orders/{id}` | Xóa mềm đơn hàng |
-| `GET` | `/api/orders/deleted` | Thùng rác — danh sách đơn hàng đã xóa (30 ngày) |
-| `POST` | `/api/orders/{id}/restore` | Khôi phục đơn hàng từ thùng rác |
-| `DELETE` | `/api/orders/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
-| `POST` | `/api/orders/import-bulk` | Nhập hàng loạt đơn hàng từ file Excel/CSV |
-| `POST` | `/api/orders/handover-bulk` | Bàn giao nhiều đơn hàng sang người dùng khác — body: `{ ids, toUserId, reason? }` |
-
-#### Dòng hàng đơn — `/api/orders/{orderId}/items`
+#### Hóa đơn — `/api/invoices`
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/orders/{orderId}/items` | Thêm sản phẩm vào đơn hàng |
-| `GET` | `/api/orders/{orderId}/items` | Danh sách sản phẩm trong đơn |
-| `PUT` | `/api/orders/{orderId}/items/{id}` | Cập nhật dòng hàng |
-| `DELETE` | `/api/orders/{orderId}/items/{id}` | Xóa dòng hàng |
+| `POST` | `/api/invoices` | Tạo hóa đơn — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; field: quotationId, opportunityId, invoiceDate, dueDate, currency, exchangeRate, billingAddress, taxCode |
+| `GET` | `/api/invoices` | Danh sách hóa đơn (phân trang) |
+| `GET` | `/api/invoices/{id}` | Lấy hóa đơn theo ID |
+| `PUT` | `/api/invoices/{id}` | Cập nhật hóa đơn (chặn khi đã khóa) |
+| `DELETE` | `/api/invoices/{id}` | Xóa mềm hóa đơn |
+| `GET` | `/api/invoices/deleted` | Thùng rác — hóa đơn đã xóa (30 ngày) |
+| `POST` | `/api/invoices/{id}/restore` | Khôi phục từ thùng rác |
+| `DELETE` | `/api/invoices/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
+| `POST` | `/api/invoices/{id}/issue` | Phát hành (draft → sent) + khóa dữ liệu |
+| `POST` | `/api/invoices/{id}/cancel` | Hủy hóa đơn (→ cancelled) |
+| `POST` | `/api/invoices/import-bulk` | Nhập hàng loạt từ file Excel/CSV |
+| `POST` | `/api/invoices/handover-bulk` | Bàn giao nhiều hóa đơn — body: `{ ids, toUserId, reason? }` |
 
-#### Lịch thanh toán — `/api/orders/{orderId}/payment-schedules`
-
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `POST` | `/api/orders/{orderId}/payment-schedules` | Tạo lịch thanh toán |
-| `GET` | `/api/orders/{orderId}/payment-schedules` | Danh sách lịch thanh toán |
-| `PUT` | `/api/orders/{orderId}/payment-schedules/{id}` | Cập nhật lịch thanh toán |
-| `DELETE` | `/api/orders/{orderId}/payment-schedules/{id}` | Xóa lịch thanh toán |
-
-#### Theo dõi giao hàng — `/api/orders/{orderId}/delivery-tracking`
-
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `POST` | `/api/orders/{orderId}/delivery-tracking` | Tạo bản ghi giao hàng |
-| `GET` | `/api/orders/{orderId}/delivery-tracking` | Lịch sử giao hàng |
-| `PUT` | `/api/orders/{orderId}/delivery-tracking/{id}` | Cập nhật bản ghi |
-| `DELETE` | `/api/orders/{orderId}/delivery-tracking/{id}` | Xóa bản ghi |
-
-#### Ghi nhận doanh thu — `/api/orders/{orderId}/revenue-records`
+#### Dòng hàng — `/api/invoices/{invoiceId}/items`
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/orders/{orderId}/revenue-records` | Ghi nhận doanh thu |
-| `GET` | `/api/orders/{orderId}/revenue-records` | Danh sách doanh thu |
-| `PUT` | `/api/orders/{orderId}/revenue-records/{id}` | Cập nhật bản ghi doanh thu |
-| `DELETE` | `/api/orders/{orderId}/revenue-records/{id}` | Xóa bản ghi doanh thu |
+| `POST` | `/api/invoices/{invoiceId}/items` | Thêm sản phẩm vào hóa đơn |
+| `GET` | `/api/invoices/{invoiceId}/items` | Danh sách sản phẩm |
+| `PUT` | `/api/invoices/{invoiceId}/items/{id}` | Cập nhật dòng hàng |
+| `DELETE` | `/api/invoices/{invoiceId}/items/{id}` | Xóa dòng hàng |
+
+#### Lịch thanh toán — `/api/invoices/{invoiceId}/payment-schedules`
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `POST` | `/api/invoices/{invoiceId}/payment-schedules` | Tạo đợt thanh toán (tự suy lại paymentStatus + status) |
+| `GET` | `/api/invoices/{invoiceId}/payment-schedules` | Danh sách đợt thanh toán |
+| `PUT` | `/api/invoices/{invoiceId}/payment-schedules/{id}` | Cập nhật (tự suy lại) |
+| `DELETE` | `/api/invoices/{invoiceId}/payment-schedules/{id}` | Xóa (tự suy lại) |
+
+#### Ghi nhận doanh thu — `/api/invoices/{invoiceId}/revenue-records`
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `POST` | `/api/invoices/{invoiceId}/revenue-records` | Ghi nhận doanh thu |
+| `GET` | `/api/invoices/{invoiceId}/revenue-records` | Danh sách doanh thu |
+| `PUT` | `/api/invoices/{invoiceId}/revenue-records/{id}` | Cập nhật |
+| `DELETE` | `/api/invoices/{invoiceId}/revenue-records/{id}` | Xóa |
 
 ---
 
@@ -503,6 +498,28 @@ Phục vụ trang landing demo: tạo tiềm năng ẩn danh, ghi sự kiện & 
 | `GET` | `/api/notifications/unread-count` | Đếm số thông báo chưa đọc |
 | `POST` | `/api/notifications/{id}/read` | Đánh dấu một thông báo đã đọc |
 | `POST` | `/api/notifications/read-all` | Đánh dấu tất cả đã đọc |
+
+### 2.13 Endpoint chuyển trạng thái (workflow — 2026-06-24)
+
+Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động (có guard `ensureCanTransitionTo`, trả 400 nếu bước sai):
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `POST` | `/api/leads/{id}/convert` | qualified → converted; **tách thành Khách hàng + Liên hệ + Cơ hội** rồi khóa lead |
+| `POST` | `/api/leads/{id}/lose` | → lost (body `{reason}`) |
+| `POST` | `/api/customers/{id}/activate` \| `/deactivate` | active ↔ inactive |
+| `POST` | `/api/activities/{id}/start` \| `/complete` \| `/cancel` | planned→in_progress→done / cancelled |
+| `POST` | `/api/invoices/{id}/issue` \| `/cancel` | draft→sent (khóa) / cancelled |
+| `POST` | `/api/quotations/{id}/submit` \| `/approve` \| `/reject` \| `/send` \| `/accept` | draft→pending→approved/rejected→sent→accepted (approve/reject cần ADMIN/SALES_MANAGER; send gửi email khách) |
+| `POST` | `/api/quotations/from-opportunity/{opportunityId}` | Clone báo giá từ cơ hội (OLI→QLI, đặt primary nếu là báo giá đầu) |
+| `POST` | `/api/quotations/{id}/set-primary` | Đặt báo giá đồng bộ (chỉ 1 primary/cơ hội) |
+| `POST` | `/api/quotations/{id}/convert-to-invoice` | Chuyển thành hóa đơn (khóa báo giá + cơ hội won) |
+| `GET`  | `/api/pricing/resolve?pricePolicyId&productId&quantity` | Tra đơn giá/chiết khấu theo chính sách giá (pricebook) |
+
+- **Cơ hội**: status suy ra từ `stageId`; `amount` **roll-up** từ dòng hàng (cập nhật khi sửa dòng hàng hoặc khi sync từ báo giá primary).
+- **Báo giá đồng bộ (primary)**: sửa dòng hàng báo giá primary tự **sync** về dòng cơ hội + roll-up lại amount.
+- **Hóa đơn — paymentStatus/status**: suy ra tự động từ tổng `paidAmount` các `/payment-schedules` (không nhận tay).
+- DB: toàn bộ schema (gồm enum `pending`/`accepted`, luồng Báo giá→Hóa đơn, pricebook) đã hợp nhất trong `diagrams/crm.sql` — chỉ cần chạy `crm.sql` rồi `data.sql`.
 
 ---
 

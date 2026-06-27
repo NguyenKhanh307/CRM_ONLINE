@@ -20,22 +20,27 @@ public class QuotationItemController {
     private final UpdateQuotationItemUseCase updateUC;
     private final DeleteQuotationItemUseCase deleteUC;
     private final ListQuotationItemUseCase listUC;
+    private final SyncQuotationToOpportunityUseCase syncUC;
 
-    /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param listUC danh sách */
+    /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param listUC danh sách @param syncUC đồng bộ về cơ hội */
     public QuotationItemController(CreateQuotationItemUseCase createUC, UpdateQuotationItemUseCase updateUC,
-                                    DeleteQuotationItemUseCase deleteUC, ListQuotationItemUseCase listUC) {
+                                    DeleteQuotationItemUseCase deleteUC, ListQuotationItemUseCase listUC,
+                                    SyncQuotationToOpportunityUseCase syncUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC; this.listUC = listUC;
+        this.syncUC = syncUC;
     }
 
     /** Tạo mới dòng báo giá. @param quotationId ID báo giá @param cmd body @return 201 */
     @PostMapping
     public ResponseEntity<ApiResponse<QuotationItemResult>> create(@PathVariable Long quotationId,
                                                                     @Valid @RequestBody CreateQuotationItemCommand cmd) {
-        return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(
+        QuotationItemResult result = createUC.execute(
                 CreateQuotationItemCommand.builder().quotationId(quotationId).productId(cmd.getProductId())
                         .unit(cmd.getUnit())
                         .quantity(cmd.getQuantity()).unitPrice(cmd.getUnitPrice()).discount(cmd.getDiscount())
-                        .taxRate(cmd.getTaxRate()).amount(cmd.getAmount()).note(cmd.getNote()).build())));
+                        .taxRate(cmd.getTaxRate()).amount(cmd.getAmount()).note(cmd.getNote()).build());
+        syncUC.execute(quotationId);
+        return ResponseEntity.status(201).body(ApiResponse.created(result));
     }
 
     /** Lấy danh sách dòng báo giá. @param quotationId ID báo giá @return 200 */
@@ -49,15 +54,19 @@ public class QuotationItemController {
     public ResponseEntity<ApiResponse<QuotationItemResult>> update(@PathVariable Long quotationId,
                                                                     @PathVariable Long id,
                                                                     @Valid @RequestBody UpdateQuotationItemCommand cmd) {
-        return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
+        QuotationItemResult result = updateUC.execute(
                 UpdateQuotationItemCommand.builder().id(id).productId(cmd.getProductId())
                         .quantity(cmd.getQuantity()).unitPrice(cmd.getUnitPrice()).discount(cmd.getDiscount())
-                        .taxRate(cmd.getTaxRate()).amount(cmd.getAmount()).note(cmd.getNote()).build())));
+                        .taxRate(cmd.getTaxRate()).amount(cmd.getAmount()).note(cmd.getNote()).build());
+        syncUC.execute(quotationId);
+        return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
     /** Xóa dòng báo giá. @param id ID @return 204 */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long quotationId, @PathVariable Long id) {
-        deleteUC.execute(id); return ResponseEntity.noContent().build();
+        deleteUC.execute(id);
+        syncUC.execute(quotationId);
+        return ResponseEntity.noContent().build();
     }
 }

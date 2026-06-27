@@ -5,6 +5,7 @@ export interface UpdateOpportunityPayload {
     contactId: number | null;
     ownerId: number | null;
     stageId: number | null;
+    pricePolicyId: number | null;
     amount: number | null;
     expectedRevenue?: number | null;
     probability: number | null;
@@ -12,7 +13,7 @@ export interface UpdateOpportunityPayload {
     source?: string | null;
     winLossReason?: string | null;
     description?: string | null;
-    status: string;
+    // status: KHÔNG gửi — backend suy ra từ giai đoạn pipeline.
 }
 
 /** Một dòng hàng gửi kèm khi tạo cơ hội. */
@@ -34,6 +35,7 @@ export interface CreateOpportunityPayload {
     contactId: number | null;
     ownerId: number | null;
     stageId: number | null;
+    pricePolicyId: number | null;
     amount: number | null;
     expectedRevenue: number | null;
     probability: number | null;
@@ -41,7 +43,7 @@ export interface CreateOpportunityPayload {
     source: string | null;
     winLossReason: string | null;
     description: string | null;
-    status: string;
+    // status: KHÔNG gửi — backend suy ra từ giai đoạn pipeline.
     items: OpportunityItemPayload[];
 }
 
@@ -66,6 +68,7 @@ export interface OpportunityResult {
     contactId: number | null;
     ownerId: number | null;
     stageId: number | null;
+    pricePolicyId: number | null;
     amount: number | null;
     expectedRevenue: number | null;
     probability: number | null;

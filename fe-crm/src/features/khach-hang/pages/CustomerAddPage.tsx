@@ -6,6 +6,7 @@ import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
+import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useOrgUnits } from '@/features/users/hooks/useOrgUnits';
 import { useCreateCustomer } from '../hooks/useCreateCustomer';
@@ -14,12 +15,6 @@ import type { CreateCustomerPayload } from '../types/customerTypes';
 const TYPE_OPTIONS = [
     { value: 'company', label: 'Doanh nghiệp' },
     { value: 'individual', label: 'Cá nhân' },
-];
-
-const STATUS_OPTIONS = [
-    { value: 'active', label: 'Đang hoạt động' },
-    { value: 'inactive', label: 'Ngừng hoạt động' },
-    { value: 'potential', label: 'Tiềm năng' },
 ];
 
 const SOURCE_OPTIONS = [
@@ -38,19 +33,20 @@ const RATING_OPTIONS = [
 
 interface FormState {
     code: string; name: string; shortName: string; type: string; taxCode: string;
-    industry: string; source: string; status: string;
+    industry: string; source: string;
     phone: string; email: string; website: string; address: string;
     creditDays: string; creditLimit: string; bankAccount: string; bankName: string;
     rating: string; annualRevenue: string; employeeSize: string; isDistributor: boolean;
     ownerId: string; unitId: string;
 }
 
-const INITIAL: FormState = {
+/** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
+const initialState = (ownerId: string): FormState => ({
     code: '', name: '', shortName: '', type: 'company', taxCode: '', industry: '', source: '',
-    status: 'active', phone: '', email: '', website: '', address: '', creditDays: '', creditLimit: '',
+    phone: '', email: '', website: '', address: '', creditDays: '', creditLimit: '',
     bankAccount: '', bankName: '', rating: '', annualRevenue: '', employeeSize: '', isDistributor: false,
-    ownerId: '', unitId: '',
-};
+    ownerId, unitId: '',
+});
 
 const num = (s: string): number | null => (s.trim() ? Number(s) : null);
 
@@ -66,7 +62,6 @@ const toPayload = (f: FormState): CreateCustomerPayload => ({
     address: f.address || null,
     industry: f.industry || null,
     source: f.source || null,
-    status: f.status,
     creditDays: num(f.creditDays),
     creditLimit: num(f.creditLimit),
     bankAccount: f.bankAccount || null,
@@ -83,7 +78,9 @@ const toPayload = (f: FormState): CreateCustomerPayload => ({
 const CustomerAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
-    const [form, setForm] = useState<FormState>(INITIAL);
+    const { user } = useAuth();
+    const defaultOwnerId = user ? String(user.id) : '';
+    const [form, setForm] = useState<FormState>(() => initialState(defaultOwnerId));
     const { mutate, isPending } = useCreateCustomer();
     const { data: users = [] } = useActiveUsers();
     const { data: units = [] } = useOrgUnits();
@@ -98,7 +95,7 @@ const CustomerAddPage = () => {
         if (!form.name.trim()) { showAlert('Tên khách hàng không được để trống'); return; }
         mutate(toPayload(form), {
             onSuccess: () => {
-                if (andNew) { setForm(INITIAL); showAlert('Đã lưu khách hàng thành công'); }
+                if (andNew) { setForm(initialState(defaultOwnerId)); showAlert('Đã lưu khách hàng thành công'); }
                 else navigate('/khach-hang');
             },
             onError: (err: unknown) => {
@@ -140,9 +137,6 @@ const CustomerAddPage = () => {
                             </FieldRow>
                             <FieldRow label="Nguồn gốc">
                                 <SearchableSelect value={form.source} onChange={(v) => set({ source: v })} options={SOURCE_OPTIONS} />
-                            </FieldRow>
-                            <FieldRow label="Trạng thái">
-                                <SearchableSelect value={form.status} onChange={(v) => set({ status: v })} options={STATUS_OPTIONS} />
                             </FieldRow>
                         </div>
                     </div>

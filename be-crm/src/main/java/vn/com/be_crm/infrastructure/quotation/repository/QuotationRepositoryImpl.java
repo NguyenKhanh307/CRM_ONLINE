@@ -54,6 +54,15 @@ public class QuotationRepositoryImpl implements IQuotationRepository {
         }
     }
 
+    /** Lấy danh sách báo giá theo cơ hội (chưa xóa mềm). @param opportunityId @return danh sách */
+    @Override public List<Quotation> findAllByOpportunityId(Long opportunityId) {
+        try (Session s = sf.openSession()) {
+            return s.createQuery("FROM QuotationHibernate WHERE opportunityId = :oid AND deletedAt IS NULL", QuotationHibernate.class)
+                    .setParameter("oid", opportunityId).list()
+                    .stream().map(mapper::toDomain).collect(Collectors.toList());
+        }
+    }
+
     /**
      * Lưu Quotation kèm danh sách dòng hàng trong MỘT transaction.
      * @param q     domain entity báo giá

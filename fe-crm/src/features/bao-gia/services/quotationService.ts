@@ -32,4 +32,28 @@ export const quotationService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/quotations/handover-bulk', payload),
+    /** Nhân viên gửi báo giá lên quản lý duyệt (draft → pending). */
+    submit: (id: number) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/submit`),
+    /** Quản lý duyệt báo giá (pending → approved). */
+    approve: (id: number, comment?: string) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/approve`, { comment }),
+    /** Quản lý từ chối báo giá (pending → draft). */
+    reject: (id: number, comment?: string) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/reject`, { comment }),
+    /** Nhân viên gửi email báo giá cho khách (approved → sent). */
+    send: (id: number) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/send`),
+    /** Khách chấp nhận báo giá (sent → accepted). */
+    accept: (id: number) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/accept`),
+    /** Đặt báo giá làm báo giá đồng bộ (primary) của cơ hội. */
+    setPrimary: (id: number) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/set-primary`),
+    /** Chuyển báo giá thành hóa đơn (khóa báo giá + cơ hội Chốt Thắng). */
+    convertToInvoice: (id: number) =>
+        axiosInstance.post<ApiResponse<unknown>>(`/api/quotations/${id}/convert-to-invoice`),
+    /** Clone báo giá từ cơ hội (sao chép sâu KH/LH/chính sách giá + dòng hàng). */
+    fromOpportunity: (opportunityId: number) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/from-opportunity/${opportunityId}`),
 };

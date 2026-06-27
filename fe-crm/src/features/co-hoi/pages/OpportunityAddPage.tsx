@@ -13,19 +13,16 @@ import {
     toItemPayloads,
 } from '@/shared/components/form/productLineItem';
 import { useAlert } from '@/shared/alert/useAlert';
+import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useContactList } from '@/features/lien-he/hooks/useContactList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { usePricePolicyList } from '@/features/chinh-sach-gia/hooks/usePricePolicyList';
 import { useCreateOpportunity } from '../hooks/useCreateOpportunity';
 import { useOpportunityStages } from '../hooks/useOpportunityStages';
 import type { CreateOpportunityPayload } from '../types/opportunityTypes';
 
-const STATUS_OPTIONS = [
-    { value: 'open', label: 'Đang mở' },
-    { value: 'won', label: 'Thắng' },
-    { value: 'lost', label: 'Thua' },
-];
 const SOURCE_OPTIONS = [
     { value: 'website', label: 'Website' },
     { value: 'gioi-thieu', label: 'Giới thiệu' },
@@ -36,16 +33,17 @@ const SOURCE_OPTIONS = [
 
 interface HeaderState {
     code: string; name: string; opportunityType: string; customerId: string; contactId: string;
-    ownerId: string; stageId: string; status: string; source: string;
+    ownerId: string; stageId: string; pricePolicyId: string; source: string;
     amount: string; expectedRevenue: string; probability: string; expectedCloseDate: string;
     description: string; winLossReason: string;
 }
 
-const INITIAL: HeaderState = {
-    code: '', name: '', opportunityType: '', customerId: '', contactId: '', ownerId: '', stageId: '',
-    status: 'open', source: '', amount: '', expectedRevenue: '', probability: '', expectedCloseDate: '',
+/** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
+const initialState = (ownerId: string): HeaderState => ({
+    code: '', name: '', opportunityType: '', customerId: '', contactId: '', ownerId, stageId: '',
+    pricePolicyId: '', source: '', amount: '', expectedRevenue: '', probability: '', expectedCloseDate: '',
     description: '', winLossReason: '',
-};
+});
 
 const num = (s: string): number | null => (s.trim() ? Number(s) : null);
 
@@ -53,7 +51,9 @@ const num = (s: string): number | null => (s.trim() ? Number(s) : null);
 const OpportunityAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
-    const [form, setForm] = useState<HeaderState>(INITIAL);
+    const { user } = useAuth();
+    const defaultOwnerId = user ? String(user.id) : '';
+    const [form, setForm] = useState<HeaderState>(() => initialState(defaultOwnerId));
     const [rows, setRows] = useState<LineItemRow[]>([emptyLineItem()]);
     const { mutate, isPending } = useCreateOpportunity();
 
@@ -62,18 +62,20 @@ const OpportunityAddPage = () => {
     const { data: contacts = [] } = useContactList();
     const { data: products = [] } = useProductList();
     const { data: stages = [] } = useOpportunityStages();
+    const { data: pricePolicies = [] } = usePricePolicyList();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
     const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
     const stageOptions = useMemo(() => stages.map((s) => ({ value: String(s.id), label: s.name })), [stages]);
+    const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
     const productOptions = useMemo<ProductOption[]>(
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0 })),
         [products],
     );
 
     const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
-    const reset = () => { setForm(INITIAL); setRows([emptyLineItem()]); };
+    const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); };
 
     const submit = (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã cơ hội không được để trống'); return; }
@@ -86,6 +88,7 @@ const OpportunityAddPage = () => {
             contactId: form.contactId ? Number(form.contactId) : null,
             ownerId: form.ownerId ? Number(form.ownerId) : null,
             stageId: form.stageId ? Number(form.stageId) : null,
+            pricePolicyId: form.pricePolicyId ? Number(form.pricePolicyId) : null,
             amount: num(form.amount),
             expectedRevenue: num(form.expectedRevenue),
             probability: num(form.probability),
@@ -93,7 +96,6 @@ const OpportunityAddPage = () => {
             source: form.source || null,
             winLossReason: form.winLossReason || null,
             description: form.description || null,
-            status: form.status,
             items: toItemPayloads(rows),
         };
         mutate(payload, {
@@ -141,8 +143,8 @@ const OpportunityAddPage = () => {
                             <FieldRow label="Giai đoạn">
                                 <SearchableSelect value={form.stageId} onChange={(v) => set({ stageId: v })} options={stageOptions} />
                             </FieldRow>
-                            <FieldRow label="Trạng thái">
-                                <SearchableSelect value={form.status} onChange={(v) => set({ status: v })} options={STATUS_OPTIONS} />
+                            <FieldRow label="Chính sách giá">
+                                <SearchableSelect value={form.pricePolicyId} onChange={(v) => set({ pricePolicyId: v })} options={pricePolicyOptions} />
                             </FieldRow>
                             <FieldRow label="Nguồn gốc">
                                 <SearchableSelect value={form.source} onChange={(v) => set({ source: v })} options={SOURCE_OPTIONS} />

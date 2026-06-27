@@ -13,6 +13,7 @@ public class QuotationItemHibernateMapper {
     public QuotationItemHibernate toHibernate(QuotationItem d) {
         QuotationItemHibernate h = new QuotationItemHibernate();
         h.setId(d.getId()); h.setQuotationId(d.getQuotationId()); h.setProductId(d.getProductId());
+        h.setOpportunityItemId(d.getOpportunityItemId());
         h.setUnit(d.getUnit());
         h.setQuantity(d.getQuantity() != null ? d.getQuantity() : BigDecimal.ONE);
         h.setUnitPrice(d.getUnitPrice() != null ? d.getUnitPrice() : BigDecimal.ZERO);
@@ -26,6 +27,7 @@ public class QuotationItemHibernateMapper {
     public QuotationItem toDomain(QuotationItemHibernate h) {
         return QuotationItem.builder()
                 .id(h.getId()).quotationId(h.getQuotationId()).productId(h.getProductId())
+                .opportunityItemId(h.getOpportunityItemId())
                 .unit(h.getUnit())
                 .quantity(h.getQuantity()).unitPrice(h.getUnitPrice()).discount(h.getDiscount())
                 .taxRate(h.getTaxRate()).amount(h.getAmount()).note(h.getNote()).build();

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * Domain entity đại diện cho cơ hội bán hàng.
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Opportunity {
@@ -34,7 +34,9 @@ public class Opportunity {
     private Long ownerId;
     /** ID giai đoạn pipeline hiện tại. */
     private Long stageId;
-    /** Giá trị cơ hội. */
+    /** ID chính sách giá áp dụng (pricebook). */
+    private Long pricePolicyId;
+    /** Giá trị cơ hội (cộng dồn từ dòng hàng). */
     private BigDecimal amount;
     /** Doanh số kỳ vọng. */
     private BigDecimal expectedRevenue;

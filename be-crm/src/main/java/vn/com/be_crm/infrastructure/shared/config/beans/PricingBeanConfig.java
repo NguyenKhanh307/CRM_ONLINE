@@ -40,6 +40,10 @@ public class PricingBeanConfig {
     @Bean public DeletePricePolicyProductUseCase deletePricePolicyProductUseCase(IPricePolicyProductRepository r) { return new DeletePricePolicyProductUseCase(r); }
     /** @return ListPricePolicyProductUseCase */
     @Bean public ListPricePolicyProductUseCase listPricePolicyProductUseCase(IPricePolicyProductRepository r) { return new ListPricePolicyProductUseCase(r); }
+    /** @return ResolvePriceUseCase — tra cứu đơn giá theo chính sách giá */
+    @Bean public vn.com.be_crm.application.pricing.query.ResolvePriceUseCase resolvePriceUseCase(IPricePolicyProductRepository r) {
+        return new vn.com.be_crm.application.pricing.query.ResolvePriceUseCase(r);
+    }
 
     // ===== Price Policy Customer =====
 

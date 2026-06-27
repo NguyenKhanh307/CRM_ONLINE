@@ -30,9 +30,9 @@ public class OpportunityBeanConfig {
     // ===== Opportunity =====
 
     /** @return CreateOpportunityUseCase */
-    @Bean public CreateOpportunityUseCase createOpportunityUseCase(IOpportunityRepository r) { return new CreateOpportunityUseCase(r); }
+    @Bean public CreateOpportunityUseCase createOpportunityUseCase(IOpportunityRepository r, IOpportunityStageRepository sr) { return new CreateOpportunityUseCase(r, sr); }
     /** @return UpdateOpportunityUseCase */
-    @Bean public UpdateOpportunityUseCase updateOpportunityUseCase(IOpportunityRepository r) { return new UpdateOpportunityUseCase(r); }
+    @Bean public UpdateOpportunityUseCase updateOpportunityUseCase(IOpportunityRepository r, IOpportunityStageRepository sr) { return new UpdateOpportunityUseCase(r, sr); }
     /** @return DeleteOpportunityUseCase */
     @Bean public DeleteOpportunityUseCase deleteOpportunityUseCase(IOpportunityRepository r) { return new DeleteOpportunityUseCase(r); }
     /** @return GetOpportunityUseCase */
@@ -50,6 +50,10 @@ public class OpportunityBeanConfig {
     @Bean public DeleteOpportunityItemUseCase deleteOpportunityItemUseCase(IOpportunityItemRepository r) { return new DeleteOpportunityItemUseCase(r); }
     /** @return ListOpportunityItemUseCase */
     @Bean public ListOpportunityItemUseCase listOpportunityItemUseCase(IOpportunityItemRepository r) { return new ListOpportunityItemUseCase(r); }
+    /** @return RecomputeOpportunityAmountUseCase — roll-up giá trị cơ hội từ dòng hàng */
+    @Bean public RecomputeOpportunityAmountUseCase recomputeOpportunityAmountUseCase(IOpportunityRepository r, IOpportunityItemRepository ir) {
+        return new RecomputeOpportunityAmountUseCase(r, ir);
+    }
 
     // ===== Trash =====
 

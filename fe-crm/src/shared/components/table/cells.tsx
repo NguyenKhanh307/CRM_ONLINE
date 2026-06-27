@@ -1,5 +1,6 @@
 import type { CellContext } from '@tanstack/react-table';
 import { formatISODate } from '@/shared/utils/date';
+import { formatNumber } from '@/shared/utils/number';
 import { lookupName } from '@/shared/utils/lookup';
 
 /**
@@ -10,13 +11,13 @@ import { lookupName } from '@/shared/utils/lookup';
 /** Số tiền: "1.234.567 đ", null → "—". */
 export function currencyCell<T>({ getValue }: CellContext<T, unknown>) {
     const v = getValue() as number | null;
-    return v != null ? v.toLocaleString('vi-VN') + ' đ' : '—';
+    return v != null ? formatNumber(v) + ' đ' : '—';
 }
 
-/** Số thường (vd số lượng, %): toLocaleString, null → "—". */
+/** Số thường (vd số lượng, %): format vi-VN, null → "—". */
 export function numberCell<T>({ getValue }: CellContext<T, unknown>) {
     const v = getValue() as number | null;
-    return v != null ? v.toLocaleString('vi-VN') : '—';
+    return v != null ? formatNumber(v) : '—';
 }
 
 /** Ngày ISO → dd/mm/yyyy, rỗng → "—". */

@@ -43,7 +43,7 @@ type OpenPanel = 'filter' | 'sort' | 'coloring' | 'columns' | null;
  * Hỗ trợ: chọn nhiều dòng, quick-filter tags, filter records,
  * sort đa cột, tô màu có điều kiện, ẩn/hiện cột, phân trang.
  */
-export const DataTable = <T extends Record<string, unknown>>({
+export const DataTable = <T extends object>({
     data,
     columns,
     isLoading = false,
@@ -160,14 +160,6 @@ export const DataTable = <T extends Record<string, unknown>>({
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [table, columnVisibility]
     );
-
-    const handleClearAll = useCallback(() => {
-        setSorting([]);
-        setColumnVisibility({});
-        setFilterConditions([]);
-        setConditionalRules([]);
-        setActiveQuickFilter(null);
-    }, []);
 
     /** Tính màu cho một row từ conditionalRules (scope=row). */
     const getRowColor = useCallback(

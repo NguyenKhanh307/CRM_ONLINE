@@ -3,8 +3,8 @@ import type { ExportColumn } from '@/shared/components/export/exportTypes';
 import type { LeadResult } from '../types/leadTypes';
 
 const STATUS_LABELS: Record<string, string> = {
-    new_: 'Mới', contacted: 'Đã liên hệ', qualified: 'Tiềm năng',
-    unqualified: 'Không tiềm năng', converted: 'Đã chuyển đổi',
+    new: 'Mới', contacting: 'Đang liên hệ', qualified: 'Đủ điều kiện',
+    converted: 'Đã chuyển đổi', lost: 'Thất bại',
 };
 
 /** Các cột khả dụng khi xuất file phân hệ Tiềm năng. */

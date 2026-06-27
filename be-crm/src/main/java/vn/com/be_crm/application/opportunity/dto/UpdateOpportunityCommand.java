@@ -20,6 +20,7 @@ public class UpdateOpportunityCommand {
     private Long contactId;
     private Long ownerId;
     private Long stageId;
+    private Long pricePolicyId;
     private BigDecimal amount;
     private BigDecimal expectedRevenue;
     private BigDecimal probability;

@@ -7,6 +7,7 @@ import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
+import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCreateActivity } from '../hooks/useCreateActivity';
 import type { CreateActivityPayload } from '../types/activityTypes';
@@ -23,12 +24,6 @@ const PRIORITY_OPTIONS = [
     { value: 'medium', label: 'Trung bình' },
     { value: 'high', label: 'Cao' },
 ];
-const STATUS_OPTIONS = [
-    { value: 'planned', label: 'Đã lên kế hoạch' },
-    { value: 'in_progress', label: 'Đang thực hiện' },
-    { value: 'done', label: 'Hoàn thành' },
-    { value: 'cancelled', label: 'Đã hủy' },
-];
 const TARGET_TYPE_OPTIONS = [
     { value: 'customer', label: 'Khách hàng' },
     { value: 'lead', label: 'Tiềm năng' },
@@ -42,17 +37,18 @@ const CALL_DIRECTION_OPTIONS = [
 ];
 
 interface FormState {
-    type: string; subject: string; content: string; priority: string; status: string;
+    type: string; subject: string; content: string; priority: string;
     assignedUserId: string; targetType: string; targetId: string;
     relatedType: string; relatedId: string; location: string; dueAt: string;
     callDirection: string; callResult: string; callDuration: string;
 }
 
-const INITIAL: FormState = {
-    type: 'call', subject: '', content: '', priority: 'medium', status: 'planned',
-    assignedUserId: '', targetType: '', targetId: '', relatedType: '', relatedId: '',
+/** State khởi tạo — người thực hiện mặc định là user đang đăng nhập. */
+const initialState = (assignedUserId: string): FormState => ({
+    type: 'call', subject: '', content: '', priority: 'medium',
+    assignedUserId, targetType: '', targetId: '', relatedType: '', relatedId: '',
     location: '', dueAt: '', callDirection: '', callResult: '', callDuration: '',
-};
+});
 
 const num = (s: string): number | null => (s.trim() ? Number(s) : null);
 
@@ -60,7 +56,9 @@ const num = (s: string): number | null => (s.trim() ? Number(s) : null);
 const ActivityAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
-    const [form, setForm] = useState<FormState>(INITIAL);
+    const { user } = useAuth();
+    const defaultUserId = user ? String(user.id) : '';
+    const [form, setForm] = useState<FormState>(() => initialState(defaultUserId));
     const { mutate, isPending } = useCreateActivity();
     const { data: users = [] } = useActiveUsers();
 
@@ -84,12 +82,11 @@ const ActivityAddPage = () => {
             callResult: form.type === 'call' ? (form.callResult || null) : null,
             callDuration: form.type === 'call' ? num(form.callDuration) : null,
             assignedUserId: form.assignedUserId ? Number(form.assignedUserId) : null,
-            status: form.status,
             dueAt: form.dueAt ? `${form.dueAt}:00` : null,
         };
         mutate(payload, {
             onSuccess: () => {
-                if (andNew) { setForm(INITIAL); showAlert('Đã lưu hoạt động thành công'); }
+                if (andNew) { setForm(initialState(defaultUserId)); showAlert('Đã lưu hoạt động thành công'); }
                 else navigate('/hoat-dong');
             },
             onError: (err: unknown) => {
@@ -120,9 +117,6 @@ const ActivityAddPage = () => {
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
-                            <FieldRow label="Trạng thái">
-                                <SearchableSelect value={form.status} onChange={(v) => set({ status: v })} options={STATUS_OPTIONS} />
-                            </FieldRow>
                             <FieldRow label="Người thực hiện">
                                 <SearchableSelect value={form.assignedUserId} onChange={(v) => set({ assignedUserId: v })} options={userOptions} />
                             </FieldRow>

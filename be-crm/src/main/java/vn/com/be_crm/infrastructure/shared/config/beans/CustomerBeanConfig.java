@@ -25,6 +25,8 @@ public class CustomerBeanConfig {
     @Bean public GetCustomerUseCase getCustomerUseCase(ICustomerRepository r) { return new GetCustomerUseCase(r); }
     /** @return ListCustomerUseCase */
     @Bean public ListCustomerUseCase listCustomerUseCase(ICustomerRepository r) { return new ListCustomerUseCase(r); }
+    /** @return CustomerWorkflowUseCase — hành động activate/deactivate */
+    @Bean public CustomerWorkflowUseCase customerWorkflowUseCase(ICustomerRepository r) { return new CustomerWorkflowUseCase(r); }
 
     // ===== Customer Share =====
 

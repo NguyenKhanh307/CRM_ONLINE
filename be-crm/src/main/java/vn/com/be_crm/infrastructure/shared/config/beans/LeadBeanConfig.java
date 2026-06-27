@@ -6,9 +6,12 @@ import vn.com.be_crm.application.lead.command.*;
 import vn.com.be_crm.application.lead.query.*;
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
+import vn.com.be_crm.domain.contact.repository.IContactRepository;
+import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadTrackingEventRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadTransferRepository;
+import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 
 /**
  * Wire các UseCase của module Lead (lead, activity, transfer, trash, handover, import) qua @Bean.
@@ -28,6 +31,11 @@ public class LeadBeanConfig {
     @Bean public GetLeadUseCase getLeadUseCase(ILeadRepository r) { return new GetLeadUseCase(r); }
     /** @return ListLeadUseCase */
     @Bean public ListLeadUseCase listLeadUseCase(ILeadRepository r) { return new ListLeadUseCase(r); }
+    /** @return LeadWorkflowUseCase — convert (tách KH+LH+CH) / lose */
+    @Bean public LeadWorkflowUseCase leadWorkflowUseCase(ILeadRepository r, ICustomerRepository cr,
+                                                         IContactRepository ctr, IOpportunityRepository or) {
+        return new LeadWorkflowUseCase(r, cr, ctr, or);
+    }
 
     // ===== Lead Scoring & Web Tracking =====
 

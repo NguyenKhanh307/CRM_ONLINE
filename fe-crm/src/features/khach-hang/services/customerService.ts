@@ -24,4 +24,8 @@ export const customerService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/customers/handover-bulk', payload),
+    /** Kích hoạt khách hàng (→ active). */
+    activate: (id: number) => axiosInstance.post<ApiResponse<CustomerResult>>(`/api/customers/${id}/activate`),
+    /** Ngừng hoạt động khách hàng (→ inactive). */
+    deactivate: (id: number) => axiosInstance.post<ApiResponse<CustomerResult>>(`/api/customers/${id}/deactivate`),
 };

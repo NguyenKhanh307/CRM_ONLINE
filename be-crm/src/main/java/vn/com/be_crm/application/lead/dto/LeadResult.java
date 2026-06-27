@@ -20,6 +20,7 @@ public class LeadResult {
     private Long ownerId;
     private Long customerId;
     private Long contactId;
+    private Long convertedOpportunityId;
     private String title;
     private String department;
     private String taxCode;

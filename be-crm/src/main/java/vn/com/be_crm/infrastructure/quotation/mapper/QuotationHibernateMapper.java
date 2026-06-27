@@ -16,6 +16,8 @@ public class QuotationHibernateMapper {
         // Khóa chính & các liên kết (khách hàng, liên hệ, cơ hội)
         h.setId(d.getId()); h.setCode(d.getCode()); h.setCustomerId(d.getCustomerId());
         h.setContactId(d.getContactId()); h.setOpportunityId(d.getOpportunityId());
+        h.setPricePolicyId(d.getPricePolicyId());
+        h.setPrimary(d.isPrimary()); h.setLocked(d.isLocked());
         h.setOwnerId(d.getOwnerId());
         h.setQuoteDate(d.getQuoteDate()); h.setValidUntil(d.getValidUntil());
         // Giá trị mặc định khi null (tiền tệ=VND, tỷ giá=1, trạng thái=draft)
@@ -37,6 +39,7 @@ public class QuotationHibernateMapper {
         return Quotation.builder()
                 .id(h.getId()).code(h.getCode()).customerId(h.getCustomerId()).contactId(h.getContactId())
                 .opportunityId(h.getOpportunityId())
+                .pricePolicyId(h.getPricePolicyId()).isPrimary(h.isPrimary()).isLocked(h.isLocked())
                 .ownerId(h.getOwnerId()).quoteDate(h.getQuoteDate()).validUntil(h.getValidUntil())
                 .currency(h.getCurrency()).exchangeRate(h.getExchangeRate())
                 .status(h.getStatus()).subtotal(h.getSubtotal()).discount(h.getDiscount())

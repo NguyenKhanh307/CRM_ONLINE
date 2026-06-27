@@ -6,19 +6,12 @@ import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
+import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useContactList } from '@/features/lien-he/hooks/useContactList';
 import { useCreateLead } from '../hooks/useCreateLead';
 import type { CreateLeadPayload } from '../types/leadTypes';
-
-const STATUS_OPTIONS = [
-    { value: 'new', label: 'Mới' },
-    { value: 'contacting', label: 'Đang liên hệ' },
-    { value: 'qualified', label: 'Đủ điều kiện' },
-    { value: 'converted', label: 'Đã chuyển đổi' },
-    { value: 'lost', label: 'Thất bại' },
-];
 
 const SOURCE_OPTIONS = [
     { value: 'website', label: 'Website' },
@@ -44,7 +37,6 @@ interface FormState {
     phone: string;
     email: string;
     source: string;
-    status: string;
     companyName: string;
     taxCode: string;
     website: string;
@@ -58,12 +50,13 @@ interface FormState {
     note: string;
 }
 
-const INITIAL: FormState = {
+/** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
+const initialState = (ownerId: string): FormState => ({
     code: '', name: '', leadType: '', title: '', department: '', phone: '', email: '',
-    source: '', status: 'new', companyName: '', taxCode: '', website: '', industry: '',
-    ownerId: '', customerId: '', contactId: '', estimatedValue: '', doNotCall: false,
+    source: '', companyName: '', taxCode: '', website: '', industry: '',
+    ownerId, customerId: '', contactId: '', estimatedValue: '', doNotCall: false,
     doNotEmail: false, note: '',
-};
+});
 
 const toPayload = (f: FormState): CreateLeadPayload => ({
     code: f.code.trim(),
@@ -79,7 +72,6 @@ const toPayload = (f: FormState): CreateLeadPayload => ({
     website: f.website || null,
     industry: f.industry || null,
     source: f.source || null,
-    status: f.status,
     estimatedValue: f.estimatedValue ? Number(f.estimatedValue) : null,
     phone: f.phone || null,
     email: f.email || null,
@@ -92,7 +84,9 @@ const toPayload = (f: FormState): CreateLeadPayload => ({
 const LeadAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
-    const [form, setForm] = useState<FormState>(INITIAL);
+    const { user } = useAuth();
+    const defaultOwnerId = user ? String(user.id) : '';
+    const [form, setForm] = useState<FormState>(() => initialState(defaultOwnerId));
     const { mutate, isPending } = useCreateLead();
 
     const { data: users = [] } = useActiveUsers();
@@ -110,7 +104,7 @@ const LeadAddPage = () => {
         if (!form.name.trim()) { showAlert('Tên tiềm năng không được để trống'); return; }
         mutate(toPayload(form), {
             onSuccess: () => {
-                if (andNew) { setForm(INITIAL); showAlert('Đã lưu tiềm năng thành công'); }
+                if (andNew) { setForm(initialState(defaultOwnerId)); showAlert('Đã lưu tiềm năng thành công'); }
                 else navigate('/tiem-nang');
             },
             onError: (err: unknown) => {
@@ -160,9 +154,6 @@ const LeadAddPage = () => {
                             </FieldRow>
                             <FieldRow label="Email">
                                 <input type="text" value={form.email} onChange={(e) => set({ email: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                            <FieldRow label="Trạng thái">
-                                <SearchableSelect value={form.status} onChange={(v) => set({ status: v })} options={STATUS_OPTIONS} />
                             </FieldRow>
                         </div>
                     </div>

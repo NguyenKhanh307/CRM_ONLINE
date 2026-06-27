@@ -80,6 +80,7 @@ public class OpportunityController {
                 UpdateOpportunityCommand.builder().id(id).name(cmd.getName()).opportunityType(cmd.getOpportunityType())
                         .customerId(cmd.getCustomerId())
                         .contactId(cmd.getContactId()).ownerId(cmd.getOwnerId()).stageId(cmd.getStageId())
+                        .pricePolicyId(cmd.getPricePolicyId())
                         .amount(cmd.getAmount()).expectedRevenue(cmd.getExpectedRevenue()).probability(cmd.getProbability())
                         .expectedCloseDate(cmd.getExpectedCloseDate())
                         .source(cmd.getSource()).winLossReason(cmd.getWinLossReason()).description(cmd.getDescription())

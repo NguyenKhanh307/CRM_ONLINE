@@ -2,8 +2,17 @@ package vn.com.be_crm.infrastructure.shared.config.beans;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
 import vn.com.be_crm.application.quotation.command.*;
 import vn.com.be_crm.application.quotation.query.*;
+import vn.com.be_crm.application.opportunity.command.RecomputeOpportunityAmountUseCase;
+import vn.com.be_crm.application.shared.email.IEmailService;
+import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
+import vn.com.be_crm.domain.contact.repository.IContactRepository;
+import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
+import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
+import vn.com.be_crm.domain.opportunity.repository.IOpportunityItemRepository;
+import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationApprovalRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
@@ -48,6 +57,38 @@ public class QuotationBeanConfig {
     @Bean public DeleteQuotationApprovalUseCase deleteQuotationApprovalUseCase(IQuotationApprovalRepository r) { return new DeleteQuotationApprovalUseCase(r); }
     /** @return ListQuotationApprovalUseCase */
     @Bean public ListQuotationApprovalUseCase listQuotationApprovalUseCase(IQuotationApprovalRepository r) { return new ListQuotationApprovalUseCase(r); }
+
+    // ===== Quotation Workflow (submit / approve / reject / send) =====
+
+    /** @return QuotationWorkflowUseCase */
+    @Bean public QuotationWorkflowUseCase quotationWorkflowUseCase(IQuotationRepository qr, IQuotationApprovalRepository ar,
+            CreateNotificationUseCase nuc, IUserRoleRepository urr, IEmailService es,
+            ICustomerRepository cr, IContactRepository cor) {
+        return new QuotationWorkflowUseCase(qr, ar, nuc, urr, es, cr, cor);
+    }
+
+    // ===== Quotation ↔ Opportunity ↔ Invoice (clone / primary / sync / convert) =====
+
+    /** @return CreateQuotationFromOpportunityUseCase — clone báo giá từ cơ hội */
+    @Bean public CreateQuotationFromOpportunityUseCase createQuotationFromOpportunityUseCase(
+            IQuotationRepository qr, IOpportunityRepository or, IOpportunityItemRepository oir) {
+        return new CreateQuotationFromOpportunityUseCase(qr, or, oir);
+    }
+    /** @return SetPrimaryQuotationUseCase — đặt báo giá đồng bộ */
+    @Bean public SetPrimaryQuotationUseCase setPrimaryQuotationUseCase(IQuotationRepository qr) {
+        return new SetPrimaryQuotationUseCase(qr);
+    }
+    /** @return SyncQuotationToOpportunityUseCase — đồng bộ dòng hàng báo giá primary về cơ hội */
+    @Bean public SyncQuotationToOpportunityUseCase syncQuotationToOpportunityUseCase(
+            IQuotationRepository qr, IQuotationItemRepository qir, IOpportunityItemRepository oir,
+            RecomputeOpportunityAmountUseCase ruc) {
+        return new SyncQuotationToOpportunityUseCase(qr, qir, oir, ruc);
+    }
+    /** @return ConvertQuotationToInvoiceUseCase — chuyển báo giá thành hóa đơn */
+    @Bean public ConvertQuotationToInvoiceUseCase convertQuotationToInvoiceUseCase(
+            IQuotationRepository qr, IQuotationItemRepository qir, IInvoiceRepository ir, IOpportunityRepository or) {
+        return new ConvertQuotationToInvoiceUseCase(qr, qir, ir, or);
+    }
 
     // ===== Trash =====
 

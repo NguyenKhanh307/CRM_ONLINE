@@ -3,16 +3,16 @@ import { badgeCell, currencyCell, dateCell, fkCell, numberCell, textCell, yesNoC
 import type { LeadResult } from '../types/leadTypes';
 
 const STATUS_COLORS: Record<string, string> = {
-    new_:        'bg-blue-100 text-blue-700',
-    contacted:   'bg-yellow-100 text-yellow-700',
-    qualified:   'bg-green-100 text-green-700',
-    unqualified: 'bg-red-100 text-red-600',
-    converted:   'bg-purple-100 text-purple-700',
+    new:        'bg-gray-100 text-gray-600',
+    contacting: 'bg-blue-100 text-blue-700',
+    qualified:  'bg-green-100 text-green-700',
+    converted:  'bg-emerald-100 text-emerald-700',
+    lost:       'bg-red-100 text-red-600',
 };
 
 const STATUS_LABELS: Record<string, string> = {
-    new_: 'Mới', contacted: 'Đã liên hệ', qualified: 'Tiềm năng',
-    unqualified: 'Không tiềm năng', converted: 'Đã chuyển đổi',
+    new: 'Mới', contacting: 'Đang liên hệ', qualified: 'Đủ điều kiện',
+    converted: 'Đã chuyển đổi', lost: 'Thất bại',
 };
 
 /** Map ID → tên cho các cột khóa ngoại của Tiềm năng. */

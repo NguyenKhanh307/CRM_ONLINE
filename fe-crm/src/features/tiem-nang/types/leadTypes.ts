@@ -11,7 +11,7 @@ export interface UpdateLeadPayload {
     website?: string | null;
     industry?: string | null;
     source: string | null;
-    status: string;
+    // status: KHÔNG gửi — đổi tự động (chấm điểm) hoặc qua hành động convert/lose.
     estimatedValue: number | null;
     phone: string | null;
     email: string | null;
@@ -35,7 +35,7 @@ export interface CreateLeadPayload {
     website: string | null;
     industry: string | null;
     source: string | null;
-    status: string;
+    // status: KHÔNG gửi — tiềm năng luôn tạo ở trạng thái 'new'.
     estimatedValue: number | null;
     phone: string | null;
     email: string | null;

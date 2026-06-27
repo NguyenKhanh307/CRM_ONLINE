@@ -6,11 +6,11 @@ import vn.com.be_crm.application.handover.HandoverAllUseCase;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
-import vn.com.be_crm.domain.order.repository.IOrderRepository;
+import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 
 /**
- * Wire UseCase bàn giao toàn bộ (cross-module: lead, customer, opportunity, quotation, order) qua @Bean.
+ * Wire UseCase bàn giao toàn bộ (cross-module: lead, customer, opportunity, quotation, invoice) qua @Bean.
  */
 @Configuration
 public class HandoverBeanConfig {
@@ -21,7 +21,7 @@ public class HandoverBeanConfig {
                                                  ICustomerRepository customerRepo,
                                                  IOpportunityRepository opportunityRepo,
                                                  IQuotationRepository quotationRepo,
-                                                 IOrderRepository orderRepo) {
-        return new HandoverAllUseCase(leadRepo, customerRepo, opportunityRepo, quotationRepo, orderRepo);
+                                                 IInvoiceRepository invoiceRepo) {
+        return new HandoverAllUseCase(leadRepo, customerRepo, opportunityRepo, quotationRepo, invoiceRepo);
     }
 }

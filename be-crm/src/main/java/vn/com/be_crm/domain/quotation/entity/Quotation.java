@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * Domain entity đại diện cho báo giá.
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Quotation {
@@ -28,6 +28,12 @@ public class Quotation {
     private Long contactId;
     /** Cơ hội liên quan (truy vết nguồn). */
     private Long opportunityId;
+    /** ID chính sách giá áp dụng (kế thừa từ cơ hội). */
+    private Long pricePolicyId;
+    /** Báo giá đồng bộ (primary) với cơ hội — chỉ một báo giá primary/cơ hội. */
+    private boolean isPrimary;
+    /** Khóa dữ liệu (read-only) sau khi đã chuyển thành hóa đơn. */
+    private boolean isLocked;
     /** ID người phụ trách. */
     private Long ownerId;
     /** Ngày báo giá. */

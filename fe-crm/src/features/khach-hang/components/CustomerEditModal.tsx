@@ -10,14 +10,16 @@ interface Props {
 
 const CUSTOMER_TYPES = ['individual', 'company'];
 const CUSTOMER_TYPE_LABELS: Record<string, string> = { individual: 'Cá nhân', company: 'Doanh nghiệp' };
-const CUSTOMER_STATUSES = ['active', 'inactive', 'potential'];
 const CUSTOMER_STATUS_LABELS: Record<string, string> = { active: 'Hoạt động', inactive: 'Ngừng', potential: 'Tiềm năng' };
+const CUSTOMER_STATUS_COLORS: Record<string, string> = {
+    active: 'bg-green-100 text-green-700', inactive: 'bg-red-100 text-red-600', potential: 'bg-yellow-100 text-yellow-700',
+};
 
 export function CustomerEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateCustomer();
     const [form, setForm] = useState<UpdateCustomerPayload>({
         name: '', type: 'individual', taxCode: null, phone: null,
-        email: null, address: null, source: null, status: 'active', ownerId: null, unitId: null,
+        email: null, address: null, source: null, ownerId: null, unitId: null,
         shortName: null, website: null, industry: null, creditDays: null, creditLimit: null,
         bankAccount: null, bankName: null, rating: null, annualRevenue: null,
         employeeSize: null, isDistributor: false,
@@ -27,7 +29,7 @@ export function CustomerEditModal({ item, onClose }: Props) {
         if (!item) return;
         setForm({
             name: item.name, type: item.type, taxCode: item.taxCode, phone: item.phone,
-            email: item.email, address: item.address, source: item.source, status: item.status,
+            email: item.email, address: item.address, source: item.source,
             ownerId: item.ownerId, unitId: item.unitId,
             shortName: item.shortName, website: item.website, industry: item.industry,
             creditDays: item.creditDays, creditLimit: item.creditLimit, bankAccount: item.bankAccount,
@@ -66,10 +68,10 @@ export function CustomerEditModal({ item, onClose }: Props) {
                             </select>
                         </div>
                         <div>
-                            <label className={lbl}>Trạng thái</label>
-                            <select className={inp} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                                {CUSTOMER_STATUSES.map(s => <option key={s} value={s}>{CUSTOMER_STATUS_LABELS[s]}</option>)}
-                            </select>
+                            <label className={lbl}>Trạng thái (đổi qua hành động)</label>
+                            <span className={`inline-block px-2 py-1.5 rounded text-sm font-medium ${CUSTOMER_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                                {CUSTOMER_STATUS_LABELS[item.status] ?? item.status}
+                            </span>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">

@@ -25,4 +25,6 @@ public class ActivityBeanConfig {
     @Bean public ListActivityUseCase listActivityUseCase(IActivityRepository r) { return new ListActivityUseCase(r); }
     /** @return ImportBulkActivityUseCase được inject IActivityRepository */
     @Bean public ImportBulkActivityUseCase importBulkActivityUseCase(IActivityRepository r) { return new ImportBulkActivityUseCase(r); }
+    /** @return ActivityWorkflowUseCase — hành động start/complete/cancel */
+    @Bean public ActivityWorkflowUseCase activityWorkflowUseCase(IActivityRepository r) { return new ActivityWorkflowUseCase(r); }
 }

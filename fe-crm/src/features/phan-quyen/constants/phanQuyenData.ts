@@ -5,7 +5,7 @@ export const MODULE_LABELS: Record<string, string> = {
     contact: 'Liên hệ',
     opportunity: 'Cơ hội',
     quotation: 'Báo giá',
-    order: 'Đơn hàng',
+    invoice: 'Hóa đơn',
     product: 'Sản phẩm',
     activity: 'Hoạt động',
     user: 'Người dùng',

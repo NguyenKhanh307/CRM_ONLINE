@@ -1,18 +1,20 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiToggleRight, FiToggleLeft } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
+import { useAlert } from '@/shared/alert/useAlert';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useOrgUnits } from '@/features/users/hooks/useOrgUnits';
 import { toIdNameMap } from '@/shared/utils/lookup';
 import { useCustomerList } from '../hooks/useCustomerList';
 import { useDeleteCustomer } from '../hooks/useDeleteCustomer';
 import { useHandoverBulkCustomer } from '../hooks/useHandoverBulkCustomer';
+import { useCustomerWorkflow, type CustomerAction } from '../hooks/useCustomerWorkflow';
 import { getCustomerColumns } from '../config/customerColumns';
 import { customerExportColumns } from '../config/customerExportColumns';
 import { CustomerEditModal } from '../components/CustomerEditModal';
@@ -20,9 +22,11 @@ import type { CustomerResult } from '../types/customerTypes';
 
 const KhachHangPage = () => {
     const navigate = useNavigate();
+    const { showAlert } = useAlert();
     const { data = [], isLoading } = useCustomerList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteCustomer();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkCustomer();
+    const { mutate: workflowFn } = useCustomerWorkflow();
     const { data: users } = useActiveUsers();
     const { data: orgUnits } = useOrgUnits();
 
@@ -35,6 +39,16 @@ const KhachHangPage = () => {
 
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
+    /** Chạy hành động kích hoạt/ngừng khách hàng, báo lỗi qua alert nếu không hợp lệ. */
+    const runAction = (id: number, action: CustomerAction) =>
+        workflowFn({ id, action }, {
+            onError: (err: unknown) => {
+                const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+                    ?? 'Không thực hiện được hành động';
+                showAlert(msg);
+            },
+        });
+
     const columns = useMemo<ColumnDef<CustomerResult>[]>(() => [
         ...getCustomerColumns({
             users: toIdNameMap(users, 'id', 'fullName'),
@@ -45,24 +59,33 @@ const KhachHangPage = () => {
             header: '',
             enableSorting: false,
             size: 80,
-            cell: ({ row }) => (
-                <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                    <button
-                        className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                        title="Chỉnh sửa"
-                        onClick={() => setEditTarget(row.original)}
-                    >
-                        <FiEdit2 size={14} />
-                    </button>
-                    <button
-                        className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                        title="Xóa"
-                        onClick={() => setDeleteTarget(row.original.id)}
-                    >
-                        <FiTrash2 size={14} />
-                    </button>
-                </div>
-            ),
+            cell: ({ row }) => {
+                const c = row.original;
+                return (
+                    <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
+                        {c.status !== 'active' && (
+                            <button className="p-1.5 rounded hover:bg-green-50 text-gray-400 hover:text-success"
+                                title="Kích hoạt" onClick={() => runAction(c.id, 'activate')}>
+                                <FiToggleRight size={14} />
+                            </button>
+                        )}
+                        {c.status === 'active' && (
+                            <button className="p-1.5 rounded hover:bg-yellow-50 text-gray-400 hover:text-warning"
+                                title="Ngừng hoạt động" onClick={() => runAction(c.id, 'deactivate')}>
+                                <FiToggleLeft size={14} />
+                            </button>
+                        )}
+                        <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
+                            title="Chỉnh sửa" onClick={() => setEditTarget(c)}>
+                            <FiEdit2 size={14} />
+                        </button>
+                        <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
+                            title="Xóa" onClick={() => setDeleteTarget(c.id)}>
+                            <FiTrash2 size={14} />
+                        </button>
+                    </div>
+                );
+            },
         },
     ], [users, orgUnits]);
 

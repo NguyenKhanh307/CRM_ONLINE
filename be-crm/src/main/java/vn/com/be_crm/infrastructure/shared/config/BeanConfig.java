@@ -10,7 +10,7 @@ import vn.com.be_crm.infrastructure.shared.config.beans.HandoverBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.LeadBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.NotificationBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.OpportunityBeanConfig;
-import vn.com.be_crm.infrastructure.shared.config.beans.OrderBeanConfig;
+import vn.com.be_crm.infrastructure.shared.config.beans.InvoiceBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.PricingBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.ProductBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.QuotationBeanConfig;
@@ -29,7 +29,7 @@ import vn.com.be_crm.infrastructure.shared.config.beans.QuotationBeanConfig;
         ContactBeanConfig.class,
         LeadBeanConfig.class,
         QuotationBeanConfig.class,
-        OrderBeanConfig.class,
+        InvoiceBeanConfig.class,
         PricingBeanConfig.class,
         HandoverBeanConfig.class,
         NotificationBeanConfig.class

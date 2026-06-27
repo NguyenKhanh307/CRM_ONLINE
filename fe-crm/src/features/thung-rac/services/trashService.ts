@@ -8,7 +8,7 @@ const ENDPOINTS: Record<TrashModule, string> = {
     'khach-hang': '/api/customers',
     'co-hoi':     '/api/opportunities',
     'bao-gia':    '/api/quotations',
-    'don-hang':   '/api/orders',
+    'hoa-don':    '/api/invoices',
     'san-pham':   '/api/products',
 };
 

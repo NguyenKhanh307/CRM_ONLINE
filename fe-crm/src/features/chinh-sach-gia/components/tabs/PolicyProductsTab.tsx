@@ -2,6 +2,7 @@ import { useState, useMemo, type FormEvent } from 'react';
 import { FiPlus, FiTrash2, FiEdit2, FiX } from 'react-icons/fi';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { toIdNameMap } from '@/shared/utils/lookup';
+import { formatNumber } from '@/shared/utils/number';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import AddEntityModal from '../AddEntityModal';
 import { usePolicyProducts, useCreatePolicyProduct, useUpdatePolicyProduct, useDeletePolicyProduct } from '../../hooks/usePolicyProducts';
@@ -72,7 +73,7 @@ export function PolicyProductsTab({ policyId }: Props) {
                         {data.map(item => (
                             <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
                                 <td className="py-2">{nameMap.get(item.productId) ?? '—'}</td>
-                                <td className="py-2">{item.price != null ? item.price.toLocaleString() : '—'}</td>
+                                <td className="py-2">{item.price != null ? formatNumber(item.price) : '—'}</td>
                                 <td className="py-2">
                                     {item.discountValue != null
                                         ? `${item.discountValue}${item.discountType === 'percent' ? '%' : ' đ'}`

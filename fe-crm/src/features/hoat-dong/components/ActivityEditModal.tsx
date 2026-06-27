@@ -12,16 +12,19 @@ const ACTIVITY_TYPES = ['call', 'email', 'meeting', 'task', 'note'];
 const ACTIVITY_TYPE_LABELS: Record<string, string> = {
     call: 'Cuộc gọi', email: 'Email', meeting: 'Cuộc họp', task: 'Công việc', note: 'Ghi chú',
 };
-const ACTIVITY_STATUSES = ['pending', 'in_progress', 'done', 'cancelled'];
 const ACTIVITY_STATUS_LABELS: Record<string, string> = {
-    pending: 'Chờ xử lý', in_progress: 'Đang thực hiện', done: 'Hoàn thành', cancelled: 'Đã hủy',
+    planned: 'Đã lên kế hoạch', in_progress: 'Đang thực hiện', done: 'Hoàn thành', cancelled: 'Đã hủy',
+};
+const ACTIVITY_STATUS_COLORS: Record<string, string> = {
+    planned: 'bg-gray-100 text-gray-600', in_progress: 'bg-yellow-100 text-yellow-700',
+    done: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600',
 };
 
 export function ActivityEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateActivity();
     const [form, setForm] = useState<UpdateActivityPayload>({
         type: 'call', subject: '', content: null, targetType: null,
-        targetId: null, assignedUserId: null, status: 'pending', dueAt: null,
+        targetId: null, assignedUserId: null, dueAt: null,
         priority: 'medium', location: null, callDirection: null, callResult: null, callDuration: null,
     });
 
@@ -29,7 +32,7 @@ export function ActivityEditModal({ item, onClose }: Props) {
         if (!item) return;
         setForm({
             type: item.type, subject: item.subject, content: item.content, targetType: item.targetType,
-            targetId: item.targetId, assignedUserId: item.assignedUserId, status: item.status,
+            targetId: item.targetId, assignedUserId: item.assignedUserId,
             dueAt: item.dueAt ? item.dueAt.substring(0, 16) : null,
             priority: item.priority ?? 'medium', location: item.location,
             callDirection: item.callDirection, callResult: item.callResult, callDuration: item.callDuration,
@@ -66,10 +69,10 @@ export function ActivityEditModal({ item, onClose }: Props) {
                             </select>
                         </div>
                         <div>
-                            <label className={lbl}>Trạng thái</label>
-                            <select className={inp} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                                {ACTIVITY_STATUSES.map(s => <option key={s} value={s}>{ACTIVITY_STATUS_LABELS[s]}</option>)}
-                            </select>
+                            <label className={lbl}>Trạng thái (đổi qua hành động)</label>
+                            <span className={`inline-block px-2 py-1.5 rounded text-sm font-medium ${ACTIVITY_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                                {ACTIVITY_STATUS_LABELS[item.status] ?? item.status}
+                            </span>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">

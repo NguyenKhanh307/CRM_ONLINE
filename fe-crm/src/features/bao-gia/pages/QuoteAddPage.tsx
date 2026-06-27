@@ -14,6 +14,7 @@ import {
     toItemPayloads,
 } from '@/shared/components/form/productLineItem';
 import { useAlert } from '@/shared/alert/useAlert';
+import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useContactList } from '@/features/lien-he/hooks/useContactList';
@@ -21,30 +22,25 @@ import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useCreateQuotation } from '../hooks/useCreateQuotation';
 import type { CreateQuotationPayload } from '../types/quotationTypes';
 
-const STATUS_OPTIONS = [
-    { value: 'draft', label: 'Nháp' },
-    { value: 'sent', label: 'Đã gửi' },
-    { value: 'approved', label: 'Đã duyệt' },
-    { value: 'rejected', label: 'Từ chối' },
-    { value: 'expired', label: 'Hết hạn' },
-];
-
 interface HeaderState {
     code: string; customerId: string; contactId: string; ownerId: string;
     quoteDate: string; validUntil: string; currency: string; exchangeRate: string;
-    status: string; note: string;
+    note: string;
 }
 
-const INITIAL: HeaderState = {
-    code: '', customerId: '', contactId: '', ownerId: '', quoteDate: '', validUntil: '',
-    currency: 'VND', exchangeRate: '1', status: 'draft', note: '',
-};
+/** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
+const initialState = (ownerId: string): HeaderState => ({
+    code: '', customerId: '', contactId: '', ownerId, quoteDate: '', validUntil: '',
+    currency: 'VND', exchangeRate: '1', note: '',
+});
 
 /** Trang thêm báo giá mới — header + bảng hàng hóa (layout AMIS). */
 const QuoteAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
-    const [form, setForm] = useState<HeaderState>(INITIAL);
+    const { user } = useAuth();
+    const defaultOwnerId = user ? String(user.id) : '';
+    const [form, setForm] = useState<HeaderState>(() => initialState(defaultOwnerId));
     const [rows, setRows] = useState<LineItemRow[]>([emptyLineItem()]);
     const { mutate, isPending } = useCreateQuotation();
 
@@ -62,7 +58,7 @@ const QuoteAddPage = () => {
     );
 
     const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
-    const reset = () => { setForm(INITIAL); setRows([emptyLineItem()]); };
+    const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); };
 
     const submit = (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã báo giá không được để trống'); return; }
@@ -77,7 +73,6 @@ const QuoteAddPage = () => {
             validUntil: form.validUntil || null,
             currency: form.currency || 'VND',
             exchangeRate: Number(form.exchangeRate) || 1,
-            status: form.status,
             subtotal: totals.subtotal,
             discount: totals.discount,
             tax: totals.tax,
@@ -126,9 +121,6 @@ const QuoteAddPage = () => {
                             </FieldRow>
                             <FieldRow label="Hiệu lực đến">
                                 <input type="date" value={form.validUntil} onChange={(e) => set({ validUntil: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                            <FieldRow label="Trạng thái">
-                                <SearchableSelect value={form.status} onChange={(v) => set({ status: v })} options={STATUS_OPTIONS} />
                             </FieldRow>
                             <FieldRow label="Tiền tệ">
                                 <input type="text" value={form.currency} onChange={(e) => set({ currency: e.target.value })} className={inputCls} />

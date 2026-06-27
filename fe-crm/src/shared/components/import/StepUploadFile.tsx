@@ -111,7 +111,7 @@ export const StepUploadFile = ({ fields, onParsed }: Props) => {
             {/* Info */}
             <ul className="text-sm text-gray-500 space-y-1 list-disc list-inside">
                 <li>Dung lượng tệp tối đa {MAX_SIZE_MB} MB</li>
-                <li>Cho phép tối đa {MAX_ROWS.toLocaleString()} dòng dữ liệu</li>
+                <li>Cho phép tối đa {MAX_ROWS.toLocaleString('vi-VN')} dòng dữ liệu</li>
             </ul>
 
             {/* Template downloads */}

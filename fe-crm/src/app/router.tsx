@@ -19,12 +19,13 @@ const CustomerImportPage = lazy(() => import('@/features/khach-hang/pages/Custom
 const CoHoiPage       = lazy(() => import('@/features/co-hoi/pages/CoHoiPage'));
 const OpportunityAddPage = lazy(() => import('@/features/co-hoi/pages/OpportunityAddPage'));
 const OpportunityImportPage = lazy(() => import('@/features/co-hoi/pages/OpportunityImportPage'));
+const OpportunityPipelinePage = lazy(() => import('@/features/co-hoi/pages/OpportunityPipelinePage'));
 const BaoGiaPage      = lazy(() => import('@/features/bao-gia/pages/BaoGiaPage'));
 const QuoteAddPage    = lazy(() => import('@/features/bao-gia/pages/QuoteAddPage'));
 const QuotationImportPage = lazy(() => import('@/features/bao-gia/pages/QuotationImportPage'));
-const DonHangPage     = lazy(() => import('@/features/don-hang/pages/DonHangPage'));
-const OrderAddPage    = lazy(() => import('@/features/don-hang/pages/OrderAddPage'));
-const OrderImportPage = lazy(() => import('@/features/don-hang/pages/OrderImportPage'));
+const HoaDonPage      = lazy(() => import('@/features/hoa-don/pages/HoaDonPage'));
+const InvoiceAddPage  = lazy(() => import('@/features/hoa-don/pages/InvoiceAddPage'));
+const InvoiceImportPage = lazy(() => import('@/features/hoa-don/pages/InvoiceImportPage'));
 const HoatDongPage    = lazy(() => import('@/features/hoat-dong/pages/HoatDongPage'));
 const ActivityAddPage = lazy(() => import('@/features/hoat-dong/pages/ActivityAddPage'));
 const ActivityImportPage = lazy(() => import('@/features/hoat-dong/pages/ActivityImportPage'));
@@ -58,12 +59,13 @@ export const router = createBrowserRouter([
             { path: '/co-hoi',                element: <Suspense fallback={fallback}><CoHoiPage /></Suspense> },
             { path: '/co-hoi/them-moi',       element: <Suspense fallback={fallback}><OpportunityAddPage /></Suspense> },
             { path: '/co-hoi/nhap-file',      element: <Suspense fallback={fallback}><OpportunityImportPage /></Suspense> },
+            { path: '/co-hoi/pipeline',       element: <Suspense fallback={fallback}><OpportunityPipelinePage /></Suspense> },
             { path: '/bao-gia',               element: <Suspense fallback={fallback}><BaoGiaPage /></Suspense> },
             { path: '/bao-gia/them-moi',      element: <Suspense fallback={fallback}><QuoteAddPage /></Suspense> },
             { path: '/bao-gia/nhap-file',     element: <Suspense fallback={fallback}><QuotationImportPage /></Suspense> },
-            { path: '/don-hang',              element: <Suspense fallback={fallback}><DonHangPage /></Suspense> },
-            { path: '/don-hang/them-moi',     element: <Suspense fallback={fallback}><OrderAddPage /></Suspense> },
-            { path: '/don-hang/nhap-file',    element: <Suspense fallback={fallback}><OrderImportPage /></Suspense> },
+            { path: '/hoa-don',               element: <Suspense fallback={fallback}><HoaDonPage /></Suspense> },
+            { path: '/hoa-don/them-moi',      element: <Suspense fallback={fallback}><InvoiceAddPage /></Suspense> },
+            { path: '/hoa-don/nhap-file',     element: <Suspense fallback={fallback}><InvoiceImportPage /></Suspense> },
             { path: '/hoat-dong',             element: <Suspense fallback={fallback}><HoatDongPage /></Suspense> },
             { path: '/hoat-dong/them-moi',    element: <Suspense fallback={fallback}><ActivityAddPage /></Suspense> },
             { path: '/hoat-dong/nhap-file',   element: <Suspense fallback={fallback}><ActivityImportPage /></Suspense> },

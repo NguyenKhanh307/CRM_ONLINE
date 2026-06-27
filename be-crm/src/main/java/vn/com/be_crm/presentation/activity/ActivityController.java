@@ -27,6 +27,7 @@ public class ActivityController {
     private final GetActivityUseCase getUseCase;
     private final ListActivityUseCase listUseCase;
     private final ImportBulkActivityUseCase importBulkUC;
+    private final ActivityWorkflowUseCase workflowUC;
 
     /**
      * @param createUseCase use case tạo mới
@@ -35,16 +36,19 @@ public class ActivityController {
      * @param getUseCase    use case lấy theo ID
      * @param listUseCase   use case lấy danh sách
      * @param importBulkUC  use case nhập hàng loạt
+     * @param workflowUC    use case luồng trạng thái hoạt động
      */
     public ActivityController(CreateActivityUseCase createUseCase, UpdateActivityUseCase updateUseCase,
             DeleteActivityUseCase deleteUseCase, GetActivityUseCase getUseCase,
-            ListActivityUseCase listUseCase, ImportBulkActivityUseCase importBulkUC) {
+            ListActivityUseCase listUseCase, ImportBulkActivityUseCase importBulkUC,
+            ActivityWorkflowUseCase workflowUC) {
         this.createUseCase = createUseCase;
         this.updateUseCase = updateUseCase;
         this.deleteUseCase = deleteUseCase;
         this.getUseCase = getUseCase;
         this.listUseCase = listUseCase;
         this.importBulkUC = importBulkUC;
+        this.workflowUC = workflowUC;
     }
 
     /**
@@ -137,5 +141,23 @@ public class ActivityController {
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkActivityCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
+    }
+
+    /** Bắt đầu thực hiện hoạt động (planned → in_progress). @param id ID @return 200 */
+    @PostMapping("/{id}/start")
+    public ResponseEntity<ApiResponse<ActivityResult>> start(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.start(id)));
+    }
+
+    /** Hoàn thành hoạt động (→ done). @param id ID @return 200 */
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<ApiResponse<ActivityResult>> complete(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.complete(id)));
+    }
+
+    /** Hủy hoạt động (→ cancelled). @param id ID @return 200 */
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<ActivityResult>> cancel(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.cancel(id)));
     }
 }

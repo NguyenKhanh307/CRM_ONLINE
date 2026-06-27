@@ -8,9 +8,12 @@ interface Props {
     onClose: () => void;
 }
 
-const LEAD_STATUSES = ['new_', 'contacted', 'qualified', 'unqualified', 'converted'];
 const LEAD_STATUS_LABELS: Record<string, string> = {
-    new_: 'Mới', contacted: 'Đã liên hệ', qualified: 'Tiềm năng', unqualified: 'Không tiềm năng', converted: 'Đã chuyển đổi',
+    new: 'Mới', contacting: 'Đang liên hệ', qualified: 'Đủ điều kiện', converted: 'Đã chuyển đổi', lost: 'Thất bại',
+};
+const LEAD_STATUS_COLORS: Record<string, string> = {
+    new: 'bg-gray-100 text-gray-600', contacting: 'bg-blue-100 text-blue-700', qualified: 'bg-green-100 text-green-700',
+    converted: 'bg-emerald-100 text-emerald-700', lost: 'bg-red-100 text-red-600',
 };
 const LEAD_SOURCES = ['website', 'referral', 'social', 'email', 'event', 'other'];
 
@@ -18,7 +21,7 @@ export function LeadEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateLead();
     const [form, setForm] = useState<UpdateLeadPayload>({
         name: '', ownerId: null, customerId: null, contactId: null,
-        source: null, status: 'new_', estimatedValue: null, phone: null, email: null, note: null,
+        source: null, estimatedValue: null, phone: null, email: null, note: null,
         companyName: null, leadType: null, title: null, department: null,
         taxCode: null, website: null, industry: null, doNotCall: false, doNotEmail: false,
     });
@@ -27,7 +30,7 @@ export function LeadEditModal({ item, onClose }: Props) {
         if (!item) return;
         setForm({
             name: item.name, ownerId: item.ownerId, customerId: item.customerId,
-            contactId: item.contactId, source: item.source, status: item.status,
+            contactId: item.contactId, source: item.source,
             estimatedValue: item.estimatedValue, phone: item.phone, email: item.email, note: item.note,
             companyName: item.companyName, leadType: item.leadType, title: item.title,
             department: item.department, taxCode: item.taxCode, website: item.website,
@@ -69,10 +72,10 @@ export function LeadEditModal({ item, onClose }: Props) {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className={lbl}>Trạng thái</label>
-                            <select className={inp} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                                {LEAD_STATUSES.map(s => <option key={s} value={s}>{LEAD_STATUS_LABELS[s]}</option>)}
-                            </select>
+                            <label className={lbl}>Trạng thái (tự động/hành động)</label>
+                            <span className={`inline-block px-2 py-1.5 rounded text-sm font-medium ${LEAD_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                                {LEAD_STATUS_LABELS[item.status] ?? item.status}
+                            </span>
                         </div>
                         <div>
                             <label className={lbl}>Nguồn</label>

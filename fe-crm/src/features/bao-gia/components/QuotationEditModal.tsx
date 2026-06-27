@@ -19,9 +19,12 @@ interface Props {
     onClose: () => void;
 }
 
-const QUOTATION_STATUSES = ['draft', 'sent', 'approved', 'rejected', 'expired'];
 const QUOTATION_STATUS_LABELS: Record<string, string> = {
-    draft: 'Nháp', sent: 'Đã gửi', approved: 'Đã duyệt', rejected: 'Từ chối', expired: 'Hết hạn',
+    draft: 'Nháp', pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Từ chối', sent: 'Đã gửi', expired: 'Hết hạn',
+};
+const QUOTATION_STATUS_COLORS: Record<string, string> = {
+    draft: 'bg-gray-100 text-gray-600', pending: 'bg-yellow-100 text-yellow-700', approved: 'bg-green-100 text-green-700',
+    rejected: 'bg-red-100 text-red-600', sent: 'bg-blue-100 text-blue-700', expired: 'bg-orange-100 text-orange-700',
 };
 
 export function QuotationEditModal({ item, onClose }: Props) {
@@ -29,7 +32,7 @@ export function QuotationEditModal({ item, onClose }: Props) {
     const { data: products = [] } = useProductList();
     const [form, setForm] = useState<UpdateQuotationPayload>({
         customerId: null, contactId: null, ownerId: null, quoteDate: null,
-        validUntil: null, currency: 'VND', exchangeRate: 1, status: 'draft',
+        validUntil: null, currency: 'VND', exchangeRate: 1,
         subtotal: null, discount: null, tax: null, total: null, note: null,
     });
     const [rows, setRows] = useState<LineItemRow[]>([]);
@@ -46,7 +49,7 @@ export function QuotationEditModal({ item, onClose }: Props) {
         setForm({
             customerId: item.customerId, contactId: item.contactId, opportunityId: item.opportunityId,
             ownerId: item.ownerId, quoteDate: item.quoteDate, validUntil: item.validUntil,
-            currency: item.currency, exchangeRate: item.exchangeRate, status: item.status,
+            currency: item.currency, exchangeRate: item.exchangeRate,
             subtotal: item.subtotal, discount: item.discount, tax: item.tax, total: item.total, note: item.note,
         });
         quotationService.getItems(item.id).then((r) => {
@@ -103,10 +106,10 @@ export function QuotationEditModal({ item, onClose }: Props) {
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                         <div>
-                            <label className={lbl}>Trạng thái</label>
-                            <select className={inp} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                                {QUOTATION_STATUSES.map(s => <option key={s} value={s}>{QUOTATION_STATUS_LABELS[s]}</option>)}
-                            </select>
+                            <label className={lbl}>Trạng thái (đổi qua hành động)</label>
+                            <span className={`inline-block px-2 py-1.5 rounded text-sm font-medium ${QUOTATION_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                                {QUOTATION_STATUS_LABELS[item.status] ?? item.status}
+                            </span>
                         </div>
                         <div>
                             <label className={lbl}>Tiền tệ</label>

@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { formatNumber } from '@/shared/utils/number';
 import {
     type LineItemRow,
     type ProductOption,
     emptyLineItem,
     rowSubtotal,
     rowDiscount,
-    rowTax,
     rowTotal,
     computeTotals,
 } from './productLineItem';
@@ -22,7 +22,7 @@ interface Props {
     showTax?: boolean;
 }
 
-const fmt = (n: number) => (n === 0 ? '0' : n.toLocaleString('vi-VN'));
+const fmt = (n: number) => formatNumber(n);
 
 const thBase = 'text-table font-semibold text-text-main border-b-2 border-gray-300 px-2 py-2 whitespace-nowrap bg-gray-100';
 const tdBase = 'border-b border-gray-200 px-2 py-1';

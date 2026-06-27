@@ -8,7 +8,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-    pending: 'Chờ xử lý', completed: 'Hoàn thành', cancelled: 'Đã hủy',
+    planned: 'Đã lên kế hoạch', in_progress: 'Đang thực hiện', done: 'Hoàn thành', cancelled: 'Đã hủy',
 };
 
 /** Các cột khả dụng khi xuất file phân hệ Hoạt động. */

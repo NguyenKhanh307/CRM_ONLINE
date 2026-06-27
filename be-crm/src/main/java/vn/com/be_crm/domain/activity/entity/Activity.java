@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * Domain entity đại diện cho hoạt động chăm sóc (polymorphic — gắn với mọi loại đối tượng).
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Activity {

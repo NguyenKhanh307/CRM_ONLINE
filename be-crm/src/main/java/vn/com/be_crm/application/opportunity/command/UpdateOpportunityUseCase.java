@@ -5,17 +5,23 @@ import vn.com.be_crm.application.opportunity.dto.UpdateOpportunityCommand;
 import vn.com.be_crm.application.opportunity.mapper.OpportunityCommandMapper;
 import vn.com.be_crm.application.shared.usecase.IUseCase;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
+import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
+import vn.com.be_crm.domain.opportunity.repository.IOpportunityStageRepository;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
 
-/** Use case cập nhật cơ hội bán hàng. */
+/** Use case cập nhật cơ hội bán hàng. Trạng thái suy ra tự động từ giai đoạn pipeline. */
 public class UpdateOpportunityUseCase implements IUseCase<UpdateOpportunityCommand, OpportunityResult> {
     private final IOpportunityRepository repo;
-    /** @param repo port lưu trữ */
-    public UpdateOpportunityUseCase(IOpportunityRepository repo) { this.repo = repo; }
+    private final IOpportunityStageRepository stageRepo;
+    /** @param repo port lưu trữ cơ hội @param stageRepo port lưu trữ giai đoạn pipeline */
+    public UpdateOpportunityUseCase(IOpportunityRepository repo, IOpportunityStageRepository stageRepo) {
+        this.repo = repo;
+        this.stageRepo = stageRepo;
+    }
 
     /**
-     * Cập nhật Opportunity và trả về result.
+     * Cập nhật Opportunity và trả về result. Trạng thái suy ra từ giai đoạn sau cập nhật.
      * @param cmd dữ liệu cập nhật @return OpportunityResult
      * @throws NotFoundException nếu không tìm thấy
      */
@@ -23,6 +29,10 @@ public class UpdateOpportunityUseCase implements IUseCase<UpdateOpportunityComma
     public OpportunityResult execute(UpdateOpportunityCommand cmd) {
         Opportunity existing = repo.findById(cmd.getId())
                 .orElseThrow(() -> new NotFoundException("Opportunity not found: " + cmd.getId()));
-        return OpportunityCommandMapper.toResult(repo.save(OpportunityCommandMapper.toEntity(cmd, existing)));
+        Long stageId = cmd.getStageId() != null ? cmd.getStageId() : existing.getStageId();
+        OpportunityStatus status = stageId == null
+                ? OpportunityStatus.open
+                : OpportunityStatus.fromStage(stageRepo.findById(stageId).orElse(null));
+        return OpportunityCommandMapper.toResult(repo.save(OpportunityCommandMapper.toEntity(cmd, existing, status)));
     }
 }

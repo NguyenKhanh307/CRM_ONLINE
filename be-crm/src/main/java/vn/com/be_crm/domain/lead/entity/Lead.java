@@ -33,6 +33,8 @@ public class Lead {
     private Long customerId;
     /** ID liên hệ. */
     private Long contactId;
+    /** ID cơ hội tạo ra khi chuyển đổi. */
+    private Long convertedOpportunityId;
     /** Chức danh. */
     private String title;
     /** Phòng ban. */

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * Domain entity đại diện cho khách hàng trong hệ thống CRM.
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Customer {

@@ -34,22 +34,24 @@ public class CustomerController {
     private final PurgeCustomerUseCase purgeUC;
     private final ImportBulkCustomerUseCase importBulkUC;
     private final vn.com.be_crm.application.customer.command.HandoverBulkCustomerUseCase handoverBulkUC;
+    private final vn.com.be_crm.application.customer.command.CustomerWorkflowUseCase workflowUC;
 
     /**
      * @param createUC use case tạo mới @param updateUC use case cập nhật @param deleteUC use case xóa mềm
      * @param getUC    use case lấy theo ID @param listUC use case lấy danh sách
      * @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
-     * @param handoverBulkUC bàn giao hàng loạt
+     * @param handoverBulkUC bàn giao hàng loạt @param workflowUC luồng trạng thái khách hàng
      */
     public CustomerController(CreateCustomerUseCase createUC, UpdateCustomerUseCase updateUC,
                                DeleteCustomerUseCase deleteUC, GetCustomerUseCase getUC, ListCustomerUseCase listUC,
                                ListDeletedCustomersUseCase listDeletedUC, RestoreCustomerUseCase restoreUC, PurgeCustomerUseCase purgeUC,
                                ImportBulkCustomerUseCase importBulkUC,
-                               vn.com.be_crm.application.customer.command.HandoverBulkCustomerUseCase handoverBulkUC) {
+                               vn.com.be_crm.application.customer.command.HandoverBulkCustomerUseCase handoverBulkUC,
+                               vn.com.be_crm.application.customer.command.CustomerWorkflowUseCase workflowUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
-        this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC;
+        this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC; this.workflowUC = workflowUC;
     }
 
     /** Tạo mới khách hàng. @param cmd JSON body @return 201 */
@@ -84,7 +86,7 @@ public class CustomerController {
                         .type(cmd.getType())
                         .taxCode(cmd.getTaxCode()).phone(cmd.getPhone()).email(cmd.getEmail())
                         .website(cmd.getWebsite()).address(cmd.getAddress())
-                        .industry(cmd.getIndustry()).source(cmd.getSource()).status(cmd.getStatus())
+                        .industry(cmd.getIndustry()).source(cmd.getSource())
                         .creditDays(cmd.getCreditDays()).creditLimit(cmd.getCreditLimit())
                         .bankAccount(cmd.getBankAccount()).bankName(cmd.getBankName())
                         .rating(cmd.getRating()).annualRevenue(cmd.getAnnualRevenue())
@@ -127,6 +129,18 @@ public class CustomerController {
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkCustomerCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
+    }
+
+    /** Kích hoạt khách hàng (→ active). @param id ID @return 200 */
+    @PostMapping("/{id}/activate")
+    public ResponseEntity<ApiResponse<CustomerResult>> activate(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.activate(id)));
+    }
+
+    /** Ngừng hoạt động khách hàng (→ inactive). @param id ID @return 200 */
+    @PostMapping("/{id}/deactivate")
+    public ResponseEntity<ApiResponse<CustomerResult>> deactivate(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.deactivate(id)));
     }
 
     /** Bàn giao hàng loạt khách hàng sang người dùng khác. @param body body @param req HTTP request @return 200 */

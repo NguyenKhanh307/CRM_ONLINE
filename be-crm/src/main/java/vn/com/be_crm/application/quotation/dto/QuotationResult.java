@@ -18,6 +18,9 @@ public class QuotationResult {
     private Long customerId;
     private Long contactId;
     private Long opportunityId;
+    private Long pricePolicyId;
+    private boolean isPrimary;
+    private boolean isLocked;
     private Long ownerId;
     private LocalDate quoteDate;
     private LocalDate validUntil;

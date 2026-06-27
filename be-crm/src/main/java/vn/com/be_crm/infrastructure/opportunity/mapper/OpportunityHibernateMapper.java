@@ -21,6 +21,7 @@ public class OpportunityHibernateMapper {
         h.setOpportunityType(d.getOpportunityType());
         h.setCustomerId(d.getCustomerId()); h.setContactId(d.getContactId());
         h.setOwnerId(d.getOwnerId()); h.setStageId(d.getStageId());
+        h.setPricePolicyId(d.getPricePolicyId());
         h.setAmount(d.getAmount() != null ? d.getAmount() : BigDecimal.ZERO);
         h.setExpectedRevenue(d.getExpectedRevenue());
         h.setProbability(d.getProbability()); h.setExpectedCloseDate(d.getExpectedCloseDate());
@@ -40,6 +41,7 @@ public class OpportunityHibernateMapper {
                 .id(h.getId()).code(h.getCode()).name(h.getName()).opportunityType(h.getOpportunityType())
                 .customerId(h.getCustomerId())
                 .contactId(h.getContactId()).ownerId(h.getOwnerId()).stageId(h.getStageId())
+                .pricePolicyId(h.getPricePolicyId())
                 .amount(h.getAmount()).expectedRevenue(h.getExpectedRevenue()).probability(h.getProbability())
                 .expectedCloseDate(h.getExpectedCloseDate())
                 .source(h.getSource()).winLossReason(h.getWinLossReason()).description(h.getDescription())

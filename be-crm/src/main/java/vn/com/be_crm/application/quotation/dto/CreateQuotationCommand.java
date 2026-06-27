@@ -20,6 +20,7 @@ public class CreateQuotationCommand {
     private Long customerId;
     private Long contactId;
     private Long opportunityId;
+    private Long pricePolicyId;
     private Long ownerId;
     private LocalDate quoteDate;
     private LocalDate validUntil;

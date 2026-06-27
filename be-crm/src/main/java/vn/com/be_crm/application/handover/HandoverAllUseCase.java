@@ -4,11 +4,11 @@ import vn.com.be_crm.application.shared.dto.HandoverAllCommand;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
-import vn.com.be_crm.domain.order.repository.IOrderRepository;
+import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 
 /**
- * Use case bàn giao toàn bộ công việc từ một user sang user khác (5 module: lead, customer, opportunity, quotation, order).
+ * Use case bàn giao toàn bộ công việc từ một user sang user khác (5 module: lead, customer, opportunity, quotation, invoice).
  */
 public class HandoverAllUseCase {
 
@@ -16,23 +16,23 @@ public class HandoverAllUseCase {
     private final ICustomerRepository customerRepo;
     private final IOpportunityRepository opportunityRepo;
     private final IQuotationRepository quotationRepo;
-    private final IOrderRepository orderRepo;
+    private final IInvoiceRepository invoiceRepo;
 
     /**
      * @param leadRepo         port lưu trữ Lead
      * @param customerRepo     port lưu trữ Customer
      * @param opportunityRepo  port lưu trữ Opportunity
      * @param quotationRepo    port lưu trữ Quotation
-     * @param orderRepo        port lưu trữ Order
+     * @param invoiceRepo      port lưu trữ Invoice
      */
     public HandoverAllUseCase(ILeadRepository leadRepo, ICustomerRepository customerRepo,
                                IOpportunityRepository opportunityRepo, IQuotationRepository quotationRepo,
-                               IOrderRepository orderRepo) {
+                               IInvoiceRepository invoiceRepo) {
         this.leadRepo = leadRepo;
         this.customerRepo = customerRepo;
         this.opportunityRepo = opportunityRepo;
         this.quotationRepo = quotationRepo;
-        this.orderRepo = orderRepo;
+        this.invoiceRepo = invoiceRepo;
     }
 
     /**
@@ -53,6 +53,6 @@ public class HandoverAllUseCase {
         customerRepo.handoverAll(fromUserId, toUserId);
         opportunityRepo.handoverAll(fromUserId, toUserId);
         quotationRepo.handoverAll(fromUserId, toUserId);
-        orderRepo.handoverAll(fromUserId, toUserId);
+        invoiceRepo.handoverAll(fromUserId, toUserId);
     }
 }

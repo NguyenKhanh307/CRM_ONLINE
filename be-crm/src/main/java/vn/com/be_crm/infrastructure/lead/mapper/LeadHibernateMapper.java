@@ -18,6 +18,7 @@ public class LeadHibernateMapper {
         h.setId(d.getId()); h.setCode(d.getCode()); h.setName(d.getName());
         h.setCompanyName(d.getCompanyName()); h.setLeadType(d.getLeadType());
         h.setOwnerId(d.getOwnerId()); h.setCustomerId(d.getCustomerId()); h.setContactId(d.getContactId());
+        h.setConvertedOpportunityId(d.getConvertedOpportunityId());
         h.setTitle(d.getTitle()); h.setDepartment(d.getDepartment());
         h.setTaxCode(d.getTaxCode()); h.setWebsite(d.getWebsite()); h.setIndustry(d.getIndustry());
         h.setSource(d.getSource());
@@ -42,6 +43,7 @@ public class LeadHibernateMapper {
                 .companyName(h.getCompanyName()).leadType(h.getLeadType())
                 .ownerId(h.getOwnerId())
                 .customerId(h.getCustomerId()).contactId(h.getContactId())
+                .convertedOpportunityId(h.getConvertedOpportunityId())
                 .title(h.getTitle()).department(h.getDepartment())
                 .taxCode(h.getTaxCode()).website(h.getWebsite()).industry(h.getIndustry())
                 .source(h.getSource())

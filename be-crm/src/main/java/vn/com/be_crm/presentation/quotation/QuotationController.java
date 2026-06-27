@@ -14,9 +14,11 @@ import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
 import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
+import vn.com.be_crm.presentation.quotation.request.QuotationActionRequest;
 import vn.com.be_crm.presentation.shared.ApiResponse;
 import vn.com.be_crm.presentation.shared.HandoverBulkRequest;
 import vn.com.be_crm.presentation.shared.PageResponse;
+import vn.com.be_crm.domain.shared.exception.DomainException;
 
 /**
  * REST controller cho nghiệp vụ quản lý báo giá.
@@ -34,19 +36,29 @@ public class QuotationController {
     private final PurgeQuotationUseCase purgeUC;
     private final ImportBulkQuotationUseCase importBulkUC;
     private final vn.com.be_crm.application.quotation.command.HandoverBulkQuotationUseCase handoverBulkUC;
+    private final QuotationWorkflowUseCase workflowUC;
+    private final CreateQuotationFromOpportunityUseCase fromOpportunityUC;
+    private final SetPrimaryQuotationUseCase setPrimaryUC;
+    private final ConvertQuotationToInvoiceUseCase convertToInvoiceUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
      *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
-     *  @param handoverBulkUC bàn giao hàng loạt */
+     *  @param handoverBulkUC bàn giao hàng loạt @param workflowUC luồng duyệt báo giá
+     *  @param fromOpportunityUC clone từ cơ hội @param setPrimaryUC đặt báo giá đồng bộ @param convertToInvoiceUC chuyển thành hóa đơn */
     public QuotationController(CreateQuotationUseCase createUC, UpdateQuotationUseCase updateUC,
                                 DeleteQuotationUseCase deleteUC, GetQuotationUseCase getUC, ListQuotationUseCase listUC,
                                 ListDeletedQuotationsUseCase listDeletedUC, RestoreQuotationUseCase restoreUC, PurgeQuotationUseCase purgeUC,
                                 ImportBulkQuotationUseCase importBulkUC,
-                                vn.com.be_crm.application.quotation.command.HandoverBulkQuotationUseCase handoverBulkUC) {
+                                vn.com.be_crm.application.quotation.command.HandoverBulkQuotationUseCase handoverBulkUC,
+                                QuotationWorkflowUseCase workflowUC,
+                                CreateQuotationFromOpportunityUseCase fromOpportunityUC,
+                                SetPrimaryQuotationUseCase setPrimaryUC,
+                                ConvertQuotationToInvoiceUseCase convertToInvoiceUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
-        this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC;
+        this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC; this.workflowUC = workflowUC;
+        this.fromOpportunityUC = fromOpportunityUC; this.setPrimaryUC = setPrimaryUC; this.convertToInvoiceUC = convertToInvoiceUC;
     }
 
     /** Tạo mới báo giá. @param cmd JSON body @return 201 */
@@ -78,9 +90,34 @@ public class QuotationController {
                                                                 @Valid @RequestBody UpdateQuotationCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateQuotationCommand.builder().id(id).customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
+                        .opportunityId(cmd.getOpportunityId()).pricePolicyId(cmd.getPricePolicyId())
                         .ownerId(cmd.getOwnerId()).quoteDate(cmd.getQuoteDate()).validUntil(cmd.getValidUntil())
-                        .status(cmd.getStatus()).subtotal(cmd.getSubtotal()).discount(cmd.getDiscount())
+                        .subtotal(cmd.getSubtotal()).discount(cmd.getDiscount())
                         .tax(cmd.getTax()).total(cmd.getTotal()).note(cmd.getNote()).build())));
+    }
+
+    /** Clone báo giá từ cơ hội (sao chép sâu KH/LH/chính sách giá + dòng hàng). @param opportunityId ID cơ hội @return 201 */
+    @PostMapping("/from-opportunity/{opportunityId}")
+    public ResponseEntity<ApiResponse<QuotationResult>> fromOpportunity(@PathVariable Long opportunityId) {
+        return ResponseEntity.status(201).body(ApiResponse.created(fromOpportunityUC.execute(opportunityId)));
+    }
+
+    /** Đặt báo giá làm báo giá đồng bộ (primary) của cơ hội. @param id ID @return 200 */
+    @PostMapping("/{id}/set-primary")
+    public ResponseEntity<ApiResponse<QuotationResult>> setPrimary(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(setPrimaryUC.execute(id)));
+    }
+
+    /** Khách chấp nhận báo giá (sent → accepted). @param id ID @return 200 */
+    @PostMapping("/{id}/accept")
+    public ResponseEntity<ApiResponse<QuotationResult>> accept(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.accept(id)));
+    }
+
+    /** Chuyển báo giá thành hóa đơn (khóa báo giá + cơ hội Chốt Thắng). @param id ID @return 201 hóa đơn */
+    @PostMapping("/{id}/convert-to-invoice")
+    public ResponseEntity<ApiResponse<vn.com.be_crm.application.invoice.dto.InvoiceResult>> convertToInvoice(@PathVariable Long id) {
+        return ResponseEntity.status(201).body(ApiResponse.created(convertToInvoiceUC.execute(id)));
     }
 
     /** Xóa mềm báo giá. @param id ID @param req HTTP request @return 204 */
@@ -118,6 +155,44 @@ public class QuotationController {
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkQuotationCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
+    }
+
+    /** Nhân viên gửi báo giá lên quản lý duyệt (draft → pending). @param id ID @param req HTTP request @return 200 */
+    @PostMapping("/{id}/submit")
+    public ResponseEntity<ApiResponse<QuotationResult>> submit(@PathVariable Long id, HttpServletRequest req) {
+        Long userId = (Long) req.getAttribute("userId");
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.submit(id, userId)));
+    }
+
+    /** Quản lý duyệt báo giá (pending → approved). @param id ID @param body ý kiến @param req HTTP request @return 200 */
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<ApiResponse<QuotationResult>> approve(@PathVariable Long id,
+            @RequestBody(required = false) QuotationActionRequest body, HttpServletRequest req) {
+        requireManager();
+        Long userId = (Long) req.getAttribute("userId");
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.approve(id, userId, body != null ? body.getComment() : null)));
+    }
+
+    /** Quản lý từ chối báo giá (pending → draft). @param id ID @param body lý do @param req HTTP request @return 200 */
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<ApiResponse<QuotationResult>> reject(@PathVariable Long id,
+            @RequestBody(required = false) QuotationActionRequest body, HttpServletRequest req) {
+        requireManager();
+        Long userId = (Long) req.getAttribute("userId");
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.reject(id, userId, body != null ? body.getComment() : null)));
+    }
+
+    /** Nhân viên gửi email báo giá cho khách (approved → sent). @param id ID @return 200 */
+    @PostMapping("/{id}/send")
+    public ResponseEntity<ApiResponse<QuotationResult>> send(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.send(id)));
+    }
+
+    /** Chỉ ADMIN/SALES_MANAGER mới được duyệt/từ chối báo giá. */
+    private void requireManager() {
+        if (!SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication())) {
+            throw new DomainException("Chỉ quản lý mới được duyệt hoặc từ chối báo giá");
+        }
     }
 
     /** Bàn giao hàng loạt báo giá sang người dùng khác. @param body body @param req HTTP request @return 200 */

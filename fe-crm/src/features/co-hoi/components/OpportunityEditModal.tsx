@@ -2,8 +2,10 @@ import { useState, type FormEvent, useEffect, useMemo } from 'react';
 import { FiX } from 'react-icons/fi';
 import type { OpportunityResult, UpdateOpportunityPayload } from '../types/opportunityTypes';
 import { useUpdateOpportunity } from '../hooks/useUpdateOpportunity';
+import { useOpportunityStages } from '../hooks/useOpportunityStages';
 import { opportunityService } from '../services/opportunityService';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import {
     type LineItemRow,
@@ -18,16 +20,19 @@ interface Props {
     onClose: () => void;
 }
 
-const OPP_STATUSES = ['open', 'won', 'lost'];
 const OPP_STATUS_LABELS: Record<string, string> = { open: 'Đang mở', won: 'Thắng', lost: 'Thua' };
+const OPP_STATUS_COLORS: Record<string, string> = {
+    open: 'bg-blue-100 text-blue-700', won: 'bg-green-100 text-green-700', lost: 'bg-red-100 text-red-600',
+};
 
 export function OpportunityEditModal({ item, onClose }: Props) {
     const { mutateAsync, isPending } = useUpdateOpportunity();
     const { data: products = [] } = useProductList();
+    const { data: stages = [] } = useOpportunityStages();
     const [form, setForm] = useState<UpdateOpportunityPayload>({
         name: '', opportunityType: null, customerId: null, contactId: null, ownerId: null,
-        stageId: null, amount: null, expectedRevenue: null, probability: null, expectedCloseDate: null,
-        source: null, winLossReason: null, description: null, status: 'open',
+        stageId: null, pricePolicyId: null, amount: null, expectedRevenue: null, probability: null, expectedCloseDate: null,
+        source: null, winLossReason: null, description: null,
     });
     const [rows, setRows] = useState<LineItemRow[]>([]);
     const [originalRows, setOriginalRows] = useState<LineItemRow[]>([]);
@@ -37,15 +42,17 @@ export function OpportunityEditModal({ item, onClose }: Props) {
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0 })),
         [products],
     );
+    const stageOptions = useMemo(() => stages.map((s) => ({ value: String(s.id), label: s.name })), [stages]);
 
     useEffect(() => {
         if (!item) return;
         setForm({
             name: item.name, opportunityType: item.opportunityType, customerId: item.customerId,
-            contactId: item.contactId, ownerId: item.ownerId, stageId: item.stageId, amount: item.amount,
+            contactId: item.contactId, ownerId: item.ownerId, stageId: item.stageId,
+            pricePolicyId: item.pricePolicyId, amount: item.amount,
             expectedRevenue: item.expectedRevenue, probability: item.probability,
             expectedCloseDate: item.expectedCloseDate, source: item.source,
-            winLossReason: item.winLossReason, description: item.description, status: item.status,
+            winLossReason: item.winLossReason, description: item.description,
         });
         opportunityService.getItems(item.id).then((r) => {
             const loaded = r.data.data.map(fromItemResult);
@@ -97,11 +104,21 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className={lbl}>Trạng thái</label>
-                            <select className={inp} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                                {OPP_STATUSES.map(s => <option key={s} value={s}>{OPP_STATUS_LABELS[s]}</option>)}
-                            </select>
+                            <label className={lbl}>Giai đoạn</label>
+                            <SearchableSelect
+                                value={form.stageId != null ? String(form.stageId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, stageId: v ? Number(v) : null }))}
+                                options={stageOptions}
+                            />
                         </div>
+                        <div>
+                            <label className={lbl}>Trạng thái (tự động theo giai đoạn)</label>
+                            <span className={`inline-block px-2 py-1 rounded text-sm font-medium ${OPP_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                                {OPP_STATUS_LABELS[item.status] ?? item.status}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Xác suất (%)</label>
                             <input type="number" min="0" max="100" className={inp} value={form.probability ?? ''} onChange={e => setForm(f => ({ ...f, probability: e.target.value ? +e.target.value : null }))} />

@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { FiSearch, FiCheck, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
 export interface SelectOption {
@@ -15,8 +16,17 @@ interface SearchableSelectProps {
     className?: string;
 }
 
+/** Toạ độ + bề rộng để đặt panel dropdown theo nút trigger (position: fixed). */
+interface PanelRect {
+    top: number;
+    left: number;
+    width: number;
+}
+
 /**
  * Custom select với ô tìm kiếm và highlight lựa chọn hiện tại.
+ * Panel options render qua portal (position: fixed) để luôn nổi trên section/bảng/modal,
+ * không bị overflow-hidden hay stacking context của component cha cắt/che.
  */
 export const SearchableSelect = ({
     options,
@@ -28,11 +38,39 @@ export const SearchableSelect = ({
 }: SearchableSelectProps) => {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
+    const [rect, setRect] = useState<PanelRect | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
 
+    /** Tính lại vị trí panel từ bounding box của nút trigger. */
+    const updateRect = useCallback(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        setRect({ top: r.bottom + 4, left: r.left, width: r.width });
+    }, []);
+
+    // Cập nhật vị trí khi mở + khi cuộn/resize để panel luôn bám theo trigger.
+    useEffect(() => {
+        if (!open) return;
+        updateRect();
+        const onScrollOrResize = () => updateRect();
+        window.addEventListener('scroll', onScrollOrResize, true);
+        window.addEventListener('resize', onScrollOrResize);
+        return () => {
+            window.removeEventListener('scroll', onScrollOrResize, true);
+            window.removeEventListener('resize', onScrollOrResize);
+        };
+    }, [open, updateRect]);
+
+    // Click-outside: đóng khi click ngoài cả trigger lẫn panel (panel nằm ở portal).
     useEffect(() => {
         const handler = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+            const target = e.target as Node;
+            if (
+                containerRef.current && !containerRef.current.contains(target) &&
+                panelRef.current && !panelRef.current.contains(target)
+            ) {
                 setOpen(false);
                 setSearch('');
             }
@@ -73,9 +111,13 @@ export const SearchableSelect = ({
                 </span>
             </button>
 
-            {/* Dropdown */}
-            {open && (
-                <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-section shadow-lg">
+            {/* Dropdown — portal ra body, position: fixed, z cao hơn cả modal (z-[9999]) */}
+            {open && rect && createPortal(
+                <div
+                    ref={panelRef}
+                    style={{ position: 'fixed', top: rect.top, left: rect.left, width: rect.width }}
+                    className="z-[10000] bg-white border border-gray-200 rounded-section shadow-lg"
+                >
                     {/* Search */}
                     <div className="flex items-center border-b border-gray-200 px-3 py-2 gap-2">
                         <input
@@ -113,7 +155,8 @@ export const SearchableSelect = ({
                             })
                         )}
                     </ul>
-                </div>
+                </div>,
+                document.body,
             )}
         </div>
     );

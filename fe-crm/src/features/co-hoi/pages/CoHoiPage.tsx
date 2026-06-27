@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiSliders, FiFileText } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
+import { useAlert } from '@/shared/alert/useAlert';
+import { quotationService } from '@/features/bao-gia/services/quotationService';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useContactList } from '@/features/lien-he/hooks/useContactList';
@@ -22,6 +24,7 @@ import type { OpportunityResult } from '../types/opportunityTypes';
 
 const CoHoiPage = () => {
     const navigate = useNavigate();
+    const { showAlert } = useAlert();
     const { data = [], isLoading } = useOpportunityList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteOpportunity();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkOpportunity();
@@ -39,6 +42,19 @@ const CoHoiPage = () => {
 
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
+    /** Tạo báo giá từ cơ hội (clone) rồi điều hướng sang danh sách báo giá. */
+    const createQuote = async (opportunityId: number) => {
+        try {
+            await quotationService.fromOpportunity(opportunityId);
+            showAlert('Đã tạo báo giá từ cơ hội');
+            navigate('/bao-gia');
+        } catch (err) {
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+                ?? 'Không tạo được báo giá từ cơ hội';
+            showAlert(msg);
+        }
+    };
+
     const columns = useMemo<ColumnDef<OpportunityResult>[]>(() => [
         ...getOpportunityColumns({
             customers: toIdNameMap(customers, 'id', 'name'),
@@ -53,6 +69,13 @@ const CoHoiPage = () => {
             size: 80,
             cell: ({ row }) => (
                 <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
+                    <button
+                        className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-primary"
+                        title="Tạo báo giá từ cơ hội"
+                        onClick={() => createQuote(row.original.id)}
+                    >
+                        <FiFileText size={14} />
+                    </button>
                     <button
                         className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
                         title="Chỉnh sửa"
@@ -77,6 +100,13 @@ const CoHoiPage = () => {
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-xl font-semibold text-text-main">Cơ hội</h1>
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => navigate('/co-hoi/pipeline')}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50"
+                    >
+                        <FiSliders size={14} />
+                        Quản lý giai đoạn
+                    </button>
                     <button
                         onClick={() => navigate('/co-hoi/nhap-file')}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50"

@@ -45,7 +45,8 @@ public class CustomerCommandMapper {
                 .address(cmd.getAddress() != null ? cmd.getAddress() : e.getAddress())
                 .industry(cmd.getIndustry() != null ? cmd.getIndustry() : e.getIndustry())
                 .source(cmd.getSource() != null ? cmd.getSource() : e.getSource())
-                .status(cmd.getStatus() != null ? cmd.getStatus() : e.getStatus())
+                // status: đổi qua hành động (activate/deactivate) — không nhận từ command.
+                .status(e.getStatus())
                 .creditDays(cmd.getCreditDays() != null ? cmd.getCreditDays() : e.getCreditDays())
                 .creditLimit(cmd.getCreditLimit() != null ? cmd.getCreditLimit() : e.getCreditLimit())
                 .bankAccount(cmd.getBankAccount() != null ? cmd.getBankAccount() : e.getBankAccount())

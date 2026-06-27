@@ -5,7 +5,6 @@ import {
     FiShield,
     FiLogOut,
     FiChevronDown,
-    FiGlobe,
 } from 'react-icons/fi';
 import { useAuth } from '@/core/auth/useAuth';
 
@@ -41,7 +40,7 @@ const UserMenuDropdown = ({ onClose }: Props) => {
             {/* User info */}
             <div className="px-4 py-3 border-b border-gray-100">
                 <p className="text-sm font-semibold text-text-main truncate">
-                    {user?.username ?? 'Người dùng'}
+                    {user?.fullName ?? 'Người dùng'}
                 </p>
                 <p className="text-sm text-gray-400 truncate mt-0.5">
                     {user?.email ?? ''}
@@ -89,8 +88,8 @@ export const UserMenuButton = () => {
     const { user } = useAuth();
     const [open, setOpen] = useState(false);
 
-    const initials = user?.username
-        ? user.username.slice(0, 2).toUpperCase()
+    const initials = user?.fullName
+        ? user.fullName.slice(0, 2).toUpperCase()
         : 'U';
 
     return (
@@ -98,7 +97,7 @@ export const UserMenuButton = () => {
             <button
                 onClick={() => setOpen(v => !v)}
                 className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-semibold hover:opacity-90"
-                title={user?.username ?? 'Tài khoản'}
+                title={user?.fullName ?? 'Tài khoản'}
             >
                 {initials}
             </button>

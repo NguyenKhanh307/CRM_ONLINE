@@ -60,9 +60,10 @@ public class ActivityCommandMapper {
                 .callResult(cmd.getCallResult() != null ? cmd.getCallResult() : existing.getCallResult())
                 .callDuration(cmd.getCallDuration() != null ? cmd.getCallDuration() : existing.getCallDuration())
                 .assignedUserId(cmd.getAssignedUserId() != null ? cmd.getAssignedUserId() : existing.getAssignedUserId())
-                .status(cmd.getStatus() != null ? cmd.getStatus() : existing.getStatus())
+                // status & completedAt: đổi qua hành động (start/complete/cancel) — không nhận từ command.
+                .status(existing.getStatus())
                 .dueAt(cmd.getDueAt() != null ? cmd.getDueAt() : existing.getDueAt())
-                .completedAt(cmd.getCompletedAt() != null ? cmd.getCompletedAt() : existing.getCompletedAt())
+                .completedAt(existing.getCompletedAt())
                 .createdAt(existing.getCreatedAt())
                 .build();
     }

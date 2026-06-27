@@ -26,6 +26,9 @@ public class QuotationHibernate {
     @Column(name = "customer_id") private Long customerId;
     @Column(name = "contact_id") private Long contactId;
     @Column(name = "opportunity_id") private Long opportunityId;
+    @Column(name = "price_policy_id") private Long pricePolicyId;
+    @Column(name = "is_primary") private boolean isPrimary;
+    @Column(name = "is_locked") private boolean isLocked;
     @Column(name = "owner_id") private Long ownerId;
     @Column(name = "quote_date") private LocalDate quoteDate;
     @Column(name = "valid_until") private LocalDate validUntil;

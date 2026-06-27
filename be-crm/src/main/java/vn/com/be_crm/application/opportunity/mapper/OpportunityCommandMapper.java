@@ -11,25 +11,29 @@ public class OpportunityCommandMapper {
 
     /**
      * Tạo Opportunity từ CreateOpportunityCommand.
-     * @param cmd command tạo mới @return domain entity
+     * Trạng thái KHÔNG nhận từ command — luôn suy ra từ giai đoạn pipeline.
+     * @param cmd command tạo mới @param derivedStatus trạng thái suy ra từ stage @return domain entity
      */
-    public static Opportunity toEntity(CreateOpportunityCommand cmd) {
+    public static Opportunity toEntity(CreateOpportunityCommand cmd, OpportunityStatus derivedStatus) {
         return Opportunity.builder()
                 .code(cmd.getCode()).name(cmd.getName()).opportunityType(cmd.getOpportunityType())
                 .customerId(cmd.getCustomerId())
                 .contactId(cmd.getContactId()).ownerId(cmd.getOwnerId()).stageId(cmd.getStageId())
+                .pricePolicyId(cmd.getPricePolicyId())
                 .amount(cmd.getAmount() != null ? cmd.getAmount() : BigDecimal.ZERO)
                 .expectedRevenue(cmd.getExpectedRevenue())
                 .probability(cmd.getProbability()).expectedCloseDate(cmd.getExpectedCloseDate())
                 .source(cmd.getSource()).winLossReason(cmd.getWinLossReason()).description(cmd.getDescription())
-                .status(cmd.getStatus() != null ? cmd.getStatus() : OpportunityStatus.open).build();
+                .status(derivedStatus != null ? derivedStatus : OpportunityStatus.open).build();
     }
 
     /**
      * Cập nhật Opportunity từ UpdateOpportunityCommand.
-     * @param cmd command cập nhật @param e entity hiện tại @return domain entity đã cập nhật
+     * Trạng thái KHÔNG nhận từ command — luôn suy ra từ giai đoạn pipeline hiện tại.
+     * @param cmd command cập nhật @param e entity hiện tại
+     * @param derivedStatus trạng thái suy ra từ stage @return domain entity đã cập nhật
      */
-    public static Opportunity toEntity(UpdateOpportunityCommand cmd, Opportunity e) {
+    public static Opportunity toEntity(UpdateOpportunityCommand cmd, Opportunity e, OpportunityStatus derivedStatus) {
         return Opportunity.builder()
                 .id(e.getId()).code(e.getCode())
                 .name(cmd.getName() != null ? cmd.getName() : e.getName())
@@ -38,6 +42,7 @@ public class OpportunityCommandMapper {
                 .contactId(cmd.getContactId() != null ? cmd.getContactId() : e.getContactId())
                 .ownerId(cmd.getOwnerId() != null ? cmd.getOwnerId() : e.getOwnerId())
                 .stageId(cmd.getStageId() != null ? cmd.getStageId() : e.getStageId())
+                .pricePolicyId(cmd.getPricePolicyId() != null ? cmd.getPricePolicyId() : e.getPricePolicyId())
                 .amount(cmd.getAmount() != null ? cmd.getAmount() : e.getAmount())
                 .expectedRevenue(cmd.getExpectedRevenue() != null ? cmd.getExpectedRevenue() : e.getExpectedRevenue())
                 .probability(cmd.getProbability() != null ? cmd.getProbability() : e.getProbability())
@@ -45,7 +50,7 @@ public class OpportunityCommandMapper {
                 .source(cmd.getSource() != null ? cmd.getSource() : e.getSource())
                 .winLossReason(cmd.getWinLossReason() != null ? cmd.getWinLossReason() : e.getWinLossReason())
                 .description(cmd.getDescription() != null ? cmd.getDescription() : e.getDescription())
-                .status(cmd.getStatus() != null ? cmd.getStatus() : e.getStatus())
+                .status(derivedStatus != null ? derivedStatus : e.getStatus())
                 .createdAt(e.getCreatedAt()).build();
     }
 
@@ -58,6 +63,7 @@ public class OpportunityCommandMapper {
                 .id(e.getId()).code(e.getCode()).name(e.getName()).opportunityType(e.getOpportunityType())
                 .customerId(e.getCustomerId())
                 .contactId(e.getContactId()).ownerId(e.getOwnerId()).stageId(e.getStageId())
+                .pricePolicyId(e.getPricePolicyId())
                 .amount(e.getAmount()).expectedRevenue(e.getExpectedRevenue()).probability(e.getProbability())
                 .expectedCloseDate(e.getExpectedCloseDate())
                 .source(e.getSource()).winLossReason(e.getWinLossReason()).description(e.getDescription())

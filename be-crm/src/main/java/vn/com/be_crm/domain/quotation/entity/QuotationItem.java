@@ -21,6 +21,8 @@ public class QuotationItem {
     private Long quotationId;
     /** ID sản phẩm. */
     private Long productId;
+    /** ID dòng cơ hội nguồn (để đồng bộ hai chiều với cơ hội). */
+    private Long opportunityItemId;
     /** Đơn vị tính dòng hàng. */
     private String unit;
     /** Số lượng. */

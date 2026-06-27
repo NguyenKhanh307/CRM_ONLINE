@@ -12,7 +12,7 @@ export interface UpdateActivityPayload {
     callResult?: string | null;
     callDuration?: number | null;
     assignedUserId: number | null;
-    status: string;
+    // status: KHÔNG gửi — đổi qua hành động start/complete/cancel.
     dueAt: string | null;
 }
 
@@ -31,7 +31,7 @@ export interface CreateActivityPayload {
     callResult: string | null;
     callDuration: number | null;
     assignedUserId: number | null;
-    status: string;
+    // status: KHÔNG gửi — hoạt động luôn tạo ở trạng thái 'planned'.
     dueAt: string | null;
 }
 

@@ -42,6 +42,43 @@ public class GmailSmtpEmailServiceImpl implements IEmailService {
         }
     }
 
+    /**
+     * Gửi email báo giá tới khách hàng/liên hệ.
+     *
+     * @param toEmail       địa chỉ email nhận
+     * @param recipientName tên hiển thị người nhận
+     * @param quotationCode mã báo giá
+     * @param total         tổng tiền đã format
+     * @param note          ghi chú (có thể null)
+     */
+    @Override
+    public void sendQuotationEmail(String toEmail, String recipientName, String quotationCode, String total, String note) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(toEmail);
+            helper.setSubject("Báo giá " + quotationCode);
+            helper.setText(buildQuotationBody(recipientName, quotationCode, total, note), true);
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Không thể gửi email báo giá: " + e.getMessage(), e);
+        }
+    }
+
+    private String buildQuotationBody(String name, String code, String total, String note) {
+        String noteHtml = (note == null || note.isBlank()) ? ""
+                : "<p style=\"color:#374151\">Ghi chú: " + note + "</p>";
+        return """
+                <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+                  <h2 style="color:#2563eb">Báo giá %s</h2>
+                  <p>Kính gửi <b>%s</b>,</p>
+                  <p>Chúng tôi xin gửi tới Quý khách báo giá <b>%s</b> với tổng giá trị <b>%s</b>.</p>
+                  %s
+                  <p style="color:#6b7280;font-size:14px">Trân trọng cảm ơn.</p>
+                </div>
+                """.formatted(code, name, code, total, noteHtml);
+    }
+
     private String buildHtmlBody(String name, String link) {
         return """
                 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">

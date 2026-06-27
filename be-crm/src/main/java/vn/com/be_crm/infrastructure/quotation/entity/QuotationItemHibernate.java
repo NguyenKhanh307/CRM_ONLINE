@@ -18,6 +18,7 @@ public class QuotationItemHibernate {
     private Long id;
     @Column(name = "quotation_id", nullable = false) private Long quotationId;
     @Column(name = "product_id") private Long productId;
+    @Column(name = "opportunity_item_id") private Long opportunityItemId;
     @Column(name = "unit", length = 20) private String unit;
     @Column(name = "quantity", precision = 18, scale = 3) private BigDecimal quantity;
     @Column(name = "unit_price", precision = 18, scale = 2) private BigDecimal unitPrice;

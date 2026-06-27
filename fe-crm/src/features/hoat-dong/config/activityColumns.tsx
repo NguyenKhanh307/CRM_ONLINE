@@ -8,13 +8,14 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-    pending: 'bg-yellow-100 text-yellow-700',
-    completed: 'bg-green-100 text-green-700',
+    planned: 'bg-gray-100 text-gray-600',
+    in_progress: 'bg-yellow-100 text-yellow-700',
+    done: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-600',
 };
 
 const STATUS_LABELS: Record<string, string> = {
-    pending: 'Chờ xử lý', completed: 'Hoàn thành', cancelled: 'Đã hủy',
+    planned: 'Đã lên kế hoạch', in_progress: 'Đang thực hiện', done: 'Hoàn thành', cancelled: 'Đã hủy',
 };
 
 const PRIORITY_LABELS: Record<string, string> = {

@@ -35,6 +35,8 @@ public class LeadHibernate {
     private Long customerId;
     @Column(name = "contact_id")
     private Long contactId;
+    @Column(name = "converted_opportunity_id")
+    private Long convertedOpportunityId;
     @Column(name = "title", length = 100)
     private String title;
     @Column(name = "department", length = 100)

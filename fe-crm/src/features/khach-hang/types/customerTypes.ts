@@ -9,7 +9,7 @@ export interface UpdateCustomerPayload {
     address: string | null;
     industry?: string | null;
     source: string | null;
-    status: string;
+    // status: KHÔNG gửi — đổi qua hành động activate/deactivate.
     creditDays?: number | null;
     creditLimit?: number | null;
     bankAccount?: string | null;
@@ -35,7 +35,7 @@ export interface CreateCustomerPayload {
     address: string | null;
     industry: string | null;
     source: string | null;
-    status: string;
+    // status: KHÔNG gửi — khách hàng luôn tạo ở trạng thái 'active'.
     creditDays: number | null;
     creditLimit: number | null;
     bankAccount: string | null;

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { useAlert } from '@/shared/alert/useAlert';
+import { useAuth } from '@/core/auth/useAuth';
 import { useCreateContact } from '../hooks/useCreateContact';
 import { ContactGeneralSection } from '../components/ContactGeneralSection';
 import { ContactContactSection } from '../components/ContactContactSection';
@@ -46,7 +47,10 @@ const toPayload = (f: ContactFormState): CreateContactPayload => {
 const ContactAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
-    const [form, setForm] = useState<ContactFormState>(INITIAL_CONTACT_FORM);
+    const { user } = useAuth();
+    // Người phụ trách mặc định là user đang đăng nhập.
+    const initialForm: ContactFormState = { ...INITIAL_CONTACT_FORM, assignedUserId: user ? String(user.id) : '' };
+    const [form, setForm] = useState<ContactFormState>(initialForm);
     const { mutate, isPending } = useCreateContact();
 
     const onChange = (patch: Partial<ContactFormState>) =>
@@ -60,7 +64,7 @@ const ContactAddPage = () => {
         mutate(toPayload(form), {
             onSuccess: () => {
                 if (andNew) {
-                    setForm(INITIAL_CONTACT_FORM);
+                    setForm(initialForm);
                     showAlert('Đã lưu liên hệ thành công');
                 } else {
                     navigate('/lien-he');

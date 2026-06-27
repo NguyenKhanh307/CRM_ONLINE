@@ -51,7 +51,11 @@ public class AddLeadScoreUseCase {
         int newScore = oldScore + points;
         boolean crossing = oldScore <= QUALIFY_THRESHOLD && newScore > QUALIFY_THRESHOLD;
 
-        LeadStatus newStatus = crossing ? LeadStatus.qualified : lead.getStatus();
+        // Tự động: vượt ngưỡng → qualified; tương tác đầu tiên trên tiềm năng còn 'new' → contacting.
+        LeadStatus newStatus;
+        if (crossing) newStatus = LeadStatus.qualified;
+        else if (lead.getStatus() == LeadStatus.new_) newStatus = LeadStatus.contacting;
+        else newStatus = lead.getStatus();
         Lead updated = lead.toBuilder().score(newScore).status(newStatus).build();
         Lead saved = leadRepo.save(updated);
 
