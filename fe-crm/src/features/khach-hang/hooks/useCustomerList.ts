@@ -5,6 +5,6 @@ import { customerService } from '../services/customerService';
 export function useCustomerList() {
     return useQuery({
         queryKey: ['customers'],
-        queryFn: () => customerService.getList({ page: 0, size: 100 }).then(r => r.data.data.items),
+        queryFn: () => customerService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items),
     });
 }

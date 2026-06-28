@@ -8,7 +8,6 @@ import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
-import { quotationService } from '@/features/bao-gia/services/quotationService';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useContactList } from '@/features/lien-he/hooks/useContactList';
@@ -17,6 +16,7 @@ import { useOpportunityList } from '../hooks/useOpportunityList';
 import { useOpportunityStages } from '../hooks/useOpportunityStages';
 import { useDeleteOpportunity } from '../hooks/useDeleteOpportunity';
 import { useHandoverBulkOpportunity } from '../hooks/useHandoverBulkOpportunity';
+import { useCreateQuotationFromOpportunity } from '../hooks/useCreateQuotationFromOpportunity';
 import { getOpportunityColumns } from '../config/opportunityColumns';
 import { opportunityExportColumns } from '../config/opportunityExportColumns';
 import { OpportunityEditModal } from '../components/OpportunityEditModal';
@@ -28,6 +28,7 @@ const CoHoiPage = () => {
     const { data = [], isLoading } = useOpportunityList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteOpportunity();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkOpportunity();
+    const { mutateAsync: createQuoteFn } = useCreateQuotationFromOpportunity();
     const { data: users } = useActiveUsers();
     const { data: customers } = useCustomerList();
     const { data: contacts } = useContactList();
@@ -45,7 +46,7 @@ const CoHoiPage = () => {
     /** Tạo báo giá từ cơ hội (clone) rồi điều hướng sang danh sách báo giá. */
     const createQuote = async (opportunityId: number) => {
         try {
-            await quotationService.fromOpportunity(opportunityId);
+            await createQuoteFn(opportunityId);
             showAlert('Đã tạo báo giá từ cơ hội');
             navigate('/bao-gia');
         } catch (err) {

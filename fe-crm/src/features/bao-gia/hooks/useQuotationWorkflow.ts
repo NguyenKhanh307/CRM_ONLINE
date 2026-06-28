@@ -29,6 +29,10 @@ export function useQuotationWorkflow() {
                 case 'convertToInvoice': return quotationService.convertToInvoice(id);
             }
         },
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['quotations'] }),
+        // convertToInvoice tạo hóa đơn + chuyển cơ hội sang won; setPrimary đồng bộ cơ hội
+        onSuccess: () => {
+            ['quotations', 'invoices', 'opportunities'].forEach(
+                (key) => qc.invalidateQueries({ queryKey: [key] }));
+        },
     });
 }

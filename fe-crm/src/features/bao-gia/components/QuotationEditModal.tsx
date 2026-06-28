@@ -1,4 +1,5 @@
 import { useState, type FormEvent, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { FiX } from 'react-icons/fi';
 import type { QuotationResult, UpdateQuotationPayload } from '../types/quotationTypes';
 import { useUpdateQuotation } from '../hooks/useUpdateQuotation';
@@ -28,6 +29,7 @@ const QUOTATION_STATUS_COLORS: Record<string, string> = {
 };
 
 export function QuotationEditModal({ item, onClose }: Props) {
+    const qc = useQueryClient();
     const { mutateAsync, isPending } = useUpdateQuotation();
     const { data: products = [] } = useProductList();
     const [form, setForm] = useState<UpdateQuotationPayload>({
@@ -76,6 +78,8 @@ export function QuotationEditModal({ item, onClose }: Props) {
                 ...toUpdate.map((r) => quotationService.updateItem(item.id, r.backendId as number, toItemPayload(r))),
                 ...toDelete.map((id) => quotationService.deleteItem(item.id, id)),
             ]);
+            // Sửa dòng hàng báo giá primary đồng bộ ngược về cơ hội (amount roll-up) → làm mới cơ hội + báo giá
+            ['quotations', 'opportunities'].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
             onClose();
         } finally {
             setSaving(false);

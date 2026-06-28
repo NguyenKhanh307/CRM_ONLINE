@@ -13,6 +13,10 @@ export function useLeadWorkflow() {
     return useMutation({
         mutationFn: ({ id, action, reason }: { id: number; action: LeadAction; reason?: string }) =>
             action === 'convert' ? leadService.convert(id) : leadService.lose(id, reason),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['leads'] }),
+        // convert tạo Khách hàng + Liên hệ + Cơ hội → làm mới cả các danh sách đó
+        onSuccess: () => {
+            ['leads', 'customers', 'contacts', 'opportunities'].forEach(
+                (key) => qc.invalidateQueries({ queryKey: [key] }));
+        },
     });
 }
