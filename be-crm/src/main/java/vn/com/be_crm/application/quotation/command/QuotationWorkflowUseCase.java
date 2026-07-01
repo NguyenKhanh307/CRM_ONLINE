@@ -4,16 +4,22 @@ import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
 import vn.com.be_crm.application.quotation.dto.QuotationResult;
 import vn.com.be_crm.application.quotation.mapper.QuotationCommandMapper;
 import vn.com.be_crm.application.shared.email.IEmailService;
+import vn.com.be_crm.application.shared.pdf.IQuotationPdfService;
+import vn.com.be_crm.application.shared.pdf.QuotationPdfData;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
 import vn.com.be_crm.domain.contact.entity.Contact;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
 import vn.com.be_crm.domain.customer.entity.Customer;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
+import vn.com.be_crm.domain.product.entity.Product;
+import vn.com.be_crm.domain.product.repository.IProductRepository;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.entity.QuotationApproval;
+import vn.com.be_crm.domain.quotation.entity.QuotationItem;
 import vn.com.be_crm.domain.quotation.enums.QuotationApprovalStatus;
 import vn.com.be_crm.domain.quotation.enums.QuotationStatus;
 import vn.com.be_crm.domain.quotation.repository.IQuotationApprovalRepository;
+import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 import vn.com.be_crm.domain.shared.exception.DomainException;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
@@ -22,6 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Use case điều phối luồng trạng thái báo giá (theo hành động, không sửa tay):
@@ -38,13 +45,20 @@ public class QuotationWorkflowUseCase {
     private final IEmailService emailService;
     private final ICustomerRepository customerRepo;
     private final IContactRepository contactRepo;
+    private final IQuotationItemRepository quotationItemRepo;
+    private final IProductRepository productRepo;
+    private final IQuotationPdfService pdfService;
+    private final String frontendBaseUrl;
 
     /** @param quotationRepo báo giá @param approvalRepo bước duyệt @param createNotificationUC tạo thông báo
-     *  @param userRoleRepo tra cứu role @param emailService gửi email @param customerRepo khách hàng @param contactRepo liên hệ */
+     *  @param userRoleRepo tra cứu role @param emailService gửi email @param customerRepo khách hàng @param contactRepo liên hệ
+     *  @param quotationItemRepo dòng hàng báo giá @param productRepo hàng hóa @param pdfService sinh PDF @param frontendBaseUrl URL FE cho link phản hồi */
     public QuotationWorkflowUseCase(IQuotationRepository quotationRepo, IQuotationApprovalRepository approvalRepo,
                                     CreateNotificationUseCase createNotificationUC, IUserRoleRepository userRoleRepo,
                                     IEmailService emailService, ICustomerRepository customerRepo,
-                                    IContactRepository contactRepo) {
+                                    IContactRepository contactRepo, IQuotationItemRepository quotationItemRepo,
+                                    IProductRepository productRepo, IQuotationPdfService pdfService,
+                                    String frontendBaseUrl) {
         this.quotationRepo = quotationRepo;
         this.approvalRepo = approvalRepo;
         this.createNotificationUC = createNotificationUC;
@@ -52,6 +66,10 @@ public class QuotationWorkflowUseCase {
         this.emailService = emailService;
         this.customerRepo = customerRepo;
         this.contactRepo = contactRepo;
+        this.quotationItemRepo = quotationItemRepo;
+        this.productRepo = productRepo;
+        this.pdfService = pdfService;
+        this.frontendBaseUrl = frontendBaseUrl;
     }
 
     /**
@@ -107,6 +125,7 @@ public class QuotationWorkflowUseCase {
 
     /**
      * Nhân viên gửi email báo giá cho khách hàng: approved → sent.
+     * Sinh token phản hồi (nếu chưa có), dựng PDF bảng báo giá đính kèm + link 3 nút phản hồi công khai.
      * @param quotationId ID báo giá @return báo giá sau cập nhật
      */
     public QuotationResult send(Long quotationId) {
@@ -117,10 +136,40 @@ public class QuotationWorkflowUseCase {
         if (recipient[0] == null || recipient[0].isBlank()) {
             throw new DomainException("Báo giá chưa có email khách hàng/liên hệ để gửi");
         }
-        emailService.sendQuotationEmail(recipient[0], recipient[1], q.getCode(), formatMoney(q.getTotal()), q.getNote());
 
-        Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.sent).build());
-        return QuotationCommandMapper.toResult(saved);
+        String token = (q.getResponseToken() != null && !q.getResponseToken().isBlank())
+                ? q.getResponseToken() : UUID.randomUUID().toString().replace("-", "");
+        String responseLink = trimTrailingSlash(frontendBaseUrl) + "/bao-gia-phan-hoi/" + token;
+        byte[] pdf = pdfService.render(buildPdfData(q, recipient[1]));
+
+        emailService.sendQuotationEmail(recipient[0], recipient[1], q.getCode(), formatMoney(q.getTotal()), q.getNote(),
+                responseLink, pdf, "BaoGia-" + q.getCode() + ".pdf");
+
+        Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.sent).responseToken(token).build());
+        // Trả kèm email đã gửi để FE hiển thị xác nhận "đã gửi tới <email>"
+        return QuotationCommandMapper.toResult(saved).toBuilder().sentToEmail(recipient[0]).build();
+    }
+
+    /** Dựng dữ liệu PDF từ báo giá: tên KH, dòng hàng (kèm tên sản phẩm), tổng tiền. */
+    private QuotationPdfData buildPdfData(Quotation q, String contactName) {
+        String customerName = q.getCustomerId() == null ? "" :
+                customerRepo.findById(q.getCustomerId()).map(Customer::getName).orElse("");
+        List<QuotationPdfData.Line> lines = new ArrayList<>();
+        int stt = 1;
+        for (QuotationItem it : quotationItemRepo.findAllByQuotationId(q.getId())) {
+            String productName = it.getProductId() == null ? "" :
+                    productRepo.findById(it.getProductId()).map(Product::getName).orElse("#" + it.getProductId());
+            lines.add(new QuotationPdfData.Line(stt++, productName, it.getUnit(),
+                    it.getQuantity(), it.getUnitPrice(), it.getDiscount(), it.getAmount()));
+        }
+        return new QuotationPdfData(q.getCode(), customerName, contactName,
+                q.getQuoteDate(), q.getValidUntil(), q.getCurrency(), q.getNote(), q.getTotal(), lines);
+    }
+
+    /** Bỏ dấu '/' cuối URL để ghép path. */
+    private String trimTrailingSlash(String url) {
+        if (url == null) return "";
+        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
     }
 
     /**
@@ -157,12 +206,13 @@ public class QuotationWorkflowUseCase {
         createNotificationUC.execute(List.of(q.getOwnerId()), type, title, content, null);
     }
 
-    /** Trả về [email, tên hiển thị] ưu tiên liên hệ, sau đó khách hàng. */
+    /** Trả về [email, tên hiển thị] ưu tiên liên hệ (email → workEmail → personalEmail), sau đó khách hàng. */
     private String[] resolveRecipient(Quotation q) {
         if (q.getContactId() != null) {
             Contact c = contactRepo.findById(q.getContactId()).orElse(null);
-            if (c != null && c.getEmail() != null && !c.getEmail().isBlank()) {
-                return new String[]{c.getEmail(), c.getFullName()};
+            if (c != null) {
+                String email = firstNonBlank(c.getEmail(), c.getWorkEmail(), c.getPersonalEmail());
+                if (email != null) return new String[]{email, c.getFullName()};
             }
         }
         if (q.getCustomerId() != null) {
@@ -172,6 +222,14 @@ public class QuotationWorkflowUseCase {
             }
         }
         return new String[]{null, "Quý khách"};
+    }
+
+    /** Trả về giá trị đầu tiên không rỗng, hoặc null. */
+    private String firstNonBlank(String... values) {
+        for (String v : values) {
+            if (v != null && !v.isBlank()) return v;
+        }
+        return null;
     }
 
     /** Format tổng tiền dạng "1.234.567 đ" (dấu chấm phân cách nghìn). */

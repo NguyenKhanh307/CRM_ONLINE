@@ -81,6 +81,11 @@ export interface QuotationResult {
     tax: number | null;
     total: number | null;
     note: string | null;
+    customerResponse: string | null;
+    customerResponseNote: string | null;
+    customerRespondedAt: string | null;
+    /** Email đã gửi báo giá tới — chỉ có khi response của hành động send. */
+    sentToEmail?: string | null;
     createdAt: string;
     updatedAt: string;
 }

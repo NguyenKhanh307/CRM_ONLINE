@@ -75,6 +75,8 @@ public class QuotationCommandMapper {
                 .currency(e.getCurrency()).exchangeRate(e.getExchangeRate())
                 .status(effectiveStatus(e)).subtotal(e.getSubtotal()).discount(e.getDiscount())
                 .tax(e.getTax()).total(e.getTotal()).note(e.getNote())
+                .customerResponse(e.getCustomerResponse()).customerResponseNote(e.getCustomerResponseNote())
+                .customerRespondedAt(e.getCustomerRespondedAt())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 

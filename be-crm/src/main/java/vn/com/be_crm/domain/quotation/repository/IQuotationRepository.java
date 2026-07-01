@@ -24,6 +24,12 @@ public interface IQuotationRepository {
     Optional<Quotation> findByCode(String code);
 
     /**
+     * Tìm báo giá theo token phản hồi công khai (chưa xóa mềm) — dùng cho trang khách phản hồi.
+     * @param token token phản hồi @return Optional
+     */
+    Optional<Quotation> findByResponseToken(String token);
+
+    /**
      * Lưu báo giá kèm danh sách dòng hàng trong một transaction.
      * @param q     domain entity báo giá
      * @param items danh sách dòng hàng (quotationId sẽ được gán sau khi lưu báo giá)

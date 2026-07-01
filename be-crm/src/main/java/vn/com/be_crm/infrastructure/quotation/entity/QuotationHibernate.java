@@ -41,6 +41,10 @@ public class QuotationHibernate {
     @Column(name = "tax", precision = 18, scale = 2) private BigDecimal tax;
     @Column(name = "total", precision = 18, scale = 2) private BigDecimal total;
     @Column(name = "note", length = 255) private String note;
+    @Column(name = "response_token", length = 64) private String responseToken;
+    @Column(name = "customer_response", length = 20) private String customerResponse;
+    @Column(name = "customer_response_note", length = 1000) private String customerResponseNote;
+    @Column(name = "customer_responded_at") private LocalDateTime customerRespondedAt;
     @Column(name = "created_by") private Long createdBy;
     @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false) private LocalDateTime createdAt;

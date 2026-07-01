@@ -231,6 +231,7 @@ Tất cả 8 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (
 ### Tiềm năng — chấm điểm, web tracking & thông báo
 
 - Trang `/tracking-demo` (`features/tracking-demo`): landing page mô phỏng — gọi `POST /api/tracking/visit|score|submit` (public) để tạo lead ẩn danh & cộng điểm `score`.
+- Trang công khai `/bao-gia-phan-hoi/:token` (`features/bao-gia-phan-hoi`): khách xem báo giá (`GET /api/public/quotations/{token}`) + phản hồi Đồng ý/Điều chỉnh/Không đồng ý (`POST /api/public/quotations/{token}/respond`) — link gửi qua email báo giá (kèm PDF). Ngoài MainLayout, không cần đăng nhập.
 - Header có **chuông thông báo** (`shared/components/layout/header/NotificationPopup.tsx`) dùng `shared/notifications/{notificationService,useNotifications}.ts` → `GET /api/notifications`, `/unread-count`, `POST /{id}/read`, `/read-all`.
 
 ### Chính sách giá — `/chinh-sach-gia` (admin only)
@@ -239,6 +240,15 @@ Trang quản lý chính sách giá. Chỉ ADMIN thấy trên sidebar.
 
 - **Danh sách** (`/chinh-sach-gia`): bảng price policies + tạo mới/sửa/xóa/bulk-delete
 - **Chi tiết** (`/chinh-sach-gia/:id`): header thông tin policy + 5 tab sub-entity
+
+### Chăm sóc sau bán — `/cham-soc` (module `ticket`)
+
+Phân hệ Dịch vụ sau bán (feature `features/cham-soc/`): phiếu hỗ trợ / trả hàng / đổi hàng / khiếu nại.
+
+- **Danh sách** (`/cham-soc`): `GET /api/tickets` — bảng đủ trường + badge loại/trạng thái/ưu tiên + cột "Quá hạn" (`isOverdue`); quick-filter theo loại; export/handover/bulk-delete; nút Xem → trang chi tiết.
+- **Thêm mới** (`/cham-soc/them-moi`): form phiếu; hiện `ReturnItemsTable` khi loại là trả/đổi; người xử lý mặc định = user đăng nhập.
+- **Chi tiết** (`/cham-soc/:id`): thông tin + dòng hàng trả/đổi + timeline ghi chú (`TicketTimeline`, system vs note) + nút hành động (`TicketWorkflowButtons`) đổi trạng thái (assign/start/resolve/approve/reject/receive/inspect/complete/close/reopen) + form CSAT khi resolved/closed. Status là **badge read-only**; reject dùng `ReasonModal`, resolve/complete dùng `ResolutionModal`, assign dùng `AssignTicketModal`.
+- Menu **Chăm sóc** gắn `module: 'ticket'` (icon `FiLifeBuoy`); ẩn/hiện theo quyền `ticket`.
 
 | Endpoint | Mô tả |
 |----------|-------|

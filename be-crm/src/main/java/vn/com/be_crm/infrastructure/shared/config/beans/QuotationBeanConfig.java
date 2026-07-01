@@ -1,5 +1,6 @@
 package vn.com.be_crm.infrastructure.shared.config.beans;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
@@ -7,12 +8,14 @@ import vn.com.be_crm.application.quotation.command.*;
 import vn.com.be_crm.application.quotation.query.*;
 import vn.com.be_crm.application.opportunity.command.RecomputeOpportunityAmountUseCase;
 import vn.com.be_crm.application.shared.email.IEmailService;
+import vn.com.be_crm.application.shared.pdf.IQuotationPdfService;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityItemRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
+import vn.com.be_crm.domain.product.repository.IProductRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationApprovalRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
@@ -63,8 +66,21 @@ public class QuotationBeanConfig {
     /** @return QuotationWorkflowUseCase */
     @Bean public QuotationWorkflowUseCase quotationWorkflowUseCase(IQuotationRepository qr, IQuotationApprovalRepository ar,
             CreateNotificationUseCase nuc, IUserRoleRepository urr, IEmailService es,
-            ICustomerRepository cr, IContactRepository cor) {
-        return new QuotationWorkflowUseCase(qr, ar, nuc, urr, es, cr, cor);
+            ICustomerRepository cr, IContactRepository cor, IQuotationItemRepository qir,
+            IProductRepository pr, IQuotationPdfService pdf,
+            @Value("${app.frontend.base-url}") String frontendBaseUrl) {
+        return new QuotationWorkflowUseCase(qr, ar, nuc, urr, es, cr, cor, qir, pr, pdf, frontendBaseUrl);
+    }
+
+    /** @return RespondToQuotationUseCase — khách phản hồi báo giá (đồng ý/điều chỉnh/không đồng ý) */
+    @Bean public RespondToQuotationUseCase respondToQuotationUseCase(IQuotationRepository qr, CreateNotificationUseCase nuc) {
+        return new RespondToQuotationUseCase(qr, nuc);
+    }
+
+    /** @return GetQuotationByTokenUseCase — xem báo giá công khai theo token */
+    @Bean public GetQuotationByTokenUseCase getQuotationByTokenUseCase(IQuotationRepository qr,
+            IQuotationItemRepository qir, IProductRepository pr, ICustomerRepository cr, IContactRepository cor) {
+        return new GetQuotationByTokenUseCase(qr, qir, pr, cr, cor);
     }
 
     // ===== Quotation ↔ Opportunity ↔ Invoice (clone / primary / sync / convert) =====
@@ -73,6 +89,11 @@ public class QuotationBeanConfig {
     @Bean public CreateQuotationFromOpportunityUseCase createQuotationFromOpportunityUseCase(
             IQuotationRepository qr, IOpportunityRepository or, IOpportunityItemRepository oir) {
         return new CreateQuotationFromOpportunityUseCase(qr, or, oir);
+    }
+    /** @return RefreshQuotationItemsFromOpportunityUseCase — cập nhật lại dòng hàng báo giá từ cơ hội */
+    @Bean public RefreshQuotationItemsFromOpportunityUseCase refreshQuotationItemsFromOpportunityUseCase(
+            IQuotationRepository qr, IQuotationItemRepository qir, IOpportunityItemRepository oir) {
+        return new RefreshQuotationItemsFromOpportunityUseCase(qr, qir, oir);
     }
     /** @return SetPrimaryQuotationUseCase — đặt báo giá đồng bộ */
     @Bean public SetPrimaryQuotationUseCase setPrimaryQuotationUseCase(IQuotationRepository qr) {

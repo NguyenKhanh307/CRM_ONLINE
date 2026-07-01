@@ -56,4 +56,7 @@ export const quotationService = {
     /** Clone báo giá từ cơ hội (sao chép sâu KH/LH/chính sách giá + dòng hàng). */
     fromOpportunity: (opportunityId: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/from-opportunity/${opportunityId}`),
+    /** Cập nhật lại dòng hàng báo giá theo cơ hội nguồn (xóa + clone lại, giữ liên kết). */
+    syncItemsFromOpportunity: (id: number) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/sync-items-from-opportunity`),
 };

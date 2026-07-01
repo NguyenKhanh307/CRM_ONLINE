@@ -1,9 +1,0 @@
-.env
-.env.example
-__pycache__
-*.pyc
-*.pyo
-venv/
-.git/
-docker-compose.yml
-README.md

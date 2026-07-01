@@ -335,6 +335,44 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 ---
 
+### 2.7b Service — Dịch vụ sau bán (phiếu hỗ trợ / trả / đổi / khiếu nại)
+
+#### Phiếu hỗ trợ — `/api/tickets`
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `POST` | `/api/tickets` | Tạo phiếu — tự tra SLA theo priority (set `slaDueAt`), ghi audit log; nhận `returnItems[]` cho trả/đổi. Field: code, type (support/return/exchange/complaint), subject, channel, priority, reason, customerId/contactId/invoiceId/productId, assignedUserId |
+| `GET` | `/api/tickets` | Danh sách phiếu (phân trang); `TicketResult.isOverdue` suy ra quá hạn SLA on-read |
+| `GET` | `/api/tickets/{id}` | Lấy phiếu theo ID |
+| `PUT` | `/api/tickets/{id}` | Cập nhật thông tin (KHÔNG nhận `status`) |
+| `DELETE` | `/api/tickets/{id}` | Xóa mềm |
+| `GET` | `/api/tickets/deleted` | Thùng rác (30 ngày) |
+| `POST` | `/api/tickets/{id}/restore` · `DELETE .../purge` | Khôi phục / xóa vĩnh viễn |
+| `POST` | `/api/tickets/handover-bulk` | Bàn giao nhiều phiếu — body: `{ ids, toUserId, reason? }` |
+| `POST` | `/api/tickets/{id}/assign` | Giao xử lý (new → assigned) — body: `{ toUserId }`; tạo notification |
+| `POST` | `/api/tickets/{id}/start` | Bắt đầu (assigned/reopened → in_progress), set `firstResponseAt` |
+| `POST` | `/api/tickets/{id}/resolve` | Giải quyết (support/complaint) — body: `{ resolutionType?, note? }` |
+| `POST` | `/api/tickets/{id}/approve` · `/reject` | Duyệt / từ chối trả-đổi (return/exchange); reject body `{ reason }` |
+| `POST` | `/api/tickets/{id}/receive` · `/inspect` · `/complete` | Luồng nhận → kiểm → hoàn tất (return/exchange) |
+| `POST` | `/api/tickets/{id}/close` · `/reopen` | Đóng / mở lại |
+| `POST` | `/api/tickets/{id}/csat` | Ghi CSAT (resolved/closed) — body: `{ score, comment? }` |
+
+#### Dòng hàng trả/đổi — `/api/tickets/{ticketId}/return-items` · Ghi chú — `/api/tickets/{ticketId}/comments`
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `GET`/`POST`/`PUT`/`DELETE` | `/api/tickets/{ticketId}/return-items[/{id}]` | CRUD dòng hàng trả/đổi |
+| `GET` | `/api/tickets/{ticketId}/comments` | Lịch sử (system audit + note người dùng) |
+| `POST` | `/api/tickets/{ticketId}/comments` | Thêm ghi chú (type=note) — body: `{ content, isInternal? }` |
+
+#### Chính sách SLA — `/api/sla-policies`
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `GET` | `/api/sla-policies` | Danh sách chính sách SLA theo priority |
+
+---
+
 ### 2.8 Product — Sản phẩm
 
 #### Sản phẩm — `/api/products`
@@ -510,8 +548,11 @@ Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động
 | `POST` | `/api/customers/{id}/activate` \| `/deactivate` | active ↔ inactive |
 | `POST` | `/api/activities/{id}/start` \| `/complete` \| `/cancel` | planned→in_progress→done / cancelled |
 | `POST` | `/api/invoices/{id}/issue` \| `/cancel` | draft→sent (khóa) / cancelled |
-| `POST` | `/api/quotations/{id}/submit` \| `/approve` \| `/reject` \| `/send` \| `/accept` | draft→pending→approved/rejected→sent→accepted (approve/reject cần ADMIN/SALES_MANAGER; send gửi email khách) |
+| `POST` | `/api/quotations/{id}/submit` \| `/approve` \| `/reject` \| `/send` \| `/accept` | draft→pending→approved/rejected→sent→accepted (approve/reject cần ADMIN/SALES_MANAGER; **send** gửi email khách kèm **PDF bảng báo giá** + 3 nút phản hồi, sinh `response_token`) |
+| `GET`  | `/api/public/quotations/{token}` | (public) Xem báo giá theo token để khách phản hồi |
+| `POST` | `/api/public/quotations/{token}/respond` | (public) Khách phản hồi — body `{ action: accept\|adjust\|reject, note? }`; `accept`→accepted + thông báo người phụ trách |
 | `POST` | `/api/quotations/from-opportunity/{opportunityId}` | Clone báo giá từ cơ hội (OLI→QLI, đặt primary nếu là báo giá đầu) |
+| `POST` | `/api/quotations/{id}/sync-items-from-opportunity` | Cập nhật lại dòng hàng báo giá theo cơ hội nguồn (xóa + clone lại OLI→QLI, giữ `opportunityItemId`) |
 | `POST` | `/api/quotations/{id}/set-primary` | Đặt báo giá đồng bộ (chỉ 1 primary/cơ hội) |
 | `POST` | `/api/quotations/{id}/convert-to-invoice` | Chuyển thành hóa đơn (khóa báo giá + cơ hội won) |
 | `GET`  | `/api/pricing/resolve?pricePolicyId&productId&quantity` | Tra đơn giá/chiết khấu theo chính sách giá (pricebook) |

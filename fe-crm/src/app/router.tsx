@@ -34,9 +34,13 @@ const ProductAddPage  = lazy(() => import('@/features/san-pham/pages/ProductAddP
 const ProductImportPage = lazy(() => import('@/features/san-pham/pages/ProductImportPage'));
 const PhanQuyenPage   = lazy(() => import('@/features/phan-quyen/pages/PhanQuyenPage'));
 const ThungRacPage    = lazy(() => import('@/features/thung-rac/pages/ThungRacPage'));
+const ChamSocPage     = lazy(() => import('@/features/cham-soc/pages/ChamSocPage'));
+const TicketAddPage   = lazy(() => import('@/features/cham-soc/pages/TicketAddPage'));
+const TicketDetailPage = lazy(() => import('@/features/cham-soc/pages/TicketDetailPage'));
 const ChinhSachGiaPage = lazy(() => import('@/features/chinh-sach-gia/pages/ChinhSachGiaPage'));
 const ChinhSachGiaDetailPage = lazy(() => import('@/features/chinh-sach-gia/pages/ChinhSachGiaDetailPage'));
 const TrackingDemoPage = lazy(() => import('@/features/tracking-demo/pages/TrackingDemoPage'));
+const QuotationResponsePage = lazy(() => import('@/features/bao-gia-phan-hoi/pages/QuotationResponsePage'));
 
 const fallback = <div className="p-6 text-gray-400">Đang tải...</div>;
 
@@ -72,6 +76,9 @@ export const router = createBrowserRouter([
             { path: '/san-pham',              element: <Suspense fallback={fallback}><SanPhamPage /></Suspense> },
             { path: '/san-pham/them-moi',     element: <Suspense fallback={fallback}><ProductAddPage /></Suspense> },
             { path: '/san-pham/nhap-file',    element: <Suspense fallback={fallback}><ProductImportPage /></Suspense> },
+            { path: '/cham-soc',              element: <Suspense fallback={fallback}><ChamSocPage /></Suspense> },
+            { path: '/cham-soc/them-moi',     element: <Suspense fallback={fallback}><TicketAddPage /></Suspense> },
+            { path: '/cham-soc/:id',          element: <Suspense fallback={fallback}><TicketDetailPage /></Suspense> },
             { path: '/chinh-sach-gia',        element: <Suspense fallback={fallback}><ChinhSachGiaPage /></Suspense> },
             { path: '/chinh-sach-gia/:id',   element: <Suspense fallback={fallback}><ChinhSachGiaDetailPage /></Suspense> },
             { path: '/phan-quyen',           element: <Suspense fallback={fallback}><PhanQuyenPage /></Suspense> },
@@ -99,6 +106,14 @@ export const router = createBrowserRouter([
         element: (
             <Suspense fallback={<div className="min-h-screen bg-blue-200" />}>
                 <ActivatePage />
+            </Suspense>
+        ),
+    },
+    {
+        path: '/bao-gia-phan-hoi/:token',
+        element: (
+            <Suspense fallback={<div className="min-h-screen bg-bg-main" />}>
+                <QuotationResponsePage />
             </Suspense>
         ),
     },

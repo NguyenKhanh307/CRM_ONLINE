@@ -56,6 +56,14 @@ public class Quotation {
     private BigDecimal total;
     /** Ghi chú. */
     private String note;
+    /** Token công khai cho link phản hồi của khách (gửi kèm email). */
+    private String responseToken;
+    /** Phản hồi của khách: accepted | adjust | rejected. */
+    private String customerResponse;
+    /** Nội dung điều chỉnh / lý do khách nhập khi phản hồi. */
+    private String customerResponseNote;
+    /** Thời điểm khách phản hồi. */
+    private LocalDateTime customerRespondedAt;
     /** Thời điểm tạo. */
     private LocalDateTime createdAt;
     /** Thời điểm cập nhật gần nhất. */

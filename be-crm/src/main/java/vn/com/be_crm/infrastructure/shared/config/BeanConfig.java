@@ -14,6 +14,7 @@ import vn.com.be_crm.infrastructure.shared.config.beans.InvoiceBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.PricingBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.ProductBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.QuotationBeanConfig;
+import vn.com.be_crm.infrastructure.shared.config.beans.ServiceBeanConfig;
 
 /**
  * Điểm gom cấu hình wire UseCase — mỗi module tách ra một @Configuration riêng trong package
@@ -29,6 +30,7 @@ import vn.com.be_crm.infrastructure.shared.config.beans.QuotationBeanConfig;
         ContactBeanConfig.class,
         LeadBeanConfig.class,
         QuotationBeanConfig.class,
+        ServiceBeanConfig.class,
         InvoiceBeanConfig.class,
         PricingBeanConfig.class,
         HandoverBeanConfig.class,

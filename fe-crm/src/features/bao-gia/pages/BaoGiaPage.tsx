@@ -51,6 +51,12 @@ const BaoGiaPage = () => {
     /** Chạy một hành động chuyển trạng thái báo giá, báo lỗi qua alert nếu bước chuyển không hợp lệ. */
     const runAction = (id: number, action: QuotationAction, comment?: string) =>
         workflowFn({ id, action, comment }, {
+            onSuccess: (res: unknown) => {
+                if (action === 'send') {
+                    const email = (res as { data?: { data?: { sentToEmail?: string | null } } })?.data?.data?.sentToEmail;
+                    showAlert(email ? `Đã gửi báo giá tới email: ${email}` : 'Đã gửi báo giá cho khách hàng');
+                }
+            },
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Không thực hiện được hành động';

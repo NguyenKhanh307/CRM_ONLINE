@@ -32,6 +32,9 @@ public class QuotationHibernateMapper {
         // Ghi chú & cờ xóa mềm
         h.setNote(d.getNote()); h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
+        // Phản hồi báo giá của khách hàng
+        h.setResponseToken(d.getResponseToken()); h.setCustomerResponse(d.getCustomerResponse());
+        h.setCustomerResponseNote(d.getCustomerResponseNote()); h.setCustomerRespondedAt(d.getCustomerRespondedAt());
         return h;
     }
     /** Chuyển Hibernate entity sang domain entity. @param h @return domain entity */
@@ -44,6 +47,8 @@ public class QuotationHibernateMapper {
                 .currency(h.getCurrency()).exchangeRate(h.getExchangeRate())
                 .status(h.getStatus()).subtotal(h.getSubtotal()).discount(h.getDiscount())
                 .tax(h.getTax()).total(h.getTotal()).note(h.getNote())
+                .responseToken(h.getResponseToken()).customerResponse(h.getCustomerResponse())
+                .customerResponseNote(h.getCustomerResponseNote()).customerRespondedAt(h.getCustomerRespondedAt())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }

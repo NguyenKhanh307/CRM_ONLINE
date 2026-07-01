@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /** Output DTO cho Quotation. */
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @Builder(toBuilder = true) @NoArgsConstructor @AllArgsConstructor
 public class QuotationResult {
     private Long id;
     private String code;
@@ -32,6 +32,11 @@ public class QuotationResult {
     private BigDecimal tax;
     private BigDecimal total;
     private String note;
+    private String customerResponse;
+    private String customerResponseNote;
+    private LocalDateTime customerRespondedAt;
+    /** Email đã gửi báo giá tới (chỉ điền khi gọi hành động send) — để FE hiển thị xác nhận. */
+    private String sentToEmail;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

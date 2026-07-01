@@ -54,6 +54,15 @@ public class QuotationRepositoryImpl implements IQuotationRepository {
         }
     }
 
+    /** Tìm Quotation theo token phản hồi công khai (chưa xóa mềm). @param token token @return Optional */
+    @Override public Optional<Quotation> findByResponseToken(String token) {
+        try (Session s = sf.openSession()) {
+            return s.createQuery("FROM QuotationHibernate WHERE responseToken = :token AND deletedAt IS NULL", QuotationHibernate.class)
+                    .setParameter("token", token).setMaxResults(1).list()
+                    .stream().map(mapper::toDomain).findFirst();
+        }
+    }
+
     /** Lấy danh sách báo giá theo cơ hội (chưa xóa mềm). @param opportunityId @return danh sách */
     @Override public List<Quotation> findAllByOpportunityId(Long opportunityId) {
         try (Session s = sf.openSession()) {

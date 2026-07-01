@@ -1,9 +1,10 @@
 import { useState, type FormEvent, useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiRefreshCw } from 'react-icons/fi';
 import type { QuotationResult, UpdateQuotationPayload } from '../types/quotationTypes';
 import { useUpdateQuotation } from '../hooks/useUpdateQuotation';
 import { quotationService } from '../services/quotationService';
+import { useAlert } from '@/shared/alert/useAlert';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import {
@@ -30,8 +31,10 @@ const QUOTATION_STATUS_COLORS: Record<string, string> = {
 
 export function QuotationEditModal({ item, onClose }: Props) {
     const qc = useQueryClient();
+    const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateQuotation();
     const { data: products = [] } = useProductList();
+    const [pulling, setPulling] = useState(false);
     const [form, setForm] = useState<UpdateQuotationPayload>({
         customerId: null, contactId: null, ownerId: null, quoteDate: null,
         validUntil: null, currency: 'VND', exchangeRate: 1,
@@ -86,6 +89,27 @@ export function QuotationEditModal({ item, onClose }: Props) {
         }
     };
 
+    /** Cập nhật lại danh sách dòng hàng theo cơ hội nguồn (áp dụng ngay ở backend, giữ liên kết). */
+    const handleSyncFromOpportunity = async () => {
+        if (!item) return;
+        setPulling(true);
+        try {
+            await quotationService.syncItemsFromOpportunity(item.id);
+            const r = await quotationService.getItems(item.id);
+            const loaded = r.data.data.map(fromItemResult);
+            setRows(loaded);
+            setOriginalRows(loaded);
+            ['quotations', 'opportunities'].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
+            showAlert('Đã cập nhật dòng hàng từ cơ hội');
+        } catch (err) {
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+                ?? 'Không cập nhật được dòng hàng từ cơ hội';
+            showAlert(msg);
+        } finally {
+            setPulling(false);
+        }
+    };
+
     const inp = 'w-full border border-gray-300 rounded-btn px-3 py-1.5 text-md text-text-main focus:outline-none focus:border-primary';
     const lbl = 'block text-sm font-medium text-gray-700 mb-1';
     const busy = isPending || saving;
@@ -125,9 +149,37 @@ export function QuotationEditModal({ item, onClose }: Props) {
                         </div>
                     </div>
                     <div>
-                        <label className={lbl}>Hàng hóa</label>
+                        <div className="flex items-center justify-between mb-1">
+                            <label className={lbl + ' mb-0'}>Hàng hóa</label>
+                            {item.opportunityId != null && (
+                                <button
+                                    type="button"
+                                    onClick={handleSyncFromOpportunity}
+                                    disabled={pulling || busy}
+                                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-btn border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                                    title="Lấy lại toàn bộ dòng hàng từ cơ hội nguồn"
+                                >
+                                    <FiRefreshCw size={13} className={pulling ? 'animate-spin' : ''} />
+                                    {pulling ? 'Đang cập nhật...' : 'Cập nhật dòng hàng từ cơ hội'}
+                                </button>
+                            )}
+                        </div>
                         <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />
                     </div>
+                    {item.customerResponse && (
+                        <div className="rounded-btn border border-gray-200 bg-gray-50 p-3">
+                            <div className="text-sm font-medium text-gray-700 mb-1">Phản hồi khách hàng</div>
+                            <span className={`inline-block px-2 py-0.5 rounded text-sm font-medium ${
+                                item.customerResponse === 'accepted' ? 'bg-green-100 text-green-700'
+                                    : item.customerResponse === 'adjust' ? 'bg-yellow-100 text-yellow-700'
+                                        : 'bg-red-100 text-red-600'
+                            }`}>
+                                {item.customerResponse === 'accepted' ? 'Đồng ý'
+                                    : item.customerResponse === 'adjust' ? 'Yêu cầu điều chỉnh' : 'Không đồng ý'}
+                            </span>
+                            {item.customerResponseNote && <div className="text-md text-gray-600 mt-1">Nội dung: {item.customerResponseNote}</div>}
+                        </div>
+                    )}
                     <div>
                         <label className={lbl}>Ghi chú</label>
                         <textarea className={inp} rows={2} value={form.note ?? ''} onChange={e => setForm(f => ({ ...f, note: e.target.value || null }))} />

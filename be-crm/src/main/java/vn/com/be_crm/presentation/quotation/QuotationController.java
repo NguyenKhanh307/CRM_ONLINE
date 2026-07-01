@@ -38,13 +38,15 @@ public class QuotationController {
     private final vn.com.be_crm.application.quotation.command.HandoverBulkQuotationUseCase handoverBulkUC;
     private final QuotationWorkflowUseCase workflowUC;
     private final CreateQuotationFromOpportunityUseCase fromOpportunityUC;
+    private final RefreshQuotationItemsFromOpportunityUseCase refreshItemsUC;
     private final SetPrimaryQuotationUseCase setPrimaryUC;
     private final ConvertQuotationToInvoiceUseCase convertToInvoiceUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
      *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
      *  @param handoverBulkUC bàn giao hàng loạt @param workflowUC luồng duyệt báo giá
-     *  @param fromOpportunityUC clone từ cơ hội @param setPrimaryUC đặt báo giá đồng bộ @param convertToInvoiceUC chuyển thành hóa đơn */
+     *  @param fromOpportunityUC clone từ cơ hội @param refreshItemsUC cập nhật lại dòng hàng từ cơ hội
+     *  @param setPrimaryUC đặt báo giá đồng bộ @param convertToInvoiceUC chuyển thành hóa đơn */
     public QuotationController(CreateQuotationUseCase createUC, UpdateQuotationUseCase updateUC,
                                 DeleteQuotationUseCase deleteUC, GetQuotationUseCase getUC, ListQuotationUseCase listUC,
                                 ListDeletedQuotationsUseCase listDeletedUC, RestoreQuotationUseCase restoreUC, PurgeQuotationUseCase purgeUC,
@@ -52,13 +54,15 @@ public class QuotationController {
                                 vn.com.be_crm.application.quotation.command.HandoverBulkQuotationUseCase handoverBulkUC,
                                 QuotationWorkflowUseCase workflowUC,
                                 CreateQuotationFromOpportunityUseCase fromOpportunityUC,
+                                RefreshQuotationItemsFromOpportunityUseCase refreshItemsUC,
                                 SetPrimaryQuotationUseCase setPrimaryUC,
                                 ConvertQuotationToInvoiceUseCase convertToInvoiceUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
         this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC; this.workflowUC = workflowUC;
-        this.fromOpportunityUC = fromOpportunityUC; this.setPrimaryUC = setPrimaryUC; this.convertToInvoiceUC = convertToInvoiceUC;
+        this.fromOpportunityUC = fromOpportunityUC; this.refreshItemsUC = refreshItemsUC;
+        this.setPrimaryUC = setPrimaryUC; this.convertToInvoiceUC = convertToInvoiceUC;
     }
 
     /** Tạo mới báo giá. @param cmd JSON body @return 201 */
@@ -100,6 +104,12 @@ public class QuotationController {
     @PostMapping("/from-opportunity/{opportunityId}")
     public ResponseEntity<ApiResponse<QuotationResult>> fromOpportunity(@PathVariable Long opportunityId) {
         return ResponseEntity.status(201).body(ApiResponse.created(fromOpportunityUC.execute(opportunityId)));
+    }
+
+    /** Cập nhật lại dòng hàng báo giá theo cơ hội nguồn (xóa + clone lại OLI→QLI, giữ liên kết). @param id ID báo giá @return 200 */
+    @PostMapping("/{id}/sync-items-from-opportunity")
+    public ResponseEntity<ApiResponse<QuotationResult>> syncItemsFromOpportunity(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(refreshItemsUC.execute(id)));
     }
 
     /** Đặt báo giá làm báo giá đồng bộ (primary) của cơ hội. @param id ID @return 200 */

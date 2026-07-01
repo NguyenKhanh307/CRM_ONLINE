@@ -2,6 +2,7 @@ package vn.com.be_crm.infrastructure.shared.email;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
@@ -52,31 +53,44 @@ public class GmailSmtpEmailServiceImpl implements IEmailService {
      * @param note          ghi chú (có thể null)
      */
     @Override
-    public void sendQuotationEmail(String toEmail, String recipientName, String quotationCode, String total, String note) {
+    public void sendQuotationEmail(String toEmail, String recipientName, String quotationCode, String total, String note,
+                                   String responseLink, byte[] pdf, String pdfFileName) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo(toEmail);
             helper.setSubject("Báo giá " + quotationCode);
-            helper.setText(buildQuotationBody(recipientName, quotationCode, total, note), true);
+            helper.setText(buildQuotationBody(recipientName, quotationCode, total, note, responseLink), true);
+            if (pdf != null && pdf.length > 0) {
+                helper.addAttachment(pdfFileName != null ? pdfFileName : "bao-gia.pdf", new ByteArrayResource(pdf));
+            }
             mailSender.send(message);
         } catch (MessagingException e) {
             throw new RuntimeException("Không thể gửi email báo giá: " + e.getMessage(), e);
         }
     }
 
-    private String buildQuotationBody(String name, String code, String total, String note) {
+    private String buildQuotationBody(String name, String code, String total, String note, String responseLink) {
         String noteHtml = (note == null || note.isBlank()) ? ""
                 : "<p style=\"color:#374151\">Ghi chú: " + note + "</p>";
+        String buttonsHtml = (responseLink == null || responseLink.isBlank()) ? "" : """
+                <p style="margin:24px 0 8px">Vui lòng phản hồi báo giá:</p>
+                <p style="text-align:center;margin:8px 0 24px">
+                  <a href="%1$s?action=agree"  style="background:#16a34a;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:bold;margin:0 4px">Đồng ý</a>
+                  <a href="%1$s?action=adjust" style="background:#f59e0b;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:bold;margin:0 4px">Điều chỉnh</a>
+                  <a href="%1$s?action=reject" style="background:#dc2626;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:bold;margin:0 4px">Không đồng ý</a>
+                </p>
+                """.formatted(responseLink);
         return """
                 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
                   <h2 style="color:#2563eb">Báo giá %s</h2>
                   <p>Kính gửi <b>%s</b>,</p>
-                  <p>Chúng tôi xin gửi tới Quý khách báo giá <b>%s</b> với tổng giá trị <b>%s</b>.</p>
+                  <p>Chúng tôi xin gửi tới Quý khách báo giá <b>%s</b> với tổng giá trị <b>%s</b> (xem chi tiết trong file PDF đính kèm).</p>
+                  %s
                   %s
                   <p style="color:#6b7280;font-size:14px">Trân trọng cảm ơn.</p>
                 </div>
-                """.formatted(code, name, code, total, noteHtml);
+                """.formatted(code, name, code, total, noteHtml, buttonsHtml);
     }
 
     private String buildHtmlBody(String name, String link) {
