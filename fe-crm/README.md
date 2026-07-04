@@ -61,6 +61,19 @@ npm run dev
 npx vite build
 ```
 
+> File `.env` **không commit** (đã thêm vào `.gitignore`). Tham khảo `.env-example`. Vite nhúng `VITE_API_BASE_URL` **lúc build**, nên đổi giá trị phải build lại.
+
+### Triển khai production — Netlify
+
+Frontend deploy lên **Netlify**. Cấu hình nằm trong `fe-crm/netlify.toml`:
+- `command = "npm run build"`, `publish = "dist"`, `NODE_VERSION = "22"` (Vite 7 cần Node ≥ 20.19).
+- **SPA fallback** `/* → /index.html 200` — bắt buộc vì router dùng `createBrowserRouter` (deep-link như `/co-hoi/pipeline` sẽ 404 nếu thiếu).
+
+Các bước:
+1. Netlify → **New site from Git**, chọn repo, **Base directory = `fe-crm`** (tự đọc `netlify.toml`).
+2. **Site settings → Environment variables**: đặt `VITE_API_BASE_URL = https://<ten-service>.onrender.com` (URL backend Render, **không** dấu `/` cuối).
+3. Deploy → lấy URL `https://<ten-site>.netlify.app`. Điền URL này vào biến `APP_CORS_ALLOWED_ORIGINS` và `APP_FRONTEND_BASE_URL` bên Render, rồi build lại Netlify sau khi có domain backend.
+
 ### Tài khoản test
 
 | Email | Mật khẩu |
