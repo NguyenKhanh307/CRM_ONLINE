@@ -47,6 +47,8 @@ public class Lead {
     private String industry;
     /** Nguồn tiềm năng. */
     private String source;
+    /** Chiến dịch nguồn (attribution). */
+    private Long campaignId;
     /** Trạng thái tiềm năng. */
     private LeadStatus status;
     /** Giá trị ước tính. */

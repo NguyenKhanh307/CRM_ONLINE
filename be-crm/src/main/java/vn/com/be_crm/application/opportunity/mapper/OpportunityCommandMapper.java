@@ -23,7 +23,8 @@ public class OpportunityCommandMapper {
                 .amount(cmd.getAmount() != null ? cmd.getAmount() : BigDecimal.ZERO)
                 .expectedRevenue(cmd.getExpectedRevenue())
                 .probability(cmd.getProbability()).expectedCloseDate(cmd.getExpectedCloseDate())
-                .source(cmd.getSource()).winLossReason(cmd.getWinLossReason()).description(cmd.getDescription())
+                .source(cmd.getSource()).campaignId(cmd.getCampaignId())
+                .winLossReason(cmd.getWinLossReason()).description(cmd.getDescription())
                 .status(derivedStatus != null ? derivedStatus : OpportunityStatus.open).build();
     }
 
@@ -48,6 +49,7 @@ public class OpportunityCommandMapper {
                 .probability(cmd.getProbability() != null ? cmd.getProbability() : e.getProbability())
                 .expectedCloseDate(cmd.getExpectedCloseDate() != null ? cmd.getExpectedCloseDate() : e.getExpectedCloseDate())
                 .source(cmd.getSource() != null ? cmd.getSource() : e.getSource())
+                .campaignId(cmd.getCampaignId() != null ? cmd.getCampaignId() : e.getCampaignId())
                 .winLossReason(cmd.getWinLossReason() != null ? cmd.getWinLossReason() : e.getWinLossReason())
                 .description(cmd.getDescription() != null ? cmd.getDescription() : e.getDescription())
                 .status(derivedStatus != null ? derivedStatus : e.getStatus())
@@ -66,7 +68,7 @@ public class OpportunityCommandMapper {
                 .pricePolicyId(e.getPricePolicyId())
                 .amount(e.getAmount()).expectedRevenue(e.getExpectedRevenue()).probability(e.getProbability())
                 .expectedCloseDate(e.getExpectedCloseDate())
-                .source(e.getSource()).winLossReason(e.getWinLossReason()).description(e.getDescription())
+                .source(e.getSource()).campaignId(e.getCampaignId()).winLossReason(e.getWinLossReason()).description(e.getDescription())
                 .status(e.getStatus())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }

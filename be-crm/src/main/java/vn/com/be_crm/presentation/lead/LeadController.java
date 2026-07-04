@@ -97,7 +97,7 @@ public class LeadController {
                         .customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
                         .title(cmd.getTitle()).department(cmd.getDepartment())
                         .taxCode(cmd.getTaxCode()).website(cmd.getWebsite()).industry(cmd.getIndustry())
-                        .source(cmd.getSource())
+                        .source(cmd.getSource()).campaignId(cmd.getCampaignId())
                         .estimatedValue(cmd.getEstimatedValue()).phone(cmd.getPhone())
                         .email(cmd.getEmail())
                         .doNotCall(cmd.getDoNotCall()).doNotEmail(cmd.getDoNotEmail())

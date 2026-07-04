@@ -26,14 +26,6 @@ public interface IUserRoleRepository {
     void deleteByUserIdAndRoleId(Long userId, Long roleId);
 
     /**
-     * Lấy tất cả vai trò của một người dùng.
-     *
-     * @param userId ID người dùng
-     * @return danh sách UserRole
-     */
-    List<UserRole> findByUserId(Long userId);
-
-    /**
      * Lấy danh sách code vai trò của một người dùng.
      *
      * @param userId ID người dùng

@@ -5,6 +5,7 @@ import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
+import { DateInput } from '@/shared/components/form/DateInput';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import {
     type LineItemRow,
@@ -168,7 +169,7 @@ const OpportunityAddPage = () => {
                                 <input type="number" value={form.probability} onChange={(e) => set({ probability: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Ngày đóng dự kiến">
-                                <input type="date" value={form.expectedCloseDate} onChange={(e) => set({ expectedCloseDate: e.target.value })} className={inputCls} />
+                                <DateInput value={form.expectedCloseDate} onChange={(v) => set({ expectedCloseDate: v })} />
                             </FieldRow>
                         </div>
                     </div>

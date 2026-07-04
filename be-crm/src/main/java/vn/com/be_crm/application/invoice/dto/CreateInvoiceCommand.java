@@ -20,6 +20,8 @@ public class CreateInvoiceCommand {
     private Long contactId;
     private Long quotationId;
     private Long opportunityId;
+    private Long orderId;
+    private Long campaignId;
     private Long ownerId;
     private LocalDate invoiceDate;
     private LocalDate dueDate;

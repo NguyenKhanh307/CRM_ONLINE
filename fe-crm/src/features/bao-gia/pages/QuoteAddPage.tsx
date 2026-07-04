@@ -5,6 +5,7 @@ import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
+import { DateInput } from '@/shared/components/form/DateInput';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import {
     type LineItemRow,
@@ -117,10 +118,10 @@ const QuoteAddPage = () => {
                         </div>
                         <div className="space-y-4">
                             <FieldRow label="Ngày báo giá">
-                                <input type="date" value={form.quoteDate} onChange={(e) => set({ quoteDate: e.target.value })} className={inputCls} />
+                                <DateInput value={form.quoteDate} onChange={(v) => set({ quoteDate: v })} />
                             </FieldRow>
                             <FieldRow label="Hiệu lực đến">
-                                <input type="date" value={form.validUntil} onChange={(e) => set({ validUntil: e.target.value })} className={inputCls} />
+                                <DateInput value={form.validUntil} onChange={(v) => set({ validUntil: v })} />
                             </FieldRow>
                             <FieldRow label="Tiền tệ">
                                 <input type="text" value={form.currency} onChange={(e) => set({ currency: e.target.value })} className={inputCls} />

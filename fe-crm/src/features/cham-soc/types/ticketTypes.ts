@@ -112,14 +112,3 @@ export interface TicketComment {
     authorId: number | null;
     createdAt: string;
 }
-
-/** Chính sách SLA. */
-export interface SlaPolicy {
-    id: number;
-    code: string;
-    name: string;
-    priority: TicketPriority;
-    firstResponseHours: number;
-    resolutionHours: number;
-    isActive: boolean;
-}

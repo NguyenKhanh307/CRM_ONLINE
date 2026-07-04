@@ -29,6 +29,7 @@ public class CreateOpportunityCommand {
     private BigDecimal probability;
     private LocalDate expectedCloseDate;
     @Size(max = 30) private String source;
+    private Long campaignId;
     @Size(max = 255) private String winLossReason;
     @Size(max = 500) private String description;
     private OpportunityStatus status;

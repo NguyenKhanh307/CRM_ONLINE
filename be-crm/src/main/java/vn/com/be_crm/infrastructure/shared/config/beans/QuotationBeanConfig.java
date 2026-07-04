@@ -105,10 +105,16 @@ public class QuotationBeanConfig {
             RecomputeOpportunityAmountUseCase ruc) {
         return new SyncQuotationToOpportunityUseCase(qr, qir, oir, ruc);
     }
-    /** @return ConvertQuotationToInvoiceUseCase — chuyển báo giá thành hóa đơn */
+    /** @return ConvertQuotationToInvoiceUseCase — chuyển báo giá thành hóa đơn (deprecated: dùng convert-to-order) */
     @Bean public ConvertQuotationToInvoiceUseCase convertQuotationToInvoiceUseCase(
             IQuotationRepository qr, IQuotationItemRepository qir, IInvoiceRepository ir, IOpportunityRepository or) {
         return new ConvertQuotationToInvoiceUseCase(qr, qir, ir, or);
+    }
+    /** @return ConvertQuotationToOrderUseCase — chuyển báo giá thành đơn hàng */
+    @Bean public ConvertQuotationToOrderUseCase convertQuotationToOrderUseCase(
+            IQuotationRepository qr, IQuotationItemRepository qir,
+            vn.com.be_crm.domain.order.repository.IOrderRepository ordr, IOpportunityRepository or) {
+        return new ConvertQuotationToOrderUseCase(qr, qir, ordr, or);
     }
 
     // ===== Trash =====

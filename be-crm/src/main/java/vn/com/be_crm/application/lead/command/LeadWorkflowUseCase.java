@@ -77,7 +77,7 @@ public class LeadWorkflowUseCase {
                 .opportunityType("KH mới")
                 .customerId(customer.getId()).contactId(contact.getId()).ownerId(lead.getOwnerId())
                 .amount(estimated).expectedRevenue(estimated)
-                .source(lead.getSource())
+                .source(lead.getSource()).campaignId(lead.getCampaignId())
                 .status(OpportunityStatus.open)
                 .build());
 

@@ -21,7 +21,7 @@ public class LeadHibernateMapper {
         h.setConvertedOpportunityId(d.getConvertedOpportunityId());
         h.setTitle(d.getTitle()); h.setDepartment(d.getDepartment());
         h.setTaxCode(d.getTaxCode()); h.setWebsite(d.getWebsite()); h.setIndustry(d.getIndustry());
-        h.setSource(d.getSource());
+        h.setSource(d.getSource()); h.setCampaignId(d.getCampaignId());
         h.setStatus(d.getStatus() != null ? d.getStatus() : LeadStatus.new_);
         h.setEstimatedValue(d.getEstimatedValue());
         h.setScore(d.getScore() != null ? d.getScore() : 0);
@@ -46,7 +46,7 @@ public class LeadHibernateMapper {
                 .convertedOpportunityId(h.getConvertedOpportunityId())
                 .title(h.getTitle()).department(h.getDepartment())
                 .taxCode(h.getTaxCode()).website(h.getWebsite()).industry(h.getIndustry())
-                .source(h.getSource())
+                .source(h.getSource()).campaignId(h.getCampaignId())
                 .status(h.getStatus()).estimatedValue(h.getEstimatedValue()).score(h.getScore())
                 .phone(h.getPhone())
                 .email(h.getEmail())

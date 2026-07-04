@@ -49,6 +49,8 @@ public class LeadHibernate {
     private String industry;
     @Column(name = "source", length = 20)
     private String source;
+    @Column(name = "campaign_id")
+    private Long campaignId;
     @Convert(converter = LeadStatusConverter.class)
     @Column(name = "status", length = 20)
     private LeadStatus status;

@@ -3,6 +3,7 @@ import { FiX, FiPlus, FiTrash2 } from 'react-icons/fi';
 import type { ContactResult, UpdateContactPayload } from '../types/contactTypes';
 import { useUpdateContact } from '../hooks/useUpdateContact';
 import { contactService } from '../services/contactService';
+import { DateInput } from '@/shared/components/form/DateInput';
 
 interface Props {
     item: ContactResult | null;
@@ -150,7 +151,7 @@ export function ContactEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Ngày sinh</label>
-                            <input type="date" className={inp} value={form.dateOfBirth ?? ''} onChange={e => setForm(f => ({ ...f, dateOfBirth: e.target.value || null }))} />
+                            <DateInput value={form.dateOfBirth ?? ''} onChange={v => setForm(f => ({ ...f, dateOfBirth: v || null }))} />
                         </div>
                         <div>
                             <label className={lbl}>Địa chỉ</label>

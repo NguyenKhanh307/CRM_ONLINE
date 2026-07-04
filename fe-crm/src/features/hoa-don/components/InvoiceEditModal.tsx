@@ -5,6 +5,7 @@ import { useUpdateInvoice } from '../hooks/useUpdateInvoice';
 import { invoiceService } from '../services/invoiceService';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
+import { DateInput } from '@/shared/components/form/DateInput';
 import {
     type LineItemRow,
     type ProductOption,
@@ -119,11 +120,11 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Ngày hóa đơn</label>
-                            <input type="date" className={inp} value={form.invoiceDate ?? ''} onChange={e => setForm(f => ({ ...f, invoiceDate: e.target.value || null }))} />
+                            <DateInput value={form.invoiceDate ?? ''} onChange={v => setForm(f => ({ ...f, invoiceDate: v || null }))} />
                         </div>
                         <div>
                             <label className={lbl}>Hạn thanh toán</label>
-                            <input type="date" className={inp} value={form.dueDate ?? ''} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value || null }))} />
+                            <DateInput value={form.dueDate ?? ''} onChange={v => setForm(f => ({ ...f, dueDate: v || null }))} />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">

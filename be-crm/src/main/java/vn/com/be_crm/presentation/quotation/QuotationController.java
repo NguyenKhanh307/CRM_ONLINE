@@ -41,6 +41,7 @@ public class QuotationController {
     private final RefreshQuotationItemsFromOpportunityUseCase refreshItemsUC;
     private final SetPrimaryQuotationUseCase setPrimaryUC;
     private final ConvertQuotationToInvoiceUseCase convertToInvoiceUC;
+    private final ConvertQuotationToOrderUseCase convertToOrderUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
      *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
@@ -56,13 +57,15 @@ public class QuotationController {
                                 CreateQuotationFromOpportunityUseCase fromOpportunityUC,
                                 RefreshQuotationItemsFromOpportunityUseCase refreshItemsUC,
                                 SetPrimaryQuotationUseCase setPrimaryUC,
-                                ConvertQuotationToInvoiceUseCase convertToInvoiceUC) {
+                                ConvertQuotationToInvoiceUseCase convertToInvoiceUC,
+                                ConvertQuotationToOrderUseCase convertToOrderUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
         this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC; this.workflowUC = workflowUC;
         this.fromOpportunityUC = fromOpportunityUC; this.refreshItemsUC = refreshItemsUC;
         this.setPrimaryUC = setPrimaryUC; this.convertToInvoiceUC = convertToInvoiceUC;
+        this.convertToOrderUC = convertToOrderUC;
     }
 
     /** Tạo mới báo giá. @param cmd JSON body @return 201 */
@@ -124,10 +127,16 @@ public class QuotationController {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.accept(id)));
     }
 
-    /** Chuyển báo giá thành hóa đơn (khóa báo giá + cơ hội Chốt Thắng). @param id ID @return 201 hóa đơn */
+    /** Chuyển báo giá thành hóa đơn (deprecated — dùng convert-to-order). @param id ID @return 201 hóa đơn */
     @PostMapping("/{id}/convert-to-invoice")
     public ResponseEntity<ApiResponse<vn.com.be_crm.application.invoice.dto.InvoiceResult>> convertToInvoice(@PathVariable Long id) {
         return ResponseEntity.status(201).body(ApiResponse.created(convertToInvoiceUC.execute(id)));
+    }
+
+    /** Chuyển báo giá thành đơn hàng (khóa báo giá + cơ hội Chốt Thắng). @param id ID @return 201 đơn hàng */
+    @PostMapping("/{id}/convert-to-order")
+    public ResponseEntity<ApiResponse<vn.com.be_crm.application.order.dto.OrderResult>> convertToOrder(@PathVariable Long id) {
+        return ResponseEntity.status(201).body(ApiResponse.created(convertToOrderUC.execute(id)));
     }
 
     /** Xóa mềm báo giá. @param id ID @param req HTTP request @return 204 */

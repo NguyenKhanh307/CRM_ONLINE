@@ -7,8 +7,6 @@ export interface ColumnMeta {
     toggleVisibility: () => void;
 }
 
-export type SortDirection = 'asc' | 'desc';
-
 /** Tag filter nhanh hiển thị bên trái toolbar (đã gắn trạng thái — cho TableToolbar). */
 export interface QuickFilter {
     id: string;

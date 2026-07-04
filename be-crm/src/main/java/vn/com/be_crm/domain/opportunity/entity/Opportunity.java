@@ -46,6 +46,8 @@ public class Opportunity {
     private LocalDate expectedCloseDate;
     /** Nguồn gốc cơ hội. */
     private String source;
+    /** Chiến dịch nguồn (attribution). */
+    private Long campaignId;
     /** Lý do thắng/thua. */
     private String winLossReason;
     /** Mô tả. */

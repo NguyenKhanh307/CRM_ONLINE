@@ -28,4 +28,14 @@ public interface IEmailService {
      */
     void sendQuotationEmail(String toEmail, String recipientName, String quotationCode, String total, String note,
                             String responseLink, byte[] pdf, String pdfFileName);
+
+    /**
+     * Gửi email chiến dịch marketing tới một thành viên (người nhận).
+     *
+     * @param toEmail       địa chỉ email nhận
+     * @param recipientName tên hiển thị người nhận (có thể null)
+     * @param subject       tiêu đề email chiến dịch
+     * @param body          nội dung email (HTML hoặc text)
+     */
+    void sendCampaignEmail(String toEmail, String recipientName, String subject, String body);
 }

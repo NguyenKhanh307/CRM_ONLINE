@@ -66,23 +66,6 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
     }
 
     /**
-     * Lấy tất cả vai trò của một người dùng.
-     *
-     * @param userId ID người dùng
-     * @return danh sách UserRole
-     */
-    @Override
-    public List<UserRole> findByUserId(Long userId) {
-        try (Session s = sf.openSession()) {
-            return s.createQuery(
-                    "FROM UserRoleHibernate WHERE userId = :userId", UserRoleHibernate.class)
-                    .setParameter("userId", userId)
-                    .list()
-                    .stream().map(mapper::toDomain).collect(Collectors.toList());
-        }
-    }
-
-    /**
      * Lấy danh sách code vai trò của một người dùng bằng HQL subquery.
      *
      * @param userId ID người dùng

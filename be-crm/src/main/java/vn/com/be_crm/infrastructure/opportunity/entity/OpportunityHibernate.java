@@ -47,6 +47,8 @@ public class OpportunityHibernate {
     private LocalDate expectedCloseDate;
     @Column(name = "source", length = 30)
     private String source;
+    @Column(name = "campaign_id")
+    private Long campaignId;
     @Column(name = "win_loss_reason", length = 255)
     private String winLossReason;
     @Column(name = "description", length = 500)

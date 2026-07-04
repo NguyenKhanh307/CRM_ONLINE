@@ -83,7 +83,7 @@ public class OpportunityController {
                         .pricePolicyId(cmd.getPricePolicyId())
                         .amount(cmd.getAmount()).expectedRevenue(cmd.getExpectedRevenue()).probability(cmd.getProbability())
                         .expectedCloseDate(cmd.getExpectedCloseDate())
-                        .source(cmd.getSource()).winLossReason(cmd.getWinLossReason()).description(cmd.getDescription())
+                        .source(cmd.getSource()).campaignId(cmd.getCampaignId()).winLossReason(cmd.getWinLossReason()).description(cmd.getDescription())
                         .status(cmd.getStatus()).build())));
     }
 

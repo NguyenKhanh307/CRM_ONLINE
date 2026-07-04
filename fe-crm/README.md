@@ -221,7 +221,9 @@ Tất cả 8 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (
 | Liên hệ | `/lien-he` | `GET /api/contacts` | `PUT /api/contacts/{id}` | `DELETE /api/contacts/{id}` | — |
 | Khách hàng | `/khach-hang` | `GET /api/customers` | `PUT /api/customers/{id}` | `DELETE /api/customers/{id}` | ✓ |
 | Cơ hội | `/co-hoi` | `GET /api/opportunities` | `PUT /api/opportunities/{id}` | `DELETE /api/opportunities/{id}` | ✓ |
+| Chiến dịch | `/chien-dich` (+ `/:id` chi tiết 3 tab) | `GET /api/campaigns` | `PUT /api/campaigns/{id}` | `DELETE /api/campaigns/{id}` | ✓ |
 | Báo giá | `/bao-gia` | `GET /api/quotations` | `PUT /api/quotations/{id}` | `DELETE /api/quotations/{id}` | ✓ |
+| Đơn hàng | `/don-hang` | `GET /api/orders` | `PUT /api/orders/{id}` | `DELETE /api/orders/{id}` | ✓ |
 | Hóa đơn | `/hoa-don` | `GET /api/invoices` | `PUT /api/invoices/{id}` | `DELETE /api/invoices/{id}` | ✓ |
 | Hoạt động | `/hoat-dong` | `GET /api/activities` | `PUT /api/activities/{id}` | `DELETE /api/activities/{id}` | — |
 | Sản phẩm | `/san-pham` | `GET /api/products` | `PUT /api/products/{id}` | `DELETE /api/products/{id}` | — |
@@ -354,7 +356,9 @@ Mỗi module data có trang thêm mới full-page (layout AMIS), truy cập qua 
 | Liên hệ | `/lien-he/them-moi` | `POST /api/contacts` (nhận `phones[]`) |
 | Khách hàng | `/khach-hang/them-moi` | `POST /api/customers` |
 | Cơ hội | `/co-hoi/them-moi` | `POST /api/opportunities` (nhận `items[]`) |
+| Chiến dịch | `/chien-dich/them-moi` | `POST /api/campaigns` |
 | Báo giá | `/bao-gia/them-moi` | `POST /api/quotations` (nhận `items[]`) |
+| Đơn hàng | `/don-hang/them-moi` | `POST /api/orders` (nhận `items[]`) |
 | Hóa đơn | `/hoa-don/them-moi` | `POST /api/invoices` (nhận `items[]`) |
 | Hoạt động | `/hoat-dong/them-moi` | `POST /api/activities` |
 | Sản phẩm | `/san-pham/them-moi` | `POST /api/products` |
@@ -371,6 +375,9 @@ Mỗi module data có trang thêm mới full-page (layout AMIS), truy cập qua 
 | `FormPageHeader.tsx` | Header form: Hủy / Lưu và thêm / Lưu, prop `saving` |
 | `ProductLineItemsTable.tsx` | Bảng hàng hóa controlled cho báo giá/đơn hàng/cơ hội (props `showUnit`/`showTax`) |
 | `productLineItem.ts` | Type `LineItemRow`/`ProductOption` + helper `computeTotals`, `toItemPayloads` |
+| `DateInput.tsx` | Ô nhập ngày **dd/mm/yyyy** + lịch popup, `value`/`onChange` dùng ISO `yyyy-mm-dd` (thay `<input type="date">`) |
+| `DateTimeInput.tsx` | Ngày dd/mm/yyyy + giờ HH:mm, `value`/`onChange` dùng ISO `yyyy-mm-ddTHH:mm` (thay `<input type="datetime-local">`) |
+| `Calendar.tsx` / `useAnchoredPanel.ts` | Lưới lịch + hook panel nổi (portal) dùng bởi DateInput/DateTimeInput |
 
 **Pattern mỗi module**: `types/<m>Types.ts` (thêm `Create*Payload`) → `services/<m>Service.ts` (`create()`) → `hooks/useCreate<X>.ts` → `pages/<X>AddPage.tsx`. State lift lên page (`useState<FormState>` + `set(patch)`); "Lưu" → `navigate` về list, "Lưu và thêm" → reset form. Mã (code) bắt buộc nhập tay.
 
@@ -391,7 +398,9 @@ Mỗi module data có trang nhập file 4 bước riêng, truy cập qua nút "N
 | Liên hệ | `/lien-he/nhap-file` | `POST /api/contacts/import-bulk` |
 | Khách hàng | `/khach-hang/nhap-file` | `POST /api/customers/import-bulk` |
 | Cơ hội | `/co-hoi/nhap-file` | `POST /api/opportunities/import-bulk` |
+| Chiến dịch | `/chien-dich/nhap-file` | `POST /api/campaigns/import-bulk` |
 | Báo giá | `/bao-gia/nhap-file` | `POST /api/quotations/import-bulk` |
+| Đơn hàng | `/don-hang/nhap-file` | `POST /api/orders/import-bulk` |
 | Hóa đơn | `/hoa-don/nhap-file` | `POST /api/invoices/import-bulk` |
 | Hoạt động | `/hoat-dong/nhap-file` | `POST /api/activities/import-bulk` |
 | Sản phẩm | `/san-pham/nhap-file` | `POST /api/products/import-bulk` |

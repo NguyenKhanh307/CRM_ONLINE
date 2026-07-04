@@ -7,6 +7,7 @@ import { opportunityService } from '../services/opportunityService';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
+import { DateInput } from '@/shared/components/form/DateInput';
 import {
     type LineItemRow,
     type ProductOption,
@@ -135,7 +136,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Ngày đóng dự kiến</label>
-                            <input type="date" className={inp} value={form.expectedCloseDate ?? ''} onChange={e => setForm(f => ({ ...f, expectedCloseDate: e.target.value || null }))} />
+                            <DateInput value={form.expectedCloseDate ?? ''} onChange={v => setForm(f => ({ ...f, expectedCloseDate: v || null }))} />
                         </div>
                     </div>
                     <div>

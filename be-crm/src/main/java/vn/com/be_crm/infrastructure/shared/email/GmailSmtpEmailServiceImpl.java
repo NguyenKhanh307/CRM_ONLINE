@@ -70,6 +70,39 @@ public class GmailSmtpEmailServiceImpl implements IEmailService {
         }
     }
 
+    /**
+     * Gửi email chiến dịch marketing tới một thành viên.
+     *
+     * @param toEmail       địa chỉ email nhận
+     * @param recipientName tên hiển thị người nhận (có thể null)
+     * @param subject       tiêu đề email
+     * @param body          nội dung email (HTML hoặc text thuần)
+     */
+    @Override
+    public void sendCampaignEmail(String toEmail, String recipientName, String subject, String body) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(toEmail);
+            helper.setSubject(subject != null ? subject : "Thông tin từ chúng tôi");
+            helper.setText(buildCampaignBody(recipientName, body), true);
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Không thể gửi email chiến dịch: " + e.getMessage(), e);
+        }
+    }
+
+    private String buildCampaignBody(String name, String body) {
+        String greeting = (name == null || name.isBlank()) ? "Kính gửi Quý khách," : "Kính gửi <b>" + name + "</b>,";
+        return """
+                <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+                  <p>%s</p>
+                  <div style="color:#374151">%s</div>
+                  <p style="color:#6b7280;font-size:14px">Trân trọng.</p>
+                </div>
+                """.formatted(greeting, body != null ? body : "");
+    }
+
     private String buildQuotationBody(String name, String code, String total, String note, String responseLink) {
         String noteHtml = (note == null || note.isBlank()) ? ""
                 : "<p style=\"color:#374151\">Ghi chú: " + note + "</p>";

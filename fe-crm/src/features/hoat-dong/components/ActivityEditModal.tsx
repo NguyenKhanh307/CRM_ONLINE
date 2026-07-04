@@ -2,6 +2,7 @@ import { useState, type FormEvent, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import type { ActivityResult, UpdateActivityPayload } from '../types/activityTypes';
 import { useUpdateActivity } from '../hooks/useUpdateActivity';
+import { DateTimeInput } from '@/shared/components/form/DateTimeInput';
 
 interface Props {
     item: ActivityResult | null;
@@ -86,7 +87,7 @@ export function ActivityEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Hạn chót</label>
-                            <input type="datetime-local" className={inp} value={form.dueAt ?? ''} onChange={e => setForm(f => ({ ...f, dueAt: e.target.value || null }))} />
+                            <DateTimeInput value={form.dueAt ?? ''} onChange={v => setForm(f => ({ ...f, dueAt: v || null }))} />
                         </div>
                     </div>
                     <div>

@@ -7,6 +7,7 @@ import { quotationService } from '../services/quotationService';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
+import { DateInput } from '@/shared/components/form/DateInput';
 import {
     type LineItemRow,
     type ProductOption,
@@ -125,11 +126,11 @@ export function QuotationEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Ngày báo giá</label>
-                            <input type="date" className={inp} value={form.quoteDate ?? ''} onChange={e => setForm(f => ({ ...f, quoteDate: e.target.value || null }))} />
+                            <DateInput value={form.quoteDate ?? ''} onChange={v => setForm(f => ({ ...f, quoteDate: v || null }))} />
                         </div>
                         <div>
                             <label className={lbl}>Hiệu lực đến</label>
-                            <input type="date" className={inp} value={form.validUntil ?? ''} onChange={e => setForm(f => ({ ...f, validUntil: e.target.value || null }))} />
+                            <DateInput value={form.validUntil ?? ''} onChange={v => setForm(f => ({ ...f, validUntil: v || null }))} />
                         </div>
                     </div>
                     <div className="grid grid-cols-3 gap-3">

@@ -27,6 +27,7 @@ public class LeadResult {
     private String website;
     private String industry;
     private String source;
+    private Long campaignId;
     private LeadStatus status;
     private BigDecimal estimatedValue;
     private Integer score;

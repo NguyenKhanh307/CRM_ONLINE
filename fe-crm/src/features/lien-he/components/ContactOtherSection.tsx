@@ -1,6 +1,6 @@
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FieldRow } from '@/shared/components/form/FieldRow';
-import { inputCls } from '@/shared/components/form/formStyles';
+import { DateInput } from '@/shared/components/form/DateInput';
 import { GENDER_OPTIONS, type ContactFormState } from './contactFormTypes';
 
 interface Props {
@@ -34,11 +34,9 @@ export const ContactOtherSection = ({ value, onChange }: Props) => (
 
         <div className="space-y-4">
             <FieldRow label="Ngày sinh">
-                <input
-                    type="date"
+                <DateInput
                     value={value.dateOfBirth}
-                    onChange={(e) => onChange({ dateOfBirth: e.target.value })}
-                    className={inputCls}
+                    onChange={(v) => onChange({ dateOfBirth: v })}
                 />
             </FieldRow>
         </div>

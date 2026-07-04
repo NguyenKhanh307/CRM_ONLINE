@@ -6,6 +6,7 @@ import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
+import { DateTimeInput } from '@/shared/components/form/DateTimeInput';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
@@ -156,7 +157,7 @@ const ActivityAddPage = () => {
                             <input type="text" value={form.location} onChange={(e) => set({ location: e.target.value })} className={inputCls} />
                         </FieldRow>
                         <FieldRow label="Thời hạn">
-                            <input type="datetime-local" value={form.dueAt} onChange={(e) => set({ dueAt: e.target.value })} className={inputCls} />
+                            <DateTimeInput value={form.dueAt} onChange={(v) => set({ dueAt: v })} />
                         </FieldRow>
                     </div>
                 </FormSection>

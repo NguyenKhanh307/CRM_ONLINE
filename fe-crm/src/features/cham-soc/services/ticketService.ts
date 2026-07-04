@@ -2,7 +2,7 @@ import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
 import type {
     CreateTicketPayload, UpdateTicketPayload, TicketResult,
-    TicketReturnItemPayload, TicketReturnItemResult, TicketComment, SlaPolicy,
+    TicketReturnItemPayload, TicketReturnItemResult, TicketComment,
     ResolutionType,
 } from '../types/ticketTypes';
 
@@ -59,8 +59,4 @@ export const ticketService = {
         axiosInstance.post<ApiResponse<TicketResult>>(`/api/tickets/${id}/reopen`),
     csat: (id: number, score: number, comment?: string) =>
         axiosInstance.post<ApiResponse<TicketResult>>(`/api/tickets/${id}/csat`, { score, comment }),
-
-    // ===== SLA =====
-    getSlaPolicies: () =>
-        axiosInstance.get<ApiResponse<SlaPolicy[]>>('/api/sla-policies'),
 };

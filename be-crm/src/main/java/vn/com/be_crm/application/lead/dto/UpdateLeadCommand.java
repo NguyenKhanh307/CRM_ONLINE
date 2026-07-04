@@ -25,6 +25,7 @@ public class UpdateLeadCommand {
     @Size(max = 100) private String website;
     @Size(max = 50) private String industry;
     @Size(max = 20) private String source;
+    private Long campaignId;
     private LeadStatus status;
     private BigDecimal estimatedValue;
     @Size(max = 11) private String phone;

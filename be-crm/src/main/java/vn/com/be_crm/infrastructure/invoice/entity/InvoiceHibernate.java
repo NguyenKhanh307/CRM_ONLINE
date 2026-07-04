@@ -27,6 +27,8 @@ public class InvoiceHibernate {
     @Column(name = "contact_id") private Long contactId;
     @Column(name = "quotation_id") private Long quotationId;
     @Column(name = "opportunity_id") private Long opportunityId;
+    @Column(name = "order_id") private Long orderId;
+    @Column(name = "campaign_id") private Long campaignId;
     @Column(name = "owner_id") private Long ownerId;
     @Column(name = "invoice_date") private LocalDate invoiceDate;
     @Column(name = "due_date") private LocalDate dueDate;

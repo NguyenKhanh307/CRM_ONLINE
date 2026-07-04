@@ -285,9 +285,50 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 ---
 
-### 2.7 Invoice — Hóa đơn (thay cho Đơn hàng)
+### 2.6b Campaign — Chiến dịch Marketing (MỚI 2026-07-02)
 
-> **Đổi tên Order → Invoice** theo "Thiết Kế Luồng Nghiệp Vụ CRM" (luồng Báo giá → Hóa đơn). Đã GỠ theo dõi giao hàng và các field đơn-hàng-đặc-thù.
+> Đầu phễu: quản lý chiến dịch + thành viên + gửi email hàng loạt + ROI. `campaign_id` gắn cho lead → chảy xuống cơ hội/đơn hàng/hóa đơn.
+
+#### Chiến dịch — `/api/campaigns`
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `POST` | `/api/campaigns` | Tạo chiến dịch (type, channel, budget, targetSize, expectedRevenue, ownerId) |
+| `GET` | `/api/campaigns` | Danh sách chiến dịch (phân trang) |
+| `GET` | `/api/campaigns/{id}` | Lấy chiến dịch theo ID |
+| `PUT` | `/api/campaigns/{id}` | Cập nhật chiến dịch |
+| `DELETE` | `/api/campaigns/{id}` | Xóa mềm |
+| `GET` | `/api/campaigns/deleted` · `POST .../{id}/restore` · `DELETE .../{id}/purge` | Thùng rác |
+| `POST` | `/api/campaigns/{id}/schedule\|start\|pause\|complete\|cancel` | Chuyển trạng thái (có guard) |
+| `POST` | `/api/campaigns/{id}/send-email` | Gửi email hàng loạt — body `{ subject, body }`, trả số email đã gửi |
+| `GET` | `/api/campaigns/{id}/stats` | Thống kê ROI (#member/#lead/#cơ hội thắng/#đơn/doanh thu) |
+| `POST` | `/api/campaigns/import-bulk` · `/api/campaigns/handover-bulk` | Nhập / bàn giao hàng loạt |
+
+#### Thành viên — `/api/campaigns/{campaignId}/members`
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `POST` · `GET` · `PUT .../{id}` · `DELETE .../{id}` | `/api/campaigns/{campaignId}/members` | CRUD thành viên (lead/contact/nhập tay) |
+
+### 2.6c Order — Đơn hàng (TÁI LẬP 2026-07-02)
+
+> Chèn giữa Báo giá & Hóa đơn: **Báo giá → Đơn hàng → Hóa đơn** (Đơn ↔ Hóa đơn = 1-1). Mirror module Invoice.
+
+#### Đơn hàng — `/api/orders`
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `POST` · `GET` · `GET .../{id}` · `PUT .../{id}` · `DELETE .../{id}` | `/api/orders` | CRUD (nhận `items[]`, field quotationId/opportunityId/campaignId/orderDate/deliveryDate) |
+| `GET` | `/api/orders/deleted` · `POST .../{id}/restore` · `DELETE .../{id}/purge` | Thùng rác |
+| `POST` | `/api/orders/{id}/confirm\|process\|complete\|cancel` | Chuyển trạng thái (có guard) |
+| `POST` | `/api/orders/{id}/create-invoice` | Xuất hóa đơn 1-1 (khóa đơn + đơn→completed) |
+| `POST` | `/api/orders/import-bulk` · `/api/orders/handover-bulk` | Nhập / bàn giao hàng loạt |
+| `POST/GET/PUT/DELETE` | `/api/orders/{orderId}/items[/{id}]` | Dòng hàng đơn hàng |
+| `POST` | `/api/quotations/{id}/convert-to-order` | Chuyển Báo giá → Đơn hàng (thay `convert-to-invoice`, endpoint cũ giữ deprecated) |
+
+### 2.7 Invoice — Hóa đơn
+
+> Sinh từ Đơn hàng (cột `order_id` + `campaign_id`). Luồng: Báo giá → Đơn hàng → Hóa đơn.
 
 #### Hóa đơn — `/api/invoices`
 

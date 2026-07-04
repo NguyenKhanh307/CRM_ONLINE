@@ -18,6 +18,7 @@ public class InvoiceHibernateMapper {
         h.setId(d.getId()); h.setCode(d.getCode()); h.setCustomerId(d.getCustomerId());
         h.setContactId(d.getContactId());
         h.setQuotationId(d.getQuotationId()); h.setOpportunityId(d.getOpportunityId());
+        h.setOrderId(d.getOrderId()); h.setCampaignId(d.getCampaignId());
         h.setOwnerId(d.getOwnerId());
         // Giá trị mặc định khi null (tiền tệ=VND, tỷ giá=1, trạng thái=draft/unpaid)
         h.setInvoiceDate(d.getInvoiceDate());
@@ -44,6 +45,7 @@ public class InvoiceHibernateMapper {
         return Invoice.builder()
                 .id(h.getId()).code(h.getCode()).customerId(h.getCustomerId()).contactId(h.getContactId())
                 .quotationId(h.getQuotationId()).opportunityId(h.getOpportunityId())
+                .orderId(h.getOrderId()).campaignId(h.getCampaignId())
                 .ownerId(h.getOwnerId()).invoiceDate(h.getInvoiceDate()).dueDate(h.getDueDate())
                 .currency(h.getCurrency()).exchangeRate(h.getExchangeRate())
                 .status(h.getStatus()).paymentStatus(h.getPaymentStatus())

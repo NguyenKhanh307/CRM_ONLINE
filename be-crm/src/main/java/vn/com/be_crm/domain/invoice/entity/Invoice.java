@@ -31,6 +31,10 @@ public class Invoice {
     private Long quotationId;
     /** Từ cơ hội. */
     private Long opportunityId;
+    /** Từ đơn hàng (1-1). */
+    private Long orderId;
+    /** Chiến dịch nguồn (attribution). */
+    private Long campaignId;
     /** ID người phụ trách. */
     private Long ownerId;
     /** Ngày hóa đơn. */

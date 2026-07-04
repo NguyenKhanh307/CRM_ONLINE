@@ -27,6 +27,7 @@ public class OpportunityResult {
     private BigDecimal probability;
     private LocalDate expectedCloseDate;
     private String source;
+    private Long campaignId;
     private String winLossReason;
     private String description;
     private OpportunityStatus status;

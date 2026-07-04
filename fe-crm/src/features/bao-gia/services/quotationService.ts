@@ -50,9 +50,12 @@ export const quotationService = {
     /** Đặt báo giá làm báo giá đồng bộ (primary) của cơ hội. */
     setPrimary: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/set-primary`),
-    /** Chuyển báo giá thành hóa đơn (khóa báo giá + cơ hội Chốt Thắng). */
+    /** Chuyển báo giá thành hóa đơn (deprecated — dùng convertToOrder). */
     convertToInvoice: (id: number) =>
         axiosInstance.post<ApiResponse<unknown>>(`/api/quotations/${id}/convert-to-invoice`),
+    /** Chuyển báo giá thành đơn hàng (khóa báo giá + cơ hội Chốt Thắng). */
+    convertToOrder: (id: number) =>
+        axiosInstance.post<ApiResponse<unknown>>(`/api/quotations/${id}/convert-to-order`),
     /** Clone báo giá từ cơ hội (sao chép sâu KH/LH/chính sách giá + dòng hàng). */
     fromOpportunity: (opportunityId: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/from-opportunity/${opportunityId}`),

@@ -3,6 +3,7 @@ import { FiX } from 'react-icons/fi';
 import type { PricePolicyResult, CreatePricePolicyPayload, UpdatePricePolicyPayload, PricePolicyStatus } from '../types/pricingTypes';
 import { useCreatePricePolicy } from '../hooks/useCreatePricePolicy';
 import { useUpdatePricePolicy } from '../hooks/useUpdatePricePolicy';
+import { DateInput } from '@/shared/components/form/DateInput';
 
 interface Props {
     item: PricePolicyResult | null;
@@ -105,18 +106,16 @@ export function PricePolicyFormModal({ item, open, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Ngày bắt đầu</label>
-                            <input
-                                className={inp} type="date"
+                            <DateInput
                                 value={form.startDate ?? ''}
-                                onChange={e => setForm(f => ({ ...f, startDate: e.target.value || null }))}
+                                onChange={v => setForm(f => ({ ...f, startDate: v || null }))}
                             />
                         </div>
                         <div>
                             <label className={lbl}>Ngày kết thúc</label>
-                            <input
-                                className={inp} type="date"
+                            <DateInput
                                 value={form.endDate ?? ''}
-                                onChange={e => setForm(f => ({ ...f, endDate: e.target.value || null }))}
+                                onChange={v => setForm(f => ({ ...f, endDate: v || null }))}
                             />
                         </div>
                     </div>

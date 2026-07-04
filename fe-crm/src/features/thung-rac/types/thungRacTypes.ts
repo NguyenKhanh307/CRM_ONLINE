@@ -1,9 +1,11 @@
 export type TrashModule =
+    | 'chien-dich'
     | 'tiem-nang'
     | 'lien-he'
     | 'khach-hang'
     | 'co-hoi'
     | 'bao-gia'
+    | 'don-hang'
     | 'hoa-don'
     | 'san-pham';
 
@@ -20,11 +22,13 @@ export interface TrashModuleLabel {
 }
 
 export const TRASH_MODULE_LABELS: TrashModuleLabel[] = [
+    { id: 'chien-dich', label: 'Chiến dịch' },
     { id: 'tiem-nang',  label: 'Tiềm năng' },
     { id: 'lien-he',    label: 'Liên hệ' },
     { id: 'khach-hang', label: 'Khách hàng' },
     { id: 'co-hoi',     label: 'Cơ hội' },
     { id: 'bao-gia',    label: 'Báo giá' },
+    { id: 'don-hang',   label: 'Đơn hàng' },
     { id: 'hoa-don',    label: 'Hóa đơn' },
     { id: 'san-pham',   label: 'Sản phẩm' },
 ];

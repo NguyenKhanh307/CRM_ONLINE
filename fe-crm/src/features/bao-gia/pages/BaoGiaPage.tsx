@@ -118,7 +118,7 @@ const BaoGiaPage = () => {
                         )}
                         {q.status === 'accepted' && !q.isLocked && (
                             <button className="p-1.5 rounded hover:bg-green-50 text-gray-400 hover:text-success"
-                                title="Chuyển thành hóa đơn" onClick={() => runAction(q.id, 'convertToInvoice')}>
+                                title="Chuyển thành đơn hàng" onClick={() => runAction(q.id, 'convertToOrder')}>
                                 <FiFileText size={14} />
                             </button>
                         )}

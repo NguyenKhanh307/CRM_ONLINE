@@ -25,7 +25,8 @@ public class OpportunityHibernateMapper {
         h.setAmount(d.getAmount() != null ? d.getAmount() : BigDecimal.ZERO);
         h.setExpectedRevenue(d.getExpectedRevenue());
         h.setProbability(d.getProbability()); h.setExpectedCloseDate(d.getExpectedCloseDate());
-        h.setSource(d.getSource()); h.setWinLossReason(d.getWinLossReason()); h.setDescription(d.getDescription());
+        h.setSource(d.getSource()); h.setCampaignId(d.getCampaignId());
+        h.setWinLossReason(d.getWinLossReason()); h.setDescription(d.getDescription());
         h.setStatus(d.getStatus() != null ? d.getStatus() : OpportunityStatus.open);
         h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
@@ -44,7 +45,7 @@ public class OpportunityHibernateMapper {
                 .pricePolicyId(h.getPricePolicyId())
                 .amount(h.getAmount()).expectedRevenue(h.getExpectedRevenue()).probability(h.getProbability())
                 .expectedCloseDate(h.getExpectedCloseDate())
-                .source(h.getSource()).winLossReason(h.getWinLossReason()).description(h.getDescription())
+                .source(h.getSource()).campaignId(h.getCampaignId()).winLossReason(h.getWinLossReason()).description(h.getDescription())
                 .status(h.getStatus())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();

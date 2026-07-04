@@ -13,6 +13,8 @@ import {
     FiBox,
     FiUserPlus,
     FiLifeBuoy,
+    FiTarget,
+    FiShoppingCart,
 } from 'react-icons/fi';
 
 export interface NavItem {
@@ -29,11 +31,13 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
     { label: 'Bàn làm việc', path: '/dashboard',           icon: FiHome },
+    { label: 'Chiến dịch',   path: '/chien-dich',          icon: FiTarget,       module: 'campaign' },
     { label: 'Tiềm năng',    path: '/tiem-nang',           icon: FiDisc,         module: 'lead' },
     { label: 'Liên hệ',      path: '/lien-he',             icon: FiPhoneCall,    module: 'contact' },
     { label: 'Khách hàng',   path: '/khach-hang',          icon: FiBriefcase,    module: 'customer' },
     { label: 'Cơ hội',       path: '/co-hoi',              icon: FiAward,        module: 'opportunity' },
     { label: 'Báo giá',      path: '/bao-gia',             icon: FiTag,          module: 'quotation' },
+    { label: 'Đơn hàng',     path: '/don-hang',            icon: FiShoppingCart, module: 'order' },
     { label: 'Hóa đơn',      path: '/hoa-don',             icon: FiFileText,     module: 'invoice' },
     { label: 'Hoạt động',    path: '/hoat-dong',           icon: FiActivity,     module: 'activity' },
     { label: 'Sản phẩm',     path: '/san-pham',            icon: FiBox,          module: 'product' },

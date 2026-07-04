@@ -5,6 +5,7 @@ import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
+import { DateInput } from '@/shared/components/form/DateInput';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import {
     type LineItemRow,
@@ -111,10 +112,10 @@ const InvoiceAddPage = () => {
                                 <input type="text" value={form.code} onChange={(e) => set({ code: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Ngày hóa đơn">
-                                <input type="date" value={form.invoiceDate} onChange={(e) => set({ invoiceDate: e.target.value })} className={inputCls} />
+                                <DateInput value={form.invoiceDate} onChange={(v) => set({ invoiceDate: v })} />
                             </FieldRow>
                             <FieldRow label="Hạn thanh toán">
-                                <input type="date" value={form.dueDate} onChange={(e) => set({ dueDate: e.target.value })} className={inputCls} />
+                                <DateInput value={form.dueDate} onChange={(v) => set({ dueDate: v })} />
                             </FieldRow>
                             <FieldRow label="Khách hàng">
                                 <SearchableSelect value={form.customerId} onChange={(v) => set({ customerId: v })} options={customerOptions} />

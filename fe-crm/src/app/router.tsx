@@ -26,6 +26,13 @@ const QuotationImportPage = lazy(() => import('@/features/bao-gia/pages/Quotatio
 const HoaDonPage      = lazy(() => import('@/features/hoa-don/pages/HoaDonPage'));
 const InvoiceAddPage  = lazy(() => import('@/features/hoa-don/pages/InvoiceAddPage'));
 const InvoiceImportPage = lazy(() => import('@/features/hoa-don/pages/InvoiceImportPage'));
+const DonHangPage     = lazy(() => import('@/features/don-hang/pages/DonHangPage'));
+const OrderAddPage    = lazy(() => import('@/features/don-hang/pages/OrderAddPage'));
+const OrderImportPage = lazy(() => import('@/features/don-hang/pages/OrderImportPage'));
+const ChienDichPage   = lazy(() => import('@/features/chien-dich/pages/ChienDichPage'));
+const CampaignAddPage = lazy(() => import('@/features/chien-dich/pages/CampaignAddPage'));
+const CampaignDetailPage = lazy(() => import('@/features/chien-dich/pages/CampaignDetailPage'));
+const CampaignImportPage = lazy(() => import('@/features/chien-dich/pages/CampaignImportPage'));
 const HoatDongPage    = lazy(() => import('@/features/hoat-dong/pages/HoatDongPage'));
 const ActivityAddPage = lazy(() => import('@/features/hoat-dong/pages/ActivityAddPage'));
 const ActivityImportPage = lazy(() => import('@/features/hoat-dong/pages/ActivityImportPage'));
@@ -70,6 +77,13 @@ export const router = createBrowserRouter([
             { path: '/hoa-don',               element: <Suspense fallback={fallback}><HoaDonPage /></Suspense> },
             { path: '/hoa-don/them-moi',      element: <Suspense fallback={fallback}><InvoiceAddPage /></Suspense> },
             { path: '/hoa-don/nhap-file',     element: <Suspense fallback={fallback}><InvoiceImportPage /></Suspense> },
+            { path: '/don-hang',              element: <Suspense fallback={fallback}><DonHangPage /></Suspense> },
+            { path: '/don-hang/them-moi',     element: <Suspense fallback={fallback}><OrderAddPage /></Suspense> },
+            { path: '/don-hang/nhap-file',    element: <Suspense fallback={fallback}><OrderImportPage /></Suspense> },
+            { path: '/chien-dich',            element: <Suspense fallback={fallback}><ChienDichPage /></Suspense> },
+            { path: '/chien-dich/them-moi',   element: <Suspense fallback={fallback}><CampaignAddPage /></Suspense> },
+            { path: '/chien-dich/nhap-file',  element: <Suspense fallback={fallback}><CampaignImportPage /></Suspense> },
+            { path: '/chien-dich/:id',        element: <Suspense fallback={fallback}><CampaignDetailPage /></Suspense> },
             { path: '/hoat-dong',             element: <Suspense fallback={fallback}><HoatDongPage /></Suspense> },
             { path: '/hoat-dong/them-moi',    element: <Suspense fallback={fallback}><ActivityAddPage /></Suspense> },
             { path: '/hoat-dong/nhap-file',   element: <Suspense fallback={fallback}><ActivityImportPage /></Suspense> },

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { quotationService } from '../services/quotationService';
 
 /** Loại hành động chuyển trạng thái báo giá. */
-export type QuotationAction = 'submit' | 'approve' | 'reject' | 'send' | 'accept' | 'setPrimary' | 'convertToInvoice';
+export type QuotationAction = 'submit' | 'approve' | 'reject' | 'send' | 'accept' | 'setPrimary' | 'convertToInvoice' | 'convertToOrder';
 
 interface ActionArgs {
     id: number;
@@ -27,11 +27,12 @@ export function useQuotationWorkflow() {
                 case 'accept': return quotationService.accept(id);
                 case 'setPrimary': return quotationService.setPrimary(id);
                 case 'convertToInvoice': return quotationService.convertToInvoice(id);
+                case 'convertToOrder': return quotationService.convertToOrder(id);
             }
         },
-        // convertToInvoice tạo hóa đơn + chuyển cơ hội sang won; setPrimary đồng bộ cơ hội
+        // convertToOrder tạo đơn hàng + chuyển cơ hội sang won; setPrimary đồng bộ cơ hội
         onSuccess: () => {
-            ['quotations', 'invoices', 'opportunities'].forEach(
+            ['quotations', 'invoices', 'orders', 'opportunities'].forEach(
                 (key) => qc.invalidateQueries({ queryKey: [key] }));
         },
     });
