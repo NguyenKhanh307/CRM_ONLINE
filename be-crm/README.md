@@ -913,3 +913,30 @@ DB lưu chuỗi `"new"` nhưng `new` là keyword Java. Giải pháp:
 ### Import UPDATE/BOTH (2026-06-13)
 
 `importType` của `POST /api/{module}/import-bulk` hỗ trợ `CREATE` / `UPDATE` / `BOTH` cho **7 module**: lead (phone/email), product (sku), contact (email), customer (taxCode), opportunity / order / quotation (code). UPDATE dò bản ghi tồn tại qua repo `findBy*` (HQL `WHERE {key} = :v AND deletedAt IS NULL`); thấy → merge giữ id/code/FK/createdAt + cập nhật field từ row; không thấy & isCreate → tạo mới. Row DTO của opportunity/order/quotation có thêm field `code` để dò. **Activity chỉ CREATE** (không có khóa duy nhất).
+
+---
+
+## Triển khai production — Render (Docker)
+
+Backend deploy lên **Render** bằng **Docker** (`be-crm/Dockerfile`, multi-stage: build fat jar bằng Maven wrapper → chạy trên `eclipse-temurin:21-jre`, cài sẵn `fonts-dejavu` để PDF báo giá in được tiếng Việt trên Linux).
+
+### Cấu hình đã externalize
+`application.properties` (commit lên git) **không chứa secret** — các giá trị nhạy cảm để `${ENV_VAR:}` (default rỗng). Khi chạy **local**, profile mặc định `local` nạp `application-local.properties` (gitignore, chứa secret thật). Khi chạy **production**, Render cấp secret qua biến môi trường. Ngoài ra:
+- `server.port=${PORT:8080}` — bind theo biến `PORT` mà Render inject.
+- `app.pdf.font-path` default = `/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf` (Linux). Chạy local Windows đặt env `APP_PDF_FONT_PATH=C:/Windows/Fonts/arial.ttf`.
+- `app.cors.allowed-origins` (mới) — danh sách origin cho phép, phân tách bằng dấu phẩy; `SecurityConfig` đọc qua `@Value` thay cho hardcode `localhost:5173`. **Không** wildcard `*` vì `allowCredentials=true`.
+
+### Biến môi trường cần đặt trên Render
+| Env var | Ý nghĩa |
+|---------|---------|
+| `SPRING_DATASOURCE_URL` / `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` | Kết nối TiDB |
+| `APP_JWT_SECRET` | Khóa ký JWT (>= 32 ký tự) |
+| `SPRING_MAIL_USERNAME` / `SPRING_MAIL_PASSWORD` | Gmail SMTP + App Password |
+| `APP_FRONTEND_BASE_URL` | URL frontend Netlify (link kích hoạt + phản hồi báo giá trong email) |
+| `APP_CORS_ALLOWED_ORIGINS` | URL frontend Netlify (cho CORS) |
+
+### Các bước
+1. Render → **New → Web Service**, connect repo, **Root Directory = `be-crm`**, Runtime = **Docker**.
+2. Nhập các env var ở bảng trên (URL Netlify điền sau khi có domain frontend).
+3. Deploy → lấy domain `https://<ten-service>.onrender.com`.
+> Free tier: service sleep sau ~15 phút không request (cold start ~30–60s). Vì secret cũ đã commit lên git, nên **rotate** mật khẩu TiDB / JWT secret / Gmail App Password rồi nhập giá trị mới vào Render.

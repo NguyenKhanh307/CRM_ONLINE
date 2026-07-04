@@ -1,6 +1,7 @@
 package vn.com.be_crm.infrastructure.shared.config;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,10 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+
+    /** Danh sách origin frontend được phép (phân tách bằng dấu phẩy) — cấu hình app.cors.allowed-origins. */
+    @Value("${app.cors.allowed-origins:http://localhost:5173}")
+    private String allowedOrigins;
 
     /**
      * @param jwtAuthFilter filter xác thực JWT
@@ -59,12 +64,12 @@ public class SecurityConfig {
     }
 
     /**
-     * Cho phép frontend (localhost:5173) gọi API với Authorization header.
+     * Cho phép các frontend origin (cấu hình app.cors.allowed-origins) gọi API với Authorization header.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

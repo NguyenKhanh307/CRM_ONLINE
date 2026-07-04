@@ -7,12 +7,15 @@
 diagrams/
 documents/
 *.xml
+!be-crm/pom.xml
 *.txt
 
 # ============================================================
 # Thông tin nhạy cảm / Credentials
 # ============================================================
-be-crm/src/main/resources/application.properties
+# application.properties nay chi chua ${ENV:default} (khong secret) — commit de Render build.
+# Secret local nam trong application-local.properties (KHONG commit):
+be-crm/src/main/resources/application-local.properties
 *.pem
 *.key
 *.cert
