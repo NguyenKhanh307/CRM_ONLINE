@@ -12,6 +12,7 @@ import { useAlert } from '@/shared/alert/useAlert';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useContactList } from '@/features/lien-he/hooks/useContactList';
+import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { toIdNameMap } from '@/shared/utils/lookup';
 import { useLeadList } from '../hooks/useLeadList';
 import { useDeleteLead } from '../hooks/useDeleteLead';
@@ -32,6 +33,7 @@ const TiemNangPage = () => {
     const { data: users } = useActiveUsers();
     const { data: customers } = useCustomerList();
     const { data: contacts } = useContactList();
+    const { data: campaigns } = useCampaignList();
 
     const [editTarget, setEditTarget] = useState<LeadResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -43,9 +45,16 @@ const TiemNangPage = () => {
 
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
-    /** Chạy hành động chuyển trạng thái tiềm năng, báo lỗi qua alert nếu bước chuyển không hợp lệ. */
+    /** Chạy hành động chuyển trạng thái tiềm năng, báo lỗi qua alert nếu bước chuyển không hợp lệ.
+     *  Convert thành công → điều hướng sang Cơ hội (KH + LH + Cơ hội vừa được tạo). */
     const runAction = (id: number, action: LeadAction, reason?: string) =>
         workflowFn({ id, action, reason }, {
+            onSuccess: () => {
+                if (action === 'convert') {
+                    showAlert('Đã tạo Khách hàng, Liên hệ và Cơ hội từ tiềm năng');
+                    navigate('/co-hoi');
+                }
+            },
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Không thực hiện được hành động';
@@ -58,6 +67,7 @@ const TiemNangPage = () => {
             users: toIdNameMap(users, 'id', 'fullName'),
             customers: toIdNameMap(customers, 'id', 'name'),
             contacts: toIdNameMap(contacts, 'id', 'fullName'),
+            campaigns: toIdNameMap(campaigns, 'id', 'name'),
         }),
         {
             id: 'actions',
@@ -95,7 +105,7 @@ const TiemNangPage = () => {
                 );
             },
         },
-    ], [users, customers, contacts]);
+    ], [users, customers, contacts, campaigns]);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">

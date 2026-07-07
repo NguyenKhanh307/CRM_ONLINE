@@ -55,6 +55,9 @@ const BaoGiaPage = () => {
                 if (action === 'send') {
                     const email = (res as { data?: { data?: { sentToEmail?: string | null } } })?.data?.data?.sentToEmail;
                     showAlert(email ? `Đã gửi báo giá tới email: ${email}` : 'Đã gửi báo giá cho khách hàng');
+                } else if (action === 'convertToOrder') {
+                    showAlert('Đã chuyển báo giá thành đơn hàng');
+                    navigate('/don-hang');
                 }
             },
             onError: (err: unknown) => {

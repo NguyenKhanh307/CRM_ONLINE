@@ -67,6 +67,32 @@ export interface InvoiceItemResult {
     note: string | null;
 }
 
+export type PaymentScheduleStatus = 'pending' | 'partial' | 'paid' | 'overdue';
+
+/** Một đợt thanh toán của hóa đơn (GET /api/invoices/{id}/payment-schedules). */
+export interface InvoicePaymentScheduleResult {
+    id: number;
+    invoiceId: number;
+    installmentNo: number | null;
+    dueDate: string | null;
+    amount: number | null;
+    paidAmount: number | null;
+    status: PaymentScheduleStatus;
+    paidAt: string | null;
+    note: string | null;
+}
+
+/** Payload tạo/sửa một đợt thanh toán. */
+export interface PaymentSchedulePayload {
+    installmentNo: number | null;
+    dueDate: string | null;
+    amount: number | null;
+    paidAmount: number | null;
+    status: PaymentScheduleStatus;
+    paidAt: string | null;
+    note: string | null;
+}
+
 export interface InvoiceResult {
     id: number;
     code: string;

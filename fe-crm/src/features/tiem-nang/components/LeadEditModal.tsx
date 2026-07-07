@@ -2,6 +2,7 @@ import { useState, type FormEvent, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import type { LeadResult, UpdateLeadPayload } from '../types/leadTypes';
 import { useUpdateLead } from '../hooks/useUpdateLead';
+import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 
 interface Props {
     item: LeadResult | null;
@@ -19,8 +20,9 @@ const LEAD_SOURCES = ['website', 'referral', 'social', 'email', 'event', 'other'
 
 export function LeadEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateLead();
+    const { data: campaigns } = useCampaignList();
     const [form, setForm] = useState<UpdateLeadPayload>({
-        name: '', ownerId: null, customerId: null, contactId: null,
+        name: '', ownerId: null, customerId: null, contactId: null, campaignId: null,
         source: null, estimatedValue: null, phone: null, email: null, note: null,
         companyName: null, leadType: null, title: null, department: null,
         taxCode: null, website: null, industry: null, doNotCall: false, doNotEmail: false,
@@ -30,7 +32,7 @@ export function LeadEditModal({ item, onClose }: Props) {
         if (!item) return;
         setForm({
             name: item.name, ownerId: item.ownerId, customerId: item.customerId,
-            contactId: item.contactId, source: item.source,
+            contactId: item.contactId, campaignId: item.campaignId, source: item.source,
             estimatedValue: item.estimatedValue, phone: item.phone, email: item.email, note: item.note,
             companyName: item.companyName, leadType: item.leadType, title: item.title,
             department: item.department, taxCode: item.taxCode, website: item.website,
@@ -84,6 +86,13 @@ export function LeadEditModal({ item, onClose }: Props) {
                                 {LEAD_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
                             </select>
                         </div>
+                    </div>
+                    <div>
+                        <label className={lbl}>Chiến dịch nguồn</label>
+                        <select className={inp} value={form.campaignId ?? ''} onChange={e => setForm(f => ({ ...f, campaignId: e.target.value ? +e.target.value : null }))}>
+                            <option value="">-- Không gắn chiến dịch --</option>
+                            {campaigns?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
                     </div>
                     <div>
                         <label className={lbl}>Giá trị dự kiến</label>

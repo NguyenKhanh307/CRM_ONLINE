@@ -40,6 +40,7 @@ public class QuotationCommandMapper {
                 .customerId(cmd.getCustomerId() != null ? cmd.getCustomerId() : e.getCustomerId())
                 .contactId(cmd.getContactId() != null ? cmd.getContactId() : e.getContactId())
                 .opportunityId(cmd.getOpportunityId() != null ? cmd.getOpportunityId() : e.getOpportunityId())
+                .campaignId(e.getCampaignId())
                 .pricePolicyId(cmd.getPricePolicyId() != null ? cmd.getPricePolicyId() : e.getPricePolicyId())
                 .isPrimary(e.isPrimary()).isLocked(e.isLocked())
                 .ownerId(cmd.getOwnerId() != null ? cmd.getOwnerId() : e.getOwnerId())
@@ -69,7 +70,7 @@ public class QuotationCommandMapper {
     public static QuotationResult toResult(Quotation e) {
         return QuotationResult.builder()
                 .id(e.getId()).code(e.getCode()).customerId(e.getCustomerId()).contactId(e.getContactId())
-                .opportunityId(e.getOpportunityId())
+                .opportunityId(e.getOpportunityId()).campaignId(e.getCampaignId())
                 .pricePolicyId(e.getPricePolicyId()).isPrimary(e.isPrimary()).isLocked(e.isLocked())
                 .ownerId(e.getOwnerId()).quoteDate(e.getQuoteDate()).validUntil(e.getValidUntil())
                 .currency(e.getCurrency()).exchangeRate(e.getExchangeRate())

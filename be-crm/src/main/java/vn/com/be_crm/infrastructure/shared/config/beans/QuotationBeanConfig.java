@@ -12,7 +12,6 @@ import vn.com.be_crm.application.shared.pdf.IQuotationPdfService;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
-import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityItemRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 import vn.com.be_crm.domain.product.repository.IProductRepository;
@@ -104,11 +103,6 @@ public class QuotationBeanConfig {
             IQuotationRepository qr, IQuotationItemRepository qir, IOpportunityItemRepository oir,
             RecomputeOpportunityAmountUseCase ruc) {
         return new SyncQuotationToOpportunityUseCase(qr, qir, oir, ruc);
-    }
-    /** @return ConvertQuotationToInvoiceUseCase — chuyển báo giá thành hóa đơn (deprecated: dùng convert-to-order) */
-    @Bean public ConvertQuotationToInvoiceUseCase convertQuotationToInvoiceUseCase(
-            IQuotationRepository qr, IQuotationItemRepository qir, IInvoiceRepository ir, IOpportunityRepository or) {
-        return new ConvertQuotationToInvoiceUseCase(qr, qir, ir, or);
     }
     /** @return ConvertQuotationToOrderUseCase — chuyển báo giá thành đơn hàng */
     @Bean public ConvertQuotationToOrderUseCase convertQuotationToOrderUseCase(

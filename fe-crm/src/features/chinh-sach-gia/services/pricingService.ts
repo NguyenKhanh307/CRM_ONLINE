@@ -15,11 +15,17 @@ import type {
     CreatePricePolicyProductTypePayload,
     PricePolicyEmployeeResult,
     CreatePricePolicyEmployeePayload,
+    ResolvePriceResult,
 } from '../types/pricingTypes';
 
 export const pricingService = {
     getList: (params?: PageParams) =>
         axiosInstance.get<ApiResponse<PageResult<PricePolicyResult>>>('/api/price-policies', { params }),
+    /** Tra cứu đơn giá & chiết khấu theo chính sách giá cho một sản phẩm + số lượng. */
+    resolve: (pricePolicyId: number, productId: number, quantity: number) =>
+        axiosInstance.get<ApiResponse<ResolvePriceResult>>('/api/pricing/resolve', {
+            params: { pricePolicyId, productId, quantity },
+        }),
     getById: (id: number) =>
         axiosInstance.get<ApiResponse<PricePolicyResult>>(`/api/price-policies/${id}`),
     create: (payload: CreatePricePolicyPayload) =>

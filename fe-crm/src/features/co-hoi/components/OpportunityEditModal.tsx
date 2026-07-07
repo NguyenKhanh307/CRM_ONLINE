@@ -141,7 +141,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                     </div>
                     <div>
                         <label className={lbl}>Hàng hóa</label>
-                        <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} />
+                        <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} pricePolicyId={form.pricePolicyId} />
                     </div>
                     <div>
                         <label className={lbl}>Mô tả</label>

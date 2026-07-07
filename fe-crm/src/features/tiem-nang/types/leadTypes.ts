@@ -5,6 +5,7 @@ export interface UpdateLeadPayload {
     ownerId: number | null;
     customerId: number | null;
     contactId: number | null;
+    campaignId?: number | null;
     title?: string | null;
     department?: string | null;
     taxCode?: string | null;
@@ -29,6 +30,7 @@ export interface CreateLeadPayload {
     ownerId: number | null;
     customerId: number | null;
     contactId: number | null;
+    campaignId: number | null;
     title: string | null;
     department: string | null;
     taxCode: string | null;
@@ -53,6 +55,7 @@ export interface LeadResult {
     ownerId: number | null;
     customerId: number | null;
     contactId: number | null;
+    campaignId: number | null;
     title: string | null;
     department: string | null;
     taxCode: string | null;

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { formatNumber } from '@/shared/utils/number';
+import { pricingService } from '@/features/chinh-sach-gia/services/pricingService';
 import {
     type LineItemRow,
     type ProductOption,
@@ -20,6 +21,8 @@ interface Props {
     showUnit?: boolean;
     /** Hiện cột Thuế suất (báo giá/đơn hàng). */
     showTax?: boolean;
+    /** Chính sách giá đang chọn — nếu có, đơn giá/CK% dòng hàng tra qua /api/pricing/resolve. */
+    pricePolicyId?: number | null;
 }
 
 const fmt = (n: number) => formatNumber(n);
@@ -39,6 +42,7 @@ export const ProductLineItemsTable = ({
     productOptions,
     showUnit = false,
     showTax = false,
+    pricePolicyId,
 }: Props) => {
     const totals = useMemo(() => computeTotals(rows), [rows]);
 
@@ -53,6 +57,24 @@ export const ProductLineItemsTable = ({
             unitPrice: opt?.price ?? 0,
             taxRate: opt?.vatRate ?? 0,
         });
+        // Có chính sách giá → tra đơn giá/CK theo pricebook, ghi đè giá cơ bản của sản phẩm
+        if (pricePolicyId && productId) {
+            const row = rows.find((r) => r.id === id);
+            const qty = row?.quantity ?? 1;
+            pricingService.resolve(pricePolicyId, Number(productId), qty || 1)
+                .then((res) => {
+                    const r = res.data.data;
+                    if (!r?.found) return;
+                    const patch: Partial<LineItemRow> = {};
+                    if (r.unitPrice != null) patch.unitPrice = Number(r.unitPrice);
+                    // Chiết khấu trả về là số tiền/đơn vị → quy đổi sang % theo đơn giá
+                    if (r.discount != null && r.unitPrice != null && Number(r.unitPrice) > 0) {
+                        patch.discountPct = +((Number(r.discount) / Number(r.unitPrice)) * 100).toFixed(2);
+                    }
+                    if (Object.keys(patch).length) changeRow(id, patch);
+                })
+                .catch(() => { /* fallback giữ giá cơ bản của sản phẩm */ });
+        }
     };
 
     const addRow = () => onChange([...rows, emptyLineItem()]);

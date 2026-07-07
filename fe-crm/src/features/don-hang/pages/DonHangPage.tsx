@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiCheckCircle, FiPlayCircle, FiFileText, FiXCircle } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiCheckCircle, FiPlayCircle, FiFileText, FiXCircle, FiCheckSquare } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
@@ -47,9 +47,16 @@ const DonHangPage = () => {
 
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
-    /** Chạy một hành động trên Đơn hàng, báo lỗi qua alert nếu bước chuyển không hợp lệ. */
+    /** Chạy một hành động trên Đơn hàng, báo lỗi qua alert nếu bước chuyển không hợp lệ.
+     *  Xuất hóa đơn thành công → điều hướng sang Hóa đơn (hóa đơn vừa tạo). */
     const runAction = (id: number, action: OrderAction) =>
         workflowFn({ id, action }, {
+            onSuccess: () => {
+                if (action === 'createInvoice') {
+                    showAlert('Đã xuất hóa đơn từ đơn hàng');
+                    navigate('/hoa-don');
+                }
+            },
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Không thực hiện được hành động';
@@ -91,6 +98,12 @@ const DonHangPage = () => {
                             <button className="p-1.5 rounded hover:bg-green-50 text-gray-400 hover:text-success"
                                 title="Xuất hóa đơn" onClick={() => runAction(o.id, 'createInvoice')}>
                                 <FiFileText size={14} />
+                            </button>
+                        )}
+                        {o.status === 'processing' && (
+                            <button className="p-1.5 rounded hover:bg-emerald-50 text-gray-400 hover:text-success"
+                                title="Hoàn tất đơn" onClick={() => runAction(o.id, 'complete')}>
+                                <FiCheckSquare size={14} />
                             </button>
                         )}
                         {(o.status === 'draft' || o.status === 'confirmed' || o.status === 'processing') && (

@@ -3,6 +3,7 @@ import { FiX } from 'react-icons/fi';
 import type { InvoiceResult, UpdateInvoicePayload } from '../types/invoiceTypes';
 import { useUpdateInvoice } from '../hooks/useUpdateInvoice';
 import { invoiceService } from '../services/invoiceService';
+import { PaymentSchedulesTable } from './PaymentSchedulesTable';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import { DateInput } from '@/shared/components/form/DateInput';
@@ -140,6 +141,10 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                     <div>
                         <label className={lbl}>Hàng hóa</label>
                         <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />
+                    </div>
+                    <div>
+                        <label className={lbl}>Đợt thanh toán</label>
+                        <PaymentSchedulesTable invoiceId={item.id} />
                     </div>
                     <div>
                         <label className={lbl}>Ghi chú</label>

@@ -48,10 +48,12 @@ public class ConvertQuotationToOrderUseCase {
                 .orElseThrow(() -> new NotFoundException("Quotation not found: " + quotationId));
         if (q.isLocked()) throw new DomainException("Báo giá đã được chuyển thành đơn hàng trước đó");
 
-        // Kế thừa chiến dịch (attribution) từ cơ hội liên quan
+        // Kế thừa chiến dịch (attribution): ưu tiên chiến dịch lưu trực tiếp trên báo giá,
+        // fallback tra cơ hội liên quan (tương thích dữ liệu cũ chưa có campaign_id trên báo giá)
         Opportunity opp = q.getOpportunityId() != null
                 ? opportunityRepo.findById(q.getOpportunityId()).orElse(null) : null;
-        Long campaignId = opp != null ? opp.getCampaignId() : null;
+        Long campaignId = q.getCampaignId() != null ? q.getCampaignId()
+                : (opp != null ? opp.getCampaignId() : null);
 
         // Sao chép dòng hàng báo giá → dòng hàng đơn hàng
         List<QuotationItem> qItems = quotationItemRepo.findAllByQuotationId(quotationId);

@@ -49,6 +49,8 @@ cd fe-crm
 npm install
 ```
 
+> Dependency biểu đồ: **`recharts`** (dùng cho Dashboard). Đã có trong `package.json` — `npm install` cài sẵn.
+
 ### Bước 3 — Chạy dev server
 
 ```bash
@@ -242,6 +244,16 @@ Tất cả 8 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (
 | Sản phẩm | `/san-pham` | `GET /api/products` | `PUT /api/products/{id}` | `DELETE /api/products/{id}` | — |
 
 > Module **Kho hàng** đã được gỡ (phân hệ Kho không còn ở backend).
+
+### Bàn làm việc (Dashboard) — `/dashboard` (MỚI 2026-07-04)
+
+Trang tổng quan phân theo vai trò (`features/dashboard/`), phong cách AMIS. `DashboardPage` dùng `usePermission()` chọn view ưu tiên **ADMIN → SALES_MANAGER → SALES_STAFF**; có bộ chọn **kỳ** (Tháng này/Quý này/Năm nay) + **đơn vị tiền** (VND/Triệu đồng) cấp trang.
+
+- **ADMIN** (`AdminDashboardView`): KPI tài khoản/vai trò/quyền, donut cơ cấu theo trạng thái/vai trò/đơn vị, cột tài khoản theo tháng, tổng quan bản ghi hệ thống → `GET /api/dashboard/admin`.
+- **SALES_MANAGER** (`SalesDashboardView` với `showTeam`): thẻ KPI area-trend Doanh thu/Chi phí/Lợi nhuận, combo cột+đường tài chính, KPI cơ hội, tỷ lệ thắng, phễu chuyển đổi, cơ hội giá trị lớn, thống kê theo nhân viên, việc gấp → `GET /api/dashboard/manager`.
+- **SALES_STAFF** (`SalesDashboardView` cá nhân): như trên nhưng phạm vi `owner_id = userId`, bỏ phần theo nhân viên → `GET /api/dashboard/sale`.
+- Service/hooks: `services/dashboardService.ts` + `hooks/use{Admin,Manager,Sale}Dashboard.ts` (`useQuery`, `enabled` theo role).
+- Component chart dùng chung: `components/` — `DashCard`, `KpiTile`, `DonutChart`, `RevenueCostProfitChart`, `AreaTrend`, `MonthlyBar`, `FunnelChart`, `StackedBarByGroup`, `RankedList`, `UrgentList`, `Selectors` (Period/Unit), `chartTheme` (palette + nhãn trạng thái tiếng Việt). Tiền tệ dùng `shared/utils/number.ts#formatMoney`.
 
 ### Tiềm năng — chấm điểm, web tracking & thông báo
 
@@ -509,6 +521,19 @@ Chi tiết pattern: xem `CODE_GUIDE_FRONTEND.md` mục 8b.
 ### Màu sắc & style
 - Chỉ dùng token đã định nghĩa trong `tailwind.config.js`
 - Không hardcode màu hex trực tiếp trong class
+
+---
+
+## 5b. Hoàn thiện luồng nghiệp vụ (2026-07-07)
+
+Đối chiếu `luongnghiep.md` với code và vá các lỗ hổng UI để luồng chảy mượt:
+
+- **Chiến dịch trong form Tiềm năng**: `LeadAddPage` + `LeadEditModal` có ô "Chiến dịch nguồn" (`useCampaignList`); cột "Chiến dịch" trong `leadColumns` (attribution bắt đầu từ đây).
+- **Tra giá theo chính sách (pricebook)**: `ProductLineItemsTable` nhận prop `pricePolicyId` — khi chọn dòng hàng gọi `pricingService.resolve` (`GET /api/pricing/resolve`) lấy đơn giá/CK, fallback về `basePrice`. Truyền từ form Cơ hội (`OpportunityAddPage`/`OpportunityEditModal`).
+- **Đợt thanh toán hóa đơn**: `PaymentSchedulesTable` + `useInvoicePayments` (`GET/POST/PUT/DELETE /api/invoices/{id}/payment-schedules`) nhúng trong `InvoiceEditModal` — thêm/sửa/xóa đợt; BE tự suy ra `paymentStatus` (`partially_paid`/`paid`).
+- **Nút Hoàn tất đơn hàng**: `DonHangPage` thêm hành động `complete` (khi `processing`).
+- **Tự điều hướng sau convert**: convert tiềm năng → `/co-hoi`; báo giá → đơn hàng → `/don-hang`; đơn hàng → hóa đơn → `/hoa-don` (kèm toast).
+- **Link chéo**: chi tiết phiếu Chăm sóc → click "Hóa đơn #id" mở `/hoa-don`.
 
 ---
 

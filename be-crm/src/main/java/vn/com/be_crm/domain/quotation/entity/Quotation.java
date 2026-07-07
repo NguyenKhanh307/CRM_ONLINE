@@ -28,6 +28,8 @@ public class Quotation {
     private Long contactId;
     /** Cơ hội liên quan (truy vết nguồn). */
     private Long opportunityId;
+    /** Chiến dịch nguồn (attribution) — kế thừa từ cơ hội khi clone. */
+    private Long campaignId;
     /** ID chính sách giá áp dụng (kế thừa từ cơ hội). */
     private Long pricePolicyId;
     /** Báo giá đồng bộ (primary) với cơ hội — chỉ một báo giá primary/cơ hội. */

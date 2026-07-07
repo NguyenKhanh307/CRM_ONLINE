@@ -40,14 +40,13 @@ public class QuotationController {
     private final CreateQuotationFromOpportunityUseCase fromOpportunityUC;
     private final RefreshQuotationItemsFromOpportunityUseCase refreshItemsUC;
     private final SetPrimaryQuotationUseCase setPrimaryUC;
-    private final ConvertQuotationToInvoiceUseCase convertToInvoiceUC;
     private final ConvertQuotationToOrderUseCase convertToOrderUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
      *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
      *  @param handoverBulkUC bàn giao hàng loạt @param workflowUC luồng duyệt báo giá
      *  @param fromOpportunityUC clone từ cơ hội @param refreshItemsUC cập nhật lại dòng hàng từ cơ hội
-     *  @param setPrimaryUC đặt báo giá đồng bộ @param convertToInvoiceUC chuyển thành hóa đơn */
+     *  @param setPrimaryUC đặt báo giá đồng bộ @param convertToOrderUC chuyển thành đơn hàng */
     public QuotationController(CreateQuotationUseCase createUC, UpdateQuotationUseCase updateUC,
                                 DeleteQuotationUseCase deleteUC, GetQuotationUseCase getUC, ListQuotationUseCase listUC,
                                 ListDeletedQuotationsUseCase listDeletedUC, RestoreQuotationUseCase restoreUC, PurgeQuotationUseCase purgeUC,
@@ -57,14 +56,13 @@ public class QuotationController {
                                 CreateQuotationFromOpportunityUseCase fromOpportunityUC,
                                 RefreshQuotationItemsFromOpportunityUseCase refreshItemsUC,
                                 SetPrimaryQuotationUseCase setPrimaryUC,
-                                ConvertQuotationToInvoiceUseCase convertToInvoiceUC,
                                 ConvertQuotationToOrderUseCase convertToOrderUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
         this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC; this.workflowUC = workflowUC;
         this.fromOpportunityUC = fromOpportunityUC; this.refreshItemsUC = refreshItemsUC;
-        this.setPrimaryUC = setPrimaryUC; this.convertToInvoiceUC = convertToInvoiceUC;
+        this.setPrimaryUC = setPrimaryUC;
         this.convertToOrderUC = convertToOrderUC;
     }
 
@@ -125,12 +123,6 @@ public class QuotationController {
     @PostMapping("/{id}/accept")
     public ResponseEntity<ApiResponse<QuotationResult>> accept(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.accept(id)));
-    }
-
-    /** Chuyển báo giá thành hóa đơn (deprecated — dùng convert-to-order). @param id ID @return 201 hóa đơn */
-    @PostMapping("/{id}/convert-to-invoice")
-    public ResponseEntity<ApiResponse<vn.com.be_crm.application.invoice.dto.InvoiceResult>> convertToInvoice(@PathVariable Long id) {
-        return ResponseEntity.status(201).body(ApiResponse.created(convertToInvoiceUC.execute(id)));
     }
 
     /** Chuyển báo giá thành đơn hàng (khóa báo giá + cơ hội Chốt Thắng). @param id ID @return 201 đơn hàng */

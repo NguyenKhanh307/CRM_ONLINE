@@ -119,7 +119,9 @@ const TicketDetailPage = () => {
                         <Info label="Liên hệ" value={ticket.contactId ? lookupName(contactMap, ticket.contactId) : '—'} />
                         <Info label="Người xử lý" value={ticket.assignedUserId ? lookupName(userMap, ticket.assignedUserId) : '—'} />
                         <Info label="Sản phẩm" value={ticket.productId ? lookupName(productMap, ticket.productId) : '—'} />
-                        <Info label="Hóa đơn" value={ticket.invoiceId ? `#${ticket.invoiceId}` : '—'} />
+                        <Info label="Hóa đơn" value={ticket.invoiceId
+                            ? <button type="button" className="text-primary hover:underline" onClick={() => navigate('/hoa-don')}>#{ticket.invoiceId}</button>
+                            : '—'} />
                         <Info label="Kênh" value={CHANNEL_LABELS[ticket.channel]} />
                         <Info label="Lý do" value={ticket.reason ? REASON_LABELS[ticket.reason] : '—'} />
                         <Info label="Hình thức GQ" value={ticket.resolutionType ? RESOLUTION_LABELS[ticket.resolutionType] : '—'} />

@@ -310,6 +310,16 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 |--------|----------|-------|
 | `POST` · `GET` · `PUT .../{id}` · `DELETE .../{id}` | `/api/campaigns/{campaignId}/members` | CRUD thành viên (lead/contact/nhập tay) |
 
+#### Dashboard — `/api/dashboard` (MỚI 2026-07-04)
+
+> Thống kê tổng hợp cho "Bàn làm việc" phân theo vai trò (native COUNT/SUM, không @Scheduled). Tham số `period` = `month\|quarter\|year` (mặc định `year`); KPI kèm % tăng trưởng so kỳ trước; biểu đồ theo tháng dùng cửa sổ 12 tháng gần nhất.
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `GET` | `/api/dashboard/admin?period=` | **Chỉ ADMIN** (403 nếu khác). Tổng/cơ cấu tài khoản (trạng thái, vai trò, đơn vị), tài khoản mới + chuỗi tháng, số vai trò/quyền, tổng quan bản ghi toàn hệ thống |
+| `GET` | `/api/dashboard/manager?period=` | **ADMIN/SALES_MANAGER**. Doanh thu/chi phí(≈giá vốn)/lợi nhuận (KPI + theo tháng), KPI cơ hội, tỷ lệ thắng, phễu chuyển đổi, cơ hội giá trị lớn, trạng thái các phân hệ, việc gấp, **thống kê theo nhân viên** |
+| `GET` | `/api/dashboard/sale?period=` | Mọi user đăng nhập — dữ liệu **cá nhân** (`owner_id = userId`), không có phần theo nhân viên |
+
 ### 2.6c Order — Đơn hàng (TÁI LẬP 2026-07-02)
 
 > Chèn giữa Báo giá & Hóa đơn: **Báo giá → Đơn hàng → Hóa đơn** (Đơn ↔ Hóa đơn = 1-1). Mirror module Invoice.
@@ -324,7 +334,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/orders/{id}/create-invoice` | Xuất hóa đơn 1-1 (khóa đơn + đơn→completed) |
 | `POST` | `/api/orders/import-bulk` · `/api/orders/handover-bulk` | Nhập / bàn giao hàng loạt |
 | `POST/GET/PUT/DELETE` | `/api/orders/{orderId}/items[/{id}]` | Dòng hàng đơn hàng |
-| `POST` | `/api/quotations/{id}/convert-to-order` | Chuyển Báo giá → Đơn hàng (thay `convert-to-invoice`, endpoint cũ giữ deprecated) |
+| `POST` | `/api/quotations/{id}/convert-to-order` | Chuyển Báo giá → Đơn hàng (đã gỡ `convert-to-invoice`; báo giá có `campaign_id` truyền attribution sang đơn) |
 
 ### 2.7 Invoice — Hóa đơn
 
@@ -595,7 +605,7 @@ Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động
 | `POST` | `/api/quotations/from-opportunity/{opportunityId}` | Clone báo giá từ cơ hội (OLI→QLI, đặt primary nếu là báo giá đầu) |
 | `POST` | `/api/quotations/{id}/sync-items-from-opportunity` | Cập nhật lại dòng hàng báo giá theo cơ hội nguồn (xóa + clone lại OLI→QLI, giữ `opportunityItemId`) |
 | `POST` | `/api/quotations/{id}/set-primary` | Đặt báo giá đồng bộ (chỉ 1 primary/cơ hội) |
-| `POST` | `/api/quotations/{id}/convert-to-invoice` | Chuyển thành hóa đơn (khóa báo giá + cơ hội won) |
+| `POST` | `/api/quotations/{id}/convert-to-order` | Chuyển Báo giá → Đơn hàng (khóa báo giá + cơ hội won); báo giá lưu `campaign_id` (attribution) chảy sang đơn hàng |
 | `GET`  | `/api/pricing/resolve?pricePolicyId&productId&quantity` | Tra đơn giá/chiết khấu theo chính sách giá (pricebook) |
 
 - **Cơ hội**: status suy ra từ `stageId`; `amount` **roll-up** từ dòng hàng (cập nhật khi sửa dòng hàng hoặc khi sync từ báo giá primary).

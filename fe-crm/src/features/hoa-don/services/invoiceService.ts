@@ -1,6 +1,6 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
-import type { CreateInvoicePayload, InvoiceItemPayload, InvoiceItemResult, InvoiceResult, UpdateInvoicePayload } from '../types/invoiceTypes';
+import type { CreateInvoicePayload, InvoiceItemPayload, InvoiceItemResult, InvoiceResult, UpdateInvoicePayload, InvoicePaymentScheduleResult, PaymentSchedulePayload } from '../types/invoiceTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 
 export const invoiceService = {
@@ -36,4 +36,17 @@ export const invoiceService = {
     issue: (id: number) => axiosInstance.post<ApiResponse<InvoiceResult>>(`/api/invoices/${id}/issue`),
     /** Hủy hóa đơn (→ cancelled). */
     cancel: (id: number) => axiosInstance.post<ApiResponse<InvoiceResult>>(`/api/invoices/${id}/cancel`),
+
+    /** Danh sách đợt thanh toán của hóa đơn. */
+    getPaymentSchedules: (invoiceId: number) =>
+        axiosInstance.get<ApiResponse<InvoicePaymentScheduleResult[]>>(`/api/invoices/${invoiceId}/payment-schedules`),
+    /** Thêm một đợt thanh toán → BE tự suy ra paymentStatus. */
+    addPaymentSchedule: (invoiceId: number, payload: PaymentSchedulePayload) =>
+        axiosInstance.post<ApiResponse<InvoicePaymentScheduleResult>>(`/api/invoices/${invoiceId}/payment-schedules`, payload),
+    /** Cập nhật một đợt thanh toán. */
+    updatePaymentSchedule: (invoiceId: number, id: number, payload: PaymentSchedulePayload) =>
+        axiosInstance.put<ApiResponse<InvoicePaymentScheduleResult>>(`/api/invoices/${invoiceId}/payment-schedules/${id}`, payload),
+    /** Xóa một đợt thanh toán. */
+    deletePaymentSchedule: (invoiceId: number, id: number) =>
+        axiosInstance.delete(`/api/invoices/${invoiceId}/payment-schedules/${id}`),
 };

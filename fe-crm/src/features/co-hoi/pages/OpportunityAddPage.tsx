@@ -176,7 +176,7 @@ const OpportunityAddPage = () => {
                 </FormSection>
 
                 <FormSection title="Hàng hóa">
-                    <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} />
+                    <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} pricePolicyId={form.pricePolicyId ? Number(form.pricePolicyId) : null} />
                 </FormSection>
 
                 <FormSection title="Thông tin mô tả">

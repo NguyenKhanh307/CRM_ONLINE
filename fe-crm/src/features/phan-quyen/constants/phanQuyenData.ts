@@ -10,4 +10,7 @@ export const MODULE_LABELS: Record<string, string> = {
     activity: 'Hoạt động',
     user: 'Người dùng',
     pricing: 'Chính sách giá',
+    order: 'Đơn hàng',
+    campaign: 'Chiến dịch',
+    ticket: 'Chăm sóc',
 };

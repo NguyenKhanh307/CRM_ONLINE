@@ -20,6 +20,7 @@ export interface LeadColumnLookups {
     users: Map<number, string>;
     customers: Map<number, string>;
     contacts: Map<number, string>;
+    campaigns: Map<number, string>;
 }
 
 /** Tạo danh sách cột Tiềm năng — hiển thị đầy đủ trường + tên khóa ngoại. */
@@ -47,6 +48,7 @@ export const getLeadColumns = (lk: LeadColumnLookups): ColumnDef<LeadResult>[] =
     { accessorKey: 'ownerId', header: 'Người phụ trách', size: 160, cell: fkCell(lk.users) },
     { accessorKey: 'customerId', header: 'Khách hàng', size: 180, cell: fkCell(lk.customers) },
     { accessorKey: 'contactId', header: 'Liên hệ', size: 160, cell: fkCell(lk.contacts) },
+    { accessorKey: 'campaignId', header: 'Chiến dịch', size: 160, cell: fkCell(lk.campaigns) },
     { accessorKey: 'doNotCall', header: 'Không gọi', size: 100, cell: yesNoCell },
     { accessorKey: 'doNotEmail', header: 'Không email', size: 110, cell: yesNoCell },
     { accessorKey: 'note', header: 'Ghi chú', size: 200, cell: textCell },

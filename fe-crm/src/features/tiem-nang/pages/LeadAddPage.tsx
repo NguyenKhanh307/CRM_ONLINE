@@ -10,6 +10,7 @@ import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useContactList } from '@/features/lien-he/hooks/useContactList';
+import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { useCreateLead } from '../hooks/useCreateLead';
 import type { CreateLeadPayload } from '../types/leadTypes';
 
@@ -44,6 +45,7 @@ interface FormState {
     ownerId: string;
     customerId: string;
     contactId: string;
+    campaignId: string;
     estimatedValue: string;
     doNotCall: boolean;
     doNotEmail: boolean;
@@ -54,7 +56,7 @@ interface FormState {
 const initialState = (ownerId: string): FormState => ({
     code: '', name: '', leadType: '', title: '', department: '', phone: '', email: '',
     source: '', companyName: '', taxCode: '', website: '', industry: '',
-    ownerId, customerId: '', contactId: '', estimatedValue: '', doNotCall: false,
+    ownerId, customerId: '', contactId: '', campaignId: '', estimatedValue: '', doNotCall: false,
     doNotEmail: false, note: '',
 });
 
@@ -66,6 +68,7 @@ const toPayload = (f: FormState): CreateLeadPayload => ({
     ownerId: f.ownerId ? Number(f.ownerId) : null,
     customerId: f.customerId ? Number(f.customerId) : null,
     contactId: f.contactId ? Number(f.contactId) : null,
+    campaignId: f.campaignId ? Number(f.campaignId) : null,
     title: f.title || null,
     department: f.department || null,
     taxCode: f.taxCode || null,
@@ -92,10 +95,12 @@ const LeadAddPage = () => {
     const { data: users = [] } = useActiveUsers();
     const { data: customers = [] } = useCustomerList();
     const { data: contacts = [] } = useContactList();
+    const { data: campaigns = [] } = useCampaignList();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
     const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
+    const campaignOptions = useMemo(() => (campaigns ?? []).map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
 
     const set = (patch: Partial<FormState>) => setForm((p) => ({ ...p, ...patch }));
 
@@ -196,6 +201,9 @@ const LeadAddPage = () => {
                             </FieldRow>
                             <FieldRow label="Giá trị ước tính">
                                 <input type="number" value={form.estimatedValue} onChange={(e) => set({ estimatedValue: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Chiến dịch nguồn">
+                                <SearchableSelect value={form.campaignId} onChange={(v) => set({ campaignId: v })} options={campaignOptions} />
                             </FieldRow>
                         </div>
                     </div>

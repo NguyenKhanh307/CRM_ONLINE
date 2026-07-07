@@ -1,6 +1,17 @@
 export type PricePolicyStatus = 'active' | 'inactive' | 'expired';
 export type DiscountType = 'percent' | 'amount';
 
+/** Kết quả tra cứu giá theo chính sách giá cho một sản phẩm + số lượng (GET /api/pricing/resolve). */
+export interface ResolvePriceResult {
+    productId: number;
+    /** Đơn giá niêm yết theo chính sách (null nếu không tìm thấy). */
+    unitPrice: number | null;
+    /** Chiết khấu trên một đơn vị (số tiền). */
+    discount: number | null;
+    /** true nếu sản phẩm có trong chính sách giá. */
+    found: boolean;
+}
+
 export interface PricePolicyResult {
     id: number;
     code: string;
