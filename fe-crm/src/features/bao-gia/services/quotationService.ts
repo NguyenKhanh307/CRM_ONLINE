@@ -1,6 +1,6 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
-import type { CreateQuotationPayload, QuotationItemPayload, QuotationItemResult, QuotationResult, UpdateQuotationPayload } from '../types/quotationTypes';
+import type { CreateQuotationPayload, QuotationEmailDraft, QuotationItemPayload, QuotationItemResult, QuotationResult, SendQuotationPayload, UpdateQuotationPayload } from '../types/quotationTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 
 export const quotationService = {
@@ -41,9 +41,12 @@ export const quotationService = {
     /** Quản lý từ chối báo giá (pending → draft). */
     reject: (id: number, comment?: string) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/reject`, { comment }),
-    /** Nhân viên gửi email báo giá cho khách (approved → sent). */
-    send: (id: number) =>
-        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/send`),
+    /** Lấy nội dung email báo giá mặc định để soạn trước khi gửi. */
+    getEmailDraft: (id: number) =>
+        axiosInstance.get<ApiResponse<QuotationEmailDraft>>(`/api/quotations/${id}/email-draft`),
+    /** Nhân viên gửi email báo giá cho khách (approved → sent) kèm tiêu đề/nội dung tùy biến. */
+    send: (id: number, payload?: SendQuotationPayload) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/send`, payload),
     /** Khách chấp nhận báo giá (sent → accepted). */
     accept: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/accept`),

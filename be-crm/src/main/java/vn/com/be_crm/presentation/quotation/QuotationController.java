@@ -15,6 +15,7 @@ import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
 import vn.com.be_crm.presentation.quotation.request.QuotationActionRequest;
+import vn.com.be_crm.presentation.quotation.request.SendQuotationRequest;
 import vn.com.be_crm.presentation.shared.ApiResponse;
 import vn.com.be_crm.presentation.shared.HandoverBulkRequest;
 import vn.com.be_crm.presentation.shared.PageResponse;
@@ -41,6 +42,7 @@ public class QuotationController {
     private final RefreshQuotationItemsFromOpportunityUseCase refreshItemsUC;
     private final SetPrimaryQuotationUseCase setPrimaryUC;
     private final ConvertQuotationToOrderUseCase convertToOrderUC;
+    private final GetQuotationEmailDraftUseCase emailDraftUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
      *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
@@ -56,7 +58,8 @@ public class QuotationController {
                                 CreateQuotationFromOpportunityUseCase fromOpportunityUC,
                                 RefreshQuotationItemsFromOpportunityUseCase refreshItemsUC,
                                 SetPrimaryQuotationUseCase setPrimaryUC,
-                                ConvertQuotationToOrderUseCase convertToOrderUC) {
+                                ConvertQuotationToOrderUseCase convertToOrderUC,
+                                GetQuotationEmailDraftUseCase emailDraftUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
@@ -64,6 +67,7 @@ public class QuotationController {
         this.fromOpportunityUC = fromOpportunityUC; this.refreshItemsUC = refreshItemsUC;
         this.setPrimaryUC = setPrimaryUC;
         this.convertToOrderUC = convertToOrderUC;
+        this.emailDraftUC = emailDraftUC;
     }
 
     /** Tạo mới báo giá. @param cmd JSON body @return 201 */
@@ -193,10 +197,19 @@ public class QuotationController {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.reject(id, userId, body != null ? body.getComment() : null)));
     }
 
-    /** Nhân viên gửi email báo giá cho khách (approved → sent). @param id ID @return 200 */
+    /** Lấy nội dung email báo giá mặc định để FE hiển thị trước khi gửi. @param id ID @return 200 */
+    @GetMapping("/{id}/email-draft")
+    public ResponseEntity<ApiResponse<vn.com.be_crm.application.quotation.dto.QuotationEmailDraft>> emailDraft(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(emailDraftUC.execute(id)));
+    }
+
+    /** Nhân viên gửi email báo giá cho khách (approved → sent). @param id ID @param body tiêu đề/nội dung tùy biến @return 200 */
     @PostMapping("/{id}/send")
-    public ResponseEntity<ApiResponse<QuotationResult>> send(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.ok(workflowUC.send(id)));
+    public ResponseEntity<ApiResponse<QuotationResult>> send(@PathVariable Long id,
+            @RequestBody(required = false) SendQuotationRequest body) {
+        String subject = body != null ? body.getSubject() : null;
+        String content = body != null ? body.getBody() : null;
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.send(id, subject, content)));
     }
 
     /** Chỉ ADMIN/SALES_MANAGER mới được duyệt/từ chối báo giá. */

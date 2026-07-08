@@ -62,13 +62,26 @@ public class QuotationBeanConfig {
 
     // ===== Quotation Workflow (submit / approve / reject / send) =====
 
+    /** @return QuotationEmailComposer — dựng nội dung email báo giá mặc định + resolve người nhận */
+    @Bean public vn.com.be_crm.application.quotation.email.QuotationEmailComposer quotationEmailComposer(
+            ICustomerRepository cr, IContactRepository cor) {
+        return new vn.com.be_crm.application.quotation.email.QuotationEmailComposer(cr, cor);
+    }
+
+    /** @return GetQuotationEmailDraftUseCase — xem-trước nội dung email báo giá mặc định */
+    @Bean public GetQuotationEmailDraftUseCase getQuotationEmailDraftUseCase(IQuotationRepository qr,
+            vn.com.be_crm.application.quotation.email.QuotationEmailComposer composer) {
+        return new GetQuotationEmailDraftUseCase(qr, composer);
+    }
+
     /** @return QuotationWorkflowUseCase */
     @Bean public QuotationWorkflowUseCase quotationWorkflowUseCase(IQuotationRepository qr, IQuotationApprovalRepository ar,
             CreateNotificationUseCase nuc, IUserRoleRepository urr, IEmailService es,
             ICustomerRepository cr, IContactRepository cor, IQuotationItemRepository qir,
             IProductRepository pr, IQuotationPdfService pdf,
+            vn.com.be_crm.application.quotation.email.QuotationEmailComposer composer,
             @Value("${app.frontend.base-url}") String frontendBaseUrl) {
-        return new QuotationWorkflowUseCase(qr, ar, nuc, urr, es, cr, cor, qir, pr, pdf, frontendBaseUrl);
+        return new QuotationWorkflowUseCase(qr, ar, nuc, urr, es, cr, cor, qir, pr, pdf, composer, frontendBaseUrl);
     }
 
     /** @return RespondToQuotationUseCase — khách phản hồi báo giá (đồng ý/điều chỉnh/không đồng ý) */

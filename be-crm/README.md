@@ -606,7 +606,8 @@ Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động
 | `POST` | `/api/customers/{id}/activate` \| `/deactivate` | active ↔ inactive |
 | `POST` | `/api/activities/{id}/start` \| `/complete` \| `/cancel` | planned→in_progress→done / cancelled |
 | `POST` | `/api/invoices/{id}/issue` \| `/cancel` | draft→sent (khóa) / cancelled |
-| `POST` | `/api/quotations/{id}/submit` \| `/approve` \| `/reject` \| `/send` \| `/accept` | draft→pending→approved/rejected→sent→accepted (approve/reject cần ADMIN/SALES_MANAGER; **send** gửi email khách kèm **PDF bảng báo giá** + 3 nút phản hồi, sinh `response_token`) |
+| `POST` | `/api/quotations/{id}/submit` \| `/approve` \| `/reject` \| `/send` \| `/accept` | draft→pending→approved/rejected→sent→accepted (approve/reject cần ADMIN/SALES_MANAGER; **send** gửi email khách kèm **PDF bảng báo giá** + 3 nút phản hồi, sinh `response_token`). **send** nhận body tùy chọn `{ subject, body }` — người dùng tự soạn tiêu đề/nội dung; bỏ trống thì dùng mặc định. 3 nút phản hồi luôn được BE tự chèn vào cuối |
+| `GET`  | `/api/quotations/{id}/email-draft` | Lấy nội dung email mặc định (`{ toEmail, recipientName, subject, body }`) để FE hiển thị trong ô soạn trước khi gửi |
 | `GET`  | `/api/public/quotations/{token}` | (public) Xem báo giá theo token để khách phản hồi |
 | `POST` | `/api/public/quotations/{token}/respond` | (public) Khách phản hồi — body `{ action: accept\|adjust\|reject, note? }`; `accept`→accepted + thông báo người phụ trách |
 | `POST` | `/api/quotations/from-opportunity/{opportunityId}` | Clone báo giá từ cơ hội (OLI→QLI, đặt primary nếu là báo giá đầu) |

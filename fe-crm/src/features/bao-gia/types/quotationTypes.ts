@@ -15,6 +15,20 @@ export interface UpdateQuotationPayload {
     note: string | null;
 }
 
+/** Nội dung email báo giá mặc định (GET /api/quotations/{id}/email-draft). */
+export interface QuotationEmailDraft {
+    toEmail: string;
+    recipientName: string;
+    subject: string;
+    body: string;
+}
+
+/** Payload gửi email báo giá — POST /api/quotations/{id}/send. */
+export interface SendQuotationPayload {
+    subject: string;
+    body: string;
+}
+
 /** Một dòng hàng gửi kèm khi tạo báo giá. */
 export interface QuotationItemPayload {
     productId: number;

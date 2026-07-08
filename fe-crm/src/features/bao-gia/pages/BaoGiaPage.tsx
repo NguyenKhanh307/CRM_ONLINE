@@ -22,6 +22,7 @@ import { useQuotationWorkflow, type QuotationAction } from '../hooks/useQuotatio
 import { getQuotationColumns } from '../config/quotationColumns';
 import { quotationExportColumns } from '../config/quotationExportColumns';
 import { QuotationEditModal } from '../components/QuotationEditModal';
+import { SendQuotationModal } from '../components/SendQuotationModal';
 import { ReasonModal } from '@/shared/components/ReasonModal';
 import type { QuotationResult } from '../types/quotationTypes';
 
@@ -44,6 +45,7 @@ const BaoGiaPage = () => {
     const [editTarget, setEditTarget] = useState<QuotationResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
     const [rejectTarget, setRejectTarget] = useState<number | null>(null);
+    const [sendTarget, setSendTarget] = useState<number | null>(null);
     const [selectedRows, setSelectedRows] = useState<QuotationResult[]>([]);
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [handoverOpen, setHandoverOpen] = useState(false);
@@ -91,7 +93,7 @@ const BaoGiaPage = () => {
             ]
             : []),
         ...(q.status === 'approved'
-            ? [{ key: 'send', label: 'Gửi email cho khách', onClick: () => runAction(q.id, 'send') }]
+            ? [{ key: 'send', label: 'Gửi email cho khách', onClick: () => setSendTarget(q.id) }]
             : []),
         ...(q.status === 'sent'
             ? [{ key: 'accept', label: 'Khách chấp nhận', onClick: () => runAction(q.id, 'accept') }]
@@ -216,6 +218,8 @@ const BaoGiaPage = () => {
                     }}
                 />
             )}
+
+            <SendQuotationModal quotationId={sendTarget} onClose={() => setSendTarget(null)} />
 
             <QuotationEditModal item={editTarget} onClose={() => setEditTarget(null)} />
 

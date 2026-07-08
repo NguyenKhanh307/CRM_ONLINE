@@ -44,23 +44,22 @@ public class GmailSmtpEmailServiceImpl implements IEmailService {
     }
 
     /**
-     * Gửi email báo giá tới khách hàng/liên hệ.
+     * Gửi email báo giá tới khách hàng/liên hệ với tiêu đề + nội dung do người dùng soạn.
      *
-     * @param toEmail       địa chỉ email nhận
-     * @param recipientName tên hiển thị người nhận
-     * @param quotationCode mã báo giá
-     * @param total         tổng tiền đã format
-     * @param note          ghi chú (có thể null)
+     * @param toEmail      địa chỉ email nhận
+     * @param subject      tiêu đề email
+     * @param bodyHtml     nội dung message (HTML) — 3 nút phản hồi được tự chèn vào cuối
+     * @param responseLink URL trang phản hồi công khai (kèm token)
      */
     @Override
-    public void sendQuotationEmail(String toEmail, String recipientName, String quotationCode, String total, String note,
+    public void sendQuotationEmail(String toEmail, String subject, String bodyHtml,
                                    String responseLink, byte[] pdf, String pdfFileName) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo(toEmail);
-            helper.setSubject("Báo giá " + quotationCode);
-            helper.setText(buildQuotationBody(recipientName, quotationCode, total, note, responseLink), true);
+            helper.setSubject(subject != null && !subject.isBlank() ? subject : "Báo giá");
+            helper.setText(wrapQuotationBody(bodyHtml, responseLink), true);
             if (pdf != null && pdf.length > 0) {
                 helper.addAttachment(pdfFileName != null ? pdfFileName : "bao-gia.pdf", new ByteArrayResource(pdf));
             }
@@ -103,9 +102,8 @@ public class GmailSmtpEmailServiceImpl implements IEmailService {
                 """.formatted(greeting, body != null ? body : "");
     }
 
-    private String buildQuotationBody(String name, String code, String total, String note, String responseLink) {
-        String noteHtml = (note == null || note.isBlank()) ? ""
-                : "<p style=\"color:#374151\">Ghi chú: " + note + "</p>";
+    /** Bọc nội dung message (do người dùng soạn) trong khung email + tự chèn khối 3 nút phản hồi ở cuối. */
+    private String wrapQuotationBody(String bodyHtml, String responseLink) {
         String buttonsHtml = (responseLink == null || responseLink.isBlank()) ? "" : """
                 <p style="margin:24px 0 8px">Vui lòng phản hồi báo giá:</p>
                 <p style="text-align:center;margin:8px 0 24px">
@@ -116,14 +114,10 @@ public class GmailSmtpEmailServiceImpl implements IEmailService {
                 """.formatted(responseLink);
         return """
                 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-                  <h2 style="color:#2563eb">Báo giá %s</h2>
-                  <p>Kính gửi <b>%s</b>,</p>
-                  <p>Chúng tôi xin gửi tới Quý khách báo giá <b>%s</b> với tổng giá trị <b>%s</b> (xem chi tiết trong file PDF đính kèm).</p>
                   %s
                   %s
-                  <p style="color:#6b7280;font-size:14px">Trân trọng cảm ơn.</p>
                 </div>
-                """.formatted(code, name, code, total, noteHtml, buttonsHtml);
+                """.formatted(bodyHtml != null ? bodyHtml : "", buttonsHtml);
     }
 
     private String buildHtmlBody(String name, String link) {
