@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiPlay, FiPause, FiCheckCircle, FiXCircle, FiEye } from 'react-icons/fi';
+import { FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
+import type { RowAction } from '@/shared/types/table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
@@ -48,56 +49,26 @@ const ChienDichPage = () => {
 
     const columns = useMemo<ColumnDef<CampaignResult>[]>(() => [
         ...getCampaignColumns({ users: toIdNameMap(users, 'id', 'fullName') }),
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 130,
-            cell: ({ row }) => {
-                const c = row.original;
-                return (
-                    <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                        <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                            title="Chi tiết" onClick={() => navigate(`/chien-dich/${c.id}`)}>
-                            <FiEye size={14} />
-                        </button>
-                        {(c.status === 'draft' || c.status === 'scheduled' || c.status === 'paused') && (
-                            <button className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-primary"
-                                title="Bắt đầu chạy" onClick={() => runAction(c.id, 'start')}>
-                                <FiPlay size={14} />
-                            </button>
-                        )}
-                        {c.status === 'running' && (
-                            <button className="p-1.5 rounded hover:bg-yellow-50 text-gray-400 hover:text-warning"
-                                title="Tạm dừng" onClick={() => runAction(c.id, 'pause')}>
-                                <FiPause size={14} />
-                            </button>
-                        )}
-                        {(c.status === 'running' || c.status === 'paused') && (
-                            <button className="p-1.5 rounded hover:bg-green-50 text-gray-400 hover:text-success"
-                                title="Hoàn tất" onClick={() => runAction(c.id, 'complete')}>
-                                <FiCheckCircle size={14} />
-                            </button>
-                        )}
-                        {c.status !== 'completed' && c.status !== 'cancelled' && (
-                            <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                                title="Hủy" onClick={() => runAction(c.id, 'cancel')}>
-                                <FiXCircle size={14} />
-                            </button>
-                        )}
-                        <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                            title="Chỉnh sửa" onClick={() => setEditTarget(c)}>
-                            <FiEdit2 size={14} />
-                        </button>
-                        <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                            title="Xóa" onClick={() => setDeleteTarget(c.id)}>
-                            <FiTrash2 size={14} />
-                        </button>
-                    </div>
-                );
-            },
-        },
     ], [users]);
+
+    /** Thao tác của một chiến dịch — hiện trong menu chuột phải. */
+    const rowActions = (c: CampaignResult): RowAction[] => [
+        { key: 'detail', label: 'Chi tiết', onClick: () => navigate(`/chien-dich/${c.id}`) },
+        ...(c.status === 'draft' || c.status === 'scheduled' || c.status === 'paused'
+            ? [{ key: 'start', label: 'Bắt đầu chạy', onClick: () => runAction(c.id, 'start') }]
+            : []),
+        ...(c.status === 'running'
+            ? [{ key: 'pause', label: 'Tạm dừng', onClick: () => runAction(c.id, 'pause') }]
+            : []),
+        ...(c.status === 'running' || c.status === 'paused'
+            ? [{ key: 'complete', label: 'Hoàn tất', onClick: () => runAction(c.id, 'complete') }]
+            : []),
+        ...(c.status !== 'completed' && c.status !== 'cancelled'
+            ? [{ key: 'cancel', label: 'Hủy', onClick: () => runAction(c.id, 'cancel') }]
+            : []),
+        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) },
+        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(c.id) },
+    ];
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -137,6 +108,8 @@ const ChienDichPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có Chiến dịch nào"
                     onSelectionChange={setSelectedRows}
+                    rowActions={rowActions}
+                    onRowDoubleClick={(c) => navigate(`/chien-dich/${c.id}`)}
                     quickFilters={[
                         { id: 'draft',     label: 'Nháp',        field: 'status', value: 'draft' },
                         { id: 'running',   label: 'Đang chạy',   field: 'status', value: 'running' },

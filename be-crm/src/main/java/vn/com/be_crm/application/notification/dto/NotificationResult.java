@@ -15,6 +15,7 @@ public class NotificationResult {
     private String title;
     private String content;
     private Long leadId;
+    private Long targetId;
     private boolean isRead;
     private LocalDateTime createdAt;
 }

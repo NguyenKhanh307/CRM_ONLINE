@@ -19,12 +19,13 @@ public class CreateNotificationUseCase {
      * @param title tiêu đề
      * @param content nội dung
      * @param leadId ID tiềm năng liên quan (có thể null)
+     * @param targetId ID bản ghi đích để FE điều hướng + focus (có thể null)
      */
-    public void execute(List<Long> recipientUserIds, String type, String title, String content, Long leadId) {
+    public void execute(List<Long> recipientUserIds, String type, String title, String content, Long leadId, Long targetId) {
         if (recipientUserIds == null) return;
         recipientUserIds.stream().distinct().filter(id -> id != null).forEach(uid ->
                 repository.save(Notification.builder()
                         .recipientUserId(uid).type(type).title(title).content(content)
-                        .leadId(leadId).isRead(false).build()));
+                        .leadId(leadId).targetId(targetId).isRead(false).build()));
     }
 }

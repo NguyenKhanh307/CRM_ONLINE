@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
+import type { RowAction } from '@/shared/types/table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ReasonModal } from '@/shared/components/ReasonModal';
@@ -25,6 +26,8 @@ import type { LeadResult } from '../types/leadTypes';
 
 const TiemNangPage = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const focusId = searchParams.get('focus');
     const { showAlert } = useAlert();
     const { data = [], isLoading } = useLeadList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteLead();
@@ -69,43 +72,24 @@ const TiemNangPage = () => {
             contacts: toIdNameMap(contacts, 'id', 'fullName'),
             campaigns: toIdNameMap(campaigns, 'id', 'name'),
         }),
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 80,
-            cell: ({ row }) => {
-                const l = row.original;
-                const isOpen = l.status !== 'converted' && l.status !== 'lost';
-                return (
-                    <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                        {l.status === 'qualified' && (
-                            <button className="p-1.5 rounded hover:bg-green-50 text-gray-400 hover:text-success"
-                                title="Chuyển đổi" onClick={() => runAction(l.id, 'convert')}>
-                                <FiCheckCircle size={14} />
-                            </button>
-                        )}
-                        {isOpen && (
-                            <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                                title="Đánh mất" onClick={() => setLoseTarget(l.id)}>
-                                <FiXCircle size={14} />
-                            </button>
-                        )}
-                        {l.status !== 'converted' && (
-                            <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                                title="Chỉnh sửa" onClick={() => setEditTarget(l)}>
-                                <FiEdit2 size={14} />
-                            </button>
-                        )}
-                        <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                            title="Xóa" onClick={() => setDeleteTarget(l.id)}>
-                            <FiTrash2 size={14} />
-                        </button>
-                    </div>
-                );
-            },
-        },
     ], [users, customers, contacts, campaigns]);
+
+    /** Thao tác của một tiềm năng — hiện trong menu chuột phải. */
+    const rowActions = (l: LeadResult): RowAction[] => {
+        const isOpen = l.status !== 'converted' && l.status !== 'lost';
+        return [
+            ...(l.status === 'qualified'
+                ? [{ key: 'convert', label: 'Chuyển đổi', onClick: () => runAction(l.id, 'convert') }]
+                : []),
+            ...(isOpen
+                ? [{ key: 'lose', label: 'Đánh mất', onClick: () => setLoseTarget(l.id) }]
+                : []),
+            ...(l.status !== 'converted'
+                ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(l) }]
+                : []),
+            { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(l.id) },
+        ];
+    };
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -160,6 +144,9 @@ const TiemNangPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có tiềm năng nào"
                     onSelectionChange={setSelectedRows}
+                    focusId={focusId}
+                    rowActions={rowActions}
+                    onRowDoubleClick={(l) => { if (l.status !== 'converted') setEditTarget(l); }}
                     quickFilters={[
                         { id: 'new',        label: 'Mới',         field: 'status', value: 'new' },
                         { id: 'contacting', label: 'Đang liên hệ', field: 'status', value: 'contacting' },

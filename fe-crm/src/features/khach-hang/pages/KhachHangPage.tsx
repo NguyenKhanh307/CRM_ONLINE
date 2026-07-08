@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiToggleRight, FiToggleLeft } from 'react-icons/fi';
+import { FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
+import type { RowAction } from '@/shared/types/table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
@@ -54,40 +55,16 @@ const KhachHangPage = () => {
             users: toIdNameMap(users, 'id', 'fullName'),
             orgUnits: toIdNameMap(orgUnits, 'id', 'name'),
         }),
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 80,
-            cell: ({ row }) => {
-                const c = row.original;
-                return (
-                    <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                        {c.status !== 'active' && (
-                            <button className="p-1.5 rounded hover:bg-green-50 text-gray-400 hover:text-success"
-                                title="Kích hoạt" onClick={() => runAction(c.id, 'activate')}>
-                                <FiToggleRight size={14} />
-                            </button>
-                        )}
-                        {c.status === 'active' && (
-                            <button className="p-1.5 rounded hover:bg-yellow-50 text-gray-400 hover:text-warning"
-                                title="Ngừng hoạt động" onClick={() => runAction(c.id, 'deactivate')}>
-                                <FiToggleLeft size={14} />
-                            </button>
-                        )}
-                        <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                            title="Chỉnh sửa" onClick={() => setEditTarget(c)}>
-                            <FiEdit2 size={14} />
-                        </button>
-                        <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                            title="Xóa" onClick={() => setDeleteTarget(c.id)}>
-                            <FiTrash2 size={14} />
-                        </button>
-                    </div>
-                );
-            },
-        },
     ], [users, orgUnits]);
+
+    /** Thao tác của một khách hàng — hiện trong menu chuột phải. */
+    const rowActions = (c: CustomerResult): RowAction[] => [
+        ...(c.status !== 'active'
+            ? [{ key: 'activate', label: 'Kích hoạt', onClick: () => runAction(c.id, 'activate') }]
+            : [{ key: 'deactivate', label: 'Ngừng hoạt động', onClick: () => runAction(c.id, 'deactivate') }]),
+        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) },
+        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(c.id) },
+    ];
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -142,6 +119,8 @@ const KhachHangPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có khách hàng nào"
                     onSelectionChange={setSelectedRows}
+                    rowActions={rowActions}
+                    onRowDoubleClick={(c) => setEditTarget(c)}
                     quickFilters={[
                         { id: 'active',   label: 'Hoạt động',       field: 'status', value: 'active' },
                         { id: 'inactive', label: 'Không hoạt động',  field: 'status', value: 'inactive' },

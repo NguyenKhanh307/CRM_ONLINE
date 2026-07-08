@@ -27,6 +27,8 @@ public class Notification {
     private String content;
     /** ID tiềm năng liên quan (nếu có). */
     private Long leadId;
+    /** ID bản ghi đích mà thông báo trỏ tới (lead/quotation/ticket…) — dùng cho click-to-focus ở FE. */
+    private Long targetId;
     /** Đã đọc chưa. */
     private boolean isRead;
     /** Thời điểm tạo. */

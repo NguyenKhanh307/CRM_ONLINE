@@ -72,6 +72,6 @@ public class AddLeadScoreUseCase {
         String title = "Tiềm năng nóng: " + lead.getCode();
         String content = "Tiềm năng " + lead.getName() + " (" + lead.getCode() + ") đã đạt "
                 + score + " điểm và được đánh giá đủ điều kiện (qualified).";
-        createNotificationUC.execute(recipients, "lead_hot", title, content, lead.getId());
+        createNotificationUC.execute(recipients, "lead_hot", title, content, lead.getId(), lead.getId());
     }
 }

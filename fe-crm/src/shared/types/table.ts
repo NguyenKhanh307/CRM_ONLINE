@@ -42,6 +42,18 @@ export interface FilterCondition {
     value: string;
 }
 
+/**
+ * Một mục trong menu chuột phải của dòng bảng (thay cho cột "Thao tác" cũ).
+ * Nhãn hiển thị dạng chữ; mục `danger` tô đỏ và được tách bằng đường kẻ.
+ */
+export interface RowAction {
+    key: string;
+    label: string;
+    onClick: () => void;
+    danger?: boolean;
+    disabled?: boolean;
+}
+
 /** Một rule tô màu có điều kiện (Conditional coloring panel). */
 export interface ConditionalRule {
     id: string;

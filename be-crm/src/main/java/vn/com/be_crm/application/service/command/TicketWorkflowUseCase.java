@@ -47,7 +47,7 @@ public class TicketWorkflowUseCase {
         if (toUserId != null) {
             createNotificationUC.execute(List.of(toUserId), "ticket_assigned",
                     "Phiếu được giao cho bạn: " + saved.getCode(),
-                    "Bạn được giao xử lý phiếu " + saved.getCode() + " — " + saved.getSubject(), null);
+                    "Bạn được giao xử lý phiếu " + saved.getCode() + " — " + saved.getSubject(), null, saved.getId());
         }
         return TicketCommandMapper.toResult(saved);
     }
@@ -196,6 +196,6 @@ public class TicketWorkflowUseCase {
     /** Gửi thông báo cho nhân viên đang xử lý phiếu (nếu có). */
     private void notifyAssignee(Ticket t, String type, String title, String content) {
         if (t.getAssignedUserId() == null) return;
-        createNotificationUC.execute(List.of(t.getAssignedUserId()), type, title, content, null);
+        createNotificationUC.execute(List.of(t.getAssignedUserId()), type, title, content, null, t.getId());
     }
 }

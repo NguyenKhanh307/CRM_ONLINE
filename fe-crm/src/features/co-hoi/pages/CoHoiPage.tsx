@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiSliders, FiFileText } from 'react-icons/fi';
+import { FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiSliders } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
@@ -63,37 +63,6 @@ const CoHoiPage = () => {
             users: toIdNameMap(users, 'id', 'fullName'),
             stages: toIdNameMap(stages, 'id', 'name'),
         }),
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 80,
-            cell: ({ row }) => (
-                <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                    <button
-                        className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-primary"
-                        title="Tạo báo giá từ cơ hội"
-                        onClick={() => createQuote(row.original.id)}
-                    >
-                        <FiFileText size={14} />
-                    </button>
-                    <button
-                        className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                        title="Chỉnh sửa"
-                        onClick={() => setEditTarget(row.original)}
-                    >
-                        <FiEdit2 size={14} />
-                    </button>
-                    <button
-                        className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                        title="Xóa"
-                        onClick={() => setDeleteTarget(row.original.id)}
-                    >
-                        <FiTrash2 size={14} />
-                    </button>
-                </div>
-            ),
-        },
     ], [users, customers, contacts, stages]);
 
     return (
@@ -156,6 +125,12 @@ const CoHoiPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có cơ hội nào"
                     onSelectionChange={setSelectedRows}
+                    onRowDoubleClick={(o) => setEditTarget(o)}
+                    rowActions={(o) => [
+                        { key: 'quote', label: 'Tạo báo giá từ cơ hội', onClick: () => createQuote(o.id) },
+                        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) },
+                        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(o.id) },
+                    ]}
                     quickFilters={[
                         { id: 'open', label: 'Đang mở',  field: 'status', value: 'open' },
                         { id: 'won',  label: 'Đã thắng', field: 'status', value: 'won' },

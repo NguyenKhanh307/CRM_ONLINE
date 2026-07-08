@@ -13,7 +13,7 @@ public class NotificationHibernateMapper {
         NotificationHibernate h = new NotificationHibernate();
         h.setId(d.getId()); h.setRecipientUserId(d.getRecipientUserId());
         h.setType(d.getType()); h.setTitle(d.getTitle()); h.setContent(d.getContent());
-        h.setLeadId(d.getLeadId()); h.setRead(d.isRead());
+        h.setLeadId(d.getLeadId()); h.setTargetId(d.getTargetId()); h.setRead(d.isRead());
         return h;
     }
 
@@ -22,6 +22,6 @@ public class NotificationHibernateMapper {
         return Notification.builder()
                 .id(h.getId()).recipientUserId(h.getRecipientUserId())
                 .type(h.getType()).title(h.getTitle()).content(h.getContent())
-                .leadId(h.getLeadId()).isRead(h.isRead()).createdAt(h.getCreatedAt()).build();
+                .leadId(h.getLeadId()).targetId(h.getTargetId()).isRead(h.isRead()).createdAt(h.getCreatedAt()).build();
     }
 }

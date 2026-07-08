@@ -128,7 +128,8 @@ fe-crm/src/
     │   │   └── sidebar/
     │   │       └── sidebarConfig.ts   # NAV_ITEMS — thêm menu item ở đây
     │   ├── table/
-    │   │   └── DataTable.tsx          # Component bảng dùng chung
+    │   │   ├── DataTable.tsx          # Component bảng dùng chung
+    │   │   └── RowContextMenu.tsx     # Menu chuột phải của dòng bảng (portal)
     │   ├── ConfirmModal.tsx            # Modal xác nhận dùng chung
     │   ├── import/                    # Shared wizard nhập file Excel/CSV
     │   │   ├── importTypes.ts
@@ -159,7 +160,7 @@ features/<ten-module>/
 ├── hooks/useDelete<Module>.ts        # useMutation → DELETE /api/<module>/{id}
 ├── hooks/useUpdate<Module>.ts        # useMutation → PUT /api/<module>/{id}
 ├── hooks/useImport<Module>Bulk.ts    # wrap service.importBulk (page Import gọi qua hook, không gọi thẳng service)
-├── config/<module>Columns.tsx        # ColumnDef[] cho DataTable (không có cột actions)
+├── config/<module>Columns.tsx        # ColumnDef[] cho DataTable (chỉ cột dữ liệu — thao tác dùng rowActions)
 ├── components/<Module>EditModal.tsx  # Modal chỉnh sửa đầy đủ
 └── pages/<Module>Page.tsx            # Trang list view (thêm actions column + modals)
 ```
@@ -260,6 +261,10 @@ Trang tổng quan phân theo vai trò (`features/dashboard/`), phong cách AMIS.
 - Trang `/tracking-demo` (`features/tracking-demo`): landing page mô phỏng — gọi `POST /api/tracking/visit|score|submit` (public) để tạo lead ẩn danh & cộng điểm `score`.
 - Trang công khai `/bao-gia-phan-hoi/:token` (`features/bao-gia-phan-hoi`): khách xem báo giá (`GET /api/public/quotations/{token}`) + phản hồi Đồng ý/Điều chỉnh/Không đồng ý (`POST /api/public/quotations/{token}/respond`) — link gửi qua email báo giá (kèm PDF). Ngoài MainLayout, không cần đăng nhập.
 - Header có **chuông thông báo** (`shared/components/layout/header/NotificationPopup.tsx`) dùng `shared/notifications/{notificationService,useNotifications}.ts` → `GET /api/notifications`, `/unread-count`, `POST /{id}/read`, `/read-all`.
+
+**Bấm thông báo → nhảy tới bản ghi**: `NotificationPopup` map tiền tố `type` → route (`lead→/tiem-nang`, `quotation→/bao-gia`, `ticket→/cham-soc`); bấm sẽ đánh dấu đã đọc rồi `navigate('{route}?focus={targetId}')`. Ba trang danh sách đó đọc `useSearchParams().get('focus')` và truyền vào prop **`focusId`** của `DataTable` — bảng tự nhảy đúng trang phân trang, highlight và cuộn tới dòng.
+
+**Chấm thông báo trên sidebar**: `Sidebar.tsx` chỉ xét thông báo **chưa đọc**, suy module từ tiền tố `type`. Chấm **đỏ** = tạo mới/cần hành động; **vàng** = cập nhật/thay đổi (`UPDATE_NOTIFICATION_TYPES`); có cả hai → đỏ; đã đọc hết → không chấm. Màu chấm không đổi theo việc mục có đang được chọn hay không.
 
 ### Chính sách giá — `/chinh-sach-gia` (admin only)
 
@@ -481,6 +486,16 @@ Các bảng danh sách trước đây chỉ hiện một phần nhỏ số cột
 - `ProductResult` (FE) chỉ còn các trường cốt lõi (sku/name/category/type/unit/basePrice/costPrice/vatRate/description) — đã bỏ secondaryUnit/conversionRate/brand/origin/barcode và các field dệt may.
 
 Chi tiết pattern: xem `CODE_GUIDE_FRONTEND.md` mục 8b.
+
+### Thao tác dòng — menu chuột phải (2026-07-08)
+
+Cột **"Thao tác"** (các nút icon ghim bên phải bảng) đã được **gỡ khỏi cả 13 trang danh sách**. Thay vào đó:
+
+- **Chuột phải** vào một dòng → menu hiện tại vị trí con trỏ với các mục **dạng chữ** (Chỉnh sửa, Xóa, và các bước workflow theo trạng thái). Mục **Xóa** tô đỏ, tách bằng đường kẻ.
+- **Nhấp đúp** dòng → chạy hành động chính: mở modal **Chỉnh sửa**, hoặc điều hướng **trang chi tiết** (Chăm sóc, Chiến dịch, Chính sách giá).
+- Page khai báo `rowActions={(row) => RowAction[]}` + `onRowDoubleClick` cho `DataTable`; component `shared/components/table/RowContextMenu.tsx` render qua portal (`position: fixed`) nên không bị khung bảng cắt, tự lật vào trong khi chạm mép màn hình, đóng khi click ngoài / `Escape` / cuộn.
+
+Chi tiết pattern: xem `CODE_GUIDE_FRONTEND.md` mục 8.
 
 ### Chuẩn hóa tiếng Việt filter bảng + tag lọc nhanh hoạt động — DataTable (2026-06-20)
 

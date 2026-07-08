@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiCheckCircle, FiPlayCircle, FiFileText, FiXCircle, FiCheckSquare } from 'react-icons/fi';
+import { FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
+import type { RowAction } from '@/shared/types/table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
@@ -73,60 +74,30 @@ const DonHangPage = () => {
             campaigns: toIdNameMap(campaigns, 'id', 'name'),
             users: toIdNameMap(users, 'id', 'fullName'),
         }),
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 120,
-            cell: ({ row }) => {
-                const o = row.original;
-                return (
-                    <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                        {o.status === 'draft' && (
-                            <button className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-primary"
-                                title="Xác nhận đơn" onClick={() => runAction(o.id, 'confirm')}>
-                                <FiCheckCircle size={14} />
-                            </button>
-                        )}
-                        {o.status === 'confirmed' && (
-                            <button className="p-1.5 rounded hover:bg-yellow-50 text-gray-400 hover:text-warning"
-                                title="Bắt đầu xử lý" onClick={() => runAction(o.id, 'process')}>
-                                <FiPlayCircle size={14} />
-                            </button>
-                        )}
-                        {(o.status === 'confirmed' || o.status === 'processing') && (
-                            <button className="p-1.5 rounded hover:bg-green-50 text-gray-400 hover:text-success"
-                                title="Xuất hóa đơn" onClick={() => runAction(o.id, 'createInvoice')}>
-                                <FiFileText size={14} />
-                            </button>
-                        )}
-                        {o.status === 'processing' && (
-                            <button className="p-1.5 rounded hover:bg-emerald-50 text-gray-400 hover:text-success"
-                                title="Hoàn tất đơn" onClick={() => runAction(o.id, 'complete')}>
-                                <FiCheckSquare size={14} />
-                            </button>
-                        )}
-                        {(o.status === 'draft' || o.status === 'confirmed' || o.status === 'processing') && (
-                            <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                                title="Hủy đơn" onClick={() => runAction(o.id, 'cancel')}>
-                                <FiXCircle size={14} />
-                            </button>
-                        )}
-                        {!o.isLocked && (
-                            <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                                title="Chỉnh sửa" onClick={() => setEditTarget(o)}>
-                                <FiEdit2 size={14} />
-                            </button>
-                        )}
-                        <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                            title="Xóa" onClick={() => setDeleteTarget(o.id)}>
-                            <FiTrash2 size={14} />
-                        </button>
-                    </div>
-                );
-            },
-        },
-    ], [data, users, customers, contacts, opportunities, quotations, campaigns]);
+    ], [users, customers, contacts, opportunities, quotations, campaigns]);
+
+    /** Thao tác của một đơn hàng — hiện trong menu chuột phải. */
+    const rowActions = (o: OrderResult): RowAction[] => [
+        ...(o.status === 'draft'
+            ? [{ key: 'confirm', label: 'Xác nhận đơn', onClick: () => runAction(o.id, 'confirm') }]
+            : []),
+        ...(o.status === 'confirmed'
+            ? [{ key: 'process', label: 'Bắt đầu xử lý', onClick: () => runAction(o.id, 'process') }]
+            : []),
+        ...(o.status === 'confirmed' || o.status === 'processing'
+            ? [{ key: 'createInvoice', label: 'Xuất hóa đơn', onClick: () => runAction(o.id, 'createInvoice') }]
+            : []),
+        ...(o.status === 'processing'
+            ? [{ key: 'complete', label: 'Hoàn tất đơn', onClick: () => runAction(o.id, 'complete') }]
+            : []),
+        ...(o.status === 'draft' || o.status === 'confirmed' || o.status === 'processing'
+            ? [{ key: 'cancel', label: 'Hủy đơn', onClick: () => runAction(o.id, 'cancel') }]
+            : []),
+        ...(!o.isLocked
+            ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) }]
+            : []),
+        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(o.id) },
+    ];
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -181,6 +152,8 @@ const DonHangPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có Đơn hàng nào"
                     onSelectionChange={setSelectedRows}
+                    rowActions={rowActions}
+                    onRowDoubleClick={(o) => { if (!o.isLocked) setEditTarget(o); }}
                     quickFilters={[
                         { id: 'draft',      label: 'Nháp',        field: 'status', value: 'draft' },
                         { id: 'confirmed',  label: 'Đã xác nhận', field: 'status', value: 'confirmed' },

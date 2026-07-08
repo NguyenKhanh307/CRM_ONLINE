@@ -10,7 +10,7 @@ public class NotificationMapper {
     public static NotificationResult toResult(Notification e) {
         return NotificationResult.builder()
                 .id(e.getId()).type(e.getType()).title(e.getTitle()).content(e.getContent())
-                .leadId(e.getLeadId()).isRead(e.isRead()).createdAt(e.getCreatedAt()).build();
+                .leadId(e.getLeadId()).targetId(e.getTargetId()).isRead(e.isRead()).createdAt(e.getCreatedAt()).build();
     }
 
     private NotificationMapper() {}

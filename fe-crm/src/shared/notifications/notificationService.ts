@@ -8,6 +8,8 @@ export interface NotificationResult {
     title: string | null;
     content: string | null;
     leadId: number | null;
+    /** ID bản ghi đích (lead/quotation/ticket…) để điều hướng + focus dòng khi bấm thông báo. */
+    targetId: number | null;
     isRead: boolean;
     createdAt: string;
 }

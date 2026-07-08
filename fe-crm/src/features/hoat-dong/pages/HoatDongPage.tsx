@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiPlus, FiDownload, FiPlay, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { FiTrash2, FiUpload, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
+import type { RowAction } from '@/shared/types/table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
@@ -47,46 +48,22 @@ const HoatDongPage = () => {
         ...getActivityColumns({
             users: toIdNameMap(users, 'id', 'fullName'),
         }),
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 80,
-            cell: ({ row }) => {
-                const a = row.original;
-                return (
-                    <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                        {a.status === 'planned' && (
-                            <button className="p-1.5 rounded hover:bg-yellow-50 text-gray-400 hover:text-warning"
-                                title="Bắt đầu" onClick={() => runAction(a.id, 'start')}>
-                                <FiPlay size={14} />
-                            </button>
-                        )}
-                        {a.status === 'in_progress' && (
-                            <button className="p-1.5 rounded hover:bg-green-50 text-gray-400 hover:text-success"
-                                title="Hoàn thành" onClick={() => runAction(a.id, 'complete')}>
-                                <FiCheckCircle size={14} />
-                            </button>
-                        )}
-                        {(a.status === 'planned' || a.status === 'in_progress') && (
-                            <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                                title="Hủy" onClick={() => runAction(a.id, 'cancel')}>
-                                <FiXCircle size={14} />
-                            </button>
-                        )}
-                        <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                            title="Chỉnh sửa" onClick={() => setEditTarget(a)}>
-                            <FiEdit2 size={14} />
-                        </button>
-                        <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                            title="Xóa" onClick={() => setDeleteTarget(a.id)}>
-                            <FiTrash2 size={14} />
-                        </button>
-                    </div>
-                );
-            },
-        },
     ], [users]);
+
+    /** Thao tác của một hoạt động — hiện trong menu chuột phải. */
+    const rowActions = (a: ActivityResult): RowAction[] => [
+        ...(a.status === 'planned'
+            ? [{ key: 'start', label: 'Bắt đầu', onClick: () => runAction(a.id, 'start') }]
+            : []),
+        ...(a.status === 'in_progress'
+            ? [{ key: 'complete', label: 'Hoàn thành', onClick: () => runAction(a.id, 'complete') }]
+            : []),
+        ...(a.status === 'planned' || a.status === 'in_progress'
+            ? [{ key: 'cancel', label: 'Hủy', onClick: () => runAction(a.id, 'cancel') }]
+            : []),
+        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(a) },
+        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(a.id) },
+    ];
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -132,6 +109,8 @@ const HoatDongPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có hoạt động nào"
                     onSelectionChange={setSelectedRows}
+                    rowActions={rowActions}
+                    onRowDoubleClick={(a) => setEditTarget(a)}
                     quickFilters={[
                         { id: 'planned',     label: 'Đã lên kế hoạch', field: 'status', value: 'planned' },
                         { id: 'in_progress', label: 'Đang thực hiện',  field: 'status', value: 'in_progress' },

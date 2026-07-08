@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiPlus, FiDownload } from 'react-icons/fi';
+import { FiTrash2, FiUpload, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
@@ -33,30 +33,6 @@ const SanPhamPage = () => {
         ...getProductColumns({
             categories: toIdNameMap(categories, 'id', 'name'),
         }),
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 80,
-            cell: ({ row }) => (
-                <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                    <button
-                        className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                        title="Chỉnh sửa"
-                        onClick={() => setEditTarget(row.original)}
-                    >
-                        <FiEdit2 size={14} />
-                    </button>
-                    <button
-                        className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                        title="Xóa"
-                        onClick={() => setDeleteTarget(row.original.id)}
-                    >
-                        <FiTrash2 size={14} />
-                    </button>
-                </div>
-            ),
-        },
     ], [categories]);
 
     return (
@@ -103,6 +79,11 @@ const SanPhamPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có sản phẩm nào"
                     onSelectionChange={setSelectedRows}
+                    onRowDoubleClick={(p) => setEditTarget(p)}
+                    rowActions={(p) => [
+                        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(p) },
+                        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(p.id) },
+                    ]}
                     quickFilters={[
                         { id: 'active',       label: 'Đang bán',  field: 'isActive', value: 'true' },
                         { id: 'discontinued', label: 'Ngừng bán', field: 'isActive', value: 'false' },

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiPlus, FiTrash2, FiUpload, FiDownload } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiUpload, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
@@ -36,30 +36,6 @@ const LienHePage = () => {
             customers: toIdNameMap(customers, 'id', 'name'),
             users: toIdNameMap(users, 'id', 'fullName'),
         }),
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 80,
-            cell: ({ row }) => (
-                <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                    <button
-                        className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                        title="Chỉnh sửa"
-                        onClick={() => setEditTarget(row.original)}
-                    >
-                        <FiEdit2 size={14} />
-                    </button>
-                    <button
-                        className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                        title="Xóa"
-                        onClick={() => setDeleteTarget(row.original.id)}
-                    >
-                        <FiTrash2 size={14} />
-                    </button>
-                </div>
-            ),
-        },
     ], [users, customers]);
 
     return (
@@ -106,6 +82,11 @@ const LienHePage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có liên hệ nào"
                     onSelectionChange={setSelectedRows}
+                    onRowDoubleClick={(c) => setEditTarget(c)}
+                    rowActions={(c) => [
+                        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) },
+                        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(c.id) },
+                    ]}
                     quickFilters={[
                         { id: 'primary', label: 'Liên hệ chính', field: 'isPrimary', value: 'true' },
                     ]}

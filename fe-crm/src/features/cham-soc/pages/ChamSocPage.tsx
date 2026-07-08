@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiEye, FiTrash2, FiShare2, FiDownload, FiPlus } from 'react-icons/fi';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { FiTrash2, FiShare2, FiDownload, FiPlus } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
@@ -20,6 +20,8 @@ import type { TicketResult } from '../types/ticketTypes';
 
 const ChamSocPage = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const focusId = searchParams.get('focus');
     const { data = [], isLoading } = useTicketList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteTicket();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkTicket();
@@ -41,28 +43,7 @@ const ChamSocPage = () => {
             contacts: toIdNameMap(contacts, 'id', 'fullName'),
             users: toIdNameMap(users, 'id', 'fullName'),
         }),
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 80,
-            cell: ({ row }) => {
-                const t = row.original;
-                return (
-                    <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                        <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                            title="Xem / xử lý" onClick={() => navigate(`/cham-soc/${t.id}`)}>
-                            <FiEye size={14} />
-                        </button>
-                        <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                            title="Xóa" onClick={() => setDeleteTarget(t.id)}>
-                            <FiTrash2 size={14} />
-                        </button>
-                    </div>
-                );
-            },
-        },
-    ], [users, customers, contacts, navigate]);
+    ], [users, customers, contacts]);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -98,6 +79,12 @@ const ChamSocPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có phiếu hỗ trợ nào"
                     onSelectionChange={setSelectedRows}
+                    focusId={focusId}
+                    onRowDoubleClick={(t) => navigate(`/cham-soc/${t.id}`)}
+                    rowActions={(t) => [
+                        { key: 'view', label: 'Xem / xử lý', onClick: () => navigate(`/cham-soc/${t.id}`) },
+                        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(t.id) },
+                    ]}
                     quickFilters={[
                         { id: 'support', label: 'Hỗ trợ', field: 'type', value: 'support' },
                         { id: 'return', label: 'Trả hàng', field: 'type', value: 'return' },

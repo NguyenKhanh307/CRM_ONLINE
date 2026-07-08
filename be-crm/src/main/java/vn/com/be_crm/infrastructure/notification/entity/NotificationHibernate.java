@@ -27,6 +27,8 @@ public class NotificationHibernate {
     private String content;
     @Column(name = "lead_id")
     private Long leadId;
+    @Column(name = "target_id")
+    private Long targetId;
     @Column(name = "is_read", nullable = false)
     private boolean isRead;
     @CreationTimestamp @Column(name = "created_at", updatable = false)

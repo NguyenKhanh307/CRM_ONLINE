@@ -87,7 +87,7 @@ public class QuotationWorkflowUseCase {
         List<Long> recipients = new ArrayList<>(userRoleRepo.findUserIdsByRoleCodes(MANAGER_ROLES));
         createNotificationUC.execute(recipients, "quotation_pending",
                 "Báo giá chờ duyệt: " + saved.getCode(),
-                "Báo giá " + saved.getCode() + " đang chờ bạn phê duyệt.", null);
+                "Báo giá " + saved.getCode() + " đang chờ bạn phê duyệt.", null, saved.getId());
         return QuotationCommandMapper.toResult(saved);
     }
 
@@ -203,7 +203,7 @@ public class QuotationWorkflowUseCase {
     /** Gửi thông báo cho người phụ trách báo giá (nếu có owner). */
     private void notifyOwner(Quotation q, String type, String title, String content) {
         if (q.getOwnerId() == null) return;
-        createNotificationUC.execute(List.of(q.getOwnerId()), type, title, content, null);
+        createNotificationUC.execute(List.of(q.getOwnerId()), type, title, content, null, q.getId());
     }
 
     /** Trả về [email, tên hiển thị] ưu tiên liên hệ (email → workEmail → personalEmail), sau đó khách hàng. */

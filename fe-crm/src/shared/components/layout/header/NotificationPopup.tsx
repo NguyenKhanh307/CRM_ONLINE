@@ -1,16 +1,34 @@
 import { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiBell, FiCheckSquare } from 'react-icons/fi';
 import { useNotificationList, useUnreadCount, useMarkNotifications } from '@/shared/notifications/useNotifications';
+import type { NotificationResult } from '@/shared/notifications/notificationService';
 import { formatISODate } from '@/shared/utils/date';
 
 interface Props {
     onClose: () => void;
 }
 
+/** Tiền tố `type` (trước dấu `_`) → route danh sách để điều hướng + focus dòng bản ghi. */
+const MODULE_ROUTE: Record<string, string> = {
+    lead: '/tiem-nang',
+    quotation: '/bao-gia',
+    ticket: '/cham-soc',
+};
+
 export const NotificationPopup = ({ onClose }: Props) => {
     const ref = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
     const { data: items = [], isLoading } = useNotificationList();
     const { markOne, markAll } = useMarkNotifications();
+
+    /** Bấm thông báo: đánh dấu đã đọc + nhảy tới module tương ứng, focus đúng dòng bản ghi. */
+    const handleClick = (n: NotificationResult) => {
+        if (!n.isRead) markOne.mutate(n.id);
+        const route = n.type ? MODULE_ROUTE[n.type.split('_')[0]] : undefined;
+        if (route && n.targetId != null) navigate(`${route}?focus=${n.targetId}`);
+        onClose();
+    };
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -51,7 +69,7 @@ export const NotificationPopup = ({ onClose }: Props) => {
                     items.map((n) => (
                         <button
                             key={n.id}
-                            onClick={() => !n.isRead && markOne.mutate(n.id)}
+                            onClick={() => handleClick(n)}
                             className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 ${n.isRead ? '' : 'bg-blue-50/50'}`}
                         >
                             <div className="flex items-start gap-2">

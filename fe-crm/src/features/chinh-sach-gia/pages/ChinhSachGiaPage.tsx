@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiPlus, FiEye } from 'react-icons/fi';
-import type { ColumnDef } from '@tanstack/react-table';
+import { FiTrash2, FiPlus } from 'react-icons/fi';
+import type { RowAction } from '@/shared/types/table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { usePricePolicyList } from '../hooks/usePricePolicyList';
@@ -24,40 +24,12 @@ const ChinhSachGiaPage = () => {
     const openCreate = () => { setEditTarget(null); setFormOpen(true); };
     const openEdit = (item: PricePolicyResult) => { setEditTarget(item); setFormOpen(true); };
 
-    const columns = useMemo<ColumnDef<PricePolicyResult>[]>(() => [
-        ...pricingColumns,
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 90,
-            cell: ({ row }) => (
-                <div className="flex gap-1 justify-end" onClick={e => e.stopPropagation()}>
-                    <button
-                        className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                        title="Xem chi tiết"
-                        onClick={() => navigate(`/chinh-sach-gia/${row.original.id}`)}
-                    >
-                        <FiEye size={14} />
-                    </button>
-                    <button
-                        className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                        title="Chỉnh sửa"
-                        onClick={() => openEdit(row.original)}
-                    >
-                        <FiEdit2 size={14} />
-                    </button>
-                    <button
-                        className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                        title="Xóa"
-                        onClick={() => setDeleteTarget(row.original.id)}
-                    >
-                        <FiTrash2 size={14} />
-                    </button>
-                </div>
-            ),
-        },
-    ], [navigate]);
+    /** Thao tác của một chính sách giá — hiện trong menu chuột phải. */
+    const rowActions = (p: PricePolicyResult): RowAction[] => [
+        { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/chinh-sach-gia/${p.id}`) },
+        { key: 'edit', label: 'Chỉnh sửa', onClick: () => openEdit(p) },
+        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(p.id) },
+    ];
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -86,10 +58,12 @@ const ChinhSachGiaPage = () => {
             <div className="bg-white rounded-card p-4 shadow-sm">
                 <DataTable
                     data={data}
-                    columns={columns}
+                    columns={pricingColumns}
                     isLoading={isLoading}
                     emptyText="Chưa có chính sách giá nào"
                     onSelectionChange={setSelectedRows}
+                    rowActions={rowActions}
+                    onRowDoubleClick={(p) => navigate(`/chinh-sach-gia/${p.id}`)}
                 />
             </div>
 

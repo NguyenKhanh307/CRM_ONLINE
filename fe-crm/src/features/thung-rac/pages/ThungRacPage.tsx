@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { FiRefreshCw, FiRotateCcw, FiTrash2 } from 'react-icons/fi';
+import { FiRefreshCw } from 'react-icons/fi';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { trashColumns } from '@/features/thung-rac/config/trashColumns';
 import { useDeletedItems, useRestore, usePurge } from '@/features/thung-rac/hooks/useTrash';
 import { TRASH_MODULE_LABELS } from '@/features/thung-rac/types/thungRacTypes';
 import type { TrashModule, DeletedItemRow } from '@/features/thung-rac/types/thungRacTypes';
-import type { ColumnDef } from '@tanstack/react-table';
+import type { RowAction } from '@/shared/types/table';
 
 type ConfirmState = { type: 'restore' | 'purge'; id: number } | null;
 
@@ -21,29 +21,11 @@ const TrashTabContent = ({
     const { data, isLoading } = useDeletedItems(module);
     const items = data?.items ?? [];
 
-    const actionColumn: ColumnDef<DeletedItemRow> = {
-        id: 'actions',
-        header: 'Thao tác',
-        size: 160,
-        cell: ({ row }) => (
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={() => onAction('restore', row.original.id)}
-                    className="flex items-center gap-1 px-2 py-1 text-sm bg-green-50 text-green-700 border border-green-200 rounded-btn hover:bg-green-100 transition-colors"
-                >
-                    <FiRotateCcw size={12} />
-                    Khôi phục
-                </button>
-                <button
-                    onClick={() => onAction('purge', row.original.id)}
-                    className="flex items-center gap-1 px-2 py-1 text-sm bg-red-50 text-danger border border-red-200 rounded-btn hover:bg-red-100 transition-colors"
-                >
-                    <FiTrash2 size={12} />
-                    Xóa
-                </button>
-            </div>
-        ),
-    };
+    /** Thao tác của một bản ghi đã xóa — hiện trong menu chuột phải. */
+    const rowActions = (row: DeletedItemRow): RowAction[] => [
+        { key: 'restore', label: 'Khôi phục', onClick: () => onAction('restore', row.id) },
+        { key: 'purge', label: 'Xóa vĩnh viễn', danger: true, onClick: () => onAction('purge', row.id) },
+    ];
 
     if (isLoading) {
         return (
@@ -56,8 +38,9 @@ const TrashTabContent = ({
     return (
         <DataTable
             data={items}
-            columns={[...trashColumns, actionColumn]}
+            columns={trashColumns}
             emptyText="Không có bản ghi nào trong thùng rác"
+            rowActions={rowActions}
         />
     );
 };

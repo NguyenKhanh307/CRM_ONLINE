@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
     useReactTable,
     getCoreRowModel,
@@ -18,8 +18,10 @@ import type {
     FilterCondition,
     ConditionalRule,
     FilterOperator,
+    RowAction,
 } from '@/shared/types/table';
 import { applyConditions, checkCondition } from './filterConditions.helpers';
+import { RowContextMenu } from './RowContextMenu';
 import { TableToolbar } from './TableToolbar';
 import { FilterRecordsPanel } from './FilterRecordsPanel';
 import { SortPanel } from './SortPanel';
@@ -34,6 +36,12 @@ interface DataTableProps<T> {
     emptyText?: string;
     quickFilters?: QuickFilterDef[];
     onSelectionChange?: (selectedRows: T[]) => void;
+    /** ID bản ghi cần focus (highlight + cuộn tới, tự nhảy đúng trang). Dùng cho điều hướng từ thông báo. */
+    focusId?: number | string | null;
+    /** Các thao tác của một dòng — hiện trong menu chuột phải (thay cho cột "Thao tác"). */
+    rowActions?: (row: T) => RowAction[];
+    /** Hành động chính khi nhấp đúp vào dòng (thường là Chỉnh sửa hoặc mở trang chi tiết). */
+    onRowDoubleClick?: (row: T) => void;
 }
 
 type OpenPanel = 'filter' | 'sort' | 'coloring' | 'columns' | null;
@@ -50,7 +58,12 @@ export const DataTable = <T extends object>({
     emptyText = 'Không có dữ liệu',
     quickFilters,
     onSelectionChange,
+    focusId,
+    rowActions,
+    onRowDoubleClick,
 }: DataTableProps<T>) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [menu, setMenu] = useState<{ x: number; y: number; actions: RowAction[] } | null>(null);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [globalFilter, setGlobalFilter] = useState('');
@@ -130,6 +143,7 @@ export const DataTable = <T extends object>({
         data: displayData,
         columns: columnsWithSelection,
         state: { sorting, columnVisibility, globalFilter, rowSelection },
+        getRowId: (row) => String((row as { id?: unknown }).id),
         onSortingChange: setSorting,
         onColumnVisibilityChange: setColumnVisibility,
         onGlobalFilterChange: setGlobalFilter,
@@ -147,6 +161,32 @@ export const DataTable = <T extends object>({
         const selected = table.getSelectedRowModel().rows.map((r) => r.original);
         onSelectionChange(selected);
     }, [rowSelection, onSelectionChange, table]);
+
+    /**
+     * Focus bản ghi theo `focusId`: tìm dòng trong danh sách đã lọc/sắp xếp,
+     * tự nhảy đúng trang phân trang, highlight + cuộn tới. Dùng khi bấm thông báo.
+     * Chỉ focus MỘT LẦN cho mỗi `focusId` (khi đã tìm thấy dòng) — tránh cuộn giật lại
+     * mỗi lần danh sách refetch trong khi `?focus=` vẫn còn trên URL.
+     */
+    const focusedRef = useRef<string | null>(null);
+    useEffect(() => {
+        if (focusId == null) { focusedRef.current = null; return; }
+        const target = String(focusId);
+        if (focusedRef.current === target) return;
+        const rows = table.getSortedRowModel().rows;
+        const idx = rows.findIndex((r) => r.id === target);
+        if (idx < 0) return;                       // dữ liệu chưa tải xong → thử lại ở lần render sau
+        focusedRef.current = target;
+        table.setPageIndex(Math.floor(idx / table.getState().pagination.pageSize));
+        setSelectedRowId(target);
+        const raf = requestAnimationFrame(() => {
+            scrollRef.current
+                ?.querySelector(`[data-rowid="${CSS.escape(target)}"]`)
+                ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        return () => cancelAnimationFrame(raf);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [focusId, displayData]);
 
     const columnMeta = useMemo<ColumnMeta[]>(
         () =>
@@ -260,7 +300,7 @@ export const DataTable = <T extends object>({
             </div>
 
             {/* Bảng */}
-            <div className="border border-gray-300 rounded-section overflow-auto">
+            <div ref={scrollRef} className="border border-gray-300 rounded-section overflow-auto">
                 <table className="w-full border-collapse table-auto">
                     <thead>
                         {table.getHeaderGroups().map((hg) => (
@@ -300,7 +340,17 @@ export const DataTable = <T extends object>({
                                 return (
                                     <tr
                                         key={row.id}
+                                        data-rowid={row.id}
                                         onClick={() => setSelectedRowId(isHighlighted ? null : row.id)}
+                                        onDoubleClick={() => onRowDoubleClick?.(row.original)}
+                                        onContextMenu={(e) => {
+                                            if (!rowActions) return;
+                                            const actions = rowActions(row.original);
+                                            if (actions.length === 0) return;
+                                            e.preventDefault();
+                                            setSelectedRowId(row.id);   // chuột phải: set highlight, không toggle
+                                            setMenu({ x: e.clientX, y: e.clientY, actions });
+                                        }}
                                         style={rowColor && !isHighlighted ? { backgroundColor: rowColor } : undefined}
                                         className={[
                                             'cursor-pointer transition-colors border-l-2',
@@ -335,6 +385,12 @@ export const DataTable = <T extends object>({
                 </table>
             </div>
 
+            {rowActions && (
+                <p className="text-xs text-gray-400 mt-1">
+                    Chuột phải vào dòng để xem thao tác · Nhấp đúp để mở nhanh
+                </p>
+            )}
+
             <TablePagination
                 pageIndex={pageIndex}
                 pageCount={table.getPageCount()}
@@ -345,6 +401,15 @@ export const DataTable = <T extends object>({
                 onPageChange={table.setPageIndex}
                 onPageSizeChange={table.setPageSize}
             />
+
+            {menu && (
+                <RowContextMenu
+                    x={menu.x}
+                    y={menu.y}
+                    actions={menu.actions}
+                    onClose={() => setMenu(null)}
+                />
+            )}
         </div>
     );
 };

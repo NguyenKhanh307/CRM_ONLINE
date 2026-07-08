@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiDownload, FiSend, FiCheck, FiXCircle, FiMail, FiStar, FiFileText } from 'react-icons/fi';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { FiTrash2, FiUpload, FiShare2, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
+import type { RowAction } from '@/shared/types/table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
@@ -26,6 +27,8 @@ import type { QuotationResult } from '../types/quotationTypes';
 
 const BaoGiaPage = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const focusId = searchParams.get('focus');
     const { showAlert } = useAlert();
     const { hasRole } = usePermission();
     const isManager = hasRole('ADMIN') || hasRole('SALES_MANAGER');
@@ -74,72 +77,36 @@ const BaoGiaPage = () => {
             opportunities: toIdNameMap(opportunities, 'id', 'name'),
             users: toIdNameMap(users, 'id', 'fullName'),
         }),
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 80,
-            cell: ({ row }) => {
-                const q = row.original;
-                return (
-                    <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                        {q.status === 'draft' && (
-                            <button className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-primary"
-                                title="Gửi duyệt" onClick={() => runAction(q.id, 'submit')}>
-                                <FiSend size={14} />
-                            </button>
-                        )}
-                        {q.status === 'pending' && isManager && (
-                            <>
-                                <button className="p-1.5 rounded hover:bg-green-50 text-gray-400 hover:text-success"
-                                    title="Duyệt" onClick={() => runAction(q.id, 'approve')}>
-                                    <FiCheck size={14} />
-                                </button>
-                                <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                                    title="Từ chối" onClick={() => setRejectTarget(q.id)}>
-                                    <FiXCircle size={14} />
-                                </button>
-                            </>
-                        )}
-                        {q.status === 'approved' && (
-                            <button className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-primary"
-                                title="Gửi email cho khách" onClick={() => runAction(q.id, 'send')}>
-                                <FiMail size={14} />
-                            </button>
-                        )}
-                        {q.status === 'sent' && (
-                            <button className="p-1.5 rounded hover:bg-green-50 text-gray-400 hover:text-success"
-                                title="Khách chấp nhận" onClick={() => runAction(q.id, 'accept')}>
-                                <FiCheck size={14} />
-                            </button>
-                        )}
-                        {q.opportunityId && !q.isPrimary && (
-                            <button className="p-1.5 rounded hover:bg-amber-50 text-gray-400 hover:text-warning"
-                                title="Đặt làm báo giá đồng bộ" onClick={() => runAction(q.id, 'setPrimary')}>
-                                <FiStar size={14} />
-                            </button>
-                        )}
-                        {q.status === 'accepted' && !q.isLocked && (
-                            <button className="p-1.5 rounded hover:bg-green-50 text-gray-400 hover:text-success"
-                                title="Chuyển thành đơn hàng" onClick={() => runAction(q.id, 'convertToOrder')}>
-                                <FiFileText size={14} />
-                            </button>
-                        )}
-                        {!q.isLocked && (
-                            <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                                title="Chỉnh sửa" onClick={() => setEditTarget(q)}>
-                                <FiEdit2 size={14} />
-                            </button>
-                        )}
-                        <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                            title="Xóa" onClick={() => setDeleteTarget(q.id)}>
-                            <FiTrash2 size={14} />
-                        </button>
-                    </div>
-                );
-            },
-        },
-    ], [users, customers, contacts, opportunities, isManager]);
+    ], [users, customers, contacts, opportunities]);
+
+    /** Thao tác của một báo giá — hiện trong menu chuột phải. */
+    const rowActions = (q: QuotationResult): RowAction[] => [
+        ...(q.status === 'draft'
+            ? [{ key: 'submit', label: 'Gửi duyệt', onClick: () => runAction(q.id, 'submit') }]
+            : []),
+        ...(q.status === 'pending' && isManager
+            ? [
+                { key: 'approve', label: 'Duyệt', onClick: () => runAction(q.id, 'approve') },
+                { key: 'reject', label: 'Từ chối', onClick: () => setRejectTarget(q.id) },
+            ]
+            : []),
+        ...(q.status === 'approved'
+            ? [{ key: 'send', label: 'Gửi email cho khách', onClick: () => runAction(q.id, 'send') }]
+            : []),
+        ...(q.status === 'sent'
+            ? [{ key: 'accept', label: 'Khách chấp nhận', onClick: () => runAction(q.id, 'accept') }]
+            : []),
+        ...(q.opportunityId && !q.isPrimary
+            ? [{ key: 'setPrimary', label: 'Đặt làm báo giá đồng bộ', onClick: () => runAction(q.id, 'setPrimary') }]
+            : []),
+        ...(q.status === 'accepted' && !q.isLocked
+            ? [{ key: 'convertToOrder', label: 'Chuyển thành đơn hàng', onClick: () => runAction(q.id, 'convertToOrder') }]
+            : []),
+        ...(!q.isLocked
+            ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(q) }]
+            : []),
+        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(q.id) },
+    ];
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -187,6 +154,9 @@ const BaoGiaPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có báo giá nào"
                     onSelectionChange={setSelectedRows}
+                    focusId={focusId}
+                    rowActions={rowActions}
+                    onRowDoubleClick={(q) => { if (!q.isLocked) setEditTarget(q); }}
                     quickFilters={[
                         { id: 'draft',    label: 'Nháp',      field: 'status', value: 'draft' },
                         { id: 'pending',  label: 'Chờ duyệt', field: 'status', value: 'pending' },

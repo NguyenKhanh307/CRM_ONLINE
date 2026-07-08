@@ -588,6 +588,13 @@ Phục vụ trang landing demo: tạo tiềm năng ẩn danh, ghi sự kiện & 
 | `POST` | `/api/notifications/{id}/read` | Đánh dấu một thông báo đã đọc |
 | `POST` | `/api/notifications/read-all` | Đánh dấu tất cả đã đọc |
 
+Mỗi thông báo trả về `{ id, type, title, content, leadId, targetId, isRead, createdAt }`.
+
+- **`type`**: tiền tố trước dấu `_` trùng module key — `lead_hot`; `quotation_pending|approved|rejected|accepted|customer_response`; `ticket_assigned|resolved`.
+- **`targetId`** (cột `notifications.target_id`): ID bản ghi đích (lead/quotation/ticket) mà thông báo trỏ tới. Frontend dùng để điều hướng tới danh sách module + focus đúng dòng. Set tại `CreateNotificationUseCase.execute(recipients, type, title, content, leadId, targetId)`.
+
+> DB đang chạy cần bổ sung cột: `ALTER TABLE notifications ADD COLUMN target_id INT UNSIGNED NULL;` (TiDB: mỗi lệnh ALTER chỉ thêm một cột).
+
 ### 2.13 Endpoint chuyển trạng thái (workflow — 2026-06-24)
 
 Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động (có guard `ensureCanTransitionTo`, trả 400 nếu bước sai):
@@ -852,7 +859,7 @@ be-crm/src/main/java/vn/com/be_crm/
 
 | File / Folder | Tầng | Công dụng |
 |---------------|------|-----------|
-| `domain/notification/entity/Notification.java` | Domain | Entity thông báo (recipientUserId, type, title, content, leadId, isRead) |
+| `domain/notification/entity/Notification.java` | Domain | Entity thông báo (recipientUserId, type, title, content, leadId, targetId, isRead) |
 | `domain/notification/repository/INotificationRepository.java` | Domain | Interface repository |
 | `application/notification/command/{CreateNotification,MarkNotificationRead}UseCase.java` | Application | Tạo / đánh dấu đã đọc |
 | `application/notification/query/{ListMyNotifications,CountUnreadNotifications}UseCase.java` | Application | Danh sách / đếm chưa đọc |

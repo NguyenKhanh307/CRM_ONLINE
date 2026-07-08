@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiSend, FiXCircle } from 'react-icons/fi';
+import { FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
+import type { RowAction } from '@/shared/types/table';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
@@ -67,42 +68,21 @@ const HoaDonPage = () => {
             orgUnits: toIdNameMap(orgUnits, 'id', 'name'),
             invoices: toIdNameMap(data, 'id', 'code'),
         }),
-        {
-            id: 'actions',
-            header: '',
-            enableSorting: false,
-            size: 80,
-            cell: ({ row }) => {
-                const o = row.original;
-                return (
-                    <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                        {o.status === 'draft' && (
-                            <button className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-primary"
-                                title="Phát hành" onClick={() => runAction(o.id, 'issue')}>
-                                <FiSend size={14} />
-                            </button>
-                        )}
-                        {(o.status === 'draft' || o.status === 'sent' || o.status === 'partially_paid') && (
-                            <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                                title="Hủy hóa đơn" onClick={() => runAction(o.id, 'cancel')}>
-                                <FiXCircle size={14} />
-                            </button>
-                        )}
-                        {!o.isLocked && (
-                            <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary"
-                                title="Chỉnh sửa" onClick={() => setEditTarget(o)}>
-                                <FiEdit2 size={14} />
-                            </button>
-                        )}
-                        <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                            title="Xóa" onClick={() => setDeleteTarget(o.id)}>
-                            <FiTrash2 size={14} />
-                        </button>
-                    </div>
-                );
-            },
-        },
     ], [data, users, orgUnits, customers, contacts, opportunities, quotations]);
+
+    /** Thao tác của một hóa đơn — hiện trong menu chuột phải. */
+    const rowActions = (o: InvoiceResult): RowAction[] => [
+        ...(o.status === 'draft'
+            ? [{ key: 'issue', label: 'Phát hành', onClick: () => runAction(o.id, 'issue') }]
+            : []),
+        ...(o.status === 'draft' || o.status === 'sent' || o.status === 'partially_paid'
+            ? [{ key: 'cancel', label: 'Hủy hóa đơn', onClick: () => runAction(o.id, 'cancel') }]
+            : []),
+        ...(!o.isLocked
+            ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) }]
+            : []),
+        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(o.id) },
+    ];
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">
@@ -157,6 +137,8 @@ const HoaDonPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có Hóa đơn nào"
                     onSelectionChange={setSelectedRows}
+                    rowActions={rowActions}
+                    onRowDoubleClick={(o) => { if (!o.isLocked) setEditTarget(o); }}
                     quickFilters={[
                         { id: 'draft',          label: 'Nháp',                 field: 'status', value: 'draft' },
                         { id: 'sent',           label: 'Đã gửi',               field: 'status', value: 'sent' },

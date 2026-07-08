@@ -69,7 +69,7 @@ public class RespondToQuotationUseCase {
 
         Quotation saved = quotationRepo.save(builder.build());
         if (saved.getOwnerId() != null) {
-            createNotificationUC.execute(List.of(saved.getOwnerId()), "quotation_customer_response", title, content, null);
+            createNotificationUC.execute(List.of(saved.getOwnerId()), "quotation_customer_response", title, content, null, saved.getId());
         }
     }
 
