@@ -16,7 +16,7 @@ public class TicketCommentResult {
     private Long ticketId;
     private CommentType type;
     private String content;
-    private boolean isInternal;
+    private Boolean isInternal;
     private Long authorId;
     private LocalDateTime createdAt;
     // Tên tác giả — do BE resolve (INameResolver).

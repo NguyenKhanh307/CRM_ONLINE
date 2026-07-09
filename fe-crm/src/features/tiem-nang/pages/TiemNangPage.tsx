@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { RowAction } from '@/shared/types/table';
+import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ReasonModal } from '@/shared/components/ReasonModal';
@@ -76,9 +77,9 @@ const TiemNangPage = () => {
     };
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-xl font-semibold text-text-main">Tiềm năng</h1>
+        <div className="p-6 bg-bg-main">
+            <PageHeaderSlot>
+                <h1 className="text-lg font-semibold text-text-main truncate">Tiềm năng</h1>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => navigate('/tiem-nang/nhap-file')}
@@ -120,7 +121,7 @@ const TiemNangPage = () => {
                         </>
                     )}
                 </div>
-            </div>
+            </PageHeaderSlot>
             <div className="bg-white rounded-card p-4 shadow-sm">
                 <DataTable
                     data={data}

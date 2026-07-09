@@ -3,7 +3,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiTrash2, FiUpload, FiShare2, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { RowAction } from '@/shared/types/table';
+import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { DataTable } from '@/shared/components/table/DataTable';
+import { RecordItemsPanel } from '@/shared/components/table/RecordItemsPanel';
+import { getLineItemPanelColumns } from '@/shared/components/table/lineItemPanelColumns';
+import { useProductMap } from '@/features/san-pham/hooks/useProductMap';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
@@ -11,6 +15,7 @@ import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
 import { usePermission } from '@/core/permissions/usePermission';
 import { useQuotationList } from '../hooks/useQuotationList';
+import { useQuotationItems } from '../hooks/useQuotationItems';
 import { useDeleteQuotation } from '../hooks/useDeleteQuotation';
 import { useHandoverBulkQuotation } from '../hooks/useHandoverBulkQuotation';
 import { useQuotationWorkflow, type QuotationAction } from '../hooks/useQuotationWorkflow';
@@ -19,7 +24,7 @@ import { quotationExportColumns } from '../config/quotationExportColumns';
 import { QuotationEditModal } from '../components/QuotationEditModal';
 import { SendQuotationModal } from '../components/SendQuotationModal';
 import { ReasonModal } from '@/shared/components/ReasonModal';
-import type { QuotationResult } from '../types/quotationTypes';
+import type { QuotationItemResult, QuotationResult } from '../types/quotationTypes';
 
 const BaoGiaPage = () => {
     const navigate = useNavigate();
@@ -41,6 +46,11 @@ const BaoGiaPage = () => {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [handoverOpen, setHandoverOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState<QuotationResult | null>(null);
+
+    const productMap = useProductMap();
+    const { data: items = [], isLoading: itemsLoading } = useQuotationItems(selectedRecord?.id ?? null);
+    const itemColumns = useMemo(() => getLineItemPanelColumns<QuotationItemResult>(productMap, { showTax: true }), [productMap]);
 
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
@@ -95,9 +105,9 @@ const BaoGiaPage = () => {
     ];
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-xl font-semibold text-text-main">Báo giá</h1>
+        <div className="p-6 bg-bg-main">
+            <PageHeaderSlot>
+                <h1 className="text-lg font-semibold text-text-main truncate">Báo giá</h1>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => navigate('/bao-gia/nhap-file')}
@@ -132,7 +142,7 @@ const BaoGiaPage = () => {
                         </>
                     )}
                 </div>
-            </div>
+            </PageHeaderSlot>
             <div className="bg-white rounded-card p-4 shadow-sm">
                 <DataTable
                     data={data}
@@ -140,6 +150,9 @@ const BaoGiaPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có báo giá nào"
                     onSelectionChange={setSelectedRows}
+                    onRowSelect={setSelectedRecord}
+                    visibleRows={7}
+                    autoSelectFirstRow
                     focusId={focusId}
                     rowActions={rowActions}
                     onRowDoubleClick={(q) => { if (!q.isLocked) setEditTarget(q); }}
@@ -149,6 +162,15 @@ const BaoGiaPage = () => {
                         { id: 'approved', label: 'Đã duyệt',  field: 'status', value: 'approved' },
                         { id: 'sent',     label: 'Đã gửi',    field: 'status', value: 'sent' },
                     ]}
+                />
+            </div>
+
+            <div className="bg-white rounded-card p-4 shadow-sm mt-4">
+                <RecordItemsPanel
+                    title={selectedRecord?.code}
+                    columns={itemColumns}
+                    rows={items}
+                    isLoading={itemsLoading}
                 />
             </div>
 

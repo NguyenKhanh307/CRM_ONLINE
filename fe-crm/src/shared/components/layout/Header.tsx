@@ -20,6 +20,9 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                 <FiMenu size={20} />
             </button>
 
+            {/* Middle: tiêu đề + nút hành động của trang, do PageHeaderSlot bơm vào qua portal */}
+            <div id="page-header-slot" className="flex-1 flex items-center justify-between gap-2 min-w-0 px-3" />
+
             {/* Right: action icons */}
             <div className="flex items-center gap-1">
                 <NotificationButton />

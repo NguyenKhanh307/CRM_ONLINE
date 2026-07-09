@@ -34,7 +34,7 @@ public class CustomerResult {
     private String rating;
     private BigDecimal annualRevenue;
     private String employeeSize;
-    private boolean isDistributor;
+    private Boolean isDistributor;
     private Long ownerId;
     private Long unitId;
     private LocalDateTime createdAt;

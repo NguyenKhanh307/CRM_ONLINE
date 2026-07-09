@@ -62,7 +62,7 @@ public class InvoiceController {
     public ResponseEntity<ApiResponse<PageResponse<InvoiceResult>>> list(
             HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "id") String sortBy, @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "desc") String sortDir) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listUC.execute(
                 PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).build()))));

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FiRefreshCw } from 'react-icons/fi';
+import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { trashColumns } from '@/features/thung-rac/config/trashColumns';
@@ -70,7 +71,11 @@ const ThungRacPage = () => {
     const isSubmitting = restoreMutation.isPending || purgeMutation.isPending;
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
+        <div className="p-6 bg-bg-main">
+            <PageHeaderSlot>
+                <h1 className="text-lg font-semibold text-text-main truncate">Thùng rác</h1>
+            </PageHeaderSlot>
+
             {/* Tabs */}
             <div className="flex items-center gap-1 mb-4 border-b border-gray-200">
                 {TRASH_MODULE_LABELS.map(m => (

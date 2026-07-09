@@ -15,5 +15,5 @@ public class SlaPolicyResult {
     private TicketPriority priority;
     private int firstResponseHours;
     private int resolutionHours;
-    private boolean isActive;
+    private Boolean isActive;
 }

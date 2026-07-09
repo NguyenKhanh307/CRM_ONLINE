@@ -21,8 +21,8 @@ public class QuotationResult {
     private Long opportunityId;
     private Long campaignId;
     private Long pricePolicyId;
-    private boolean isPrimary;
-    private boolean isLocked;
+    private Boolean isPrimary;
+    private Boolean isLocked;
     private Long ownerId;
     private LocalDate quoteDate;
     private LocalDate validUntil;

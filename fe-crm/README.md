@@ -125,11 +125,15 @@ fe-crm/src/
 └── shared/
     ├── components/
     │   ├── layout/
+    │   │   ├── PageHeaderSlot.tsx     # Portal đẩy tiêu đề + nút của trang lên Header chung
     │   │   └── sidebar/
     │   │       └── sidebarConfig.ts   # NAV_ITEMS — thêm menu item ở đây
     │   ├── table/
     │   │   ├── DataTable.tsx          # Component bảng dùng chung
-    │   │   └── RowContextMenu.tsx     # Menu chuột phải của dòng bảng (portal)
+    │   │   ├── RowContextMenu.tsx     # Menu chuột phải của dòng bảng (portal)
+    │   │   ├── RecordItemsPanel.tsx   # Bảng dưới (chỉ-xem) — dòng hàng của bản ghi đang chọn
+    │   │   ├── lineItemPanelColumns.tsx # Factory cột cho RecordItemsPanel (tra tên/mã sản phẩm)
+    │   │   └── tableMetrics.ts        # Chiều cao dòng/header → giới hạn khung cuộn N dòng
     │   ├── ConfirmModal.tsx            # Modal xác nhận dùng chung
     │   ├── import/                    # Shared wizard nhập file Excel/CSV
     │   │   ├── importTypes.ts
@@ -515,6 +519,34 @@ Cột **"Thao tác"** (các nút icon ghim bên phải bảng) đã được **g
 - Page khai báo `rowActions={(row) => RowAction[]}` + `onRowDoubleClick` cho `DataTable`; component `shared/components/table/RowContextMenu.tsx` render qua portal (`position: fixed`) nên không bị khung bảng cắt, tự lật vào trong khi chạm mép màn hình, đóng khi click ngoài / `Escape` / cuộn.
 
 Chi tiết pattern: xem `CODE_GUIDE_FRONTEND.md` mục 8.
+
+### Bố cục 2 bảng (master–detail) cho phân hệ có dòng hàng (2026-07-09)
+
+Bốn trang danh sách có dòng hàng — **Cơ hội, Báo giá, Đơn hàng, Hóa đơn** — nay chia làm 2 bảng:
+
+- **Bảng trên**: `DataTable` danh sách bản ghi (giữ nguyên chuột phải, nhấp đúp, lọc nhanh, chọn nhiều dòng).
+- **Bảng dưới**: `RecordItemsPanel` — **chỉ-xem**, hiện dòng hàng của bản ghi đang được **nhấp chọn** ở bảng trên (Mã hàng / Tên hàng / ĐVT / Số lượng / Đơn giá / Chiết khấu / Thuế % / Thành tiền / Ghi chú). Chưa chọn dòng nào → hiện gợi ý; bản ghi không có dòng hàng → hiện thông báo rỗng.
+
+Cách hoạt động:
+- `DataTable` có prop mới **`onRowSelect?: (row: T | null) => void`** — phát ra dòng đang highlight (nhấp đơn để chọn, nhấp lại để bỏ chọn; chuột phải cũng chọn). Prop tùy chọn nên các trang khác không đổi.
+- Trang nạp dòng hàng qua hook React Query `use{Module}Items(id)` (`useOpportunityItems`, `useQuotationItems`, `useOrderItems`, `useInvoiceItems`) — chỉ gọi API khi có bản ghi được chọn (`enabled: id != null`).
+- Item backend chỉ trả `productId`, nên Mã hàng/Tên hàng/ĐVT được tra qua hook **`useProductMap()`** (`features/san-pham/hooks/useProductMap.ts`) rồi truyền vào factory cột dùng chung `getLineItemPanelColumns(productMap, { showTax })` (Cơ hội không có `taxRate` → tắt cột Thuế).
+
+**Luôn chọn dòng đầu tiên**: `DataTable` prop `autoSelectFirstRow` — 4 trang này bật, nên bảng dòng hàng có dữ liệu ngay khi mở trang. Khi bật, nhấp lại dòng đang chọn **không** bỏ chọn (bảng dưới không bao giờ trống); dòng đầu được chọn lại khi tải xong dữ liệu, đổi trang, đổi bộ lọc, hoặc dòng đang chọn biến mất.
+
+**Chiều cao & vùng cuộn riêng**: bảng trên cao **7 dòng** (`DataTable` prop `visibleRows={7}`), bảng dưới cao **3 dòng** (`RecordItemsPanel` mặc định `visibleRows=3`); phần dư cuộn **trong từng khung**, trang không phải cuộn dọc. Chiều cao tính từ design token qua `tableScrollMaxHeight(n)` (`shared/components/table/tableMetrics.ts`). `visibleRows` của `DataTable` là **tùy chọn** — trang không truyền thì bảng cao theo số dòng như trước. Header cột **dính** khi cuộn; đường kẻ dưới header dùng `inset shadow` thay `border` vì viền của `th` dính bị `border-collapse` vẽ theo bảng nên sẽ trôi mất.
+
+### Tiêu đề + nút hành động nằm trên Header chung (2026-07-09)
+
+Cả **13 trang danh sách** không còn khối tiêu đề riêng trong thân trang. Thay vào đó:
+
+- `Header.tsx` có `<div id="page-header-slot">` ở khoảng giữa hamburger và nhóm icon.
+- Trang bọc tiêu đề + nhóm nút bằng **`<PageHeaderSlot>`** (`shared/components/layout/PageHeaderSlot.tsx`) — dùng `createPortal` để bơm vào slot đó. Chọn portal thay vì Context vì nhóm nút phụ thuộc state của page (`selectedRows`, handler mở modal…), portal giữ nguyên JSX + state tại chỗ.
+- **Root của trang danh sách không dùng `min-h-screen`** — `MainLayout` đã là `h-screen overflow-hidden` và `<main>` là vùng cuộn duy nhất; `min-h-screen` bên trong ép chiều cao thừa nên trang phải cuộn dọc. (Trang chi tiết và trang ngoài layout vẫn giữ `min-h-screen`.)
+
+### Sắp xếp mặc định: bản ghi mới nhất lên đầu (2026-07-09)
+
+Các list hook FE vốn đã gửi `sortBy: 'createdAt', sortDir: 'desc'`. Nay **mặc định của backend** cũng là `createdAt` / `desc` ở 4 controller có dòng hàng (`OpportunityController`, `QuotationController`, `OrderController`, `InvoiceController`) — trước đó là `id` / `asc` (cũ nhất trước). `DataTable` khởi tạo sort rỗng nên giữ nguyên thứ tự server trả về.
 
 ### Chuẩn hóa tiếng Việt filter bảng + tag lọc nhanh hoạt động — DataTable (2026-06-20)
 

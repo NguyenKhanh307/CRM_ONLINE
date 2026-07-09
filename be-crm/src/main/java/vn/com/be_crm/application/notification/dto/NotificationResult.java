@@ -16,6 +16,7 @@ public class NotificationResult {
     private String content;
     private Long leadId;
     private Long targetId;
-    private boolean isRead;
+    /** Wrapper Boolean (không dùng primitive): Lombok sinh getIsRead() → JSON giữ key "isRead". */
+    private Boolean isRead;
     private LocalDateTime createdAt;
 }

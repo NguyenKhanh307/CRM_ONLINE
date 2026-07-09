@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiTrash2, FiPlus } from 'react-icons/fi';
 import type { RowAction } from '@/shared/types/table';
+import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { usePricePolicyList } from '../hooks/usePricePolicyList';
@@ -32,9 +33,9 @@ const ChinhSachGiaPage = () => {
     ];
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-xl font-semibold text-text-main">Chính sách giá</h1>
+        <div className="p-6 bg-bg-main">
+            <PageHeaderSlot>
+                <h1 className="text-lg font-semibold text-text-main truncate">Chính sách giá</h1>
                 <div className="flex items-center gap-2">
                     {selectedRows.length > 0 && (
                         <button
@@ -53,7 +54,7 @@ const ChinhSachGiaPage = () => {
                         Tạo mới
                     </button>
                 </div>
-            </div>
+            </PageHeaderSlot>
 
             <div className="bg-white rounded-card p-4 shadow-sm">
                 <DataTable

@@ -2,20 +2,25 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload, FiSliders } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
+import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { DataTable } from '@/shared/components/table/DataTable';
+import { RecordItemsPanel } from '@/shared/components/table/RecordItemsPanel';
+import { getLineItemPanelColumns } from '@/shared/components/table/lineItemPanelColumns';
+import { useProductMap } from '@/features/san-pham/hooks/useProductMap';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useOpportunityList } from '../hooks/useOpportunityList';
+import { useOpportunityItems } from '../hooks/useOpportunityItems';
 import { useDeleteOpportunity } from '../hooks/useDeleteOpportunity';
 import { useHandoverBulkOpportunity } from '../hooks/useHandoverBulkOpportunity';
 import { useCreateQuotationFromOpportunity } from '../hooks/useCreateQuotationFromOpportunity';
 import { getOpportunityColumns } from '../config/opportunityColumns';
 import { opportunityExportColumns } from '../config/opportunityExportColumns';
 import { OpportunityEditModal } from '../components/OpportunityEditModal';
-import type { OpportunityResult } from '../types/opportunityTypes';
+import type { OpportunityItemResult, OpportunityResult } from '../types/opportunityTypes';
 
 const CoHoiPage = () => {
     const navigate = useNavigate();
@@ -31,6 +36,11 @@ const CoHoiPage = () => {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [handoverOpen, setHandoverOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState<OpportunityResult | null>(null);
+
+    const productMap = useProductMap();
+    const { data: items = [], isLoading: itemsLoading } = useOpportunityItems(selectedRecord?.id ?? null);
+    const itemColumns = useMemo(() => getLineItemPanelColumns<OpportunityItemResult>(productMap), [productMap]);
 
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
@@ -50,9 +60,9 @@ const CoHoiPage = () => {
     const columns = useMemo<ColumnDef<OpportunityResult>[]>(() => getOpportunityColumns(), []);
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-xl font-semibold text-text-main">Cơ hội</h1>
+        <div className="p-6 bg-bg-main">
+            <PageHeaderSlot>
+                <h1 className="text-lg font-semibold text-text-main truncate">Cơ hội</h1>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => navigate('/co-hoi/pipeline')}
@@ -101,7 +111,7 @@ const CoHoiPage = () => {
                         </>
                     )}
                 </div>
-            </div>
+            </PageHeaderSlot>
             <div className="bg-white rounded-card p-4 shadow-sm">
                 <DataTable
                     data={data}
@@ -109,6 +119,9 @@ const CoHoiPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có cơ hội nào"
                     onSelectionChange={setSelectedRows}
+                    onRowSelect={setSelectedRecord}
+                    visibleRows={7}
+                    autoSelectFirstRow
                     onRowDoubleClick={(o) => setEditTarget(o)}
                     rowActions={(o) => [
                         { key: 'quote', label: 'Tạo báo giá từ cơ hội', onClick: () => createQuote(o.id) },
@@ -120,6 +133,15 @@ const CoHoiPage = () => {
                         { id: 'won',  label: 'Đã thắng', field: 'status', value: 'won' },
                         { id: 'lost', label: 'Đã thua',  field: 'status', value: 'lost' },
                     ]}
+                />
+            </div>
+
+            <div className="bg-white rounded-card p-4 shadow-sm mt-4">
+                <RecordItemsPanel
+                    title={selectedRecord ? `${selectedRecord.code} — ${selectedRecord.name}` : undefined}
+                    columns={itemColumns}
+                    rows={items}
+                    isLoading={itemsLoading}
                 />
             </div>
 

@@ -41,7 +41,7 @@ public class TicketResult {
     private Integer satisfactionScore;
     private String satisfactionComment;
     /** Suy ra: quá hạn SLA khi slaDueAt đã qua mà phiếu chưa resolved/closed. */
-    private boolean isOverdue;
+    private Boolean isOverdue;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver).

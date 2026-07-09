@@ -30,7 +30,7 @@ public class InvoiceResult {
     private BigDecimal exchangeRate;
     private InvoiceStatus status;
     private PaymentStatus paymentStatus;
-    private boolean isLocked;
+    private Boolean isLocked;
     private String billingAddress;
     private String taxCode;
     private BigDecimal subtotal;

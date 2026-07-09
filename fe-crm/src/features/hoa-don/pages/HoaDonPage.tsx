@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { RowAction } from '@/shared/types/table';
+import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { DataTable } from '@/shared/components/table/DataTable';
+import { RecordItemsPanel } from '@/shared/components/table/RecordItemsPanel';
+import { getLineItemPanelColumns } from '@/shared/components/table/lineItemPanelColumns';
+import { useProductMap } from '@/features/san-pham/hooks/useProductMap';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
@@ -11,12 +15,13 @@ import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useInvoiceWorkflow, type InvoiceAction } from '../hooks/useInvoiceWorkflow';
 import { useInvoiceList } from '../hooks/useInvoiceList';
+import { useInvoiceItems } from '../hooks/useInvoiceItems';
 import { useDeleteInvoice } from '../hooks/useDeleteInvoice';
 import { useHandoverBulkInvoice } from '../hooks/useHandoverBulkInvoice';
 import { getInvoiceColumns } from '../config/invoiceColumns';
 import { invoiceExportColumns } from '../config/invoiceExportColumns';
 import { InvoiceEditModal } from '../components/InvoiceEditModal';
-import type { InvoiceResult } from '../types/invoiceTypes';
+import type { InvoiceItemResult, InvoiceResult } from '../types/invoiceTypes';
 
 const HoaDonPage = () => {
     const navigate = useNavigate();
@@ -32,6 +37,11 @@ const HoaDonPage = () => {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [handoverOpen, setHandoverOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState<InvoiceResult | null>(null);
+
+    const productMap = useProductMap();
+    const { data: items = [], isLoading: itemsLoading } = useInvoiceItems(selectedRecord?.id ?? null);
+    const itemColumns = useMemo(() => getLineItemPanelColumns<InvoiceItemResult>(productMap, { showTax: true }), [productMap]);
 
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
@@ -62,9 +72,9 @@ const HoaDonPage = () => {
     ];
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-xl font-semibold text-text-main">Hóa đơn</h1>
+        <div className="p-6 bg-bg-main">
+            <PageHeaderSlot>
+                <h1 className="text-lg font-semibold text-text-main truncate">Hóa đơn</h1>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => navigate('/hoa-don/nhap-file')}
@@ -106,7 +116,7 @@ const HoaDonPage = () => {
                         </>
                     )}
                 </div>
-            </div>
+            </PageHeaderSlot>
             <div className="bg-white rounded-card p-4 shadow-sm">
                 <DataTable
                     data={data}
@@ -114,6 +124,9 @@ const HoaDonPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có Hóa đơn nào"
                     onSelectionChange={setSelectedRows}
+                    onRowSelect={setSelectedRecord}
+                    visibleRows={7}
+                    autoSelectFirstRow
                     rowActions={rowActions}
                     onRowDoubleClick={(o) => { if (!o.isLocked) setEditTarget(o); }}
                     quickFilters={[
@@ -122,6 +135,15 @@ const HoaDonPage = () => {
                         { id: 'partially_paid', label: 'Thanh toán một phần',  field: 'status', value: 'partially_paid' },
                         { id: 'paid',           label: 'Đã thanh toán',        field: 'status', value: 'paid' },
                     ]}
+                />
+            </div>
+
+            <div className="bg-white rounded-card p-4 shadow-sm mt-4">
+                <RecordItemsPanel
+                    title={selectedRecord?.code}
+                    columns={itemColumns}
+                    rows={items}
+                    isLoading={itemsLoading}
                 />
             </div>
 

@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { FiTrash2, FiUpload, FiShare2, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { RowAction } from '@/shared/types/table';
+import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { DataTable } from '@/shared/components/table/DataTable';
+import { RecordItemsPanel } from '@/shared/components/table/RecordItemsPanel';
+import { getLineItemPanelColumns } from '@/shared/components/table/lineItemPanelColumns';
+import { useProductMap } from '@/features/san-pham/hooks/useProductMap';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
@@ -11,12 +15,13 @@ import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useOrderWorkflow, type OrderAction } from '../hooks/useOrderWorkflow';
 import { useOrderList } from '../hooks/useOrderList';
+import { useOrderItems } from '../hooks/useOrderItems';
 import { useDeleteOrder } from '../hooks/useDeleteOrder';
 import { useHandoverBulkOrder } from '../hooks/useHandoverBulkOrder';
 import { getOrderColumns } from '../config/orderColumns';
 import { orderExportColumns } from '../config/orderExportColumns';
 import { OrderEditModal } from '../components/OrderEditModal';
-import type { OrderResult } from '../types/orderTypes';
+import type { OrderItemResult, OrderResult } from '../types/orderTypes';
 
 const DonHangPage = () => {
     const navigate = useNavigate();
@@ -32,6 +37,11 @@ const DonHangPage = () => {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [handoverOpen, setHandoverOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState<OrderResult | null>(null);
+
+    const productMap = useProductMap();
+    const { data: items = [], isLoading: itemsLoading } = useOrderItems(selectedRecord?.id ?? null);
+    const itemColumns = useMemo(() => getLineItemPanelColumns<OrderItemResult>(productMap, { showTax: true }), [productMap]);
 
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
@@ -78,9 +88,9 @@ const DonHangPage = () => {
     ];
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-xl font-semibold text-text-main">Đơn hàng</h1>
+        <div className="p-6 bg-bg-main">
+            <PageHeaderSlot>
+                <h1 className="text-lg font-semibold text-text-main truncate">Đơn hàng</h1>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => navigate('/don-hang/nhap-file')}
@@ -122,7 +132,7 @@ const DonHangPage = () => {
                         </>
                     )}
                 </div>
-            </div>
+            </PageHeaderSlot>
             <div className="bg-white rounded-card p-4 shadow-sm">
                 <DataTable
                     data={data}
@@ -130,6 +140,9 @@ const DonHangPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có Đơn hàng nào"
                     onSelectionChange={setSelectedRows}
+                    onRowSelect={setSelectedRecord}
+                    visibleRows={7}
+                    autoSelectFirstRow
                     rowActions={rowActions}
                     onRowDoubleClick={(o) => { if (!o.isLocked) setEditTarget(o); }}
                     quickFilters={[
@@ -138,6 +151,15 @@ const DonHangPage = () => {
                         { id: 'processing', label: 'Đang xử lý',   field: 'status', value: 'processing' },
                         { id: 'completed',  label: 'Hoàn tất',     field: 'status', value: 'completed' },
                     ]}
+                />
+            </div>
+
+            <div className="bg-white rounded-card p-4 shadow-sm mt-4">
+                <RecordItemsPanel
+                    title={selectedRecord?.code}
+                    columns={itemColumns}
+                    rows={items}
+                    isLoading={itemsLoading}
                 />
             </div>
 

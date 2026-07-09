@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiTrash2, FiUpload, FiPlus, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { RowAction } from '@/shared/types/table';
+import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
@@ -59,9 +60,9 @@ const HoatDongPage = () => {
     ];
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-xl font-semibold text-text-main">Hoạt động</h1>
+        <div className="p-6 bg-bg-main">
+            <PageHeaderSlot>
+                <h1 className="text-lg font-semibold text-text-main truncate">Hoạt động</h1>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => navigate('/hoat-dong/nhap-file')}
@@ -94,7 +95,7 @@ const HoatDongPage = () => {
                         </button>
                     )}
                 </div>
-            </div>
+            </PageHeaderSlot>
             <div className="bg-white rounded-card p-4 shadow-sm">
                 <DataTable
                     data={data}

@@ -27,7 +27,7 @@ public class OrderResult {
     private String currency;
     private BigDecimal exchangeRate;
     private OrderStatus status;
-    private boolean isLocked;
+    private Boolean isLocked;
     private String billingAddress;
     private String taxCode;
     private BigDecimal subtotal;

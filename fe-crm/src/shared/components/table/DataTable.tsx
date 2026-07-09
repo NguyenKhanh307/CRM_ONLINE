@@ -28,6 +28,7 @@ import { SortPanel } from './SortPanel';
 import { ConditionalColoringPanel } from './ConditionalColoringPanel';
 import { ColumnVisibilityPanel } from './ColumnVisibilityPanel';
 import { TablePagination } from './TablePagination';
+import { tableScrollMaxHeight } from './tableMetrics';
 
 interface DataTableProps<T> {
     data: T[];
@@ -42,6 +43,12 @@ interface DataTableProps<T> {
     rowActions?: (row: T) => RowAction[];
     /** Hành động chính khi nhấp đúp vào dòng (thường là Chỉnh sửa hoặc mở trang chi tiết). */
     onRowDoubleClick?: (row: T) => void;
+    /** Báo dòng đang được chọn (highlight) ra ngoài — null khi bỏ chọn. Dùng cho bố cục 2 bảng. */
+    onRowSelect?: (row: T | null) => void;
+    /** Giới hạn khung bảng còn đúng N dòng, phần dư cuộn trong khung. Bỏ trống → cao theo số dòng. */
+    visibleRows?: number;
+    /** Luôn giữ một dòng được chọn (mặc định dòng đầu trang) — không cho bỏ chọn. Dùng cho bố cục 2 bảng. */
+    autoSelectFirstRow?: boolean;
 }
 
 type OpenPanel = 'filter' | 'sort' | 'coloring' | 'columns' | null;
@@ -61,6 +68,9 @@ export const DataTable = <T extends object>({
     focusId,
     rowActions,
     onRowDoubleClick,
+    onRowSelect,
+    visibleRows,
+    autoSelectFirstRow = false,
 }: DataTableProps<T>) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [menu, setMenu] = useState<{ x: number; y: number; actions: RowAction[] } | null>(null);
@@ -235,6 +245,25 @@ export const DataTable = <T extends object>({
     const { pageIndex, pageSize } = table.getState().pagination;
     const totalRows = table.getFilteredRowModel().rows.length;
 
+    /**
+     * Giữ luôn có một dòng được chọn trên trang hiện tại: chọn lại dòng đầu khi tải xong dữ liệu,
+     * đổi trang, đổi bộ lọc, hoặc dòng đang chọn biến mất. Không lặp vô hạn vì lần chạy kế tiếp
+     * `selectedRowId` đã hợp lệ nên effect thoát sớm.
+     */
+    useEffect(() => {
+        if (!autoSelectFirstRow) return;
+        const rows = table.getRowModel().rows;
+        if (rows.length === 0) {
+            setSelectedRowId(null);
+            onRowSelect?.(null);
+            return;
+        }
+        if (selectedRowId && rows.some((r) => r.id === selectedRowId)) return;
+        setSelectedRowId(rows[0].id);
+        onRowSelect?.(rows[0].original);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [autoSelectFirstRow, selectedRowId, displayData, pageIndex, pageSize]);
+
     return (
         <div className="flex flex-col w-full">
             {/* Toolbar + panels dropdown (relative anchor) */}
@@ -300,7 +329,11 @@ export const DataTable = <T extends object>({
             </div>
 
             {/* Bảng */}
-            <div ref={scrollRef} className="border border-gray-300 rounded-section overflow-auto">
+            <div
+                ref={scrollRef}
+                className="border border-gray-300 rounded-section overflow-auto"
+                style={visibleRows ? { maxHeight: tableScrollMaxHeight(visibleRows) } : undefined}
+            >
                 <table className="w-full border-collapse table-auto">
                     <thead>
                         {table.getHeaderGroups().map((hg) => (
@@ -309,7 +342,8 @@ export const DataTable = <T extends object>({
                                     <th
                                         key={header.id}
                                         style={header.column.columnDef.size ? { width: header.column.columnDef.size } : undefined}
-                                        className="text-title font-semibold text-left text-text-main bg-gray-100 border-b-2 border-gray-300 px-3 py-2 whitespace-nowrap select-none"
+                                        // shadow-inset thay viền dưới: viền của th dính bị border-collapse vẽ theo bảng nên trôi mất khi cuộn
+                                        className="sticky top-0 z-10 text-title font-semibold text-left text-text-main bg-gray-100 shadow-[inset_0_-2px_0_0_#d1d5db] px-3 py-2 whitespace-nowrap select-none"
                                     >
                                         {flexRender(header.column.columnDef.header, header.getContext())}
                                     </th>
@@ -341,7 +375,11 @@ export const DataTable = <T extends object>({
                                     <tr
                                         key={row.id}
                                         data-rowid={row.id}
-                                        onClick={() => setSelectedRowId(isHighlighted ? null : row.id)}
+                                        onClick={() => {
+                                            const next = autoSelectFirstRow ? row.id : isHighlighted ? null : row.id;
+                                            setSelectedRowId(next);
+                                            onRowSelect?.(next ? row.original : null);
+                                        }}
                                         onDoubleClick={() => onRowDoubleClick?.(row.original)}
                                         onContextMenu={(e) => {
                                             if (!rowActions) return;
@@ -349,6 +387,7 @@ export const DataTable = <T extends object>({
                                             if (actions.length === 0) return;
                                             e.preventDefault();
                                             setSelectedRowId(row.id);   // chuột phải: set highlight, không toggle
+                                            onRowSelect?.(row.original);
                                             setMenu({ x: e.clientX, y: e.clientY, actions });
                                         }}
                                         style={rowColor && !isHighlighted ? { backgroundColor: rowColor } : undefined}
