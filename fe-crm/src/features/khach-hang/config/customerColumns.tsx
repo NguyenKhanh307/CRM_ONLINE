@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { badgeCell, currencyCell, dateCell, fkCell, labelCell, numberCell, textCell, yesNoCell } from '@/shared/components/table/cells';
+import { badgeCell, currencyCell, dateCell, labelCell, numberCell, textCell, yesNoCell } from '@/shared/components/table/cells';
 import type { CustomerResult } from '../types/customerTypes';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -16,14 +16,8 @@ const STATUS_LABELS: Record<string, string> = {
     active: 'Hoạt động', inactive: 'Không hoạt động', prospect: 'Tiềm năng',
 };
 
-/** Map ID → tên cho các cột khóa ngoại của Khách hàng. */
-export interface CustomerColumnLookups {
-    users: Map<number, string>;
-    orgUnits: Map<number, string>;
-}
-
-/** Tạo danh sách cột Khách hàng — hiển thị đầy đủ trường + tên khóa ngoại. */
-export const getCustomerColumns = (lk: CustomerColumnLookups): ColumnDef<CustomerResult>[] => [
+/** Tạo danh sách cột Khách hàng — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+export const getCustomerColumns = (): ColumnDef<CustomerResult>[] => [
     { accessorKey: 'code', header: 'Mã KH', size: 100, enableSorting: true },
     { accessorKey: 'name', header: 'Tên khách hàng', size: 200, enableSorting: true },
     { accessorKey: 'shortName', header: 'Tên viết tắt', size: 140, cell: textCell },
@@ -44,7 +38,7 @@ export const getCustomerColumns = (lk: CustomerColumnLookups): ColumnDef<Custome
     { accessorKey: 'annualRevenue', header: 'Doanh thu năm', size: 150, cell: currencyCell },
     { accessorKey: 'employeeSize', header: 'Quy mô NV', size: 120, cell: textCell },
     { accessorKey: 'isDistributor', header: 'Nhà phân phối', size: 120, cell: yesNoCell },
-    { accessorKey: 'ownerId', header: 'Người phụ trách', size: 160, cell: fkCell(lk.users) },
-    { accessorKey: 'unitId', header: 'Đơn vị', size: 150, cell: fkCell(lk.orgUnits) },
+    { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
+    { accessorKey: 'unitName', header: 'Đơn vị', size: 150, cell: textCell },
     { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
 ];

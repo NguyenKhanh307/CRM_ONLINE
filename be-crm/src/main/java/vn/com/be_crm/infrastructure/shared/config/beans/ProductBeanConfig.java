@@ -36,7 +36,7 @@ public class ProductBeanConfig {
     /** @return GetProductUseCase */
     @Bean public GetProductUseCase getProductUseCase(IProductRepository r) { return new GetProductUseCase(r); }
     /** @return ListProductUseCase */
-    @Bean public ListProductUseCase listProductUseCase(IProductRepository r) { return new ListProductUseCase(r); }
+    @Bean public ListProductUseCase listProductUseCase(IProductRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListProductUseCase(r, n); }
 
     // ===== Trash =====
 

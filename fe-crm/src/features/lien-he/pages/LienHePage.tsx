@@ -6,9 +6,6 @@ import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
-import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { toIdNameMap } from '@/shared/utils/lookup';
 import { useContactList } from '../hooks/useContactList';
 import { useDeleteContact } from '../hooks/useDeleteContact';
 import { getContactColumns } from '../config/contactColumns';
@@ -20,8 +17,6 @@ const LienHePage = () => {
     const navigate = useNavigate();
     const { data = [], isLoading } = useContactList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteContact();
-    const { data: users } = useActiveUsers();
-    const { data: customers } = useCustomerList();
 
     const [editTarget, setEditTarget] = useState<ContactResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -31,12 +26,7 @@ const LienHePage = () => {
 
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
-    const columns = useMemo<ColumnDef<ContactResult>[]>(() => [
-        ...getContactColumns({
-            customers: toIdNameMap(customers, 'id', 'name'),
-            users: toIdNameMap(users, 'id', 'fullName'),
-        }),
-    ], [users, customers]);
+    const columns = useMemo<ColumnDef<ContactResult>[]>(() => getContactColumns(), []);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">

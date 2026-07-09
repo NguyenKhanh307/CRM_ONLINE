@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { badgeCell, currencyCell, dateCell, fkCell, numberCell, textCell } from '@/shared/components/table/cells';
+import { badgeCell, currencyCell, dateCell, numberCell, textCell } from '@/shared/components/table/cells';
 import type { QuotationResult } from '../types/quotationTypes';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -16,21 +16,13 @@ const STATUS_LABELS: Record<string, string> = {
     rejected: 'Từ chối', sent: 'Đã gửi', expired: 'Hết hạn',
 };
 
-/** Map ID → tên cho các cột khóa ngoại của Báo giá. */
-export interface QuotationColumnLookups {
-    customers: Map<number, string>;
-    contacts: Map<number, string>;
-    opportunities: Map<number, string>;
-    users: Map<number, string>;
-}
-
-/** Tạo danh sách cột Báo giá — hiển thị đầy đủ trường + tên khóa ngoại. */
-export const getQuotationColumns = (lk: QuotationColumnLookups): ColumnDef<QuotationResult>[] => [
+/** Tạo danh sách cột Báo giá — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+export const getQuotationColumns = (): ColumnDef<QuotationResult>[] => [
     { accessorKey: 'code', header: 'Số báo giá', size: 130, enableSorting: true },
-    { accessorKey: 'customerId', header: 'Khách hàng', size: 180, cell: fkCell(lk.customers) },
-    { accessorKey: 'contactId', header: 'Liên hệ', size: 160, cell: fkCell(lk.contacts) },
-    { accessorKey: 'opportunityId', header: 'Cơ hội', size: 160, cell: fkCell(lk.opportunities) },
-    { accessorKey: 'ownerId', header: 'Người phụ trách', size: 160, cell: fkCell(lk.users) },
+    { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },
+    { accessorKey: 'contactName', header: 'Liên hệ', size: 160, cell: textCell },
+    { accessorKey: 'opportunityName', header: 'Cơ hội', size: 160, cell: textCell },
+    { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
     { accessorKey: 'status', header: 'Trạng thái', size: 120, cell: badgeCell(STATUS_LABELS, STATUS_COLORS) },
     { accessorKey: 'quoteDate', header: 'Ngày báo giá', size: 130, cell: dateCell },
     { accessorKey: 'validUntil', header: 'Hiệu lực đến', size: 130, cell: dateCell },

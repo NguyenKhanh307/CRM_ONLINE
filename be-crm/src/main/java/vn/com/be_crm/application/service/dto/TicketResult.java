@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.com.be_crm.domain.service.enums.ResolutionType;
 import vn.com.be_crm.domain.service.enums.ReturnReason;
 import vn.com.be_crm.domain.service.enums.TicketChannel;
@@ -14,7 +15,7 @@ import vn.com.be_crm.domain.service.enums.TicketType;
 import java.time.LocalDateTime;
 
 /** Output DTO cho Ticket. */
-@Getter @Builder(toBuilder = true) @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @Builder(toBuilder = true) @NoArgsConstructor @AllArgsConstructor
 public class TicketResult {
     private Long id;
     private String code;
@@ -43,4 +44,8 @@ public class TicketResult {
     private boolean isOverdue;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    // Tên khóa ngoại — do BE resolve (INameResolver).
+    private String customerName;
+    private String contactName;
+    private String assignedUserName;
 }

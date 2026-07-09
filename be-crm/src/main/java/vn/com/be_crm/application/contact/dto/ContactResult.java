@@ -4,13 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.com.be_crm.domain.contact.enums.ContactGender;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /** Output DTO cho Contact. */
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class ContactResult {
     private Long id;
     private Long customerId;
@@ -33,4 +34,7 @@ public class ContactResult {
     private Boolean isPrimary;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    // Tên khóa ngoại — do BE resolve (INameResolver).
+    private String customerName;
+    private String assignedUserName;
 }

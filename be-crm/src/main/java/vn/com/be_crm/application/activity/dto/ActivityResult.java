@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.com.be_crm.domain.activity.enums.ActivityStatus;
 import vn.com.be_crm.domain.activity.enums.ActivityType;
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
  * Output DTO của Activity UseCase.
  */
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -36,4 +38,6 @@ public class ActivityResult {
     private LocalDateTime completedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    // Tên khóa ngoại — do BE resolve (INameResolver).
+    private String assignedUserName;
 }

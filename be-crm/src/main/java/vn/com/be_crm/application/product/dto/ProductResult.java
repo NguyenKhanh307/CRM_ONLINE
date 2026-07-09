@@ -4,13 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.com.be_crm.domain.product.enums.ProductType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /** Output DTO của Product UseCase. */
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class ProductResult {
     private Long id;
     private String sku;
@@ -26,4 +27,6 @@ public class ProductResult {
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    // Tên khóa ngoại — do BE resolve (INameResolver).
+    private String categoryName;
 }

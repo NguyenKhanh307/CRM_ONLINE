@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { badgeCell, currencyCell, dateCell, fkCell, numberCell, textCell, yesNoCell } from '@/shared/components/table/cells';
+import { badgeCell, currencyCell, dateCell, numberCell, textCell, yesNoCell } from '@/shared/components/table/cells';
 import type { LeadResult } from '../types/leadTypes';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -15,16 +15,8 @@ const STATUS_LABELS: Record<string, string> = {
     converted: 'Đã chuyển đổi', lost: 'Thất bại',
 };
 
-/** Map ID → tên cho các cột khóa ngoại của Tiềm năng. */
-export interface LeadColumnLookups {
-    users: Map<number, string>;
-    customers: Map<number, string>;
-    contacts: Map<number, string>;
-    campaigns: Map<number, string>;
-}
-
-/** Tạo danh sách cột Tiềm năng — hiển thị đầy đủ trường + tên khóa ngoại. */
-export const getLeadColumns = (lk: LeadColumnLookups): ColumnDef<LeadResult>[] => [
+/** Tạo danh sách cột Tiềm năng — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+export const getLeadColumns = (): ColumnDef<LeadResult>[] => [
     { accessorKey: 'code', header: 'Mã', size: 100, enableSorting: true },
     { accessorKey: 'name', header: 'Tên tiềm năng', size: 180, enableSorting: true },
     { accessorKey: 'companyName', header: 'Công ty', size: 180, cell: textCell },
@@ -45,10 +37,10 @@ export const getLeadColumns = (lk: LeadColumnLookups): ColumnDef<LeadResult>[] =
     },
     { accessorKey: 'estimatedValue', header: 'Giá trị dự kiến', size: 150, cell: currencyCell },
     { accessorKey: 'score', header: 'Điểm', size: 90, enableSorting: true, cell: numberCell },
-    { accessorKey: 'ownerId', header: 'Người phụ trách', size: 160, cell: fkCell(lk.users) },
-    { accessorKey: 'customerId', header: 'Khách hàng', size: 180, cell: fkCell(lk.customers) },
-    { accessorKey: 'contactId', header: 'Liên hệ', size: 160, cell: fkCell(lk.contacts) },
-    { accessorKey: 'campaignId', header: 'Chiến dịch', size: 160, cell: fkCell(lk.campaigns) },
+    { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
+    { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },
+    { accessorKey: 'contactName', header: 'Liên hệ', size: 160, cell: textCell },
+    { accessorKey: 'campaignName', header: 'Chiến dịch', size: 160, cell: textCell },
     { accessorKey: 'doNotCall', header: 'Không gọi', size: 100, cell: yesNoCell },
     { accessorKey: 'doNotEmail', header: 'Không email', size: 110, cell: yesNoCell },
     { accessorKey: 'note', header: 'Ghi chú', size: 200, cell: textCell },

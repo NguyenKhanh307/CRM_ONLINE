@@ -38,7 +38,7 @@ public class OpportunityBeanConfig {
     /** @return GetOpportunityUseCase */
     @Bean public GetOpportunityUseCase getOpportunityUseCase(IOpportunityRepository r) { return new GetOpportunityUseCase(r); }
     /** @return ListOpportunityUseCase */
-    @Bean public ListOpportunityUseCase listOpportunityUseCase(IOpportunityRepository r) { return new ListOpportunityUseCase(r); }
+    @Bean public ListOpportunityUseCase listOpportunityUseCase(IOpportunityRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListOpportunityUseCase(r, n); }
 
     // ===== Opportunity Item =====
 

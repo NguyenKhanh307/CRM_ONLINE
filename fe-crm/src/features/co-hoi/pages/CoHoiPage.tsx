@@ -8,12 +8,7 @@ import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
-import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useContactList } from '@/features/lien-he/hooks/useContactList';
-import { toIdNameMap } from '@/shared/utils/lookup';
 import { useOpportunityList } from '../hooks/useOpportunityList';
-import { useOpportunityStages } from '../hooks/useOpportunityStages';
 import { useDeleteOpportunity } from '../hooks/useDeleteOpportunity';
 import { useHandoverBulkOpportunity } from '../hooks/useHandoverBulkOpportunity';
 import { useCreateQuotationFromOpportunity } from '../hooks/useCreateQuotationFromOpportunity';
@@ -29,10 +24,6 @@ const CoHoiPage = () => {
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteOpportunity();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkOpportunity();
     const { mutateAsync: createQuoteFn } = useCreateQuotationFromOpportunity();
-    const { data: users } = useActiveUsers();
-    const { data: customers } = useCustomerList();
-    const { data: contacts } = useContactList();
-    const { data: stages } = useOpportunityStages();
 
     const [editTarget, setEditTarget] = useState<OpportunityResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -56,14 +47,7 @@ const CoHoiPage = () => {
         }
     };
 
-    const columns = useMemo<ColumnDef<OpportunityResult>[]>(() => [
-        ...getOpportunityColumns({
-            customers: toIdNameMap(customers, 'id', 'name'),
-            contacts: toIdNameMap(contacts, 'id', 'fullName'),
-            users: toIdNameMap(users, 'id', 'fullName'),
-            stages: toIdNameMap(stages, 'id', 'name'),
-        }),
-    ], [users, customers, contacts, stages]);
+    const columns = useMemo<ColumnDef<OpportunityResult>[]>(() => getOpportunityColumns(), []);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">

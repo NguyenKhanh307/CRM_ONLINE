@@ -41,4 +41,6 @@ export interface ProductResult {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+    // Tên khóa ngoại do BE resolve sẵn (INameResolver).
+    categoryName: string | null;
 }

@@ -5,12 +5,10 @@ import { useTicketComments, useCreateTicketComment } from '../hooks/useTicketCom
 
 interface Props {
     ticketId: number;
-    /** Map ID người dùng → tên để hiển thị tác giả ghi chú. */
-    users: Map<number, string>;
 }
 
 /** Dòng thời gian ghi chú / lịch sử phiếu: phân biệt system (audit) và note (người nhập). */
-export function TicketTimeline({ ticketId, users }: Props) {
+export function TicketTimeline({ ticketId }: Props) {
     const { data: comments = [], isLoading } = useTicketComments(ticketId);
     const { mutate: addNote, isPending } = useCreateTicketComment(ticketId);
     const [content, setContent] = useState('');
@@ -51,7 +49,7 @@ export function TicketTimeline({ ticketId, users }: Props) {
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 text-sm text-gray-500">
                                     <span className="font-medium text-text-main">
-                                        {c.type === 'system' ? 'Hệ thống' : (c.authorId != null ? (users.get(c.authorId) ?? `#${c.authorId}`) : 'Người dùng')}
+                                        {c.type === 'system' ? 'Hệ thống' : (c.authorName ?? 'Người dùng')}
                                     </span>
                                     {c.type === 'note' && (
                                         <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${c.isInternal ? 'bg-gray-100 text-gray-500' : 'bg-green-100 text-green-700'}`}>

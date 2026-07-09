@@ -8,8 +8,6 @@ import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
-import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { toIdNameMap } from '@/shared/utils/lookup';
 import { useActivityList } from '../hooks/useActivityList';
 import { useDeleteActivity } from '../hooks/useDeleteActivity';
 import { useActivityWorkflow, type ActivityAction } from '../hooks/useActivityWorkflow';
@@ -24,7 +22,6 @@ const HoatDongPage = () => {
     const { data = [], isLoading } = useActivityList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteActivity();
     const { mutate: workflowFn } = useActivityWorkflow();
-    const { data: users } = useActiveUsers();
 
     const [editTarget, setEditTarget] = useState<ActivityResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -44,11 +41,7 @@ const HoatDongPage = () => {
             },
         });
 
-    const columns = useMemo<ColumnDef<ActivityResult>[]>(() => [
-        ...getActivityColumns({
-            users: toIdNameMap(users, 'id', 'fullName'),
-        }),
-    ], [users]);
+    const columns = useMemo<ColumnDef<ActivityResult>[]>(() => getActivityColumns(), []);
 
     /** Thao tác của một hoạt động — hiện trong menu chuột phải. */
     const rowActions = (a: ActivityResult): RowAction[] => [

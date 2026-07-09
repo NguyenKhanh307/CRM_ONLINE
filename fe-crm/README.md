@@ -494,6 +494,18 @@ Các bảng danh sách trước đây chỉ hiện một phần nhỏ số cột
 
 Chi tiết pattern: xem `CODE_GUIDE_FRONTEND.md` mục 8b.
 
+### Tên khóa ngoại do BE trả sẵn — bỏ hiển thị "#id" (cập nhật)
+
+Trước đây FE resolve tên khóa ngoại phía client nên đôi khi lộ `#5`/`#128` (owner bị vô hiệu hóa,
+vượt ngưỡng trang lookup, bản ghi đã xóa). Nay **BE trả sẵn tên** trong DTO danh sách (`ownerName`,
+`customerName`, `contactName`, `quotationCode`…), FE chỉ việc hiển thị:
+
+- Result type thêm các field `*Name`/`*Code`.
+- `get<Module>Columns()` **bỏ tham số lookup**; cột khóa ngoại dùng `{ accessorKey: 'ownerName', cell: textCell }`.
+- Trang danh sách **bỏ** các hook lookup (`useActiveUsers`, `useCustomerList`…) + `toIdNameMap` vốn chỉ dùng để hiển thị.
+- Timeline Chăm sóc đọc `comment.authorName`. Fallback `lookupName` đổi `#id` → `'—'` (không lộ mã).
+- Áp dụng 11 module danh sách: Tiềm năng, Liên hệ, Khách hàng, Cơ hội, Báo giá, Đơn hàng, Hóa đơn, Hoạt động, Sản phẩm, Chiến dịch, Chăm sóc.
+
 ### Thao tác dòng — menu chuột phải (2026-07-08)
 
 Cột **"Thao tác"** (các nút icon ghim bên phải bảng) đã được **gỡ khỏi cả 13 trang danh sách**. Thay vào đó:

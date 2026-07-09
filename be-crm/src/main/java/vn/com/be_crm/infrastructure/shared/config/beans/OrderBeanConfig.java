@@ -25,7 +25,7 @@ public class OrderBeanConfig {
     /** @return GetOrderUseCase */
     @Bean public GetOrderUseCase getOrderUseCase(IOrderRepository r) { return new GetOrderUseCase(r); }
     /** @return ListOrderUseCase */
-    @Bean public ListOrderUseCase listOrderUseCase(IOrderRepository r) { return new ListOrderUseCase(r); }
+    @Bean public ListOrderUseCase listOrderUseCase(IOrderRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListOrderUseCase(r, n); }
     /** @return OrderWorkflowUseCase — luồng trạng thái đơn hàng */
     @Bean public OrderWorkflowUseCase orderWorkflowUseCase(IOrderRepository r) { return new OrderWorkflowUseCase(r); }
     /** @return CreateInvoiceFromOrderUseCase — xuất hóa đơn 1-1 từ đơn hàng */

@@ -24,7 +24,7 @@ public class CustomerBeanConfig {
     /** @return GetCustomerUseCase */
     @Bean public GetCustomerUseCase getCustomerUseCase(ICustomerRepository r) { return new GetCustomerUseCase(r); }
     /** @return ListCustomerUseCase */
-    @Bean public ListCustomerUseCase listCustomerUseCase(ICustomerRepository r) { return new ListCustomerUseCase(r); }
+    @Bean public ListCustomerUseCase listCustomerUseCase(ICustomerRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListCustomerUseCase(r, n); }
     /** @return CustomerWorkflowUseCase — hành động activate/deactivate */
     @Bean public CustomerWorkflowUseCase customerWorkflowUseCase(ICustomerRepository r) { return new CustomerWorkflowUseCase(r); }
 

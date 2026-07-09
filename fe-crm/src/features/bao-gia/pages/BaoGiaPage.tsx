@@ -10,11 +10,6 @@ import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
 import { usePermission } from '@/core/permissions/usePermission';
-import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useContactList } from '@/features/lien-he/hooks/useContactList';
-import { useOpportunityList } from '@/features/co-hoi/hooks/useOpportunityList';
-import { toIdNameMap } from '@/shared/utils/lookup';
 import { useQuotationList } from '../hooks/useQuotationList';
 import { useDeleteQuotation } from '../hooks/useDeleteQuotation';
 import { useHandoverBulkQuotation } from '../hooks/useHandoverBulkQuotation';
@@ -37,10 +32,6 @@ const BaoGiaPage = () => {
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteQuotation();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkQuotation();
     const { mutate: workflowFn } = useQuotationWorkflow();
-    const { data: users } = useActiveUsers();
-    const { data: customers } = useCustomerList();
-    const { data: contacts } = useContactList();
-    const { data: opportunities } = useOpportunityList();
 
     const [editTarget, setEditTarget] = useState<QuotationResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -72,14 +63,7 @@ const BaoGiaPage = () => {
             },
         });
 
-    const columns = useMemo<ColumnDef<QuotationResult>[]>(() => [
-        ...getQuotationColumns({
-            customers: toIdNameMap(customers, 'id', 'name'),
-            contacts: toIdNameMap(contacts, 'id', 'fullName'),
-            opportunities: toIdNameMap(opportunities, 'id', 'name'),
-            users: toIdNameMap(users, 'id', 'fullName'),
-        }),
-    ], [users, customers, contacts, opportunities]);
+    const columns = useMemo<ColumnDef<QuotationResult>[]>(() => getQuotationColumns(), []);
 
     /** Thao tác của một báo giá — hiện trong menu chuột phải. */
     const rowActions = (q: QuotationResult): RowAction[] => [

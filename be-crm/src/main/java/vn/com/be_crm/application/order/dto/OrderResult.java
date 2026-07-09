@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.com.be_crm.domain.order.enums.OrderStatus;
 
 import java.math.BigDecimal;
@@ -11,7 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /** Output DTO cho Order. */
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class OrderResult {
     private Long id;
     private String code;
@@ -36,4 +37,11 @@ public class OrderResult {
     private String note;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    // Tên khóa ngoại — do BE resolve (INameResolver).
+    private String customerName;
+    private String contactName;
+    private String quotationCode;
+    private String opportunityName;
+    private String campaignName;
+    private String ownerName;
 }

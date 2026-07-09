@@ -44,6 +44,10 @@ export interface TicketResult {
     isOverdue: boolean;
     createdAt: string;
     updatedAt: string;
+    // Tên khóa ngoại do BE resolve sẵn (INameResolver).
+    customerName: string | null;
+    contactName: string | null;
+    assignedUserName: string | null;
 }
 
 /** Một dòng hàng trả/đổi gửi kèm khi tạo phiếu. */
@@ -111,4 +115,6 @@ export interface TicketComment {
     isInternal: boolean;
     authorId: number | null;
     createdAt: string;
+    // Tên tác giả do BE resolve sẵn (INameResolver).
+    authorName: string | null;
 }

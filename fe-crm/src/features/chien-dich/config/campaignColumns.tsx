@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { badgeCell, currencyCell, dateCell, fkCell, numberCell, textCell } from '@/shared/components/table/cells';
+import { badgeCell, currencyCell, dateCell, numberCell, textCell } from '@/shared/components/table/cells';
 import type { CampaignResult } from '../types/campaignTypes';
 
 export const CAMPAIGN_STATUS_LABELS: Record<string, string> = {
@@ -22,19 +22,14 @@ const CAMPAIGN_TYPE_COLORS: Record<string, string> = {
     other: 'bg-gray-50 text-gray-600',
 };
 
-/** Map ID → tên cho cột khóa ngoại của Chiến dịch. */
-export interface CampaignColumnLookups {
-    users: Map<number, string>;
-}
-
-/** Tạo danh sách cột Chiến dịch — hiển thị đầy đủ trường + tên người phụ trách. */
-export const getCampaignColumns = (lk: CampaignColumnLookups): ColumnDef<CampaignResult>[] => [
+/** Tạo danh sách cột Chiến dịch — hiển thị đầy đủ trường + tên người phụ trách (do BE resolve sẵn). */
+export const getCampaignColumns = (): ColumnDef<CampaignResult>[] => [
     { accessorKey: 'code', header: 'Mã', size: 110, enableSorting: true },
     { accessorKey: 'name', header: 'Tên chiến dịch', size: 220, enableSorting: true, cell: textCell },
     { accessorKey: 'type', header: 'Loại', size: 130, cell: badgeCell(CAMPAIGN_TYPE_LABELS, CAMPAIGN_TYPE_COLORS) },
     { accessorKey: 'status', header: 'Trạng thái', size: 130, cell: badgeCell(CAMPAIGN_STATUS_LABELS, CAMPAIGN_STATUS_COLORS) },
     { accessorKey: 'channel', header: 'Kênh', size: 150, cell: textCell },
-    { accessorKey: 'ownerId', header: 'Người phụ trách', size: 160, cell: fkCell(lk.users) },
+    { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
     { accessorKey: 'startDate', header: 'Bắt đầu', size: 120, cell: dateCell },
     { accessorKey: 'endDate', header: 'Kết thúc', size: 120, cell: dateCell },
     { accessorKey: 'budget', header: 'Ngân sách', size: 150, cell: currencyCell },

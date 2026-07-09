@@ -9,9 +9,6 @@ import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
-import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { useOrgUnits } from '@/features/users/hooks/useOrgUnits';
-import { toIdNameMap } from '@/shared/utils/lookup';
 import { useCustomerList } from '../hooks/useCustomerList';
 import { useDeleteCustomer } from '../hooks/useDeleteCustomer';
 import { useHandoverBulkCustomer } from '../hooks/useHandoverBulkCustomer';
@@ -28,8 +25,6 @@ const KhachHangPage = () => {
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteCustomer();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkCustomer();
     const { mutate: workflowFn } = useCustomerWorkflow();
-    const { data: users } = useActiveUsers();
-    const { data: orgUnits } = useOrgUnits();
 
     const [editTarget, setEditTarget] = useState<CustomerResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -50,12 +45,7 @@ const KhachHangPage = () => {
             },
         });
 
-    const columns = useMemo<ColumnDef<CustomerResult>[]>(() => [
-        ...getCustomerColumns({
-            users: toIdNameMap(users, 'id', 'fullName'),
-            orgUnits: toIdNameMap(orgUnits, 'id', 'name'),
-        }),
-    ], [users, orgUnits]);
+    const columns = useMemo<ColumnDef<CustomerResult>[]>(() => getCustomerColumns(), []);
 
     /** Thao tác của một khách hàng — hiện trong menu chuột phải. */
     const rowActions = (c: CustomerResult): RowAction[] => [

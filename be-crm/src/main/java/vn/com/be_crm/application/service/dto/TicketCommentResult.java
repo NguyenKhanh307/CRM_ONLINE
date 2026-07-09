@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.com.be_crm.domain.service.enums.CommentType;
 
 import java.time.LocalDateTime;
 
 /** Output DTO cho TicketComment. */
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class TicketCommentResult {
     private Long id;
     private Long ticketId;
@@ -18,4 +19,6 @@ public class TicketCommentResult {
     private boolean isInternal;
     private Long authorId;
     private LocalDateTime createdAt;
+    // Tên tác giả — do BE resolve (INameResolver).
+    private String authorName;
 }

@@ -80,4 +80,7 @@ export interface ContactResult {
     isPrimary: boolean;
     createdAt: string;
     updatedAt: string;
+    // Tên khóa ngoại do BE resolve sẵn (INameResolver).
+    customerName: string | null;
+    assignedUserName: string | null;
 }

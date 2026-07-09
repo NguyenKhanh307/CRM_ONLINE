@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.com.be_crm.domain.campaign.enums.CampaignStatus;
 import vn.com.be_crm.domain.campaign.enums.CampaignType;
 
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /** Output DTO cho Campaign. */
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class CampaignResult {
     private Long id;
     private String code;
@@ -30,4 +31,6 @@ public class CampaignResult {
     private String description;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    // Tên khóa ngoại — do BE resolve (INameResolver).
+    private String ownerName;
 }

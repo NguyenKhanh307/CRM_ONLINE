@@ -30,7 +30,7 @@ public class LeadBeanConfig {
     /** @return GetLeadUseCase */
     @Bean public GetLeadUseCase getLeadUseCase(ILeadRepository r) { return new GetLeadUseCase(r); }
     /** @return ListLeadUseCase */
-    @Bean public ListLeadUseCase listLeadUseCase(ILeadRepository r) { return new ListLeadUseCase(r); }
+    @Bean public ListLeadUseCase listLeadUseCase(ILeadRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListLeadUseCase(r, n); }
     /** @return LeadWorkflowUseCase — convert (tách KH+LH+CH) / lose */
     @Bean public LeadWorkflowUseCase leadWorkflowUseCase(ILeadRepository r, ICustomerRepository cr,
                                                          IContactRepository ctr, IOpportunityRepository or) {

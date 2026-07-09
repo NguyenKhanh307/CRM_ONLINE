@@ -93,4 +93,11 @@ export interface OrderResult {
     note: string | null;
     createdAt: string;
     updatedAt: string;
+    // Tên khóa ngoại do BE resolve sẵn (INameResolver).
+    customerName: string | null;
+    contactName: string | null;
+    quotationCode: string | null;
+    opportunityName: string | null;
+    campaignName: string | null;
+    ownerName: string | null;
 }

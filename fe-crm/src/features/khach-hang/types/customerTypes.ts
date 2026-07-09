@@ -74,4 +74,7 @@ export interface CustomerResult {
     unitId: number | null;
     createdAt: string;
     updatedAt: string;
+    // Tên khóa ngoại do BE resolve sẵn (INameResolver).
+    ownerName: string | null;
+    unitName: string | null;
 }

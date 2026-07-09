@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.com.be_crm.domain.invoice.enums.InvoiceStatus;
 import vn.com.be_crm.domain.invoice.enums.PaymentStatus;
 
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /** Output DTO cho Invoice. */
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class InvoiceResult {
     private Long id;
     private String code;
@@ -39,4 +40,10 @@ public class InvoiceResult {
     private String note;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    // Tên khóa ngoại — do BE resolve (INameResolver).
+    private String customerName;
+    private String contactName;
+    private String quotationCode;
+    private String opportunityName;
+    private String ownerName;
 }

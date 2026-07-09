@@ -36,7 +36,7 @@ public class QuotationBeanConfig {
     /** @return GetQuotationUseCase */
     @Bean public GetQuotationUseCase getQuotationUseCase(IQuotationRepository r) { return new GetQuotationUseCase(r); }
     /** @return ListQuotationUseCase */
-    @Bean public ListQuotationUseCase listQuotationUseCase(IQuotationRepository r) { return new ListQuotationUseCase(r); }
+    @Bean public ListQuotationUseCase listQuotationUseCase(IQuotationRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListQuotationUseCase(r, n); }
 
     // ===== Quotation Item =====
 

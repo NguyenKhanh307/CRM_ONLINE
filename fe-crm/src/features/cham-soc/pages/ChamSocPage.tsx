@@ -7,10 +7,6 @@ import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
-import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useContactList } from '@/features/lien-he/hooks/useContactList';
-import { toIdNameMap } from '@/shared/utils/lookup';
 import { useTicketList } from '../hooks/useTicketList';
 import { useDeleteTicket } from '../hooks/useDeleteTicket';
 import { useHandoverBulkTicket } from '../hooks/useHandoverBulkTicket';
@@ -25,9 +21,6 @@ const ChamSocPage = () => {
     const { data = [], isLoading } = useTicketList();
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteTicket();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkTicket();
-    const { data: users } = useActiveUsers();
-    const { data: customers } = useCustomerList();
-    const { data: contacts } = useContactList();
 
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
     const [selectedRows, setSelectedRows] = useState<TicketResult[]>([]);
@@ -37,13 +30,7 @@ const ChamSocPage = () => {
 
     const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
-    const columns = useMemo<ColumnDef<TicketResult>[]>(() => [
-        ...getTicketColumns({
-            customers: toIdNameMap(customers, 'id', 'name'),
-            contacts: toIdNameMap(contacts, 'id', 'fullName'),
-            users: toIdNameMap(users, 'id', 'fullName'),
-        }),
-    ], [users, customers, contacts]);
+    const columns = useMemo<ColumnDef<TicketResult>[]>(() => getTicketColumns(), []);
 
     return (
         <div className="p-6 bg-bg-main min-h-screen">

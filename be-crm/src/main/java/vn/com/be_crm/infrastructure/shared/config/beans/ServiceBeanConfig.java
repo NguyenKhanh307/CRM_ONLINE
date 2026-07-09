@@ -29,7 +29,7 @@ public class ServiceBeanConfig {
     /** @return GetTicketUseCase */
     @Bean public GetTicketUseCase getTicketUseCase(ITicketRepository r) { return new GetTicketUseCase(r); }
     /** @return ListTicketUseCase */
-    @Bean public ListTicketUseCase listTicketUseCase(ITicketRepository r) { return new ListTicketUseCase(r); }
+    @Bean public ListTicketUseCase listTicketUseCase(ITicketRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListTicketUseCase(r, n); }
 
     // ===== Workflow / CSAT =====
 
@@ -56,7 +56,7 @@ public class ServiceBeanConfig {
     /** @return CreateTicketCommentUseCase */
     @Bean public CreateTicketCommentUseCase createTicketCommentUseCase(ITicketCommentRepository r) { return new CreateTicketCommentUseCase(r); }
     /** @return ListTicketCommentUseCase */
-    @Bean public ListTicketCommentUseCase listTicketCommentUseCase(ITicketCommentRepository r) { return new ListTicketCommentUseCase(r); }
+    @Bean public ListTicketCommentUseCase listTicketCommentUseCase(ITicketCommentRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListTicketCommentUseCase(r, n); }
 
     // ===== SLA =====
 

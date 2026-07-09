@@ -10,11 +10,6 @@ import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
-import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useContactList } from '@/features/lien-he/hooks/useContactList';
-import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
-import { toIdNameMap } from '@/shared/utils/lookup';
 import { useLeadList } from '../hooks/useLeadList';
 import { useDeleteLead } from '../hooks/useDeleteLead';
 import { useHandoverBulkLead } from '../hooks/useHandoverBulkLead';
@@ -33,10 +28,6 @@ const TiemNangPage = () => {
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteLead();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkLead();
     const { mutate: workflowFn } = useLeadWorkflow();
-    const { data: users } = useActiveUsers();
-    const { data: customers } = useCustomerList();
-    const { data: contacts } = useContactList();
-    const { data: campaigns } = useCampaignList();
 
     const [editTarget, setEditTarget] = useState<LeadResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -65,14 +56,7 @@ const TiemNangPage = () => {
             },
         });
 
-    const columns = useMemo<ColumnDef<LeadResult>[]>(() => [
-        ...getLeadColumns({
-            users: toIdNameMap(users, 'id', 'fullName'),
-            customers: toIdNameMap(customers, 'id', 'name'),
-            contacts: toIdNameMap(contacts, 'id', 'fullName'),
-            campaigns: toIdNameMap(campaigns, 'id', 'name'),
-        }),
-    ], [users, customers, contacts, campaigns]);
+    const columns = useMemo<ColumnDef<LeadResult>[]>(() => getLeadColumns(), []);
 
     /** Thao tác của một tiềm năng — hiện trong menu chuột phải. */
     const rowActions = (l: LeadResult): RowAction[] => {

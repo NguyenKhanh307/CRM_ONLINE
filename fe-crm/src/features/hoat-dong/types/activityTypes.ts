@@ -55,4 +55,6 @@ export interface ActivityResult {
     completedAt: string | null;
     createdAt: string;
     updatedAt: string;
+    // Tên khóa ngoại do BE resolve sẵn (INameResolver).
+    assignedUserName: string | null;
 }

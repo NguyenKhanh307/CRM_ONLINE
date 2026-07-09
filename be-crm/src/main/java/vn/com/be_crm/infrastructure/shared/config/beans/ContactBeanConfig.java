@@ -24,7 +24,7 @@ public class ContactBeanConfig {
     /** @return GetContactUseCase */
     @Bean public GetContactUseCase getContactUseCase(IContactRepository r) { return new GetContactUseCase(r); }
     /** @return ListContactUseCase */
-    @Bean public ListContactUseCase listContactUseCase(IContactRepository r) { return new ListContactUseCase(r); }
+    @Bean public ListContactUseCase listContactUseCase(IContactRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListContactUseCase(r, n); }
 
     // ===== Contact Phone =====
 

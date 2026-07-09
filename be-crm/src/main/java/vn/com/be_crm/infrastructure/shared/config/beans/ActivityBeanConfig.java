@@ -22,7 +22,7 @@ public class ActivityBeanConfig {
     /** @return GetActivityUseCase được inject IActivityRepository */
     @Bean public GetActivityUseCase getActivityUseCase(IActivityRepository r) { return new GetActivityUseCase(r); }
     /** @return ListActivityUseCase được inject IActivityRepository */
-    @Bean public ListActivityUseCase listActivityUseCase(IActivityRepository r) { return new ListActivityUseCase(r); }
+    @Bean public ListActivityUseCase listActivityUseCase(IActivityRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListActivityUseCase(r, n); }
     /** @return ImportBulkActivityUseCase được inject IActivityRepository */
     @Bean public ImportBulkActivityUseCase importBulkActivityUseCase(IActivityRepository r) { return new ImportBulkActivityUseCase(r); }
     /** @return ActivityWorkflowUseCase — hành động start/complete/cancel */

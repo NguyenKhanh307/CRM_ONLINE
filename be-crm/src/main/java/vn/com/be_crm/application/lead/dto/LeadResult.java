@@ -4,13 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.com.be_crm.domain.lead.enums.LeadStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /** Output DTO cho Lead. */
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class LeadResult {
     private Long id;
     private String code;
@@ -38,4 +39,9 @@ public class LeadResult {
     private String note;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    // Tên khóa ngoại — do BE resolve (INameResolver) để FE hiển thị trực tiếp, không còn "#id".
+    private String ownerName;
+    private String customerName;
+    private String contactName;
+    private String campaignName;
 }

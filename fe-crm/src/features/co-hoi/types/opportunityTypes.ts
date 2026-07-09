@@ -79,4 +79,9 @@ export interface OpportunityResult {
     status: string;
     createdAt: string;
     updatedAt: string;
+    // Tên khóa ngoại do BE resolve sẵn (INameResolver).
+    customerName: string | null;
+    contactName: string | null;
+    ownerName: string | null;
+    stageName: string | null;
 }

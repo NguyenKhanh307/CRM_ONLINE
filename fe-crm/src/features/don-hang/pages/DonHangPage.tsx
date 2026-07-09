@@ -10,13 +10,6 @@ import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useOrderWorkflow, type OrderAction } from '../hooks/useOrderWorkflow';
-import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useContactList } from '@/features/lien-he/hooks/useContactList';
-import { useOpportunityList } from '@/features/co-hoi/hooks/useOpportunityList';
-import { useQuotationList } from '@/features/bao-gia/hooks/useQuotationList';
-import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
-import { toIdNameMap } from '@/shared/utils/lookup';
 import { useOrderList } from '../hooks/useOrderList';
 import { useDeleteOrder } from '../hooks/useDeleteOrder';
 import { useHandoverBulkOrder } from '../hooks/useHandoverBulkOrder';
@@ -32,12 +25,6 @@ const DonHangPage = () => {
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteOrder();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkOrder();
     const { mutate: workflowFn } = useOrderWorkflow();
-    const { data: users } = useActiveUsers();
-    const { data: customers } = useCustomerList();
-    const { data: contacts } = useContactList();
-    const { data: opportunities } = useOpportunityList();
-    const { data: quotations } = useQuotationList();
-    const { data: campaigns } = useCampaignList();
 
     const [editTarget, setEditTarget] = useState<OrderResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -65,16 +52,7 @@ const DonHangPage = () => {
             },
         });
 
-    const columns = useMemo<ColumnDef<OrderResult>[]>(() => [
-        ...getOrderColumns({
-            customers: toIdNameMap(customers, 'id', 'name'),
-            contacts: toIdNameMap(contacts, 'id', 'fullName'),
-            quotations: toIdNameMap(quotations, 'id', 'code'),
-            opportunities: toIdNameMap(opportunities, 'id', 'name'),
-            campaigns: toIdNameMap(campaigns, 'id', 'name'),
-            users: toIdNameMap(users, 'id', 'fullName'),
-        }),
-    ], [users, customers, contacts, opportunities, quotations, campaigns]);
+    const columns = useMemo<ColumnDef<OrderResult>[]>(() => getOrderColumns(), []);
 
     /** Thao tác của một đơn hàng — hiện trong menu chuột phải. */
     const rowActions = (o: OrderResult): RowAction[] => [

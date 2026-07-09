@@ -25,7 +25,7 @@ public class CampaignBeanConfig {
     /** @return GetCampaignUseCase */
     @Bean public GetCampaignUseCase getCampaignUseCase(ICampaignRepository r) { return new GetCampaignUseCase(r); }
     /** @return ListCampaignUseCase */
-    @Bean public ListCampaignUseCase listCampaignUseCase(ICampaignRepository r) { return new ListCampaignUseCase(r); }
+    @Bean public ListCampaignUseCase listCampaignUseCase(ICampaignRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListCampaignUseCase(r, n); }
     /** @return CampaignWorkflowUseCase — luồng trạng thái chiến dịch */
     @Bean public CampaignWorkflowUseCase campaignWorkflowUseCase(ICampaignRepository r) { return new CampaignWorkflowUseCase(r); }
     /** @return GetCampaignStatsUseCase — thống kê ROI */

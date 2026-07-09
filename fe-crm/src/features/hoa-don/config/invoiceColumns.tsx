@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { badgeCell, currencyCell, dateCell, fkCell, numberCell, textCell, yesNoCell } from '@/shared/components/table/cells';
+import { badgeCell, currencyCell, dateCell, numberCell, textCell, yesNoCell } from '@/shared/components/table/cells';
 import type { InvoiceResult } from '../types/invoiceTypes';
 
 const INVOICE_STATUS_COLORS: Record<string, string> = {
@@ -25,25 +25,14 @@ const PAYMENT_LABELS: Record<string, string> = {
     unpaid: 'Chưa thanh toán', partial: 'Thanh toán một phần', paid: 'Đã thanh toán',
 };
 
-/** Map ID → tên cho các cột khóa ngoại của Hóa đơn. */
-export interface InvoiceColumnLookups {
-    customers: Map<number, string>;
-    contacts: Map<number, string>;
-    quotations: Map<number, string>;
-    opportunities: Map<number, string>;
-    users: Map<number, string>;
-    orgUnits: Map<number, string>;
-    invoices: Map<number, string>;
-}
-
-/** Tạo danh sách cột Hóa đơn — hiển thị đầy đủ trường + tên khóa ngoại. */
-export const getInvoiceColumns = (lk: InvoiceColumnLookups): ColumnDef<InvoiceResult>[] => [
+/** Tạo danh sách cột Hóa đơn — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+export const getInvoiceColumns = (): ColumnDef<InvoiceResult>[] => [
     { accessorKey: 'code', header: 'Mã Hóa đơn', size: 140, enableSorting: true },
-    { accessorKey: 'customerId', header: 'Khách hàng', size: 180, cell: fkCell(lk.customers) },
-    { accessorKey: 'contactId', header: 'Liên hệ', size: 160, cell: fkCell(lk.contacts) },
-    { accessorKey: 'quotationId', header: 'Báo giá', size: 140, cell: fkCell(lk.quotations) },
-    { accessorKey: 'opportunityId', header: 'Cơ hội', size: 160, cell: fkCell(lk.opportunities) },
-    { accessorKey: 'ownerId', header: 'Người phụ trách', size: 160, cell: fkCell(lk.users) },
+    { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },
+    { accessorKey: 'contactName', header: 'Liên hệ', size: 160, cell: textCell },
+    { accessorKey: 'quotationCode', header: 'Báo giá', size: 140, cell: textCell },
+    { accessorKey: 'opportunityName', header: 'Cơ hội', size: 160, cell: textCell },
+    { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
     { accessorKey: 'status', header: 'Trạng thái', size: 130, cell: badgeCell(INVOICE_STATUS_LABELS, INVOICE_STATUS_COLORS) },
     { accessorKey: 'paymentStatus', header: 'Thanh toán', size: 170, cell: badgeCell(PAYMENT_LABELS, PAYMENT_COLORS) },
     { accessorKey: 'isLocked', header: 'Đã khóa', size: 100, cell: yesNoCell },

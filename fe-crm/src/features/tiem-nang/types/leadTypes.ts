@@ -72,4 +72,9 @@ export interface LeadResult {
     score: number;
     createdAt: string;
     updatedAt: string;
+    // Tên khóa ngoại do BE resolve sẵn (INameResolver).
+    ownerName: string | null;
+    customerName: string | null;
+    contactName: string | null;
+    campaignName: string | null;
 }

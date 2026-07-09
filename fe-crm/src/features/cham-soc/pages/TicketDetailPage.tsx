@@ -162,7 +162,7 @@ const TicketDetailPage = () => {
 
                     <div className="bg-white rounded-card shadow-sm p-5">
                         <h2 className="text-md font-semibold text-text-main mb-3">Lịch sử / trao đổi</h2>
-                        <TicketTimeline ticketId={ticket.id} users={userMap} />
+                        <TicketTimeline ticketId={ticket.id} />
                     </div>
                 </div>
 

@@ -32,9 +32,9 @@ export function toIdNameMap<T>(
 /**
  * Trả tên hiển thị cho một ID khóa ngoại.
  * - `null`/`undefined` → '—'
- * - chưa có trong map (vd nằm ngoài trang đầu của lookup list) → '#<id>'
+ * - chưa có trong map → '—' (không lộ mã "#id"; tên chuẩn nay do BE resolve sẵn qua INameResolver)
  */
 export function lookupName(map: Map<number, string>, id: number | null | undefined): string {
     if (id == null) return '—';
-    return map.get(id) ?? `#${id}`;
+    return map.get(id) ?? '—';
 }

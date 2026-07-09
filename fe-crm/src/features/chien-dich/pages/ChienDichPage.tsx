@@ -9,8 +9,6 @@ import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
-import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { toIdNameMap } from '@/shared/utils/lookup';
 import { useCampaignList } from '../hooks/useCampaignList';
 import { useDeleteCampaign } from '../hooks/useDeleteCampaign';
 import { useHandoverBulkCampaign } from '../hooks/useHandoverBulkCampaign';
@@ -27,7 +25,6 @@ const ChienDichPage = () => {
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteCampaign();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkCampaign();
     const { mutate: workflowFn } = useCampaignWorkflow();
-    const { data: users } = useActiveUsers();
 
     const [editTarget, setEditTarget] = useState<CampaignResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -47,9 +44,7 @@ const ChienDichPage = () => {
             },
         });
 
-    const columns = useMemo<ColumnDef<CampaignResult>[]>(() => [
-        ...getCampaignColumns({ users: toIdNameMap(users, 'id', 'fullName') }),
-    ], [users]);
+    const columns = useMemo<ColumnDef<CampaignResult>[]>(() => getCampaignColumns(), []);
 
     /** Thao tác của một chiến dịch — hiện trong menu chuột phải. */
     const rowActions = (c: CampaignResult): RowAction[] => [

@@ -10,13 +10,6 @@ import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useInvoiceWorkflow, type InvoiceAction } from '../hooks/useInvoiceWorkflow';
-import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { useOrgUnits } from '@/features/users/hooks/useOrgUnits';
-import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useContactList } from '@/features/lien-he/hooks/useContactList';
-import { useOpportunityList } from '@/features/co-hoi/hooks/useOpportunityList';
-import { useQuotationList } from '@/features/bao-gia/hooks/useQuotationList';
-import { toIdNameMap } from '@/shared/utils/lookup';
 import { useInvoiceList } from '../hooks/useInvoiceList';
 import { useDeleteInvoice } from '../hooks/useDeleteInvoice';
 import { useHandoverBulkInvoice } from '../hooks/useHandoverBulkInvoice';
@@ -32,12 +25,6 @@ const HoaDonPage = () => {
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteInvoice();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkInvoice();
     const { mutate: workflowFn } = useInvoiceWorkflow();
-    const { data: users } = useActiveUsers();
-    const { data: orgUnits } = useOrgUnits();
-    const { data: customers } = useCustomerList();
-    const { data: contacts } = useContactList();
-    const { data: opportunities } = useOpportunityList();
-    const { data: quotations } = useQuotationList();
 
     const [editTarget, setEditTarget] = useState<InvoiceResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -58,17 +45,7 @@ const HoaDonPage = () => {
             },
         });
 
-    const columns = useMemo<ColumnDef<InvoiceResult>[]>(() => [
-        ...getInvoiceColumns({
-            customers: toIdNameMap(customers, 'id', 'name'),
-            contacts: toIdNameMap(contacts, 'id', 'fullName'),
-            quotations: toIdNameMap(quotations, 'id', 'code'),
-            opportunities: toIdNameMap(opportunities, 'id', 'name'),
-            users: toIdNameMap(users, 'id', 'fullName'),
-            orgUnits: toIdNameMap(orgUnits, 'id', 'name'),
-            invoices: toIdNameMap(data, 'id', 'code'),
-        }),
-    ], [data, users, orgUnits, customers, contacts, opportunities, quotations]);
+    const columns = useMemo<ColumnDef<InvoiceResult>[]>(() => getInvoiceColumns(), []);
 
     /** Thao tác của một hóa đơn — hiện trong menu chuột phải. */
     const rowActions = (o: InvoiceResult): RowAction[] => [

@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { badgeCell, currencyCell, dateCell, fkCell, numberCell, textCell, yesNoCell } from '@/shared/components/table/cells';
+import { badgeCell, currencyCell, dateCell, numberCell, textCell, yesNoCell } from '@/shared/components/table/cells';
 import type { OrderResult } from '../types/orderTypes';
 
 const ORDER_STATUS_COLORS: Record<string, string> = {
@@ -15,25 +15,15 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
     completed: 'Hoàn tất', cancelled: 'Đã hủy',
 };
 
-/** Map ID → tên cho các cột khóa ngoại của Đơn hàng. */
-export interface OrderColumnLookups {
-    customers: Map<number, string>;
-    contacts: Map<number, string>;
-    quotations: Map<number, string>;
-    opportunities: Map<number, string>;
-    campaigns: Map<number, string>;
-    users: Map<number, string>;
-}
-
-/** Tạo danh sách cột Đơn hàng — hiển thị đầy đủ trường + tên khóa ngoại. */
-export const getOrderColumns = (lk: OrderColumnLookups): ColumnDef<OrderResult>[] => [
+/** Tạo danh sách cột Đơn hàng — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+export const getOrderColumns = (): ColumnDef<OrderResult>[] => [
     { accessorKey: 'code', header: 'Mã Đơn hàng', size: 140, enableSorting: true },
-    { accessorKey: 'customerId', header: 'Khách hàng', size: 180, cell: fkCell(lk.customers) },
-    { accessorKey: 'contactId', header: 'Liên hệ', size: 160, cell: fkCell(lk.contacts) },
-    { accessorKey: 'quotationId', header: 'Báo giá', size: 140, cell: fkCell(lk.quotations) },
-    { accessorKey: 'opportunityId', header: 'Cơ hội', size: 160, cell: fkCell(lk.opportunities) },
-    { accessorKey: 'campaignId', header: 'Chiến dịch', size: 160, cell: fkCell(lk.campaigns) },
-    { accessorKey: 'ownerId', header: 'Người phụ trách', size: 160, cell: fkCell(lk.users) },
+    { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },
+    { accessorKey: 'contactName', header: 'Liên hệ', size: 160, cell: textCell },
+    { accessorKey: 'quotationCode', header: 'Báo giá', size: 140, cell: textCell },
+    { accessorKey: 'opportunityName', header: 'Cơ hội', size: 160, cell: textCell },
+    { accessorKey: 'campaignName', header: 'Chiến dịch', size: 160, cell: textCell },
+    { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
     { accessorKey: 'status', header: 'Trạng thái', size: 130, cell: badgeCell(ORDER_STATUS_LABELS, ORDER_STATUS_COLORS) },
     { accessorKey: 'isLocked', header: 'Đã khóa', size: 100, cell: yesNoCell },
     { accessorKey: 'orderDate', header: 'Ngày đơn hàng', size: 140, cell: dateCell },

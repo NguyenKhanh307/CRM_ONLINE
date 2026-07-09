@@ -4,21 +4,31 @@ import vn.com.be_crm.application.invoice.dto.InvoiceResult;
 import vn.com.be_crm.application.invoice.mapper.InvoiceCommandMapper;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.application.shared.lookup.INameResolver;
+import vn.com.be_crm.application.shared.lookup.NameEnricher;
 import vn.com.be_crm.application.shared.usecase.IUseCase;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 /** Use case lấy danh sách đơn hàng có phân trang. */
 public class ListInvoiceUseCase implements IUseCase<PageRequest, PageResult<InvoiceResult>> {
     private final IInvoiceRepository repo;
-    /** @param repo port lưu trữ */
-    public ListInvoiceUseCase(IInvoiceRepository repo) { this.repo = repo; }
-    /** Lấy danh sách Invoice. @param r phân trang @return PageResult */
+    private final INameResolver names;
+    /** @param repo port lưu trữ @param names port tra tên khóa ngoại */
+    public ListInvoiceUseCase(IInvoiceRepository repo, INameResolver names) { this.repo = repo; this.names = names; }
+    /** Lấy danh sách Invoice kèm tên khóa ngoại (khách hàng, liên hệ, báo giá, cơ hội, người phụ trách). @param r phân trang @return PageResult */
     @Override public PageResult<InvoiceResult> execute(PageRequest r) {
         var page = repo.findAll(r);
+        List<InvoiceResult> items = page.getItems().stream().map(InvoiceCommandMapper::toResult).collect(Collectors.toList());
+        NameEnricher.apply(items, InvoiceResult::getCustomerId, names::customers, InvoiceResult::setCustomerName);
+        NameEnricher.apply(items, InvoiceResult::getContactId, names::contacts, InvoiceResult::setContactName);
+        NameEnricher.apply(items, InvoiceResult::getQuotationId, names::quotationCodes, InvoiceResult::setQuotationCode);
+        NameEnricher.apply(items, InvoiceResult::getOpportunityId, names::opportunities, InvoiceResult::setOpportunityName);
+        NameEnricher.apply(items, InvoiceResult::getOwnerId, names::users, InvoiceResult::setOwnerName);
         return PageResult.<InvoiceResult>builder()
-                .items(page.getItems().stream().map(InvoiceCommandMapper::toResult).collect(Collectors.toList()))
+                .items(items)
                 .total(page.getTotal()).page(page.getPage()).size(page.getSize()).build();
     }
 }

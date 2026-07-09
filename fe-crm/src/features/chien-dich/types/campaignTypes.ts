@@ -15,6 +15,8 @@ export interface CampaignResult {
     description: string | null;
     createdAt: string;
     updatedAt: string;
+    // Tên khóa ngoại do BE resolve sẵn (INameResolver).
+    ownerName: string | null;
 }
 
 /** Payload tạo mới Chiến dịch — POST /api/campaigns. */

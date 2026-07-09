@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { badgeCell, currencyCell, dateCell, fkCell, textCell } from '@/shared/components/table/cells';
+import { badgeCell, currencyCell, dateCell, textCell } from '@/shared/components/table/cells';
 import type { OpportunityResult } from '../types/opportunityTypes';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -12,22 +12,14 @@ const STATUS_LABELS: Record<string, string> = {
     open: 'Đang mở', won: 'Đã thắng', lost: 'Đã thua',
 };
 
-/** Map ID → tên cho các cột khóa ngoại của Cơ hội. */
-export interface OpportunityColumnLookups {
-    customers: Map<number, string>;
-    contacts: Map<number, string>;
-    users: Map<number, string>;
-    stages: Map<number, string>;
-}
-
-/** Tạo danh sách cột Cơ hội — hiển thị đầy đủ trường + tên khóa ngoại. */
-export const getOpportunityColumns = (lk: OpportunityColumnLookups): ColumnDef<OpportunityResult>[] => [
+/** Tạo danh sách cột Cơ hội — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+export const getOpportunityColumns = (): ColumnDef<OpportunityResult>[] => [
     { accessorKey: 'code', header: 'Mã', size: 100, enableSorting: true },
     { accessorKey: 'name', header: 'Tên cơ hội', size: 200, enableSorting: true },
     { accessorKey: 'opportunityType', header: 'Loại', size: 120, cell: textCell },
-    { accessorKey: 'customerId', header: 'Khách hàng', size: 180, cell: fkCell(lk.customers) },
-    { accessorKey: 'contactId', header: 'Liên hệ', size: 160, cell: fkCell(lk.contacts) },
-    { accessorKey: 'stageId', header: 'Giai đoạn', size: 150, cell: fkCell(lk.stages) },
+    { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },
+    { accessorKey: 'contactName', header: 'Liên hệ', size: 160, cell: textCell },
+    { accessorKey: 'stageName', header: 'Giai đoạn', size: 150, cell: textCell },
     { accessorKey: 'amount', header: 'Giá trị', size: 140, cell: currencyCell },
     { accessorKey: 'expectedRevenue', header: 'Doanh thu dự kiến', size: 160, cell: currencyCell },
     {
@@ -43,7 +35,7 @@ export const getOpportunityColumns = (lk: OpportunityColumnLookups): ColumnDef<O
     { accessorKey: 'source', header: 'Nguồn', size: 120, cell: textCell },
     { accessorKey: 'winLossReason', header: 'Lý do thắng/thua', size: 180, cell: textCell },
     { accessorKey: 'description', header: 'Mô tả', size: 200, cell: textCell },
-    { accessorKey: 'ownerId', header: 'Người phụ trách', size: 160, cell: fkCell(lk.users) },
+    { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
     { accessorKey: 'expectedCloseDate', header: 'Ngày đóng dự kiến', size: 160, cell: dateCell },
     { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
 ];

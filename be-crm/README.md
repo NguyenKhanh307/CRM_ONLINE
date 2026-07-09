@@ -898,6 +898,21 @@ be-crm/src/main/java/vn/com/be_crm/
 | Output DTO | Suffix `Result` | `UserResult` |
 | Command DTO | Suffix `Command` | `CreateUserCommand` |
 
+### Resolve tên khóa ngoại trong DTO danh sách (INameResolver)
+
+Các DTO danh sách (`LeadResult`, `CustomerResult`, `OpportunityResult`, `QuotationResult`,
+`OrderResult`, `InvoiceResult`, `ContactResult`, `ActivityResult`, `ProductResult`,
+`CampaignResult`, `TicketResult`, `TicketCommentResult`) trả kèm **tên khóa ngoại** (`ownerName`,
+`customerName`, `contactName`, `quotationCode`…) để FE hiển thị trực tiếp — không còn resolve `#id`
+phía client.
+
+- Port `application/shared/lookup/INameResolver` + impl `infrastructure/shared/lookup/NameResolverImpl`:
+  native `SELECT id, <col> FROM <table> WHERE id IN (:ids)`, **không lọc `deleted_at`/`is_purged`**
+  (tên vẫn resolve cho bản ghi đã xóa mềm/vĩnh viễn). `ids` rỗng → trả map rỗng (không chạy query).
+- Helper `application/shared/lookup/NameEnricher.apply(items, Result::getFkId, names::table, Result::setFkName)`
+  gom ID → tra một lần → set tên. Gọi trong `List<Module>UseCase`; wire thêm tham số `INameResolver`
+  vào `@Bean list*UseCase(...)`.
+
 ### Soft delete
 
 Các entity hỗ trợ soft delete: User, Contact, Customer, Lead, Opportunity, Quotation, Order, Product.
