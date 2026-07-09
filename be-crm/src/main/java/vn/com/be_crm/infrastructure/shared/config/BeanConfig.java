@@ -6,6 +6,7 @@ import vn.com.be_crm.infrastructure.shared.config.beans.ActivityBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.AuthBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.CampaignBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.ContactBeanConfig;
+import vn.com.be_crm.infrastructure.shared.config.beans.CopilotBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.CustomerBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.DashboardBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.HandoverBeanConfig;
@@ -40,7 +41,8 @@ import vn.com.be_crm.infrastructure.shared.config.beans.ServiceBeanConfig;
         PricingBeanConfig.class,
         HandoverBeanConfig.class,
         NotificationBeanConfig.class,
-        DashboardBeanConfig.class
+        DashboardBeanConfig.class,
+        CopilotBeanConfig.class
 })
 public class BeanConfig {
 }

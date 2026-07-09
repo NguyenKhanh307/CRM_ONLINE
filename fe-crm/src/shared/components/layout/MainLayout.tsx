@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
+import { CopilotWidget } from '@/shared/copilot/CopilotWidget';
 
 export const MainLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -18,6 +19,8 @@ export const MainLayout = () => {
                     <Outlet />
                 </main>
             </div>
+
+            <CopilotWidget />
         </div>
     );
 };

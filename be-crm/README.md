@@ -621,6 +621,18 @@ Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động
 - **Hóa đơn — paymentStatus/status**: suy ra tự động từ tổng `paidAmount` các `/payment-schedules` (không nhận tay).
 - DB: toàn bộ schema (gồm enum `pending`/`accepted`, luồng Báo giá→Hóa đơn, pricebook) đã hợp nhất trong `diagrams/crm.sql` — chỉ cần chạy `crm.sql` rồi `data.sql`.
 
+### 2.14 Copilot — Trợ lý AI hỏi đáp CRM (MỚI)
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `POST` | `/api/copilot/ask` | Hỏi trợ lý AI. Body `{ question }` → trả `{ answer }` (văn bản tiếng Việt). Cần JWT. |
+
+- **RAG có cấu trúc (structured RAG), KHÔNG train, KHÔNG vector DB**: `CopilotContextRepositoryImpl` chạy native SQL gom ngữ cảnh thật từ DB rồi nhồi vào prompt; mô hình chỉ diễn giải. Mọi con số do SQL tính.
+- Ngữ cảnh gồm 2 loại: **(A) số liệu tổng hợp** (doanh thu kỳ này/kỳ trước, đếm KH/SP/cơ hội mở/HĐ quá hạn, tỷ lệ thắng, tỷ lệ chốt đơn, phễu — dùng lại `PeriodRanges` như Dashboard) và **(B) phễu bản ghi cụ thể** khi câu hỏi nhắc tên/mã khách (cơ hội→báo giá→đơn→hóa đơn→ticket).
+- **Phân quyền dữ liệu**: ADMIN/SALES_MANAGER xem toàn bộ (`ownerId=null`); nhân viên chỉ xem bản ghi `owner_id = userId` (kỳ + phễu đều lọc theo owner).
+- **Nhà cung cấp**: Google Gemini qua `GeminiAiServiceImpl` (adapter của port `IAiService`) — dùng `RestClient` của spring-web, **không thêm dependency**. Đổi nhà cung cấp chỉ cần thay implementation.
+- **Cấu hình** (externalize như JWT/mail): `app.ai.api-key` (env `APP_AI_API_KEY` — bắt buộc, không commit), `app.ai.model` (mặc định `gemini-flash-latest` — model chạy được trên free tier; `gemini-2.0-flash` bị giới hạn quota 0 nên **không dùng free tier**), `app.ai.base-url`. Dev đặt key trong `application-local.properties`.
+
 ---
 
 ## 3. Cấu trúc folder/file
@@ -952,6 +964,7 @@ Backend deploy lên **Render** bằng **Docker** (`be-crm/Dockerfile`, multi-sta
 | `SPRING_MAIL_USERNAME` / `SPRING_MAIL_PASSWORD` | Gmail SMTP + App Password |
 | `APP_FRONTEND_BASE_URL` | URL frontend Netlify (link kích hoạt + phản hồi báo giá trong email) |
 | `APP_CORS_ALLOWED_ORIGINS` | URL frontend Netlify (cho CORS) |
+| `APP_AI_API_KEY` | Khóa API Google Gemini (AI Studio) cho trợ lý Copilot. `APP_AI_MODEL`/`APP_AI_BASE_URL` tùy chọn (có default) |
 
 ### Các bước
 1. Render → **New → Web Service**, connect repo, **Root Directory = `be-crm`**, Runtime = **Docker**.

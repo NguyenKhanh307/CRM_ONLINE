@@ -347,6 +347,12 @@ Files: `features/thung-rac/` — types/thungRacTypes.ts, services/trashService.t
 
 **Quyền:** ADMIN/SALES_MANAGER bàn giao bất kỳ bản ghi; nhân viên chỉ bàn giao bản ghi do mình là `owner_id`.
 
+### Trợ lý AI Copilot — bong bóng chat nổi (MỚI)
+- **Widget nổi góc phải-dưới**, hiện trên **mọi trang** (mount trong `shared/components/layout/MainLayout.tsx`). Không phải route, không có mục sidebar.
+- Đặt tại `src/shared/copilot/` (theo tiền lệ `shared/notifications` — widget cross-cutting có service/hook riêng trong `shared/`, để `MainLayout` không import `features/`): `copilotTypes.ts`, `copilotService.ts` (`POST /api/copilot/ask`, timeout 60s), `useAskCopilot.ts` (`useMutation`, unwrap `.data.data`), `CopilotWidget.tsx`.
+- Hỏi tiếng Việt về dữ liệu CRM — số liệu tổng hợp ("Doanh thu quý này so quý trước? Tỷ lệ thắng?") hoặc tình hình khách hàng cụ thể ("Khách ABC đang thế nào?"). BE giới hạn dữ liệu theo quyền của người đăng nhập.
+- Cần backend cấu hình `APP_AI_API_KEY` (Gemini). FE không đổi biến môi trường nào.
+
 ### Shared component
 - `shared/components/ConfirmModal.tsx` — modal xác nhận dùng chung, thay thế `window.confirm()`
 - `shared/components/HandoverModal.tsx` — modal bàn giao, dùng chung cho 5 module list page
