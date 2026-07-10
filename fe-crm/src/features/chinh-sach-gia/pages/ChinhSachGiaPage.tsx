@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiTrash2, FiPlus } from 'react-icons/fi';
+import { FiTrash2 } from 'react-icons/fi';
 import type { RowAction } from '@/shared/types/table';
 import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { CreateButton } from '@/shared/components/CreateButton';
+import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { usePricePolicyList } from '../hooks/usePricePolicyList';
@@ -25,6 +28,8 @@ const ChinhSachGiaPage = () => {
     const openCreate = () => { setEditTarget(null); setFormOpen(true); };
     const openEdit = (item: PricePolicyResult) => { setEditTarget(item); setFormOpen(true); };
 
+    usePageShortcuts({ onCreate: openCreate });
+
     /** Thao tác của một chính sách giá — hiện trong menu chuột phải. */
     const rowActions = (p: PricePolicyResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/chinh-sach-gia/${p.id}`) },
@@ -36,23 +41,13 @@ const ChinhSachGiaPage = () => {
         <div className="p-6 bg-bg-main">
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Chính sách giá</h1>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                    <CreateButton onClick={openCreate} />
                     {selectedRows.length > 0 && (
-                        <button
-                            onClick={() => setBulkDeleteOpen(true)}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-btn bg-red-50 text-danger text-md font-medium hover:bg-red-100"
-                        >
-                            <FiTrash2 size={14} />
-                            Xóa đã chọn ({selectedRows.length})
-                        </button>
+                        <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
+                            Xóa ({selectedRows.length})
+                        </ActionButton>
                     )}
-                    <button
-                        onClick={openCreate}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90"
-                    >
-                        <FiPlus size={14} />
-                        Tạo mới
-                    </button>
                 </div>
             </PageHeaderSlot>
 

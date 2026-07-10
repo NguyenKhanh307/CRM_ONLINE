@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
@@ -30,6 +32,7 @@ const initialState = (assignedUserId: string): HeaderState => ({
 const TicketAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
+    const { confirmCreate } = useConfirm();
     const { user } = useAuth();
     const defaultUserId = user ? String(user.id) : '';
     const [form, setForm] = useState<HeaderState>(() => initialState(defaultUserId));
@@ -50,7 +53,7 @@ const TicketAddPage = () => {
     const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
     const reset = () => { setForm(initialState(defaultUserId)); setReturnRows([emptyReturnRow()]); };
 
-    const submit = (andNew: boolean) => {
+    const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã phiếu không được để trống'); return; }
         if (!form.subject.trim()) { showAlert('Tiêu đề không được để trống'); return; }
         const payload: CreateTicketPayload = {
@@ -68,6 +71,7 @@ const TicketAddPage = () => {
             assignedUserId: form.assignedUserId ? Number(form.assignedUserId) : null,
             returnItems: isReturn ? toReturnItemPayloads(returnRows) : [],
         };
+        if (!(await confirmCreate('phiếu hỗ trợ'))) return;
         mutate(payload, {
             onSuccess: () => {
                 if (andNew) { reset(); showAlert('Đã tạo phiếu thành công'); }
@@ -77,8 +81,11 @@ const TicketAddPage = () => {
         });
     };
 
+    const formRef = useRef<HTMLDivElement>(null);
+    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+
     return (
-        <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
+        <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm phiếu hỗ trợ" saving={isPending}
                 onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
 

@@ -1,5 +1,8 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { ModalFooter } from '@/shared/components/ModalFooter';
 import { FiX } from 'react-icons/fi';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import { SearchableSelect, type SelectOption } from '@/shared/components/SearchableSelect';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
@@ -34,17 +37,26 @@ const toState = (t: TicketResult): FormState => ({
 /** Modal chỉnh sửa thông tin phiếu (KHÔNG đổi trạng thái — trạng thái đổi qua nút hành động). */
 export function TicketEditModal({ ticket, customerOptions, contactOptions, userOptions, productOptions, onClose }: Props) {
     const { showAlert } = useAlert();
+    const { confirmSave } = useConfirm();
     const { mutate, isPending } = useUpdateTicket();
     const [form, setForm] = useState<FormState | null>(null);
 
     useEffect(() => { setForm(ticket ? toState(ticket) : null); }, [ticket]);
 
+    const formRef = useRef<HTMLFormElement>(null);
+    useFormKeyboardNav(formRef, {
+        onSubmit: () => formRef.current?.requestSubmit(),
+        onCancel: onClose,
+        enabled: !!ticket && !!form,
+    });
+
     if (!ticket || !form) return null;
     const set = (p: Partial<FormState>) => setForm((s) => (s ? { ...s, ...p } : s));
 
-    const submit = (e: FormEvent) => {
+    const submit = async (e: FormEvent) => {
         e.preventDefault();
         if (!form.subject.trim()) { showAlert('Tiêu đề không được để trống'); return; }
+        if (!(await confirmSave('phiếu hỗ trợ'))) return;
         const payload: UpdateTicketPayload = {
             type: form.type as TicketType,
             subject: form.subject.trim(),
@@ -66,7 +78,7 @@ export function TicketEditModal({ ticket, customerOptions, contactOptions, userO
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40" onClick={onClose}>
-            <form onSubmit={submit} className="bg-white rounded-card shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <form ref={formRef} onSubmit={submit} className="bg-white rounded-card shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-semibold text-text-main">Sửa phiếu {ticket.code}</h2>
                     <button type="button" onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
@@ -106,12 +118,7 @@ export function TicketEditModal({ ticket, customerOptions, contactOptions, userO
                         <textarea rows={3} value={form.description} onChange={(e) => set({ description: e.target.value })} className={`${inputCls} resize-none`} />
                     </FieldRow>
                 </div>
-                <div className="flex justify-end gap-3 px-5 py-4 border-t border-gray-100">
-                    <button type="button" onClick={onClose} className="px-4 py-1.5 rounded-btn border border-gray-300 text-md text-text-main hover:bg-gray-50">Hủy</button>
-                    <button type="submit" disabled={isPending} className="px-4 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">
-                        {isPending ? 'Đang lưu…' : 'Lưu'}
-                    </button>
-                </div>
+                <ModalFooter onCancel={onClose} saving={isPending} className="flex justify-end gap-1.5 px-5 py-4 border-t border-gray-100" />
             </form>
         </div>
     );

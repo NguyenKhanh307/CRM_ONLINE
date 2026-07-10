@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FiX } from 'react-icons/fi';
+import { DialogFooter } from '@/shared/components/ModalFooter';
+import { useDialogKeyboardNav } from '@/shared/keyboard/useDialogKeyboardNav';
 
 interface Props {
     title: string;
@@ -22,9 +24,12 @@ export function ReasonModal({
     onCancel,
 }: Props) {
     const [reason, setReason] = useState('');
-    const btnColor = confirmDanger ? 'bg-danger' : 'bg-primary';
+    const ref = useRef<HTMLDivElement>(null);
+    // Không tự focus nút — người dùng cần gõ lý do trước; textarea giữ autoFocus riêng.
+    useDialogKeyboardNav(ref, { onCancel, autoFocus: 'none' });
+
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40" onClick={onCancel}>
+        <div ref={ref} className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40" onClick={onCancel}>
             <div className="bg-white rounded-card shadow-lg w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-semibold text-text-main">{title}</h2>
@@ -33,18 +38,20 @@ export function ReasonModal({
                 <div className="px-5 py-4 space-y-3">
                     <label className="block text-sm font-medium text-gray-700">{label}</label>
                     <textarea
+                        autoFocus
                         rows={3}
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
                         placeholder={placeholder}
                         className="w-full border border-gray-300 rounded-btn px-3 py-1.5 text-md text-text-main focus:outline-none focus:border-primary resize-none"
                     />
-                    <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-                        <button type="button" onClick={onCancel} className="px-4 py-1.5 rounded-btn border border-gray-300 text-md text-text-main hover:bg-gray-50">Hủy</button>
-                        <button type="button" onClick={() => onConfirm(reason.trim())} className={`px-4 py-1.5 rounded-btn ${btnColor} text-white text-md hover:opacity-90`}>
-                            {confirmLabel}
-                        </button>
-                    </div>
+                    <DialogFooter
+                        className="flex justify-end gap-1.5 pt-2 border-t border-gray-100"
+                        onCancel={onCancel}
+                        onConfirm={() => onConfirm(reason.trim())}
+                        confirmLabel={confirmLabel}
+                        confirmDanger={confirmDanger}
+                    />
                 </div>
             </div>
         </div>

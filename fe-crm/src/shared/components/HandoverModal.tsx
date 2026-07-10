@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FiX } from 'react-icons/fi';
 import { userService } from '@/features/users/services/userService';
+import { DialogFooter } from '@/shared/components/ModalFooter';
+import { useDialogKeyboardNav } from '@/shared/keyboard/useDialogKeyboardNav';
 
 interface HandoverModalProps {
     open: boolean;
@@ -21,10 +23,14 @@ export const HandoverModal = ({ open, count, onClose, onConfirm, isLoading }: Ha
         enabled: open,
     });
 
+    const ref = useRef<HTMLDivElement>(null);
+    // Không tự focus nút — người dùng phải chọn người nhận trước.
+    useDialogKeyboardNav(ref, { onCancel: onClose, autoFocus: 'none', enabled: open });
+
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div ref={ref} className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
             <div className="bg-white rounded-card shadow-xl w-[420px] max-w-[95vw]">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                     <span className="font-semibold text-base text-text-main">
@@ -62,21 +68,12 @@ export const HandoverModal = ({ open, count, onClose, onConfirm, isLoading }: Ha
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-2 px-5 py-3 border-t border-gray-200">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-1.5 rounded-btn border border-gray-300 text-sm text-text-main hover:bg-gray-50"
-                    >
-                        Hủy
-                    </button>
-                    <button
-                        disabled={!toUserId || isLoading}
-                        onClick={() => toUserId && onConfirm(toUserId, reason || undefined)}
-                        className="px-4 py-1.5 rounded-btn bg-primary text-white text-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isLoading ? 'Đang bàn giao...' : 'Bàn giao'}
-                    </button>
-                </div>
+                <DialogFooter
+                    onCancel={onClose}
+                    onConfirm={() => toUserId && onConfirm(toUserId, reason || undefined)}
+                    confirmLabel={isLoading ? 'Đang bàn giao...' : 'Bàn giao'}
+                    confirmDisabled={!toUserId || isLoading}
+                />
             </div>
         </div>
     );

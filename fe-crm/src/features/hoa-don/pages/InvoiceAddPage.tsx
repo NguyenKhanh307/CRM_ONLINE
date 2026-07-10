@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
@@ -41,6 +43,7 @@ const initialState = (ownerId: string): HeaderState => ({
 const InvoiceAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
+    const { confirmCreate } = useConfirm();
     const { user } = useAuth();
     const defaultOwnerId = user ? String(user.id) : '';
     const [form, setForm] = useState<HeaderState>(() => initialState(defaultOwnerId));
@@ -63,7 +66,7 @@ const InvoiceAddPage = () => {
     const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
     const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); };
 
-    const submit = (andNew: boolean) => {
+    const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã Hóa đơn không được để trống'); return; }
         const totals = computeTotals(rows);
         const payload: CreateInvoicePayload = {
@@ -86,6 +89,7 @@ const InvoiceAddPage = () => {
             note: form.note || null,
             items: toItemPayloads(rows),
         };
+        if (!(await confirmCreate('hóa đơn'))) return;
         mutate(payload, {
             onSuccess: () => {
                 if (andNew) { reset(); showAlert('Đã lưu Hóa đơn thành công'); }
@@ -99,8 +103,11 @@ const InvoiceAddPage = () => {
         });
     };
 
+    const formRef = useRef<HTMLDivElement>(null);
+    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+
     return (
-        <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
+        <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm Hóa đơn" saving={isPending}
                 onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
 

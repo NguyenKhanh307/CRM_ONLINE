@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FiX, FiDownload } from 'react-icons/fi';
+import { DialogFooter } from '@/shared/components/ModalFooter';
+import { useDialogKeyboardNav } from '@/shared/keyboard/useDialogKeyboardNav';
 import type { ExportColumn, ExportFormat } from './exportTypes';
 
 interface ExportModalProps<T> {
@@ -29,6 +31,10 @@ export function ExportModal<T>({ open, columns, rowCount, onClose, onExport }: E
         }
     }, [open, columns]);
 
+    const ref = useRef<HTMLDivElement>(null);
+    // Không tự focus nút — người dùng thường tick chọn cột trước.
+    useDialogKeyboardNav(ref, { onCancel: onClose, autoFocus: 'none', enabled: open });
+
     if (!open) return null;
 
     const toggle = (key: string) =>
@@ -37,7 +43,7 @@ export function ExportModal<T>({ open, columns, rowCount, onClose, onExport }: E
     const allChecked = selected.length === columns.length;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div ref={ref} className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
             <div className="bg-white rounded-card shadow-xl w-[440px] max-w-[95vw]">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                     <span className="font-semibold text-base text-text-main">Xuất file</span>
@@ -103,22 +109,13 @@ export function ExportModal<T>({ open, columns, rowCount, onClose, onExport }: E
                     <p className="text-sm text-gray-400">Sẽ xuất {rowCount} dòng</p>
                 </div>
 
-                <div className="flex justify-end gap-2 px-5 py-3 border-t border-gray-200">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-1.5 rounded-btn border border-gray-300 text-sm text-text-main hover:bg-gray-50"
-                    >
-                        Hủy
-                    </button>
-                    <button
-                        disabled={selected.length === 0}
-                        onClick={() => onExport(allKeys.filter(k => selected.includes(k)), format)}
-                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-btn bg-primary text-white text-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <FiDownload size={14} />
-                        Xuất file
-                    </button>
-                </div>
+                <DialogFooter
+                    onCancel={onClose}
+                    onConfirm={() => onExport(allKeys.filter(k => selected.includes(k)), format)}
+                    confirmLabel="Xuất file"
+                    confirmIcon={FiDownload}
+                    confirmDisabled={selected.length === 0}
+                />
             </div>
         </div>
     );

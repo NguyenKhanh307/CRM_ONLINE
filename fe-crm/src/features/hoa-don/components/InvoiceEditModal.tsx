@@ -1,4 +1,7 @@
-import { useState, type FormEvent, useEffect, useMemo } from 'react';
+import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
+import { ModalFooter } from '@/shared/components/ModalFooter';
+import { useConfirm } from '@/shared/confirm/useConfirm';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { FiX } from 'react-icons/fi';
 import type { InvoiceResult, UpdateInvoicePayload } from '../types/invoiceTypes';
 import { useUpdateInvoice } from '../hooks/useUpdateInvoice';
@@ -69,10 +72,19 @@ export function InvoiceEditModal({ item, onClose }: Props) {
         });
     }, [item]);
 
+    const { confirmSave } = useConfirm();
+    const formRef = useRef<HTMLFormElement>(null);
+    useFormKeyboardNav(formRef, {
+        onSubmit: () => formRef.current?.requestSubmit(),
+        onCancel: onClose,
+        enabled: !!item,
+    });
+
     if (!item) return null;
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        if (!(await confirmSave('hóa đơn'))) return;
         setSaving(true);
         try {
             const totals = computeTotals(rows);
@@ -103,7 +115,7 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa Hóa đơn</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Trạng thái (đổi qua hành động)</label>
@@ -150,12 +162,7 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                         <label className={lbl}>Ghi chú</label>
                         <textarea className={inp} rows={2} value={form.note ?? ''} onChange={e => setForm(f => ({ ...f, note: e.target.value || null }))} />
                     </div>
-                    <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-                        <button type="button" onClick={onClose} className="px-4 py-1.5 rounded-btn border border-gray-300 text-md text-text-main hover:bg-gray-50">Hủy</button>
-                        <button type="submit" disabled={busy} className="px-4 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">
-                            {busy ? 'Đang lưu...' : 'Lưu'}
-                        </button>
-                    </div>
+                    <ModalFooter onCancel={onClose} saving={busy} />
                 </form>
             </div>
         </div>

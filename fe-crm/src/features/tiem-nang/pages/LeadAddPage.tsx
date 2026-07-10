@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
@@ -87,6 +89,7 @@ const toPayload = (f: FormState): CreateLeadPayload => ({
 const LeadAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
+    const { confirmCreate } = useConfirm();
     const { user } = useAuth();
     const defaultOwnerId = user ? String(user.id) : '';
     const [form, setForm] = useState<FormState>(() => initialState(defaultOwnerId));
@@ -104,9 +107,10 @@ const LeadAddPage = () => {
 
     const set = (patch: Partial<FormState>) => setForm((p) => ({ ...p, ...patch }));
 
-    const submit = (andNew: boolean) => {
+    const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã tiềm năng không được để trống'); return; }
         if (!form.name.trim()) { showAlert('Tên tiềm năng không được để trống'); return; }
+        if (!(await confirmCreate('tiềm năng'))) return;
         mutate(toPayload(form), {
             onSuccess: () => {
                 if (andNew) { setForm(initialState(defaultOwnerId)); showAlert('Đã lưu tiềm năng thành công'); }
@@ -120,8 +124,11 @@ const LeadAddPage = () => {
         });
     };
 
+    const formRef = useRef<HTMLDivElement>(null);
+    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+
     return (
-        <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
+        <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader
                 title="Thêm Tiềm năng"
                 saving={isPending}

@@ -1,4 +1,7 @@
-import { useState, type FormEvent, useEffect, useMemo } from 'react';
+import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
+import { ModalFooter } from '@/shared/components/ModalFooter';
+import { useConfirm } from '@/shared/confirm/useConfirm';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { FiX } from 'react-icons/fi';
 import type { OpportunityResult, UpdateOpportunityPayload } from '../types/opportunityTypes';
 import { useUpdateOpportunity } from '../hooks/useUpdateOpportunity';
@@ -62,10 +65,19 @@ export function OpportunityEditModal({ item, onClose }: Props) {
         });
     }, [item]);
 
+    const { confirmSave } = useConfirm();
+    const formRef = useRef<HTMLFormElement>(null);
+    useFormKeyboardNav(formRef, {
+        onSubmit: () => formRef.current?.requestSubmit(),
+        onCancel: onClose,
+        enabled: !!item,
+    });
+
     if (!item) return null;
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        if (!(await confirmSave('cơ hội'))) return;
         setSaving(true);
         try {
             await mutateAsync({ id: item.id, payload: form });
@@ -92,7 +104,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa cơ hội</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Tên cơ hội <span className="text-danger">*</span></label>
@@ -151,12 +163,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                         <label className={lbl}>Lý do thắng/thua</label>
                         <input className={inp} value={form.winLossReason ?? ''} onChange={e => setForm(f => ({ ...f, winLossReason: e.target.value || null }))} />
                     </div>
-                    <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-                        <button type="button" onClick={onClose} className="px-4 py-1.5 rounded-btn border border-gray-300 text-md text-text-main hover:bg-gray-50">Hủy</button>
-                        <button type="submit" disabled={busy} className="px-4 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">
-                            {busy ? 'Đang lưu...' : 'Lưu'}
-                        </button>
-                    </div>
+                    <ModalFooter onCancel={onClose} saving={busy} />
                 </form>
             </div>
         </div>

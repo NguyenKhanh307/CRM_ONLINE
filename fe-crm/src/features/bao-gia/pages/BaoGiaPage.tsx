@@ -4,6 +4,9 @@ import { FiTrash2, FiUpload, FiShare2, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { RowAction } from '@/shared/types/table';
 import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { CreateButton } from '@/shared/components/CreateButton';
+import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { RecordItemsPanel } from '@/shared/components/table/RecordItemsPanel';
 import { getLineItemPanelColumns } from '@/shared/components/table/lineItemPanelColumns';
@@ -28,6 +31,8 @@ import type { QuotationItemResult, QuotationResult } from '../types/quotationTyp
 
 const BaoGiaPage = () => {
     const navigate = useNavigate();
+    const goCreate = () => navigate('/bao-gia/them-moi');
+    usePageShortcuts({ onCreate: goCreate });
     const [searchParams] = useSearchParams();
     const focusId = searchParams.get('focus');
     const { showAlert } = useAlert();
@@ -108,37 +113,22 @@ const BaoGiaPage = () => {
         <div className="p-6 bg-bg-main">
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Báo giá</h1>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => navigate('/bao-gia/nhap-file')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50"
-                    >
-                        <FiUpload size={14} />
-                        Nhập file
-                    </button>
-                    <button
-                        onClick={() => setExportOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50"
-                    >
-                        <FiDownload size={14} />
-                        Xuất file{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </button>
+                <div className="flex items-center gap-1.5">
+                    <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/bao-gia/nhap-file')}>
+                        Nhập
+                    </ActionButton>
+                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                    </ActionButton>
+                    <CreateButton onClick={goCreate} />
                     {selectedRows.length > 0 && (
                         <>
-                            <button
-                                onClick={() => setHandoverOpen(true)}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-btn bg-blue-50 text-primary text-md font-medium hover:bg-blue-100"
-                            >
-                                <FiShare2 size={14} />
+                            <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
                                 Bàn giao ({selectedRows.length})
-                            </button>
-                            <button
-                                onClick={() => setBulkDeleteOpen(true)}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-btn bg-red-50 text-danger text-md font-medium hover:bg-red-100"
-                            >
-                                <FiTrash2 size={14} />
-                                Xóa đã chọn ({selectedRows.length})
-                            </button>
+                            </ActionButton>
+                            <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
+                                Xóa ({selectedRows.length})
+                            </ActionButton>
                         </>
                     )}
                 </div>

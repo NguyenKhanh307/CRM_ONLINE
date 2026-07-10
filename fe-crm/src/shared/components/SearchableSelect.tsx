@@ -89,6 +89,8 @@ export const SearchableSelect = ({
         onChange(optValue);
         setOpen(false);
         setSearch('');
+        // Trả focus về trigger để Enter đi tiếp sang ô kế trong form.
+        containerRef.current?.querySelector('button')?.focus();
     };
 
     const baseCls =
@@ -100,7 +102,16 @@ export const SearchableSelect = ({
             {/* Trigger */}
             <button
                 type="button"
+                data-form-field
                 onClick={() => setOpen((prev) => !prev)}
+                onKeyDown={(e) => {
+                    // Enter mở panel thay vì nhảy sang ô kế tiếp (useFormKeyboardNav).
+                    if (e.key === 'Enter' && !open) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setOpen(true);
+                    }
+                }}
                 className={`${baseCls} flex items-center justify-between pr-8 text-left`}
             >
                 <span className={selectedLabel ? 'text-text-main' : 'text-gray-400'}>
@@ -125,6 +136,13 @@ export const SearchableSelect = ({
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key !== 'Escape') return;
+                                e.stopPropagation();
+                                setOpen(false);
+                                setSearch('');
+                                containerRef.current?.querySelector('button')?.focus();
+                            }}
                             placeholder={searchPlaceholder}
                             className="flex-1 text-md text-text-main placeholder-gray-400 outline-none bg-transparent"
                         />

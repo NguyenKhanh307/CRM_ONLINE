@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FiHelpCircle, FiMoreHorizontal, FiX, FiUser } from 'react-icons/fi';
 import { userService } from '@/features/users/services/userService';
 import { useHandoverAll } from '@/features/users/hooks/useHandoverAll';
+import { DialogFooter } from '@/shared/components/ModalFooter';
+import { useDialogKeyboardNav } from '@/shared/keyboard/useDialogKeyboardNav';
 
 interface ModalProps {
     onClose: () => void;
@@ -31,8 +33,12 @@ const TransferWorkModal = ({ onClose }: ModalProps) => {
         );
     };
 
+    const ref = useRef<HTMLDivElement>(null);
+    // Không tự focus nút — người dùng phải chọn người giao/người nhận trước.
+    useDialogKeyboardNav(ref, { onCancel: onClose, autoFocus: 'none' });
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div ref={ref} className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
             <div className="bg-white rounded-card shadow-xl w-[520px] max-w-[95vw]">
                 {/* Title bar */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
@@ -130,21 +136,12 @@ const TransferWorkModal = ({ onClose }: ModalProps) => {
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-end gap-2 px-5 py-3 border-t border-gray-200">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-1.5 rounded-btn border border-gray-300 text-sm text-text-main hover:bg-gray-50"
-                    >
-                        Hủy
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={!canSubmit || isPending}
-                        className="px-4 py-1.5 rounded-btn bg-primary text-white text-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isPending ? 'Đang xử lý...' : 'Bàn giao'}
-                    </button>
-                </div>
+                <DialogFooter
+                    onCancel={onClose}
+                    onConfirm={handleSubmit}
+                    confirmLabel={isPending ? 'Đang xử lý...' : 'Bàn giao'}
+                    confirmDisabled={!canSubmit || isPending}
+                />
             </div>
         </div>
     );

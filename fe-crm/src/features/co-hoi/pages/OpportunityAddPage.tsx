@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
@@ -52,6 +54,7 @@ const num = (s: string): number | null => (s.trim() ? Number(s) : null);
 const OpportunityAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
+    const { confirmCreate } = useConfirm();
     const { user } = useAuth();
     const defaultOwnerId = user ? String(user.id) : '';
     const [form, setForm] = useState<HeaderState>(() => initialState(defaultOwnerId));
@@ -78,7 +81,7 @@ const OpportunityAddPage = () => {
     const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
     const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); };
 
-    const submit = (andNew: boolean) => {
+    const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã cơ hội không được để trống'); return; }
         if (!form.name.trim()) { showAlert('Tên cơ hội không được để trống'); return; }
         const payload: CreateOpportunityPayload = {
@@ -99,6 +102,7 @@ const OpportunityAddPage = () => {
             description: form.description || null,
             items: toItemPayloads(rows),
         };
+        if (!(await confirmCreate('cơ hội'))) return;
         mutate(payload, {
             onSuccess: () => {
                 if (andNew) { reset(); showAlert('Đã lưu cơ hội thành công'); }
@@ -112,8 +116,11 @@ const OpportunityAddPage = () => {
         });
     };
 
+    const formRef = useRef<HTMLDivElement>(null);
+    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+
     return (
-        <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
+        <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm Cơ hội" saving={isPending}
                 onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
 

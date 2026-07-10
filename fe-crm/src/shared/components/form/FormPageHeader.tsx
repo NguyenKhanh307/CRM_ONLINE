@@ -1,4 +1,4 @@
-import { btnBase } from './formStyles';
+import { ActionButton } from '@/shared/components/ActionButton';
 
 interface FormPageHeaderProps {
     title: string;
@@ -21,33 +21,23 @@ export const FormPageHeader = ({
 }: FormPageHeaderProps) => (
     <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-semibold text-text-main">{title}</h1>
-        <div className="flex items-center gap-2">
-            <button
-                type="button"
-                onClick={onCancel}
-                disabled={saving}
-                className={`${btnBase} border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50`}
-            >
+        <div className="flex items-center gap-1.5">
+            <ActionButton variant="secondary" onClick={onCancel} disabled={saving}>
                 Hủy
-            </button>
+            </ActionButton>
             {onSaveAndNew && (
-                <button
-                    type="button"
-                    onClick={onSaveAndNew}
-                    disabled={saving}
-                    className={`${btnBase} border border-primary text-primary hover:bg-blue-50 disabled:opacity-50`}
-                >
+                <ActionButton variant="outline" onClick={onSaveAndNew} disabled={saving}>
                     Lưu và thêm
-                </button>
+                </ActionButton>
             )}
-            <button
-                type="button"
+            <ActionButton
+                variant="primary"
                 onClick={onSave}
                 disabled={saving}
-                className={`${btnBase} bg-primary text-white hover:opacity-90 disabled:opacity-50`}
+                shortcut={saving ? undefined : ['Ctrl', 'S']}
             >
                 {saving ? 'Đang lưu…' : 'Lưu'}
-            </button>
+            </ActionButton>
         </div>
     </div>
 );

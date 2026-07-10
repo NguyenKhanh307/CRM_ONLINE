@@ -83,7 +83,7 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 
 **POST /api/auth/login — Request:**
 ```json
-{ "email": "admin@gmail.com", "password": "123456" }
+{ "email": "admin@gmail.com", "password": "12345678" }
 ```
 
 **POST /api/auth/register-employee — Request:**

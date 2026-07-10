@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { useAlert } from '@/shared/alert/useAlert';
@@ -47,6 +49,7 @@ const toPayload = (f: ContactFormState): CreateContactPayload => {
 const ContactAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
+    const { confirmCreate } = useConfirm();
     const { user } = useAuth();
     // Người phụ trách mặc định là user đang đăng nhập.
     const initialForm: ContactFormState = { ...INITIAL_CONTACT_FORM, assignedUserId: user ? String(user.id) : '' };
@@ -56,11 +59,12 @@ const ContactAddPage = () => {
     const onChange = (patch: Partial<ContactFormState>) =>
         setForm((prev) => ({ ...prev, ...patch }));
 
-    const submit = (andNew: boolean) => {
+    const submit = async (andNew: boolean) => {
         if (!form.ten.trim()) {
             showAlert('Tên không được để trống');
             return;
         }
+        if (!(await confirmCreate('liên hệ'))) return;
         mutate(toPayload(form), {
             onSuccess: () => {
                 if (andNew) {
@@ -79,8 +83,11 @@ const ContactAddPage = () => {
         });
     };
 
+    const formRef = useRef<HTMLDivElement>(null);
+    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+
     return (
-        <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
+        <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader
                 title="Thêm Liên hệ"
                 saving={isPending}

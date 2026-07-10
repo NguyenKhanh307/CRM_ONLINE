@@ -603,6 +603,70 @@ Các list hook FE vốn đã gửi `sortBy: 'createdAt', sortDir: 'desc'`. Nay *
 
 ---
 
+## 5c. Điều hướng bàn phím (2026-07-09)
+
+Toàn bộ logic nằm ở `src/shared/keyboard/`. Trước đó `ShortcutsPopup` đã liệt kê phím tắt cho người dùng nhưng **chưa có handler nào** — nay đã cài đặt thật.
+
+**`shortcuts.ts` là nguồn sự thật duy nhất.** Mỗi phím tắt khai báo một lần (nhãn hiển thị `keys` + mã phím vật lý `code` + modifier + `description`), rồi ba nơi cùng đọc từ đó: `PageShortcutsProvider` khớp phím qua `matchesShortcut(e, SHORTCUTS.CREATE)`, `ShortcutsPopup` sinh bảng hiển thị, `ActionButton` lấy nhãn. Đổi một phím chỉ sửa một chỗ. `matchesShortcut` so khớp **chính xác** cả modifier — `Alt+N` không nhận khi đang giữ thêm `Ctrl`/`Shift`.
+
+`focusHelpers.ts` gom phần dùng chung của hai hook: `getVisibleElements`, `focusAndSelect`, `useRafFocus`, `useContainerKeydown`.
+
+**Phím tắt toàn cục** — `PageShortcutsProvider` (bọc trong `MainLayout`) gắn một listener duy nhất lên `document`:
+
+| Phím | Hành vi |
+|------|---------|
+| `Alt+N` | Hành động "thêm mới" của trang hiện tại |
+| `Alt+F` / `Ctrl+K` | Focus ô tìm kiếm của bảng |
+| `Alt+H` | Về `/dashboard` |
+| `Alt+←` | Quay lại trang trước |
+| `Ctrl+/` | Mở/đóng popup phím tắt |
+| `Ctrl+Shift+L` | Đăng xuất |
+
+`Alt+N` mang tính ngữ cảnh: mỗi trang danh sách tự đăng ký qua `usePageShortcuts({ onCreate })` (ghi vào ref, không re-render, tự gỡ khi unmount). Chính sách giá đăng ký `openCreate` (mở modal); Thùng rác không đăng ký nên `Alt+N` no-op. `Alt+F` tìm ô search bằng attribute `[data-table-search]` trên `TableToolbar` — không phải luồn ref qua `DataTable`.
+
+**Trong form** — `useFormKeyboardNav(ref, { onSubmit, onCancel?, enabled? })` gắn một listener lên container và dò ô nhập theo thứ tự DOM (`input`, `textarea`, `select`, `[data-form-field]`):
+
+- Tự focus ô đầu tiên khi mở form.
+- `Enter` sang ô kế tiếp, bôi đen nội dung sẵn có; ở ô cuối thì submit.
+- `↑` `↓` đổi focus. `←` `→` di chuyển con trỏ như thường, **chỉ đổi focus khi con trỏ đã ở đầu/cuối ô** (`isCaretAtEdge`) — nhờ vậy vẫn sửa được chữ giữa ô.
+- Trong `textarea`, `↑` `↓` cũng theo quy tắc biên (để còn xuống dòng được).
+- `↑` `↓` gọi `preventDefault()` nên ô `type="number"` **không** còn tăng/giảm giá trị và `<select>` không đổi option — đánh đổi có chủ ý.
+- `Ctrl+S` lưu.
+- `Enter` bị bỏ qua trong `textarea` và TinyMCE (ở đó Enter xuống dòng) — rời ô bằng `↓`.
+
+Áp dụng cho 11 `*AddPage` (ref trên `<div>` gốc, `onSubmit` gọi thẳng `submit(false)` vì các trang này không dùng `<form>`) và 11 `*EditModal` (ref trên `<form>`, `onSubmit` gọi `requestSubmit()` để giữ validation `required`; `onCancel` = `onClose`; `enabled: !!item` vì modal render rỗng lúc chưa có bản ghi).
+
+`Esc` **chỉ** đóng modal — cố ý không gắn vào trang thêm mới để tránh lỡ tay mất dữ liệu đang nhập.
+
+`SearchableSelect` có `data-form-field` trên trigger nên tham gia chuỗi điều hướng; `Enter` mở panel, `Esc` đóng, chọn xong trả focus về trigger. (Chưa hỗ trợ ↑↓ chọn option trong danh sách.)
+
+**Trong popup xác nhận** — `useDialogKeyboardNav(ref, { onCancel, autoFocus })`: 4 mũi tên trần đổi qua lại giữa các nút footer (đánh dấu `data-dialog-button`), đi vòng tròn. Hook **chỉ bắt phím khi focus đang ở một nút** — đang gõ trong `textarea`/`select` thì mũi tên vẫn thuộc về ô đó. `Enter` do trình duyệt tự kích hoạt nút đang focus; `Esc` gọi `onCancel`.
+
+`ConfirmModal` tự focus nút **Hủy** khi `confirmDanger` (lỡ tay Enter không xóa mất bản ghi), ngược lại focus nút xác nhận. `ReasonModal`/`HandoverModal`/`ExportModal`/`TransferWorkModal` dùng `autoFocus: 'none'` vì có ô nhập cần điền trước.
+
+**Popup xác nhận Thêm / Sửa** — `shared/confirm/ConfirmContext.tsx` + `useConfirm()`. Provider bọc app trong `app/App.tsx` (cạnh `AlertProvider`), **tái dùng nguyên `ConfirmModal`**; `confirm(opts)` trả `Promise<boolean>` nên luồng submit chờ được câu trả lời:
+
+```ts
+const { confirmSave } = useConfirm();
+if (!(await confirmSave('tiềm năng'))) return;
+```
+
+Context cung cấp `confirmCreate(noun)` / `confirmSave(noun)` cho hai luồng phổ biến, và `confirm(opts)` thô cho trường hợp cần `confirmDanger` hoặc nhãn nút riêng (popup xóa).
+
+Áp cho 11 `*AddPage` (chèn **sau** validate, trước `mutate`) và 11 `*EditModal` (sau `e.preventDefault()`). Popup luôn hiện, kể cả khi bấm chuột. Xóa vẫn dùng `ConfirmModal` trực tiếp như cũ.
+
+`useDialogKeyboardNav` bỏ qua `Enter` có `e.repeat`: popup thường mở ra do chính một phím Enter, nếu người dùng **giữ** Enter thì keydown lặp lại sẽ bấm luôn nút vừa focus — đúng cái popup sinh ra để ngăn.
+
+**Component nút**: `shared/components/ActionButton.tsx` (variant `primary|secondary|outline|info|danger|dangerSolid`, props `icon`, `shortcut`, `type`, `dialogButton`) + `shared/components/Kbd.tsx`. Đây là **nguồn sự thật duy nhất** cho mọi nút có nhãn: header 13 trang danh sách, `FormPageHeader`, footer 6 popup dùng chung, footer 11 `*EditModal`.
+
+Ba component gói sẵn các tổ hợp lặp lại: `CreateButton.tsx` (nút "Thêm" + `Alt N`, dùng ở 12 trang danh sách), `ModalFooter` và `DialogFooter` (cùng file `ModalFooter.tsx`) — lần lượt cho footer modal có `<form>` (Hủy/Esc + Lưu/Ctrl+S, `type="submit"`) và footer popup xác nhận (nút mang `data-dialog-button`). `AlertModal` chỉ một nút nên dùng `ActionButton` trực tiếp. Phím tắt render thành **khối liền sát mép phải nút** (`items-stretch` + `overflow-hidden`, nền `SHORTCUT_CLS` đậm hơn nền nút) — không phải chip `<kbd>` xám nằm giữa. `Kbd.tsx` nay chỉ còn dùng ở `ShortcutsPopup`.
+
+Kích thước nút: `px-2.5 py-1`, chữ `text-table` (13px), icon 13, `gap-1`; khe giữa các nút `gap-1.5`. `btnBase` trong `formStyles.ts` đã bị **xóa** (không còn ai dùng).
+
+Nhãn rút về một chữ: **Nhập / Xuất / Thêm / Bàn giao / Xóa**, thứ tự thống nhất mọi trang. Nút popup hiện `Hủy │ Esc` và `Xác nhận │ Enter` — hai phím này không cần handler mới (`Esc` đã có trong hook, `Enter` là hành vi mặc định của nút đang focus).
+
+---
+
 ## 6. Design tokens
 
 Xem đầy đủ trong `fe-crm/tailwind.config.js`. Các token chính:

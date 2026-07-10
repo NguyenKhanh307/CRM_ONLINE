@@ -1,16 +1,8 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { FiHelpCircle } from 'react-icons/fi';
-
-const SHORTCUTS = [
-    { keys: ['Ctrl', 'K'], description: 'Tìm kiếm nhanh' },
-    { keys: ['Alt', 'N'], description: 'Tạo mới' },
-    { keys: ['Alt', 'H'], description: 'Về trang chủ' },
-    { keys: ['Ctrl', '/'], description: 'Mở danh sách phím tắt' },
-    { keys: ['Ctrl', 'Shift', 'L'], description: 'Đăng xuất' },
-    { keys: ['Esc'], description: 'Đóng popup / hủy thao tác' },
-    { keys: ['Ctrl', 'S'], description: 'Lưu thay đổi' },
-    { keys: ['Alt', 'ArrowLeft'], description: 'Quay lại trang trước' },
-];
+import { Kbd } from '@/shared/components/Kbd';
+import { useShortcutsPopup } from '@/shared/keyboard/PageShortcutsProvider';
+import { FORM_SHORTCUTS, GLOBAL_SHORTCUTS, type ShortcutDef } from '@/shared/keyboard/shortcuts';
 
 interface Props {
     onClose: () => void;
@@ -29,53 +21,53 @@ const ShortcutsPopup = ({ onClose }: Props) => {
         return () => document.removeEventListener('mousedown', handler);
     }, [onClose]);
 
+    // Esc đóng popup — khớp với dòng "Đóng popup" trong chính bảng này.
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, [onClose]);
+
+    const row = ({ keys, description }: ShortcutDef) => (
+        <li
+            key={`${description}-${keys.join('')}`}
+            className="flex items-center justify-between px-4 py-2 hover:bg-gray-50"
+        >
+            <span className="text-sm text-gray-600">{description}</span>
+            <Kbd keys={keys} />
+        </li>
+    );
+
     return (
         <div
             ref={ref}
-            className="absolute right-0 top-full mt-2 w-[320px] bg-white rounded-card shadow-lg border border-gray-200 z-50"
+            className="absolute right-0 top-full mt-2 w-[340px] bg-white rounded-card shadow-lg border border-gray-200 z-50"
         >
             <div className="px-4 py-3 border-b border-gray-100">
                 <span className="font-semibold text-md text-text-main">Phím tắt</span>
             </div>
-            <ul className="py-2">
-                {SHORTCUTS.map(({ keys, description }) => (
-                    <li
-                        key={description}
-                        className="flex items-center justify-between px-4 py-2 hover:bg-gray-50"
-                    >
-                        <span className="text-sm text-gray-600">{description}</span>
-                        <div className="flex items-center gap-1">
-                            {keys.map((k, i) => (
-                                <span key={i} className="flex items-center gap-1">
-                                    <kbd className="px-1.5 py-0.5 text-[11px] font-mono bg-gray-100 border border-gray-300 rounded text-gray-700">
-                                        {k}
-                                    </kbd>
-                                    {i < keys.length - 1 && (
-                                        <span className="text-gray-400 text-xs">+</span>
-                                    )}
-                                </span>
-                            ))}
-                        </div>
-                    </li>
-                ))}
-            </ul>
+            <ul className="py-2">{GLOBAL_SHORTCUTS.map(row)}</ul>
+            <div className="px-4 py-2 border-t border-gray-100">
+                <span className="text-sm font-medium text-gray-500">Trong form nhập liệu</span>
+            </div>
+            <ul className="pb-2">{FORM_SHORTCUTS.map(row)}</ul>
         </div>
     );
 };
 
 export const ShortcutsButton = () => {
-    const [open, setOpen] = useState(false);
+    const { shortcutsOpen, setShortcutsOpen } = useShortcutsPopup();
 
     return (
         <div className="relative">
             <button
-                onClick={() => setOpen(v => !v)}
-                className={`p-2 rounded hover:bg-gray-100 ${open ? 'text-primary' : 'text-gray-500 hover:text-text-main'}`}
-                title="Phím tắt"
+                onClick={() => setShortcutsOpen(v => !v)}
+                className={`p-2 rounded hover:bg-gray-100 ${shortcutsOpen ? 'text-primary' : 'text-gray-500 hover:text-text-main'}`}
+                title="Phím tắt (Ctrl + /)"
             >
                 <FiHelpCircle size={18} />
             </button>
-            {open && <ShortcutsPopup onClose={() => setOpen(false)} />}
+            {shortcutsOpen && <ShortcutsPopup onClose={() => setShortcutsOpen(false)} />}
         </div>
     );
 };

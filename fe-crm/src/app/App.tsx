@@ -4,11 +4,12 @@ import { queryClient } from '@/core/query/queryClient';
 import { AuthProvider } from '@/core/auth/AuthContext';
 import { PermissionProvider } from '@/core/permissions/PermissionContext';
 import { AlertProvider } from '@/shared/alert/AlertContext';
+import { ConfirmProvider } from '@/shared/confirm/ConfirmContext';
 import { router } from './router';
 
 /**
  * Root component — bọc toàn bộ provider theo thứ tự:
- * QueryClientProvider → AuthProvider → PermissionProvider → RouterProvider
+ * QueryClientProvider → AuthProvider → PermissionProvider → AlertProvider → ConfirmProvider → RouterProvider
  */
 export const App = () => {
     return (
@@ -16,7 +17,9 @@ export const App = () => {
             <AuthProvider>
                 <PermissionProvider>
                     <AlertProvider>
-                        <RouterProvider router={router} />
+                        <ConfirmProvider>
+                            <RouterProvider router={router} />
+                        </ConfirmProvider>
                     </AlertProvider>
                 </PermissionProvider>
             </AuthProvider>

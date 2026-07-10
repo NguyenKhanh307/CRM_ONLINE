@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
@@ -78,6 +80,7 @@ const toPayload = (f: FormState): CreateCustomerPayload => ({
 const CustomerAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
+    const { confirmCreate } = useConfirm();
     const { user } = useAuth();
     const defaultOwnerId = user ? String(user.id) : '';
     const [form, setForm] = useState<FormState>(() => initialState(defaultOwnerId));
@@ -90,9 +93,10 @@ const CustomerAddPage = () => {
 
     const set = (patch: Partial<FormState>) => setForm((p) => ({ ...p, ...patch }));
 
-    const submit = (andNew: boolean) => {
+    const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã khách hàng không được để trống'); return; }
         if (!form.name.trim()) { showAlert('Tên khách hàng không được để trống'); return; }
+        if (!(await confirmCreate('khách hàng'))) return;
         mutate(toPayload(form), {
             onSuccess: () => {
                 if (andNew) { setForm(initialState(defaultOwnerId)); showAlert('Đã lưu khách hàng thành công'); }
@@ -106,8 +110,11 @@ const CustomerAddPage = () => {
         });
     };
 
+    const formRef = useRef<HTMLDivElement>(null);
+    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+
     return (
-        <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
+        <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm Khách hàng" saving={isPending}
                 onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
 

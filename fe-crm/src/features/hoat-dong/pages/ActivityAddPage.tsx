@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { useMemo } from 'react';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
@@ -57,6 +59,7 @@ const num = (s: string): number | null => (s.trim() ? Number(s) : null);
 const ActivityAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
+    const { confirmCreate } = useConfirm();
     const { user } = useAuth();
     const defaultUserId = user ? String(user.id) : '';
     const [form, setForm] = useState<FormState>(() => initialState(defaultUserId));
@@ -67,7 +70,7 @@ const ActivityAddPage = () => {
 
     const set = (patch: Partial<FormState>) => setForm((p) => ({ ...p, ...patch }));
 
-    const submit = (andNew: boolean) => {
+    const submit = async (andNew: boolean) => {
         if (!form.subject.trim()) { showAlert('Tiêu đề không được để trống'); return; }
         const payload: CreateActivityPayload = {
             type: form.type,
@@ -85,6 +88,7 @@ const ActivityAddPage = () => {
             assignedUserId: form.assignedUserId ? Number(form.assignedUserId) : null,
             dueAt: form.dueAt ? `${form.dueAt}:00` : null,
         };
+        if (!(await confirmCreate('hoạt động'))) return;
         mutate(payload, {
             onSuccess: () => {
                 if (andNew) { setForm(initialState(defaultUserId)); showAlert('Đã lưu hoạt động thành công'); }
@@ -98,8 +102,11 @@ const ActivityAddPage = () => {
         });
     };
 
+    const formRef = useRef<HTMLDivElement>(null);
+    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+
     return (
-        <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
+        <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm Hoạt động" saving={isPending}
                 onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
 

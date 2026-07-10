@@ -1,4 +1,7 @@
-import { useState, type FormEvent, useEffect } from 'react';
+import { useRef, useState, type FormEvent, useEffect } from 'react';
+import { ModalFooter } from '@/shared/components/ModalFooter';
+import { useConfirm } from '@/shared/confirm/useConfirm';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { FiX } from 'react-icons/fi';
 import type { ProductResult, UpdateProductPayload } from '../types/productTypes';
 import { useUpdateProduct } from '../hooks/useUpdateProduct';
@@ -45,10 +48,19 @@ export function ProductEditModal({ item, onClose }: Props) {
         });
     }, [item]);
 
+    const { confirmSave } = useConfirm();
+    const formRef = useRef<HTMLFormElement>(null);
+    useFormKeyboardNav(formRef, {
+        onSubmit: () => formRef.current?.requestSubmit(),
+        onCancel: onClose,
+        enabled: !!item,
+    });
+
     if (!item) return null;
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        if (!(await confirmSave('hàng hóa'))) return;
         mutate({ id: item.id, payload: form }, { onSuccess: onClose });
     };
 
@@ -62,7 +74,7 @@ export function ProductEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa sản phẩm</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
                     <div>
                         <label className={lbl}>Tên sản phẩm <span className="text-danger">*</span></label>
                         <input className={inp} required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
@@ -111,12 +123,7 @@ export function ProductEditModal({ item, onClose }: Props) {
                             Ngừng kinh doanh
                         </label>
                     </div>
-                    <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-                        <button type="button" onClick={onClose} className="px-4 py-1.5 rounded-btn border border-gray-300 text-md text-text-main hover:bg-gray-50">Hủy</button>
-                        <button type="submit" disabled={isPending} className="px-4 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">
-                            {isPending ? 'Đang lưu...' : 'Lưu'}
-                        </button>
-                    </div>
+                    <ModalFooter onCancel={onClose} saving={isPending} />
                 </form>
             </div>
         </div>
