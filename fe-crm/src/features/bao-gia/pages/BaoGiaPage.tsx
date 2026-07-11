@@ -29,6 +29,14 @@ import { SendQuotationModal } from '../components/SendQuotationModal';
 import { ReasonModal } from '@/shared/components/ReasonModal';
 import type { QuotationItemResult, QuotationResult } from '../types/quotationTypes';
 
+/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+const QUICK_FILTERS = [
+    { id: 'draft',    label: 'Nháp',      field: 'status', value: 'draft' },
+    { id: 'pending',  label: 'Chờ duyệt', field: 'status', value: 'pending' },
+    { id: 'approved', label: 'Đã duyệt',  field: 'status', value: 'approved' },
+    { id: 'sent',     label: 'Đã gửi',    field: 'status', value: 'sent' },
+];
+
 const BaoGiaPage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/bao-gia/them-moi');
@@ -146,12 +154,7 @@ const BaoGiaPage = () => {
                     focusId={focusId}
                     rowActions={rowActions}
                     onRowDoubleClick={(q) => { if (!q.isLocked) setEditTarget(q); }}
-                    quickFilters={[
-                        { id: 'draft',    label: 'Nháp',      field: 'status', value: 'draft' },
-                        { id: 'pending',  label: 'Chờ duyệt', field: 'status', value: 'pending' },
-                        { id: 'approved', label: 'Đã duyệt',  field: 'status', value: 'approved' },
-                        { id: 'sent',     label: 'Đã gửi',    field: 'status', value: 'sent' },
-                    ]}
+                    quickFilters={QUICK_FILTERS}
                 />
             </div>
 

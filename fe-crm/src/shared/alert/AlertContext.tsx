@@ -1,5 +1,6 @@
-import { createContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { AlertModal } from '@/shared/components/AlertModal';
+import { setAlertHandler } from './alertBridge';
 
 interface AlertContextValue {
     showAlert: (message: string) => void;
@@ -15,6 +16,12 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
 
     const showAlert = useCallback((msg: string) => setMessage(msg), []);
     const handleClose = useCallback(() => setMessage(null), []);
+
+    // Đăng ký showAlert vào bridge để code ngoài cây React (MutationCache) hiện được alert.
+    useEffect(() => {
+        setAlertHandler(showAlert);
+        return () => setAlertHandler(null);
+    }, [showAlert]);
 
     return (
         <AlertContext.Provider value={{ showAlert }}>

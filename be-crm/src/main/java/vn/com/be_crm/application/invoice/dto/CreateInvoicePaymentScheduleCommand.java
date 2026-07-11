@@ -1,6 +1,5 @@
 package vn.com.be_crm.application.invoice.dto;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 /** Input DTO khi tạo mới đợt thanh toán. */
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class CreateInvoicePaymentScheduleCommand {
-    @NotNull private Long invoiceId;
+    private Long invoiceId;
     private Integer installmentNo;
     private LocalDate dueDate;
     private BigDecimal amount;

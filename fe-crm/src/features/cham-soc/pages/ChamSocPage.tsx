@@ -18,6 +18,14 @@ import { getTicketColumns } from '../config/ticketColumns';
 import { ticketExportColumns } from '../config/ticketExportColumns';
 import type { TicketResult } from '../types/ticketTypes';
 
+/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+const QUICK_FILTERS = [
+    { id: 'support', label: 'Hỗ trợ', field: 'type', value: 'support' },
+    { id: 'return', label: 'Trả hàng', field: 'type', value: 'return' },
+    { id: 'exchange', label: 'Đổi hàng', field: 'type', value: 'exchange' },
+    { id: 'complaint', label: 'Khiếu nại', field: 'type', value: 'complaint' },
+];
+
 const ChamSocPage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/cham-soc/them-moi');
@@ -72,12 +80,7 @@ const ChamSocPage = () => {
                         { key: 'view', label: 'Xem / xử lý', onClick: () => navigate(`/cham-soc/${t.id}`) },
                         { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(t.id) },
                     ]}
-                    quickFilters={[
-                        { id: 'support', label: 'Hỗ trợ', field: 'type', value: 'support' },
-                        { id: 'return', label: 'Trả hàng', field: 'type', value: 'return' },
-                        { id: 'exchange', label: 'Đổi hàng', field: 'type', value: 'exchange' },
-                        { id: 'complaint', label: 'Khiếu nại', field: 'type', value: 'complaint' },
-                    ]}
+                    quickFilters={QUICK_FILTERS}
                 />
             </div>
 

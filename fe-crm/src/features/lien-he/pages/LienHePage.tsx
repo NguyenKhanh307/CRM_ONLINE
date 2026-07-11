@@ -17,6 +17,11 @@ import { contactExportColumns } from '../config/contactExportColumns';
 import { ContactEditModal } from '../components/ContactEditModal';
 import type { ContactResult } from '../types/contactTypes';
 
+/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+const QUICK_FILTERS = [
+    { id: 'primary', label: 'Liên hệ chính', field: 'isPrimary', value: 'true' },
+];
+
 const LienHePage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/lien-he/them-moi');
@@ -65,9 +70,7 @@ const LienHePage = () => {
                         { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) },
                         { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(c.id) },
                     ]}
-                    quickFilters={[
-                        { id: 'primary', label: 'Liên hệ chính', field: 'isPrimary', value: 'true' },
-                    ]}
+                    quickFilters={QUICK_FILTERS}
                 />
             </div>
 

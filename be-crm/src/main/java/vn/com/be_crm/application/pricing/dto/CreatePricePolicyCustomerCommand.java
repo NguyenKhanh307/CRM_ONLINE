@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 /** Input DTO khi tạo mới khách hàng trong chính sách giá. */
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class CreatePricePolicyCustomerCommand {
-    @NotNull private Long pricePolicyId;
+    private Long pricePolicyId;
     @NotNull private Long customerId;
 }

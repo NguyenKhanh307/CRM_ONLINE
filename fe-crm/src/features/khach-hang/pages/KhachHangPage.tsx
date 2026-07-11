@@ -22,6 +22,12 @@ import { customerExportColumns } from '../config/customerExportColumns';
 import { CustomerEditModal } from '../components/CustomerEditModal';
 import type { CustomerResult } from '../types/customerTypes';
 
+/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+const QUICK_FILTERS = [
+    { id: 'active',   label: 'Hoạt động',       field: 'status', value: 'active' },
+    { id: 'inactive', label: 'Không hoạt động',  field: 'status', value: 'inactive' },
+];
+
 const KhachHangPage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/khach-hang/them-moi');
@@ -95,10 +101,7 @@ const KhachHangPage = () => {
                     onSelectionChange={setSelectedRows}
                     rowActions={rowActions}
                     onRowDoubleClick={(c) => setEditTarget(c)}
-                    quickFilters={[
-                        { id: 'active',   label: 'Hoạt động',       field: 'status', value: 'active' },
-                        { id: 'inactive', label: 'Không hoạt động',  field: 'status', value: 'inactive' },
-                    ]}
+                    quickFilters={QUICK_FILTERS}
                 />
             </div>
 

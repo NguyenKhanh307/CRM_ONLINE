@@ -17,6 +17,12 @@ import { productExportColumns } from '../config/productExportColumns';
 import { ProductEditModal } from '../components/ProductEditModal';
 import type { ProductResult } from '../types/productTypes';
 
+/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+const QUICK_FILTERS = [
+    { id: 'active',       label: 'Đang bán',  field: 'isActive', value: 'true' },
+    { id: 'discontinued', label: 'Ngừng bán', field: 'isActive', value: 'false' },
+];
+
 const SanPhamPage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/san-pham/them-moi');
@@ -65,10 +71,7 @@ const SanPhamPage = () => {
                         { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(p) },
                         { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(p.id) },
                     ]}
-                    quickFilters={[
-                        { id: 'active',       label: 'Đang bán',  field: 'isActive', value: 'true' },
-                        { id: 'discontinued', label: 'Ngừng bán', field: 'isActive', value: 'false' },
-                    ]}
+                    quickFilters={QUICK_FILTERS}
                 />
             </div>
 

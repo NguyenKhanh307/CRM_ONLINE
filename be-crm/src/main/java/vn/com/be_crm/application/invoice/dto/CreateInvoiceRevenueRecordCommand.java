@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 /** Input DTO khi tạo mới bản ghi doanh thu. */
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class CreateInvoiceRevenueRecordCommand {
-    @NotNull private Long invoiceId;
+    private Long invoiceId;
     @NotNull private Long userId;
     private BigDecimal revenueAmount;
     private BigDecimal percentage;

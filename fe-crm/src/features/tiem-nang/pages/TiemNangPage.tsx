@@ -23,6 +23,14 @@ import { leadExportColumns } from '../config/leadExportColumns';
 import { LeadEditModal } from '../components/LeadEditModal';
 import type { LeadResult } from '../types/leadTypes';
 
+/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+const QUICK_FILTERS = [
+    { id: 'new',        label: 'Mới',         field: 'status', value: 'new' },
+    { id: 'contacting', label: 'Đang liên hệ', field: 'status', value: 'contacting' },
+    { id: 'qualified',  label: 'Đủ điều kiện', field: 'status', value: 'qualified' },
+    { id: 'converted',  label: 'Đã chuyển đổi',field: 'status', value: 'converted' },
+];
+
 const TiemNangPage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/tiem-nang/them-moi');
@@ -115,12 +123,7 @@ const TiemNangPage = () => {
                     focusId={focusId}
                     rowActions={rowActions}
                     onRowDoubleClick={(l) => { if (l.status !== 'converted') setEditTarget(l); }}
-                    quickFilters={[
-                        { id: 'new',        label: 'Mới',         field: 'status', value: 'new' },
-                        { id: 'contacting', label: 'Đang liên hệ', field: 'status', value: 'contacting' },
-                        { id: 'qualified',  label: 'Đủ điều kiện', field: 'status', value: 'qualified' },
-                        { id: 'converted',  label: 'Đã chuyển đổi',field: 'status', value: 'converted' },
-                    ]}
+                    quickFilters={QUICK_FILTERS}
                 />
             </div>
 

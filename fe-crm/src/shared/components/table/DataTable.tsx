@@ -126,15 +126,21 @@ export const DataTable = <T extends object>({
         [data, filterConditions]
     );
 
-    /** Lọc tiếp theo tag lọc nhanh đang chọn (so khớp String(row[field]) === value). */
+    /**
+     * Lọc tiếp theo tag lọc nhanh đang chọn (so khớp String(row[field]) === value).
+     * Memo theo field/value primitive thay vì identity mảng `quickFilters` — trang khai báo
+     * mảng inline sẽ tạo ref mới mỗi render, nếu đưa vào deps thì `displayData` đổi ref liên tục
+     * khi filter bật → các effect key theo `displayData` chạy lại → vòng lặp render (treo tab).
+     */
+    const activeTag = quickFilters?.find((q) => q.id === activeQuickFilter);
+    const activeTagField = activeTag?.field;
+    const activeTagValue = activeTag?.value;
     const displayData = useMemo(() => {
-        if (!activeQuickFilter) return preFilteredData;
-        const tag = quickFilters?.find((q) => q.id === activeQuickFilter);
-        if (!tag) return preFilteredData;
+        if (!activeQuickFilter || activeTagField == null) return preFilteredData;
         return preFilteredData.filter(
-            (row) => String((row as Record<string, unknown>)[tag.field] ?? '') === tag.value
+            (row) => String((row as Record<string, unknown>)[activeTagField] ?? '') === activeTagValue
         );
-    }, [preFilteredData, activeQuickFilter, quickFilters]);
+    }, [preFilteredData, activeQuickFilter, activeTagField, activeTagValue]);
 
     /** Map khai báo QuickFilterDef → QuickFilter (gắn isActive + onToggle) cho toolbar. */
     const toolbarQuickFilters = useMemo<QuickFilter[]>(
@@ -248,19 +254,27 @@ export const DataTable = <T extends object>({
     /**
      * Giữ luôn có một dòng được chọn trên trang hiện tại: chọn lại dòng đầu khi tải xong dữ liệu,
      * đổi trang, đổi bộ lọc, hoặc dòng đang chọn biến mất. Không lặp vô hạn vì lần chạy kế tiếp
-     * `selectedRowId` đã hợp lệ nên effect thoát sớm.
+     * `selectedRowId` đã hợp lệ nên effect thoát sớm. `reportedRowIdRef` chặn gọi `onRowSelect`
+     * trùng id — cắt đứt vòng setState cha ↔ effect kể cả khi effect chạy lại thừa.
      */
+    const reportedRowIdRef = useRef<string | null>(null);
     useEffect(() => {
         if (!autoSelectFirstRow) return;
         const rows = table.getRowModel().rows;
         if (rows.length === 0) {
             setSelectedRowId(null);
-            onRowSelect?.(null);
+            if (reportedRowIdRef.current !== null) {
+                reportedRowIdRef.current = null;
+                onRowSelect?.(null);
+            }
             return;
         }
         if (selectedRowId && rows.some((r) => r.id === selectedRowId)) return;
         setSelectedRowId(rows[0].id);
-        onRowSelect?.(rows[0].original);
+        if (reportedRowIdRef.current !== rows[0].id) {
+            reportedRowIdRef.current = rows[0].id;
+            onRowSelect?.(rows[0].original);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoSelectFirstRow, selectedRowId, displayData, pageIndex, pageSize]);
 
@@ -378,6 +392,7 @@ export const DataTable = <T extends object>({
                                         onClick={() => {
                                             const next = autoSelectFirstRow ? row.id : isHighlighted ? null : row.id;
                                             setSelectedRowId(next);
+                                            reportedRowIdRef.current = next;
                                             onRowSelect?.(next ? row.original : null);
                                         }}
                                         onDoubleClick={() => onRowDoubleClick?.(row.original)}
@@ -387,6 +402,7 @@ export const DataTable = <T extends object>({
                                             if (actions.length === 0) return;
                                             e.preventDefault();
                                             setSelectedRowId(row.id);   // chuột phải: set highlight, không toggle
+                                            reportedRowIdRef.current = row.id;
                                             onRowSelect?.(row.original);
                                             setMenu({ x: e.clientX, y: e.clientY, actions });
                                         }}

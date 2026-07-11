@@ -26,6 +26,14 @@ import { orderExportColumns } from '../config/orderExportColumns';
 import { OrderEditModal } from '../components/OrderEditModal';
 import type { OrderItemResult, OrderResult } from '../types/orderTypes';
 
+/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+const QUICK_FILTERS = [
+    { id: 'draft',      label: 'Nháp',        field: 'status', value: 'draft' },
+    { id: 'confirmed',  label: 'Đã xác nhận', field: 'status', value: 'confirmed' },
+    { id: 'processing', label: 'Đang xử lý',   field: 'status', value: 'processing' },
+    { id: 'completed',  label: 'Hoàn tất',     field: 'status', value: 'completed' },
+];
+
 const DonHangPage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/don-hang/them-moi');
@@ -128,12 +136,7 @@ const DonHangPage = () => {
                     autoSelectFirstRow
                     rowActions={rowActions}
                     onRowDoubleClick={(o) => { if (!o.isLocked) setEditTarget(o); }}
-                    quickFilters={[
-                        { id: 'draft',      label: 'Nháp',        field: 'status', value: 'draft' },
-                        { id: 'confirmed',  label: 'Đã xác nhận', field: 'status', value: 'confirmed' },
-                        { id: 'processing', label: 'Đang xử lý',   field: 'status', value: 'processing' },
-                        { id: 'completed',  label: 'Hoàn tất',     field: 'status', value: 'completed' },
-                    ]}
+                    quickFilters={QUICK_FILTERS}
                 />
             </div>
 

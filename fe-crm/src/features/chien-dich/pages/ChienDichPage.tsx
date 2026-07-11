@@ -22,6 +22,14 @@ import { campaignExportColumns } from '../config/campaignExportColumns';
 import { CampaignEditModal } from '../components/CampaignEditModal';
 import type { CampaignResult } from '../types/campaignTypes';
 
+/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+const QUICK_FILTERS = [
+    { id: 'draft',     label: 'Nháp',        field: 'status', value: 'draft' },
+    { id: 'running',   label: 'Đang chạy',   field: 'status', value: 'running' },
+    { id: 'paused',    label: 'Tạm dừng',    field: 'status', value: 'paused' },
+    { id: 'completed', label: 'Hoàn tất',    field: 'status', value: 'completed' },
+];
+
 const ChienDichPage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/chien-dich/them-moi');
@@ -104,12 +112,7 @@ const ChienDichPage = () => {
                     onSelectionChange={setSelectedRows}
                     rowActions={rowActions}
                     onRowDoubleClick={(c) => navigate(`/chien-dich/${c.id}`)}
-                    quickFilters={[
-                        { id: 'draft',     label: 'Nháp',        field: 'status', value: 'draft' },
-                        { id: 'running',   label: 'Đang chạy',   field: 'status', value: 'running' },
-                        { id: 'paused',    label: 'Tạm dừng',    field: 'status', value: 'paused' },
-                        { id: 'completed', label: 'Hoàn tất',    field: 'status', value: 'completed' },
-                    ]}
+                    quickFilters={QUICK_FILTERS}
                 />
             </div>
 

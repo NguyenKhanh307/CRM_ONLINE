@@ -20,6 +20,13 @@ import { activityExportColumns } from '../config/activityExportColumns';
 import { ActivityEditModal } from '../components/ActivityEditModal';
 import type { ActivityResult } from '../types/activityTypes';
 
+/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+const QUICK_FILTERS = [
+    { id: 'planned',     label: 'Đã lên kế hoạch', field: 'status', value: 'planned' },
+    { id: 'in_progress', label: 'Đang thực hiện',  field: 'status', value: 'in_progress' },
+    { id: 'done',        label: 'Hoàn thành',      field: 'status', value: 'done' },
+];
+
 const HoatDongPage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/hoat-dong/them-moi');
@@ -92,11 +99,7 @@ const HoatDongPage = () => {
                     onSelectionChange={setSelectedRows}
                     rowActions={rowActions}
                     onRowDoubleClick={(a) => setEditTarget(a)}
-                    quickFilters={[
-                        { id: 'planned',     label: 'Đã lên kế hoạch', field: 'status', value: 'planned' },
-                        { id: 'in_progress', label: 'Đang thực hiện',  field: 'status', value: 'in_progress' },
-                        { id: 'done',        label: 'Hoàn thành',      field: 'status', value: 'done' },
-                    ]}
+                    quickFilters={QUICK_FILTERS}
                 />
             </div>
 

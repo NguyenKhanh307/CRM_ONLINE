@@ -26,6 +26,14 @@ import { invoiceExportColumns } from '../config/invoiceExportColumns';
 import { InvoiceEditModal } from '../components/InvoiceEditModal';
 import type { InvoiceItemResult, InvoiceResult } from '../types/invoiceTypes';
 
+/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+const QUICK_FILTERS = [
+    { id: 'draft',          label: 'Nháp',                 field: 'status', value: 'draft' },
+    { id: 'sent',           label: 'Đã gửi',               field: 'status', value: 'sent' },
+    { id: 'partially_paid', label: 'Thanh toán một phần',  field: 'status', value: 'partially_paid' },
+    { id: 'paid',           label: 'Đã thanh toán',        field: 'status', value: 'paid' },
+];
+
 const HoaDonPage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/hoa-don/them-moi');
@@ -112,12 +120,7 @@ const HoaDonPage = () => {
                     autoSelectFirstRow
                     rowActions={rowActions}
                     onRowDoubleClick={(o) => { if (!o.isLocked) setEditTarget(o); }}
-                    quickFilters={[
-                        { id: 'draft',          label: 'Nháp',                 field: 'status', value: 'draft' },
-                        { id: 'sent',           label: 'Đã gửi',               field: 'status', value: 'sent' },
-                        { id: 'partially_paid', label: 'Thanh toán một phần',  field: 'status', value: 'partially_paid' },
-                        { id: 'paid',           label: 'Đã thanh toán',        field: 'status', value: 'paid' },
-                    ]}
+                    quickFilters={QUICK_FILTERS}
                 />
             </div>
 

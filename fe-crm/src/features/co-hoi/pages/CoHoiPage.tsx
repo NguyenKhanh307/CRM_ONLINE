@@ -25,6 +25,13 @@ import { opportunityExportColumns } from '../config/opportunityExportColumns';
 import { OpportunityEditModal } from '../components/OpportunityEditModal';
 import type { OpportunityItemResult, OpportunityResult } from '../types/opportunityTypes';
 
+/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+const QUICK_FILTERS = [
+    { id: 'open', label: 'Đang mở',  field: 'status', value: 'open' },
+    { id: 'won',  label: 'Đã thắng', field: 'status', value: 'won' },
+    { id: 'lost', label: 'Đã thua',  field: 'status', value: 'lost' },
+];
+
 const CoHoiPage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/co-hoi/them-moi');
@@ -107,11 +114,7 @@ const CoHoiPage = () => {
                         { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) },
                         { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(o.id) },
                     ]}
-                    quickFilters={[
-                        { id: 'open', label: 'Đang mở',  field: 'status', value: 'open' },
-                        { id: 'won',  label: 'Đã thắng', field: 'status', value: 'won' },
-                        { id: 'lost', label: 'Đã thua',  field: 'status', value: 'lost' },
-                    ]}
+                    quickFilters={QUICK_FILTERS}
                 />
             </div>
 
