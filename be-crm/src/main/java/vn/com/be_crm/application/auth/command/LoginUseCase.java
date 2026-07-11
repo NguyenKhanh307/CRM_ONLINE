@@ -67,7 +67,7 @@ public class LoginUseCase implements IUseCase<LoginCommand, LoginResult> {
 
         List<String> roles = userRoleRepository.findRoleCodesByUserId(user.getId());
         List<String> permissions = permissionRepository.findCodesByUserId(user.getId());
-        String token = tokenProvider.generateToken(user.getId(), user.getEmail(), roles, user.getDataAccessFromYear());
+        String token = tokenProvider.generateToken(user.getId(), user.getEmail(), roles, permissions, user.getDataAccessFromYear());
 
         return new LoginResult(token, user.getId(), user.getEmail(), user.getFullName(), roles, permissions);
     }

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FiUser, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { useLogin } from '../hooks/useLogin';
@@ -11,6 +11,12 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [gmailError, setGmailError] = useState<string | null>(null);
+
+    // Reset form khi vào trang login (sau logout) — chặn autofill giữ lại email/mật khẩu cũ trên máy dùng chung
+    useEffect(() => {
+        setEmail('');
+        setPassword('');
+    }, []);
 
     const loginMutation = useLogin();
     const location = useLocation();
@@ -51,7 +57,7 @@ const LoginPage = () => {
                     </p>
                 )}
 
-                <form onSubmit={handleSubmit} noValidate>
+                <form onSubmit={handleSubmit} noValidate autoComplete="off">
 
                     {/* Email */}
                     <div className="mb-4">
@@ -67,7 +73,7 @@ const LoginPage = () => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Nhập địa chỉ email"
-                                autoComplete="email"
+                                autoComplete="off"
                                 className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-btn text-md text-text-main placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                             />
                         </div>
@@ -87,7 +93,7 @@ const LoginPage = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Nhập mật khẩu"
-                                autoComplete="current-password"
+                                autoComplete="new-password"
                                 className="w-full pl-9 pr-10 py-2 border border-gray-300 rounded-btn text-md text-text-main placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                             />
                             <button

@@ -46,8 +46,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (jwtProvider.validateToken(token)) {
                 String email = jwtProvider.extractEmail(token);
                 List<String> roles = jwtProvider.extractRoles(token);
+                List<String> permissions = jwtProvider.extractPermissions(token);
                 Integer dataAccessFromYear = jwtProvider.extractDataAccessFromYear(token);
-                var authorities = roles.stream()
+                // Authorities = role codes + permission codes (module.action) — dùng cho hasAuthority(...)
+                var authorities = java.util.stream.Stream.concat(roles.stream(), permissions.stream())
                         .map(SimpleGrantedAuthority::new)
                         .toList();
                 var auth = new UsernamePasswordAuthenticationToken(email, null, authorities);

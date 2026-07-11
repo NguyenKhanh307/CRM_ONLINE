@@ -63,6 +63,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Xử lý từ chối quyền truy cập (method security @PreAuthorize ném từ trong controller —
+     * bay vào @RestControllerAdvice trước khi tới ExceptionTranslationFilter, nếu không có handler
+     * riêng sẽ rơi vào handler Exception chung và trả 500 sai) — trả 403.
+     *
+     * @param ex AccessDeniedException (gồm AuthorizationDeniedException của method security)
+     * @return 403 Forbidden
+     */
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error("Bạn không có quyền thực hiện thao tác này", 403));
+    }
+
+    /**
      * Xử lý vi phạm ràng buộc DB (trùng mã/unique, FK...) — trả 400 với thông báo thân thiện.
      * Chi tiết SQL chỉ ghi log server, không trả ra client.
      *

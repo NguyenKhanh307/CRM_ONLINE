@@ -1,5 +1,6 @@
 package vn.com.be_crm.infrastructure.product.repository;
 
+import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -128,12 +129,20 @@ public class ProductRepositoryImpl implements IProductRepository {
     @Override public PageResult<Product> findAll(PageRequest r) {
         try (Session s = sf.openSession()) {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
-            var q = s.createQuery("FROM ProductHibernate WHERE deletedAt IS NULL" + yearFilter + " ORDER BY " + r.getSortBy() + " " + r.getSortDir(), ProductHibernate.class)
+            String searchFilter = ListQueryUtils.likeClause(r.getQ(), "sku", "name");
+            Boolean statusVal = r.getStatus() == null || r.getStatus().isBlank() ? null : Boolean.valueOf(r.getStatus());
+            String statusFilter = statusVal != null ? " AND isActive = :status" : "";
+            String where = " WHERE deletedAt IS NULL" + yearFilter + searchFilter + statusFilter;
+            String orderBy = " ORDER BY " + ListQueryUtils.safeSortBy(r.getSortBy(), "createdAt") + " " + ListQueryUtils.safeSortDir(r.getSortDir());
+            var q = s.createQuery("FROM ProductHibernate" + where + orderBy, ProductHibernate.class)
                     .setFirstResult(r.getOffset()).setMaxResults(r.getSize());
-            if (r.getDataAccessFromYear() != null) q.setParameter("fromYear", r.getDataAccessFromYear());
+            var cq = s.createQuery("SELECT COUNT(*) FROM ProductHibernate" + where, Long.class);
+            for (var query : List.of(q, cq)) {
+                if (r.getDataAccessFromYear() != null) query.setParameter("fromYear", r.getDataAccessFromYear());
+                if (!searchFilter.isEmpty()) query.setParameter("q", ListQueryUtils.likeParam(r.getQ()));
+                if (statusVal != null) query.setParameter("status", statusVal);
+            }
             List<Product> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            var cq = s.createQuery("SELECT COUNT(p) FROM ProductHibernate p WHERE p.deletedAt IS NULL" + (r.getDataAccessFromYear() != null ? " AND YEAR(p.createdAt) >= :fromYear" : ""), Long.class);
-            if (r.getDataAccessFromYear() != null) cq.setParameter("fromYear", r.getDataAccessFromYear());
             long total = cq.uniqueResult();
             return PageResult.<Product>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
         }

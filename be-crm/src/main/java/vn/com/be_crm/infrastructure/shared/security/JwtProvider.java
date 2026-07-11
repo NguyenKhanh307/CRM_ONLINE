@@ -34,20 +34,22 @@ public class JwtProvider implements ITokenProvider {
     }
 
     /**
-     * Tạo JWT token chứa userId, email (subject), roles, dataAccessFromYear.
+     * Tạo JWT token chứa userId, email (subject), roles, permissions, dataAccessFromYear.
      *
      * @param userId             ID người dùng
      * @param email              email (subject)
      * @param roles              danh sách code vai trò
+     * @param permissions        danh sách code quyền (module.action)
      * @param dataAccessFromYear năm sớm nhất được xem data (null = không giới hạn)
      * @return JWT token dạng chuỗi
      */
     @Override
-    public String generateToken(Long userId, String email, List<String> roles, Integer dataAccessFromYear) {
+    public String generateToken(Long userId, String email, List<String> roles, List<String> permissions, Integer dataAccessFromYear) {
         var builder = Jwts.builder()
                 .subject(email)
                 .claim("userId", userId)
-                .claim("roles", roles);
+                .claim("roles", roles)
+                .claim("permissions", permissions);
         if (dataAccessFromYear != null) {
             builder.claim("dataAccessFromYear", dataAccessFromYear);
         }
@@ -92,6 +94,20 @@ public class JwtProvider implements ITokenProvider {
     public List<String> extractRoles(String token) {
         Object rolesObj = getClaims(token).get("roles");
         if (rolesObj instanceof List<?> list) {
+            return list.stream().map(Object::toString).toList();
+        }
+        return List.of();
+    }
+
+    /**
+     * Lấy danh sách permission codes (module.action) từ token claims.
+     *
+     * @param token JWT token
+     * @return danh sách code quyền, rỗng nếu token cũ không có claim
+     */
+    public List<String> extractPermissions(String token) {
+        Object permsObj = getClaims(token).get("permissions");
+        if (permsObj instanceof List<?> list) {
             return list.stream().map(Object::toString).toList();
         }
         return List.of();

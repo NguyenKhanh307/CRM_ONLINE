@@ -12,7 +12,8 @@ import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
-import { useActivityList } from '../hooks/useActivityList';
+import { usePagedActivityList } from '../hooks/usePagedActivityList';
+import { activityService } from '../services/activityService';
 import { useDeleteActivity } from '../hooks/useDeleteActivity';
 import { useActivityWorkflow, type ActivityAction } from '../hooks/useActivityWorkflow';
 import { getActivityColumns } from '../config/activityColumns';
@@ -32,7 +33,17 @@ const HoatDongPage = () => {
     const goCreate = () => navigate('/hoat-dong/them-moi');
     usePageShortcuts({ onCreate: goCreate });
     const { showAlert } = useAlert();
-    const { data = [], isLoading } = useActivityList();
+    // Server-side pagination + search + tag lọc nhanh
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
+    const [quickStatus, setQuickStatus] = useState<string | null>(null);
+    const { data: pageData, isLoading } = usePagedActivityList({
+        page, size: pageSize, sortBy: 'createdAt', sortDir: 'desc',
+        q: search || undefined, status: quickStatus || undefined,
+    });
+    const data = pageData?.items ?? [];
+    const total = pageData?.total ?? 0;
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteActivity();
     const { mutate: workflowFn } = useActivityWorkflow();
 
@@ -42,7 +53,6 @@ const HoatDongPage = () => {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
 
-    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     /** Chạy hành động chuyển trạng thái hoạt động, báo lỗi qua alert nếu không hợp lệ. */
     const runAction = (id: number, action: ActivityAction) =>
@@ -97,6 +107,16 @@ const HoatDongPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có hoạt động nào"
                     onSelectionChange={setSelectedRows}
+                    server={{
+                        totalRows: total,
+                        pageIndex: page,
+                        pageSize,
+                        onPageChange: setPage,
+                        onPageSizeChange: setPageSize,
+                        searchValue: search,
+                        onSearchChange: (v) => { setSearch(v); setPage(0); },
+                        onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
+                    }}
                     rowActions={rowActions}
                     onRowDoubleClick={(a) => setEditTarget(a)}
                     quickFilters={QUICK_FILTERS}
@@ -131,10 +151,14 @@ const HoatDongPage = () => {
             <ExportModal
                 open={exportOpen}
                 columns={activityExportColumns}
-                rowCount={rowsToExport.length}
+                rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={(keys, format) => {
-                    exportRows(rowsToExport, activityExportColumns, keys, format, 'hoat-dong');
+                onExport={async (keys, format) => {
+                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    const rows = selectedRows.length > 0
+                        ? selectedRows
+                        : (await activityService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
+                    exportRows(rows, activityExportColumns, keys, format, 'hoat-dong');
                     setExportOpen(false);
                 }}
             />

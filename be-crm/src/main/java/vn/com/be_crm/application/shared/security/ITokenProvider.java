@@ -13,8 +13,9 @@ public interface ITokenProvider {
      * @param userId              ID người dùng
      * @param email               email (subject)
      * @param roles               danh sách code vai trò
+     * @param permissions         danh sách code quyền (module.action) — để BE enforce phân quyền
      * @param dataAccessFromYear  năm sớm nhất được xem data (null = không giới hạn)
      * @return token dạng chuỗi
      */
-    String generateToken(Long userId, String email, List<String> roles, Integer dataAccessFromYear);
+    String generateToken(Long userId, String email, List<String> roles, List<String> permissions, Integer dataAccessFromYear);
 }

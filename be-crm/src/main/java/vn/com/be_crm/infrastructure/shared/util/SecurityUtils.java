@@ -7,14 +7,14 @@ public class SecurityUtils {
     private SecurityUtils() {}
 
     /**
-     * Kiểm tra người dùng hiện tại có quyền admin (USER_MANAGE) không.
+     * Kiểm tra người dùng hiện tại có role ADMIN không.
      * @param auth Spring Security Authentication
-     * @return true nếu có quyền USER_MANAGE
+     * @return true nếu có role ADMIN
      */
     public static boolean isAdmin(Authentication auth) {
         if (auth == null) return false;
         return auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().contains("USER_MANAGE"));
+                .anyMatch(a -> a.getAuthority().equals("ADMIN"));
     }
 
     /**

@@ -17,7 +17,8 @@ import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useOrderWorkflow, type OrderAction } from '../hooks/useOrderWorkflow';
-import { useOrderList } from '../hooks/useOrderList';
+import { usePagedOrderList } from '../hooks/usePagedOrderList';
+import { orderService } from '../services/orderService';
 import { useOrderItems } from '../hooks/useOrderItems';
 import { useDeleteOrder } from '../hooks/useDeleteOrder';
 import { useHandoverBulkOrder } from '../hooks/useHandoverBulkOrder';
@@ -39,7 +40,17 @@ const DonHangPage = () => {
     const goCreate = () => navigate('/don-hang/them-moi');
     usePageShortcuts({ onCreate: goCreate });
     const { showAlert } = useAlert();
-    const { data = [], isLoading } = useOrderList();
+    // Server-side pagination + search + tag lọc nhanh
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
+    const [quickStatus, setQuickStatus] = useState<string | null>(null);
+    const { data: pageData, isLoading } = usePagedOrderList({
+        page, size: pageSize, sortBy: 'createdAt', sortDir: 'desc',
+        q: search || undefined, status: quickStatus || undefined,
+    });
+    const data = pageData?.items ?? [];
+    const total = pageData?.total ?? 0;
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteOrder();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkOrder();
     const { mutate: workflowFn } = useOrderWorkflow();
@@ -56,7 +67,6 @@ const DonHangPage = () => {
     const { data: items = [], isLoading: itemsLoading } = useOrderItems(selectedRecord?.id ?? null);
     const itemColumns = useMemo(() => getLineItemPanelColumns<OrderItemResult>(productMap, { showTax: true }), [productMap]);
 
-    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     /** Chạy một hành động trên Đơn hàng, báo lỗi qua alert nếu bước chuyển không hợp lệ.
      *  Xuất hóa đơn thành công → điều hướng sang Hóa đơn (hóa đơn vừa tạo). */
@@ -134,6 +144,16 @@ const DonHangPage = () => {
                     onRowSelect={setSelectedRecord}
                     visibleRows={7}
                     autoSelectFirstRow
+                    server={{
+                        totalRows: total,
+                        pageIndex: page,
+                        pageSize,
+                        onPageChange: setPage,
+                        onPageSizeChange: setPageSize,
+                        searchValue: search,
+                        onSearchChange: (v) => { setSearch(v); setPage(0); },
+                        onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
+                    }}
                     rowActions={rowActions}
                     onRowDoubleClick={(o) => { if (!o.isLocked) setEditTarget(o); }}
                     quickFilters={QUICK_FILTERS}
@@ -177,10 +197,14 @@ const DonHangPage = () => {
             <ExportModal
                 open={exportOpen}
                 columns={orderExportColumns}
-                rowCount={rowsToExport.length}
+                rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={(keys, format) => {
-                    exportRows(rowsToExport, orderExportColumns, keys, format, 'don-hang');
+                onExport={async (keys, format) => {
+                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    const rows = selectedRows.length > 0
+                        ? selectedRows
+                        : (await orderService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
+                    exportRows(rows, orderExportColumns, keys, format, 'don-hang');
                     setExportOpen(false);
                 }}
             />

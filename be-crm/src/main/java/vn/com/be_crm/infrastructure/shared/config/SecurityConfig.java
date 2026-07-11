@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -16,13 +18,17 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import vn.com.be_crm.infrastructure.shared.security.JwtAuthFilter;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
  * Cấu hình Spring Security với JWT stateless — permit /api/auth/login, require auth cho các route còn lại.
+ * Phân quyền: URL rules cho vùng quản trị (ADMIN) + method security (@PreAuthorize theo permission code
+ * module.action đọc từ JWT claim) cho các endpoint side-effect.
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
@@ -53,11 +59,24 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/activate", "/api/tracking/**", "/api/public/**").permitAll()
+                        // Vùng quản trị: chỉ ADMIN được đăng ký NV + thao tác mutating trên users/roles/permissions/org-units.
+                        // GET vẫn mở cho mọi user đã đăng nhập (FE dùng làm lookup: HandoverModal, form thêm mới...).
+                        .requestMatchers("/api/auth/register-employee").hasAuthority("ADMIN")
+                        .requestMatchers("/api/handover/all").hasAnyAuthority("ADMIN", "SALES_MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/users/**", "/api/org-units/**", "/api/roles/**", "/api/permissions/**").authenticated()
+                        .requestMatchers("/api/users/**", "/api/org-units/**", "/api/roles/**", "/api/permissions/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, authEx) ->
                                 res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
+                        // 403 trả JSON khớp format ApiResponse để FE đọc message qua error.response.data.message
+                        .accessDeniedHandler((req, res, deniedEx) -> {
+                            res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            res.setContentType("application/json");
+                            res.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                            res.getWriter().write("{\"message\":\"Bạn không có quyền thực hiện thao tác này\",\"status\":403}");
+                        })
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

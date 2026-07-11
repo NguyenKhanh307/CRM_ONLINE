@@ -62,10 +62,16 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 |-------|----------|-------|
 | `page` | `0` | Số trang (bắt đầu từ 0) |
 | `size` | `10` | Số bản ghi mỗi trang |
-| `sortBy` | `id` | Trường sắp xếp |
-| `sortDir` | `asc` | Chiều sắp xếp (`asc`/`desc`) |
+| `sortBy` | `createdAt` | Trường sắp xếp (whitelist tên field — sai → fallback `createdAt`) |
+| `sortDir` | `desc` | Chiều sắp xếp (`asc`/`desc`) |
+| `q` | — | Tìm kiếm server-side (LIKE trên các cột chính: code/name/email/phone... tùy module) |
+| `status` | — | Lọc theo tag nhanh của module (đa số = `status`; ticket → `type`; contact → `isPrimary`; product → `isActive`) |
 
 **Lọc theo năm (`dataAccessFromYear`):** Giá trị này **không** là query param — được trích xuất từ JWT claim (`JwtAuthFilter` set vào `request.setAttribute`). Controller đọc ra và truyền vào `PageRequest`. Repository tự động thêm `AND YEAR(createdAt) >= :fromYear` vào HQL khi giá trị không null. Nhân viên mới được tự set `dataAccessFromYear` = năm kích hoạt tài khoản.
+
+**Lọc theo người phụ trách (record-level visibility, 2026-07-12):** Nhân viên (không phải ADMIN/SALES_MANAGER) chỉ nhận bản ghi có `owner_id` (hoặc `assigned_user_id` với contact/activity/ticket) = userId của mình — suy tự động từ JWT, không phải query param. Product/notification không lọc owner.
+
+**Phân quyền (2026-07-12):** JWT chứa claim `permissions` (`module.action`); endpoint side-effect được guard bằng `@PreAuthorize` (xóa/khôi phục/xóa vĩnh viễn → `<module>.delete`; import-bulk → `<module>.create`; duyệt báo giá/gửi email → `quotation.approve`; phát hành/hủy hóa đơn → `invoice.approve`; workflow ticket → `ticket.process`/`ticket.approve_return`; sản phẩm/danh mục → ADMIN/SALES_MANAGER). `/api/auth/register-employee` + mutating `/api/users|roles|permissions|org-units/**` chỉ ADMIN; `/api/handover/all` ADMIN/SALES_MANAGER. Thiếu quyền → **403** `{"message":"Bạn không có quyền thực hiện thao tác này","status":403}`.
 
 ---
 

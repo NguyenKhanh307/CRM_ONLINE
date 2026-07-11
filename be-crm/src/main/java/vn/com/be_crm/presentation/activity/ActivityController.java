@@ -1,9 +1,12 @@
 package vn.com.be_crm.presentation.activity;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
 import vn.com.be_crm.application.activity.command.*;
 import vn.com.be_crm.application.activity.dto.*;
 import vn.com.be_crm.application.activity.query.*;
@@ -85,11 +88,17 @@ public class ActivityController {
             HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String q, @RequestParam(required = false) String status) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
+        // Record-level visibility: admin/manager xem tất cả, nhân viên chỉ xem hoạt động mình phụ trách
+        Long userId = (Long) req.getAttribute("userId");
+        boolean privileged = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
+        Long ownerId = privileged ? null : userId;
         PageResult<ActivityResult> result = listUseCase.execute(
                 PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear)
+                        .q(q).status(status).ownerId(ownerId)
                         .build());
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(result)));
     }
@@ -131,6 +140,7 @@ public class ActivityController {
      * @param id ID hoạt động cần xóa
      * @return 204 No Content
      */
+    @PreAuthorize("hasAuthority('activity.delete')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         deleteUseCase.execute(id);
@@ -138,6 +148,7 @@ public class ActivityController {
     }
 
     /** Nhập hàng loạt hoạt động từ file. @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('activity.create')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkActivityCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));

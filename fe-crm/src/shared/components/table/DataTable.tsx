@@ -19,6 +19,7 @@ import type {
     ConditionalRule,
     FilterOperator,
     RowAction,
+    ServerTableState,
 } from '@/shared/types/table';
 import { applyConditions, checkCondition } from './filterConditions.helpers';
 import { RowContextMenu } from './RowContextMenu';
@@ -49,6 +50,11 @@ interface DataTableProps<T> {
     visibleRows?: number;
     /** Luôn giữ một dòng được chọn (mặc định dòng đầu trang) — không cho bỏ chọn. Dùng cho bố cục 2 bảng. */
     autoSelectFirstRow?: boolean;
+    /**
+     * Server-mode: phân trang + tìm kiếm + tag lọc nhanh xử lý ở server.
+     * Không truyền → toàn bộ chạy client như cũ (bảng nhỏ: phân quyền, thùng rác...).
+     */
+    server?: ServerTableState;
 }
 
 type OpenPanel = 'filter' | 'sort' | 'coloring' | 'columns' | null;
@@ -71,8 +77,13 @@ export const DataTable = <T extends object>({
     onRowSelect,
     visibleRows,
     autoSelectFirstRow = false,
+    server,
 }: DataTableProps<T>) => {
     const scrollRef = useRef<HTMLDivElement>(null);
+    const isServer = !!server;
+    // Callback server đổi ref mỗi render cha (object inline) — neo vào ref để effect không phải gắn lại
+    const serverRef = useRef(server);
+    serverRef.current = server;
     const [menu, setMenu] = useState<{ x: number; y: number; actions: RowAction[] } | null>(null);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -83,6 +94,21 @@ export const DataTable = <T extends object>({
     const [conditionalRules, setConditionalRules] = useState<ConditionalRule[]>([]);
     const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
     const [activeQuickFilter, setActiveQuickFilter] = useState<string | null>(null);
+
+    // Server-mode: ô search hiển thị tức thời, debounce 350ms rồi mới báo ra ngoài (gọi API)
+    const [searchInput, setSearchInput] = useState(server?.searchValue ?? '');
+    const serverSearchValue = server?.searchValue;
+    useEffect(() => {
+        if (isServer && serverSearchValue !== undefined) setSearchInput(serverSearchValue);
+    }, [isServer, serverSearchValue]);
+    useEffect(() => {
+        if (!isServer) return;
+        const t = setTimeout(() => {
+            const srv = serverRef.current;
+            if (srv && searchInput !== srv.searchValue) srv.onSearchChange(searchInput);
+        }, 350);
+        return () => clearTimeout(t);
+    }, [isServer, searchInput]);
 
     const togglePanel = (panel: OpenPanel) =>
         setOpenPanel((cur) => (cur === panel ? null : panel));
@@ -136,11 +162,12 @@ export const DataTable = <T extends object>({
     const activeTagField = activeTag?.field;
     const activeTagValue = activeTag?.value;
     const displayData = useMemo(() => {
-        if (!activeQuickFilter || activeTagField == null) return preFilteredData;
+        // Server-mode: tag lọc nhanh đã áp ở server (param status) — không lọc lại client
+        if (isServer || !activeQuickFilter || activeTagField == null) return preFilteredData;
         return preFilteredData.filter(
             (row) => String((row as Record<string, unknown>)[activeTagField] ?? '') === activeTagValue
         );
-    }, [preFilteredData, activeQuickFilter, activeTagField, activeTagValue]);
+    }, [isServer, preFilteredData, activeQuickFilter, activeTagField, activeTagValue]);
 
     /** Map khai báo QuickFilterDef → QuickFilter (gắn isActive + onToggle) cho toolbar. */
     const toolbarQuickFilters = useMemo<QuickFilter[]>(
@@ -149,22 +176,29 @@ export const DataTable = <T extends object>({
                 id: q.id,
                 label: q.label,
                 isActive: q.id === activeQuickFilter,
-                onToggle: () =>
-                    setActiveQuickFilter((cur) => (cur === q.id ? null : q.id)),
+                onToggle: () => {
+                    const next = activeQuickFilter === q.id ? null : q.id;
+                    setActiveQuickFilter(next);
+                    // Server-mode: báo giá trị tag ra ngoài để page gọi API với param status
+                    if (isServer) serverRef.current?.onQuickFilterChange?.(next ? q.value : null);
+                },
             })),
-        [quickFilters, activeQuickFilter]
+        [quickFilters, activeQuickFilter, isServer]
     );
 
     const table = useReactTable({
         data: displayData,
         columns: columnsWithSelection,
-        state: { sorting, columnVisibility, globalFilter, rowSelection },
+        // Server-mode: search do server lọc (không đưa globalFilter vào TanStack)
+        state: { sorting, columnVisibility, globalFilter: isServer ? '' : globalFilter, rowSelection },
         getRowId: (row) => String((row as { id?: unknown }).id),
         onSortingChange: setSorting,
         onColumnVisibilityChange: setColumnVisibility,
         onGlobalFilterChange: setGlobalFilter,
         onRowSelectionChange: setRowSelection,
         enableRowSelection: true,
+        // Server-mode: data đã là đúng một trang — TanStack không phân trang lại
+        manualPagination: isServer,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
@@ -193,7 +227,8 @@ export const DataTable = <T extends object>({
         const idx = rows.findIndex((r) => r.id === target);
         if (idx < 0) return;                       // dữ liệu chưa tải xong → thử lại ở lần render sau
         focusedRef.current = target;
-        table.setPageIndex(Math.floor(idx / table.getState().pagination.pageSize));
+        // Server-mode: bản ghi đã nằm trong trang hiện tại (page tự lo nạp đúng trang) — không nhảy trang client
+        if (!isServer) table.setPageIndex(Math.floor(idx / table.getState().pagination.pageSize));
         setSelectedRowId(target);
         const raf = requestAnimationFrame(() => {
             scrollRef.current
@@ -251,6 +286,14 @@ export const DataTable = <T extends object>({
     const { pageIndex, pageSize } = table.getState().pagination;
     const totalRows = table.getFilteredRowModel().rows.length;
 
+    // Số liệu phân trang hiển thị: server-mode lấy từ prop, client-mode từ TanStack
+    const shownPageIndex = server ? server.pageIndex : pageIndex;
+    const shownPageSize = server ? server.pageSize : pageSize;
+    const shownTotalRows = server ? server.totalRows : totalRows;
+    const shownPageCount = server
+        ? Math.max(1, Math.ceil(server.totalRows / server.pageSize))
+        : table.getPageCount();
+
     /**
      * Giữ luôn có một dòng được chọn trên trang hiện tại: chọn lại dòng đầu khi tải xong dữ liệu,
      * đổi trang, đổi bộ lọc, hoặc dòng đang chọn biến mất. Không lặp vô hạn vì lần chạy kế tiếp
@@ -283,8 +326,8 @@ export const DataTable = <T extends object>({
             {/* Toolbar + panels dropdown (relative anchor) */}
             <div className="relative">
                 <TableToolbar
-                    globalFilter={globalFilter}
-                    onGlobalFilterChange={setGlobalFilter}
+                    globalFilter={isServer ? searchInput : globalFilter}
+                    onGlobalFilterChange={isServer ? setSearchInput : setGlobalFilter}
                     quickFilters={toolbarQuickFilters}
                     selectedCount={selectedCount}
                     onClearSelection={() => setRowSelection({})}
@@ -447,14 +490,18 @@ export const DataTable = <T extends object>({
             )}
 
             <TablePagination
-                pageIndex={pageIndex}
-                pageCount={table.getPageCount()}
-                pageSize={pageSize}
-                totalRows={totalRows}
-                canPreviousPage={table.getCanPreviousPage()}
-                canNextPage={table.getCanNextPage()}
-                onPageChange={table.setPageIndex}
-                onPageSizeChange={table.setPageSize}
+                pageIndex={shownPageIndex}
+                pageCount={shownPageCount}
+                pageSize={shownPageSize}
+                totalRows={shownTotalRows}
+                canPreviousPage={server ? server.pageIndex > 0 : table.getCanPreviousPage()}
+                canNextPage={server ? server.pageIndex < shownPageCount - 1 : table.getCanNextPage()}
+                onPageChange={server ? server.onPageChange : table.setPageIndex}
+                onPageSizeChange={
+                    server
+                        ? (size) => { server.onPageSizeChange(size); server.onPageChange(0); }
+                        : table.setPageSize
+                }
             />
 
             {menu && (

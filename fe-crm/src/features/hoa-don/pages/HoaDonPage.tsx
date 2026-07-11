@@ -17,7 +17,8 @@ import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useInvoiceWorkflow, type InvoiceAction } from '../hooks/useInvoiceWorkflow';
-import { useInvoiceList } from '../hooks/useInvoiceList';
+import { usePagedInvoiceList } from '../hooks/usePagedInvoiceList';
+import { invoiceService } from '../services/invoiceService';
 import { useInvoiceItems } from '../hooks/useInvoiceItems';
 import { useDeleteInvoice } from '../hooks/useDeleteInvoice';
 import { useHandoverBulkInvoice } from '../hooks/useHandoverBulkInvoice';
@@ -39,7 +40,17 @@ const HoaDonPage = () => {
     const goCreate = () => navigate('/hoa-don/them-moi');
     usePageShortcuts({ onCreate: goCreate });
     const { showAlert } = useAlert();
-    const { data = [], isLoading } = useInvoiceList();
+    // Server-side pagination + search + tag lọc nhanh
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
+    const [quickStatus, setQuickStatus] = useState<string | null>(null);
+    const { data: pageData, isLoading } = usePagedInvoiceList({
+        page, size: pageSize, sortBy: 'createdAt', sortDir: 'desc',
+        q: search || undefined, status: quickStatus || undefined,
+    });
+    const data = pageData?.items ?? [];
+    const total = pageData?.total ?? 0;
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteInvoice();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkInvoice();
     const { mutate: workflowFn } = useInvoiceWorkflow();
@@ -56,7 +67,6 @@ const HoaDonPage = () => {
     const { data: items = [], isLoading: itemsLoading } = useInvoiceItems(selectedRecord?.id ?? null);
     const itemColumns = useMemo(() => getLineItemPanelColumns<InvoiceItemResult>(productMap, { showTax: true }), [productMap]);
 
-    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     /** Chạy một hành động chuyển trạng thái Hóa đơn, báo lỗi qua alert nếu bước chuyển không hợp lệ. */
     const runAction = (id: number, action: InvoiceAction) =>
@@ -118,6 +128,16 @@ const HoaDonPage = () => {
                     onRowSelect={setSelectedRecord}
                     visibleRows={7}
                     autoSelectFirstRow
+                    server={{
+                        totalRows: total,
+                        pageIndex: page,
+                        pageSize,
+                        onPageChange: setPage,
+                        onPageSizeChange: setPageSize,
+                        searchValue: search,
+                        onSearchChange: (v) => { setSearch(v); setPage(0); },
+                        onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
+                    }}
                     rowActions={rowActions}
                     onRowDoubleClick={(o) => { if (!o.isLocked) setEditTarget(o); }}
                     quickFilters={QUICK_FILTERS}
@@ -161,10 +181,14 @@ const HoaDonPage = () => {
             <ExportModal
                 open={exportOpen}
                 columns={invoiceExportColumns}
-                rowCount={rowsToExport.length}
+                rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={(keys, format) => {
-                    exportRows(rowsToExport, invoiceExportColumns, keys, format, 'hoa-don');
+                onExport={async (keys, format) => {
+                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    const rows = selectedRows.length > 0
+                        ? selectedRows
+                        : (await invoiceService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
+                    exportRows(rows, invoiceExportColumns, keys, format, 'hoa-don');
                     setExportOpen(false);
                 }}
             />

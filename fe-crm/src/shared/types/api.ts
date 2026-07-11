@@ -17,4 +17,8 @@ export interface PageParams {
     size?: number;
     sortBy?: string;
     sortDir?: 'asc' | 'desc';
+    /** Từ khóa tìm kiếm server-side (LIKE trên các cột chính của module). */
+    q?: string;
+    /** Giá trị tag lọc nhanh của module (BE map sang cột status/type/isActive... tương ứng). */
+    status?: string;
 }

@@ -1,5 +1,6 @@
 package vn.com.be_crm.presentation.quotation;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -81,10 +82,15 @@ public class QuotationController {
     public ResponseEntity<ApiResponse<PageResponse<QuotationResult>>> list(
             HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "desc") String sortDir) {
+            @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String q, @RequestParam(required = false) String status) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
+        // Record-level visibility: admin/manager xem tat ca, nhan vien chi xem ban ghi minh phu trach
+        Long userId = (Long) req.getAttribute("userId");
+        boolean privileged = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
+        Long ownerId = privileged ? null : userId;
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listUC.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).build()))));
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).ownerId(ownerId).build()))));
     }
 
     /** Lấy báo giá theo ID. @param id ID @return 200 */
@@ -124,6 +130,7 @@ public class QuotationController {
     }
 
     /** Khách chấp nhận báo giá (sent → accepted). @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('quotation.approve')")
     @PostMapping("/{id}/accept")
     public ResponseEntity<ApiResponse<QuotationResult>> accept(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.accept(id)));
@@ -136,6 +143,7 @@ public class QuotationController {
     }
 
     /** Xóa mềm báo giá. @param id ID @param req HTTP request @return 204 */
+    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, HttpServletRequest req) {
         Long userId = (Long) req.getAttribute("userId");
@@ -155,18 +163,21 @@ public class QuotationController {
     }
 
     /** Khôi phục báo giá từ thùng rác. @param id ID @return 200 */
+    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
     @PostMapping("/{id}/restore")
     public ResponseEntity<ApiResponse<Void>> restore(@PathVariable Long id) {
         restoreUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Xóa vĩnh viễn báo giá khỏi thùng rác. @param id ID @return 200 */
+    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Nhập hàng loạt báo giá từ file. @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('quotation.create')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkQuotationCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
@@ -180,6 +191,7 @@ public class QuotationController {
     }
 
     /** Quản lý duyệt báo giá (pending → approved). @param id ID @param body ý kiến @param req HTTP request @return 200 */
+    @PreAuthorize("hasAuthority('quotation.approve')")
     @PostMapping("/{id}/approve")
     public ResponseEntity<ApiResponse<QuotationResult>> approve(@PathVariable Long id,
             @RequestBody(required = false) QuotationActionRequest body, HttpServletRequest req) {
@@ -189,6 +201,7 @@ public class QuotationController {
     }
 
     /** Quản lý từ chối báo giá (pending → draft). @param id ID @param body lý do @param req HTTP request @return 200 */
+    @PreAuthorize("hasAuthority('quotation.approve')")
     @PostMapping("/{id}/reject")
     public ResponseEntity<ApiResponse<QuotationResult>> reject(@PathVariable Long id,
             @RequestBody(required = false) QuotationActionRequest body, HttpServletRequest req) {
@@ -204,6 +217,7 @@ public class QuotationController {
     }
 
     /** Nhân viên gửi email báo giá cho khách (approved → sent). @param id ID @param body tiêu đề/nội dung tùy biến @return 200 */
+    @PreAuthorize("hasAuthority('quotation.approve')")
     @PostMapping("/{id}/send")
     public ResponseEntity<ApiResponse<QuotationResult>> send(@PathVariable Long id,
             @RequestBody(required = false) SendQuotationRequest body) {

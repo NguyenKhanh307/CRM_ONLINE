@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiTrash2, FiUpload, FiShare2, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -17,7 +17,8 @@ import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
 import { usePermission } from '@/core/permissions/usePermission';
-import { useQuotationList } from '../hooks/useQuotationList';
+import { usePagedQuotationList } from '../hooks/usePagedQuotationList';
+import { quotationService } from '../services/quotationService';
 import { useQuotationItems } from '../hooks/useQuotationItems';
 import { useDeleteQuotation } from '../hooks/useDeleteQuotation';
 import { useHandoverBulkQuotation } from '../hooks/useHandoverBulkQuotation';
@@ -46,7 +47,17 @@ const BaoGiaPage = () => {
     const { showAlert } = useAlert();
     const { hasRole } = usePermission();
     const isManager = hasRole('ADMIN') || hasRole('SALES_MANAGER');
-    const { data = [], isLoading } = useQuotationList();
+    // Server-side pagination + search + tag lọc nhanh
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
+    const [quickStatus, setQuickStatus] = useState<string | null>(null);
+    const { data: pageData, isLoading } = usePagedQuotationList({
+        page, size: pageSize, sortBy: 'createdAt', sortDir: 'desc',
+        q: search || undefined, status: quickStatus || undefined,
+    });
+    const data = pageData?.items ?? [];
+    const total = pageData?.total ?? 0;
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteQuotation();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkQuotation();
     const { mutate: workflowFn } = useQuotationWorkflow();
@@ -65,7 +76,13 @@ const BaoGiaPage = () => {
     const { data: items = [], isLoading: itemsLoading } = useQuotationItems(selectedRecord?.id ?? null);
     const itemColumns = useMemo(() => getLineItemPanelColumns<QuotationItemResult>(productMap, { showTax: true }), [productMap]);
 
-    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
+    // Bấm thông báo (?focus=) → tra code bản ghi rồi search theo code để bản ghi hiện ra ở trang 1
+    useEffect(() => {
+        if (!focusId) return;
+        quotationService.getById(Number(focusId))
+            .then(r => { const code = r.data.data.code; if (code) { setSearch(code); setPage(0); } })
+            .catch(() => {});
+    }, [focusId]);
 
     /** Chạy một hành động chuyển trạng thái báo giá, báo lỗi qua alert nếu bước chuyển không hợp lệ. */
     const runAction = (id: number, action: QuotationAction, comment?: string) =>
@@ -152,6 +169,16 @@ const BaoGiaPage = () => {
                     visibleRows={7}
                     autoSelectFirstRow
                     focusId={focusId}
+                    server={{
+                        totalRows: total,
+                        pageIndex: page,
+                        pageSize,
+                        onPageChange: setPage,
+                        onPageSizeChange: setPageSize,
+                        searchValue: search,
+                        onSearchChange: (v) => { setSearch(v); setPage(0); },
+                        onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
+                    }}
                     rowActions={rowActions}
                     onRowDoubleClick={(q) => { if (!q.isLocked) setEditTarget(q); }}
                     quickFilters={QUICK_FILTERS}
@@ -195,10 +222,14 @@ const BaoGiaPage = () => {
             <ExportModal
                 open={exportOpen}
                 columns={quotationExportColumns}
-                rowCount={rowsToExport.length}
+                rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={(keys, format) => {
-                    exportRows(rowsToExport, quotationExportColumns, keys, format, 'bao-gia');
+                onExport={async (keys, format) => {
+                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    const rows = selectedRows.length > 0
+                        ? selectedRows
+                        : (await quotationService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
+                    exportRows(rows, quotationExportColumns, keys, format, 'bao-gia');
                     setExportOpen(false);
                 }}
             />

@@ -1,5 +1,6 @@
 package vn.com.be_crm.presentation.lead;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -75,10 +76,15 @@ public class LeadController {
     public ResponseEntity<ApiResponse<PageResponse<LeadResult>>> list(
             HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "id") String sortBy, @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String q, @RequestParam(required = false) String status) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
+        // Record-level visibility: admin/manager xem tat ca, nhan vien chi xem ban ghi minh phu trach
+        Long userId = (Long) req.getAttribute("userId");
+        boolean privileged = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
+        Long ownerId = privileged ? null : userId;
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listUC.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).build()))));
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).ownerId(ownerId).build()))));
     }
 
     /** Lấy tiềm năng theo ID. @param id ID @return 200 */
@@ -105,6 +111,7 @@ public class LeadController {
     }
 
     /** Xóa mềm tiềm năng. @param id ID @param req HTTP request @return 204 */
+    @PreAuthorize("hasAuthority('lead.delete')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, HttpServletRequest req) {
         Long userId = (Long) req.getAttribute("userId");
@@ -124,18 +131,21 @@ public class LeadController {
     }
 
     /** Khôi phục tiềm năng từ thùng rác. @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('lead.delete')")
     @PostMapping("/{id}/restore")
     public ResponseEntity<ApiResponse<Void>> restore(@PathVariable Long id) {
         restoreUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Xóa vĩnh viễn tiềm năng khỏi thùng rác. @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('lead.delete')")
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Nhập hàng loạt tiềm năng từ file. @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('lead.create')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkLeadCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));

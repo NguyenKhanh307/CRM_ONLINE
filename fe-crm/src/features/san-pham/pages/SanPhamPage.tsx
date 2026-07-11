@@ -10,7 +10,9 @@ import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
-import { useProductList } from '../hooks/useProductList';
+import { usePermission } from '@/core/permissions/usePermission';
+import { usePagedProductList } from '../hooks/usePagedProductList';
+import { productService } from '../services/productService';
 import { useDeleteProduct } from '../hooks/useDeleteProduct';
 import { getProductColumns } from '../config/productColumns';
 import { productExportColumns } from '../config/productExportColumns';
@@ -27,7 +29,21 @@ const SanPhamPage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/san-pham/them-moi');
     usePageShortcuts({ onCreate: goCreate });
-    const { data = [], isLoading } = useProductList();
+    // Master data: chỉ ADMIN/SALES_MANAGER được thêm/sửa/xóa (khớp guard BE) — sale chỉ xem
+    const { hasRole } = usePermission();
+    const canManage = hasRole('ADMIN') || hasRole('SALES_MANAGER');
+
+    // Server-side pagination + search + tag lọc nhanh (tag Sản phẩm lọc theo isActive — BE map param status → isActive)
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
+    const [quickStatus, setQuickStatus] = useState<string | null>(null);
+    const { data: pageData, isLoading } = usePagedProductList({
+        page, size: pageSize, sortBy: 'createdAt', sortDir: 'desc',
+        q: search || undefined, status: quickStatus || undefined,
+    });
+    const data = pageData?.items ?? [];
+    const total = pageData?.total ?? 0;
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteProduct();
 
     const [editTarget, setEditTarget] = useState<ProductResult | null>(null);
@@ -36,7 +52,6 @@ const SanPhamPage = () => {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
 
-    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<ProductResult>[]>(() => getProductColumns(), []);
 
@@ -45,14 +60,16 @@ const SanPhamPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Sản phẩm</h1>
                 <div className="flex items-center gap-1.5">
-                    <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/san-pham/nhap-file')}>
-                        Nhập
-                    </ActionButton>
+                    {canManage && (
+                        <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/san-pham/nhap-file')}>
+                            Nhập
+                        </ActionButton>
+                    )}
                     <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
                         Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
                     </ActionButton>
-                    <CreateButton onClick={goCreate} />
-                    {selectedRows.length > 0 && (
+                    {canManage && <CreateButton onClick={goCreate} />}
+                    {canManage && selectedRows.length > 0 && (
                         <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
                             Xóa ({selectedRows.length})
                         </ActionButton>
@@ -66,11 +83,23 @@ const SanPhamPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có sản phẩm nào"
                     onSelectionChange={setSelectedRows}
-                    onRowDoubleClick={(p) => setEditTarget(p)}
-                    rowActions={(p) => [
-                        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(p) },
-                        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(p.id) },
-                    ]}
+                    server={{
+                        totalRows: total,
+                        pageIndex: page,
+                        pageSize,
+                        onPageChange: setPage,
+                        onPageSizeChange: setPageSize,
+                        searchValue: search,
+                        onSearchChange: (v) => { setSearch(v); setPage(0); },
+                        onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
+                    }}
+                    onRowDoubleClick={(p) => { if (canManage) setEditTarget(p); }}
+                    rowActions={(p) => (canManage
+                        ? [
+                            { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(p) },
+                            { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(p.id) },
+                        ]
+                        : [])}
                     quickFilters={QUICK_FILTERS}
                 />
             </div>
@@ -103,10 +132,14 @@ const SanPhamPage = () => {
             <ExportModal
                 open={exportOpen}
                 columns={productExportColumns}
-                rowCount={rowsToExport.length}
+                rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={(keys, format) => {
-                    exportRows(rowsToExport, productExportColumns, keys, format, 'san-pham');
+                onExport={async (keys, format) => {
+                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    const rows = selectedRows.length > 0
+                        ? selectedRows
+                        : (await productService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
+                    exportRows(rows, productExportColumns, keys, format, 'san-pham');
                     setExportOpen(false);
                 }}
             />

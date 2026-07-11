@@ -1,5 +1,6 @@
 package vn.com.be_crm.presentation.campaign;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -64,10 +65,15 @@ public class CampaignController {
     public ResponseEntity<ApiResponse<PageResponse<CampaignResult>>> list(
             HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "id") String sortBy, @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String q, @RequestParam(required = false) String status) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
+        // Record-level visibility: admin/manager xem tat ca, nhan vien chi xem ban ghi minh phu trach
+        Long userId = (Long) req.getAttribute("userId");
+        boolean privileged = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
+        Long ownerId = privileged ? null : userId;
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listUC.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).build()))));
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).ownerId(ownerId).build()))));
     }
 
     /** Lấy chiến dịch theo ID. @param id ID @return 200 */
@@ -124,6 +130,7 @@ public class CampaignController {
     }
 
     /** Gửi email hàng loạt cho thành viên chiến dịch. @param id ID @param cmd body @return 200 số email đã gửi */
+    @PreAuthorize("hasAuthority('campaign.edit')")
     @PostMapping("/{id}/send-email")
     public ResponseEntity<ApiResponse<Integer>> sendEmail(@PathVariable Long id, @Valid @RequestBody SendCampaignEmailCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(sendEmailUC.execute(
@@ -131,6 +138,7 @@ public class CampaignController {
     }
 
     /** Xóa mềm chiến dịch. @param id ID @param req HTTP request @return 204 */
+    @PreAuthorize("hasAuthority('campaign.delete')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, HttpServletRequest req) {
         Long userId = (Long) req.getAttribute("userId");
@@ -150,18 +158,21 @@ public class CampaignController {
     }
 
     /** Khôi phục chiến dịch từ thùng rác. @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('campaign.delete')")
     @PostMapping("/{id}/restore")
     public ResponseEntity<ApiResponse<Void>> restore(@PathVariable Long id) {
         restoreUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Xóa vĩnh viễn chiến dịch khỏi thùng rác. @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('campaign.delete')")
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Nhập hàng loạt chiến dịch từ file. @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('campaign.create')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkCampaignCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));

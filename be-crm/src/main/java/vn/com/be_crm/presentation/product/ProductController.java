@@ -1,5 +1,6 @@
 package vn.com.be_crm.presentation.product;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,7 @@ public class ProductController {
     }
 
     /** Tạo mới hàng hóa. @param cmd JSON body @return 201 */
+    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
     @PostMapping
     public ResponseEntity<ApiResponse<ProductResult>> create(@Valid @RequestBody CreateProductCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -58,10 +60,11 @@ public class ProductController {
     public ResponseEntity<ApiResponse<PageResponse<ProductResult>>> list(
             HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "id") String sortBy, @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String q, @RequestParam(required = false) String status) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listUC.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).build()))));
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).build()))));
     }
 
     /** Lấy hàng hóa theo ID. @param id ID @return 200 */
@@ -71,6 +74,7 @@ public class ProductController {
     }
 
     /** Cập nhật hàng hóa. @param id ID @param cmd JSON body @return 200 */
+    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResult>> update(@PathVariable Long id,
                                                               @Valid @RequestBody UpdateProductCommand cmd) {
@@ -84,6 +88,7 @@ public class ProductController {
     }
 
     /** Xóa mềm hàng hóa. @param id ID @param req HTTP request @return 204 */
+    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, HttpServletRequest req) {
         Long userId = (Long) req.getAttribute("userId");
@@ -103,18 +108,21 @@ public class ProductController {
     }
 
     /** Khôi phục hàng hóa từ thùng rác. @param id ID @return 200 */
+    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
     @PostMapping("/{id}/restore")
     public ResponseEntity<ApiResponse<Void>> restore(@PathVariable Long id) {
         restoreUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Xóa vĩnh viễn hàng hóa khỏi thùng rác. @param id ID @return 200 */
+    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Nhập hàng loạt hàng hóa từ file. @param cmd body @return 200 */
+    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkProductCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));

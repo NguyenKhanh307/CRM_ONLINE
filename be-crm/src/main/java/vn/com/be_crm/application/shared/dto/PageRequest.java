@@ -33,8 +33,14 @@ public class PageRequest {
     /** Năm sớm nhất được xem data — null nghĩa là không giới hạn theo năm. */
     private Integer dataAccessFromYear;
 
-    /** Lọc theo trạng thái người dùng — null nghĩa là không lọc. */
+    /** Lọc theo trạng thái (giá trị tag lọc nhanh của module) — null nghĩa là không lọc. */
     private String status;
+
+    /** Từ khóa tìm kiếm server-side (LIKE trên các cột chính của module) — null/rỗng nghĩa là không tìm. */
+    private String q;
+
+    /** Chỉ trả bản ghi thuộc owner này (record-level visibility) — null nghĩa là không lọc (admin/manager). */
+    private Long ownerId;
 
     /** @return offset = page * size */
     public int getOffset() {

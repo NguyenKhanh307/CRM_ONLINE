@@ -11,6 +11,7 @@ import vn.com.be_crm.domain.lead.entity.Lead;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.infrastructure.lead.entity.LeadHibernate;
 import vn.com.be_crm.infrastructure.lead.mapper.LeadHibernateMapper;
+import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -166,18 +167,26 @@ public class LeadRepositoryImpl implements ILeadRepository {
         }
     }
 
-    /** Lấy danh sách Lead chưa xóa có phân trang. @param r phân trang @return PageResult */
+    /** Lấy danh sách Lead chưa xóa có phân trang, lọc owner/trạng thái + tìm kiếm server-side. @param r phân trang @return PageResult */
     @Override public PageResult<Lead> findAll(PageRequest r) {
         try (Session s = sf.openSession()) {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
-            var q = s.createQuery(
-                    "FROM LeadHibernate WHERE deletedAt IS NULL" + yearFilter + " ORDER BY " + r.getSortBy() + " " + r.getSortDir(),
-                    LeadHibernate.class)
+            String ownerFilter = r.getOwnerId() != null ? " AND ownerId = :ownerId" : "";
+            String searchFilter = ListQueryUtils.likeClause(r.getQ(), "code", "name", "companyName", "phone", "email");
+            var statusVal = ListQueryUtils.parseEnum(vn.com.be_crm.domain.lead.enums.LeadStatus.class, r.getStatus());
+            String statusFilter = statusVal != null ? " AND status = :status" : "";
+            String where = " WHERE deletedAt IS NULL" + yearFilter + ownerFilter + searchFilter + statusFilter;
+            String orderBy = " ORDER BY " + ListQueryUtils.safeSortBy(r.getSortBy(), "createdAt") + " " + ListQueryUtils.safeSortDir(r.getSortDir());
+            var q = s.createQuery("FROM LeadHibernate" + where + orderBy, LeadHibernate.class)
                     .setFirstResult(r.getOffset()).setMaxResults(r.getSize());
-            if (r.getDataAccessFromYear() != null) q.setParameter("fromYear", r.getDataAccessFromYear());
+            var cq = s.createQuery("SELECT COUNT(*) FROM LeadHibernate" + where, Long.class);
+            for (var query : List.of(q, cq)) {
+                if (r.getDataAccessFromYear() != null) query.setParameter("fromYear", r.getDataAccessFromYear());
+                if (r.getOwnerId() != null) query.setParameter("ownerId", r.getOwnerId());
+                if (!searchFilter.isEmpty()) query.setParameter("q", ListQueryUtils.likeParam(r.getQ()));
+                if (statusVal != null) query.setParameter("status", statusVal);
+            }
             List<Lead> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            var cq = s.createQuery("SELECT COUNT(l) FROM LeadHibernate l WHERE l.deletedAt IS NULL" + yearFilter, Long.class);
-            if (r.getDataAccessFromYear() != null) cq.setParameter("fromYear", r.getDataAccessFromYear());
             long total = cq.uniqueResult();
             return PageResult.<Lead>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
         }

@@ -10,6 +10,7 @@ import vn.com.be_crm.domain.auth.entity.User;
 import vn.com.be_crm.domain.auth.repository.IUserRepository;
 import vn.com.be_crm.infrastructure.auth.entity.UserHibernate;
 import vn.com.be_crm.infrastructure.auth.mapper.UserHibernateMapper;
+import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -132,16 +133,18 @@ public class UserRepositoryImpl implements IUserRepository {
     @Override
     public PageResult<User> findAll(PageRequest request) {
         try (Session s = sf.openSession()) {
-            String statusFilter = request.getStatus() != null ? " AND status = :status" : "";
+            // status là field enum — phải bind enum, bind String sẽ ném QueryArgumentException
+            var statusVal = ListQueryUtils.parseEnum(vn.com.be_crm.domain.auth.enums.UserStatus.class, request.getStatus());
+            String statusFilter = statusVal != null ? " AND status = :status" : "";
             String hql = "FROM UserHibernate WHERE deletedAt IS NULL" + statusFilter + " ORDER BY " + request.getSortBy() + " " + request.getSortDir();
             var q = s.createQuery(hql, UserHibernate.class)
                     .setFirstResult(request.getOffset())
                     .setMaxResults(request.getSize());
-            if (request.getStatus() != null) q.setParameter("status", request.getStatus());
+            if (statusVal != null) q.setParameter("status", statusVal);
             List<User> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
             String countHql = "SELECT COUNT(u) FROM UserHibernate u WHERE u.deletedAt IS NULL" + statusFilter;
             var cq = s.createQuery(countHql, Long.class);
-            if (request.getStatus() != null) cq.setParameter("status", request.getStatus());
+            if (statusVal != null) cq.setParameter("status", statusVal);
             long total = cq.uniqueResult();
             return PageResult.<User>builder()
                     .items(items).total(total).page(request.getPage()).size(request.getSize()).build();

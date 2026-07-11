@@ -10,7 +10,8 @@ import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
-import { useContactList } from '../hooks/useContactList';
+import { usePagedContactList } from '../hooks/usePagedContactList';
+import { contactService } from '../services/contactService';
 import { useDeleteContact } from '../hooks/useDeleteContact';
 import { getContactColumns } from '../config/contactColumns';
 import { contactExportColumns } from '../config/contactExportColumns';
@@ -26,7 +27,17 @@ const LienHePage = () => {
     const navigate = useNavigate();
     const goCreate = () => navigate('/lien-he/them-moi');
     usePageShortcuts({ onCreate: goCreate });
-    const { data = [], isLoading } = useContactList();
+    // Server-side pagination + search + tag lọc nhanh (tag Liên hệ lọc theo isPrimary — BE map param status → isPrimary)
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
+    const [quickStatus, setQuickStatus] = useState<string | null>(null);
+    const { data: pageData, isLoading } = usePagedContactList({
+        page, size: pageSize, sortBy: 'createdAt', sortDir: 'desc',
+        q: search || undefined, status: quickStatus || undefined,
+    });
+    const data = pageData?.items ?? [];
+    const total = pageData?.total ?? 0;
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteContact();
 
     const [editTarget, setEditTarget] = useState<ContactResult | null>(null);
@@ -35,7 +46,6 @@ const LienHePage = () => {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
 
-    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     const columns = useMemo<ColumnDef<ContactResult>[]>(() => getContactColumns(), []);
 
@@ -65,6 +75,16 @@ const LienHePage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có liên hệ nào"
                     onSelectionChange={setSelectedRows}
+                    server={{
+                        totalRows: total,
+                        pageIndex: page,
+                        pageSize,
+                        onPageChange: setPage,
+                        onPageSizeChange: setPageSize,
+                        searchValue: search,
+                        onSearchChange: (v) => { setSearch(v); setPage(0); },
+                        onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
+                    }}
                     onRowDoubleClick={(c) => setEditTarget(c)}
                     rowActions={(c) => [
                         { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) },
@@ -102,10 +122,14 @@ const LienHePage = () => {
             <ExportModal
                 open={exportOpen}
                 columns={contactExportColumns}
-                rowCount={rowsToExport.length}
+                rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={(keys, format) => {
-                    exportRows(rowsToExport, contactExportColumns, keys, format, 'lien-he');
+                onExport={async (keys, format) => {
+                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    const rows = selectedRows.length > 0
+                        ? selectedRows
+                        : (await contactService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
+                    exportRows(rows, contactExportColumns, keys, format, 'lien-he');
                     setExportOpen(false);
                 }}
             />

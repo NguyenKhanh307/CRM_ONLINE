@@ -13,7 +13,8 @@ import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
-import { useCustomerList } from '../hooks/useCustomerList';
+import { usePagedCustomerList } from '../hooks/usePagedCustomerList';
+import { customerService } from '../services/customerService';
 import { useDeleteCustomer } from '../hooks/useDeleteCustomer';
 import { useHandoverBulkCustomer } from '../hooks/useHandoverBulkCustomer';
 import { useCustomerWorkflow, type CustomerAction } from '../hooks/useCustomerWorkflow';
@@ -33,7 +34,17 @@ const KhachHangPage = () => {
     const goCreate = () => navigate('/khach-hang/them-moi');
     usePageShortcuts({ onCreate: goCreate });
     const { showAlert } = useAlert();
-    const { data = [], isLoading } = useCustomerList();
+    // Server-side pagination + search + tag lọc nhanh
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
+    const [quickStatus, setQuickStatus] = useState<string | null>(null);
+    const { data: pageData, isLoading } = usePagedCustomerList({
+        page, size: pageSize, sortBy: 'createdAt', sortDir: 'desc',
+        q: search || undefined, status: quickStatus || undefined,
+    });
+    const data = pageData?.items ?? [];
+    const total = pageData?.total ?? 0;
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteCustomer();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkCustomer();
     const { mutate: workflowFn } = useCustomerWorkflow();
@@ -45,7 +56,6 @@ const KhachHangPage = () => {
     const [handoverOpen, setHandoverOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
 
-    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
 
     /** Chạy hành động kích hoạt/ngừng khách hàng, báo lỗi qua alert nếu không hợp lệ. */
     const runAction = (id: number, action: CustomerAction) =>
@@ -99,6 +109,16 @@ const KhachHangPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có khách hàng nào"
                     onSelectionChange={setSelectedRows}
+                    server={{
+                        totalRows: total,
+                        pageIndex: page,
+                        pageSize,
+                        onPageChange: setPage,
+                        onPageSizeChange: setPageSize,
+                        searchValue: search,
+                        onSearchChange: (v) => { setSearch(v); setPage(0); },
+                        onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
+                    }}
                     rowActions={rowActions}
                     onRowDoubleClick={(c) => setEditTarget(c)}
                     quickFilters={QUICK_FILTERS}
@@ -133,10 +153,14 @@ const KhachHangPage = () => {
             <ExportModal
                 open={exportOpen}
                 columns={customerExportColumns}
-                rowCount={rowsToExport.length}
+                rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={(keys, format) => {
-                    exportRows(rowsToExport, customerExportColumns, keys, format, 'khach-hang');
+                onExport={async (keys, format) => {
+                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    const rows = selectedRows.length > 0
+                        ? selectedRows
+                        : (await customerService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
+                    exportRows(rows, customerExportColumns, keys, format, 'khach-hang');
                     setExportOpen(false);
                 }}
             />

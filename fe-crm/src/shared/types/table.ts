@@ -26,6 +26,26 @@ export interface QuickFilterDef {
     value: string;
 }
 
+/**
+ * Trạng thái server-mode của DataTable: phân trang + tìm kiếm + tag lọc nhanh xử lý ở server.
+ * Truyền prop `server` → DataTable tắt phân trang/lọc client và báo mọi thay đổi ra ngoài.
+ */
+export interface ServerTableState {
+    /** Tổng số bản ghi khớp bộ lọc hiện tại (từ PageResult.total). */
+    totalRows: number;
+    /** Trang hiện tại (0-based). */
+    pageIndex: number;
+    /** Số dòng mỗi trang. */
+    pageSize: number;
+    onPageChange: (pageIndex: number) => void;
+    onPageSizeChange: (size: number) => void;
+    /** Từ khóa tìm kiếm đã áp (page giữ state; DataTable tự debounce ô nhập). */
+    searchValue: string;
+    onSearchChange: (value: string) => void;
+    /** Giá trị tag lọc nhanh đang chọn (null = bỏ lọc) — page map sang param `status`. */
+    onQuickFilterChange?: (value: string | null) => void;
+}
+
 export type FilterOperator =
     | 'is'
     | 'is_not'

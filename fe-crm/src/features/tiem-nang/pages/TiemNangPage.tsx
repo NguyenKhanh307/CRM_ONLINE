@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiTrash2, FiUpload, FiShare2, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -14,7 +14,8 @@ import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
 import { useAlert } from '@/shared/alert/useAlert';
-import { useLeadList } from '../hooks/useLeadList';
+import { usePagedLeadList } from '../hooks/usePagedLeadList';
+import { leadService } from '../services/leadService';
 import { useDeleteLead } from '../hooks/useDeleteLead';
 import { useHandoverBulkLead } from '../hooks/useHandoverBulkLead';
 import { useLeadWorkflow, type LeadAction } from '../hooks/useLeadWorkflow';
@@ -38,7 +39,17 @@ const TiemNangPage = () => {
     const [searchParams] = useSearchParams();
     const focusId = searchParams.get('focus');
     const { showAlert } = useAlert();
-    const { data = [], isLoading } = useLeadList();
+    // Server-side pagination + search + tag lọc nhanh
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
+    const [quickStatus, setQuickStatus] = useState<string | null>(null);
+    const { data: pageData, isLoading } = usePagedLeadList({
+        page, size: pageSize, sortBy: 'createdAt', sortDir: 'desc',
+        q: search || undefined, status: quickStatus || undefined,
+    });
+    const data = pageData?.items ?? [];
+    const total = pageData?.total ?? 0;
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteLead();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkLead();
     const { mutate: workflowFn } = useLeadWorkflow();
@@ -51,7 +62,13 @@ const TiemNangPage = () => {
     const [handoverOpen, setHandoverOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
 
-    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
+    // Bấm thông báo (?focus=) → tra code bản ghi rồi search theo code để bản ghi hiện ra ở trang 1
+    useEffect(() => {
+        if (!focusId) return;
+        leadService.getById(Number(focusId))
+            .then(r => { const code = r.data.data.code; if (code) { setSearch(code); setPage(0); } })
+            .catch(() => {});
+    }, [focusId]);
 
     /** Chạy hành động chuyển trạng thái tiềm năng, báo lỗi qua alert nếu bước chuyển không hợp lệ.
      *  Convert thành công → điều hướng sang Cơ hội (KH + LH + Cơ hội vừa được tạo). */
@@ -121,6 +138,16 @@ const TiemNangPage = () => {
                     emptyText="Chưa có tiềm năng nào"
                     onSelectionChange={setSelectedRows}
                     focusId={focusId}
+                    server={{
+                        totalRows: total,
+                        pageIndex: page,
+                        pageSize,
+                        onPageChange: setPage,
+                        onPageSizeChange: setPageSize,
+                        searchValue: search,
+                        onSearchChange: (v) => { setSearch(v); setPage(0); },
+                        onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
+                    }}
                     rowActions={rowActions}
                     onRowDoubleClick={(l) => { if (l.status !== 'converted') setEditTarget(l); }}
                     quickFilters={QUICK_FILTERS}
@@ -155,10 +182,14 @@ const TiemNangPage = () => {
             <ExportModal
                 open={exportOpen}
                 columns={leadExportColumns}
-                rowCount={rowsToExport.length}
+                rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={(keys, format) => {
-                    exportRows(rowsToExport, leadExportColumns, keys, format, 'tiem-nang');
+                onExport={async (keys, format) => {
+                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    const rows = selectedRows.length > 0
+                        ? selectedRows
+                        : (await leadService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
+                    exportRows(rows, leadExportColumns, keys, format, 'tiem-nang');
                     setExportOpen(false);
                 }}
             />

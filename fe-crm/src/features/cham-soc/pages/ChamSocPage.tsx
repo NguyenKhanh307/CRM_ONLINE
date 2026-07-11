@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiTrash2, FiShare2, FiDownload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -11,7 +11,8 @@ import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
-import { useTicketList } from '../hooks/useTicketList';
+import { usePagedTicketList } from '../hooks/usePagedTicketList';
+import { ticketService } from '../services/ticketService';
 import { useDeleteTicket } from '../hooks/useDeleteTicket';
 import { useHandoverBulkTicket } from '../hooks/useHandoverBulkTicket';
 import { getTicketColumns } from '../config/ticketColumns';
@@ -32,7 +33,17 @@ const ChamSocPage = () => {
     usePageShortcuts({ onCreate: goCreate });
     const [searchParams] = useSearchParams();
     const focusId = searchParams.get('focus');
-    const { data = [], isLoading } = useTicketList();
+    // Server-side pagination + search + tag lọc nhanh (tag Chăm sóc lọc theo `type` — BE map param status → type)
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
+    const [quickStatus, setQuickStatus] = useState<string | null>(null);
+    const { data: pageData, isLoading } = usePagedTicketList({
+        page, size: pageSize, sortBy: 'createdAt', sortDir: 'desc',
+        q: search || undefined, status: quickStatus || undefined,
+    });
+    const data = pageData?.items ?? [];
+    const total = pageData?.total ?? 0;
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteTicket();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkTicket();
 
@@ -42,7 +53,13 @@ const ChamSocPage = () => {
     const [handoverOpen, setHandoverOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
 
-    const rowsToExport = selectedRows.length > 0 ? selectedRows : data;
+    // Bấm thông báo (?focus=) → tra code phiếu rồi search theo code để phiếu hiện ra ở trang 1
+    useEffect(() => {
+        if (!focusId) return;
+        ticketService.getById(Number(focusId))
+            .then(r => { const code = r.data.data.code; if (code) { setSearch(code); setPage(0); } })
+            .catch(() => {});
+    }, [focusId]);
 
     const columns = useMemo<ColumnDef<TicketResult>[]>(() => getTicketColumns(), []);
 
@@ -75,6 +92,16 @@ const ChamSocPage = () => {
                     emptyText="Chưa có phiếu hỗ trợ nào"
                     onSelectionChange={setSelectedRows}
                     focusId={focusId}
+                    server={{
+                        totalRows: total,
+                        pageIndex: page,
+                        pageSize,
+                        onPageChange: setPage,
+                        onPageSizeChange: setPageSize,
+                        searchValue: search,
+                        onSearchChange: (v) => { setSearch(v); setPage(0); },
+                        onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
+                    }}
                     onRowDoubleClick={(t) => navigate(`/cham-soc/${t.id}`)}
                     rowActions={(t) => [
                         { key: 'view', label: 'Xem / xử lý', onClick: () => navigate(`/cham-soc/${t.id}`) },
@@ -105,9 +132,16 @@ const ChamSocPage = () => {
             <ExportModal
                 open={exportOpen}
                 columns={ticketExportColumns}
-                rowCount={rowsToExport.length}
+                rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={(keys, format) => { exportRows(rowsToExport, ticketExportColumns, keys, format, 'cham-soc'); setExportOpen(false); }}
+                onExport={async (keys, format) => {
+                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    const rows = selectedRows.length > 0
+                        ? selectedRows
+                        : (await ticketService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
+                    exportRows(rows, ticketExportColumns, keys, format, 'cham-soc');
+                    setExportOpen(false);
+                }}
             />
 
             <HandoverModal

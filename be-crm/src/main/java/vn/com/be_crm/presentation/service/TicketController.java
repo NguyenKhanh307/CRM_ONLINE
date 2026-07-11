@@ -1,5 +1,6 @@
 package vn.com.be_crm.presentation.service;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -68,10 +69,15 @@ public class TicketController {
     public ResponseEntity<ApiResponse<PageResponse<TicketResult>>> list(
             HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "id") String sortBy, @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String q, @RequestParam(required = false) String status) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
+        // Record-level visibility: admin/manager xem tat ca, nhan vien chi xem ban ghi minh phu trach
+        Long userId = (Long) req.getAttribute("userId");
+        boolean privileged = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
+        Long ownerId = privileged ? null : userId;
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listUC.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).build()))));
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).ownerId(ownerId).build()))));
     }
 
     /** Lấy danh sách phiếu trong thùng rác. @return 200 */
@@ -104,6 +110,7 @@ public class TicketController {
     }
 
     /** Xóa mềm phiếu. @param id ID @param req HTTP request @return 204 */
+    @PreAuthorize("hasAuthority('ticket.delete')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, HttpServletRequest req) {
         Long userId = (Long) req.getAttribute("userId");
@@ -112,12 +119,14 @@ public class TicketController {
     }
 
     /** Khôi phục phiếu từ thùng rác. @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('ticket.delete')")
     @PostMapping("/{id}/restore")
     public ResponseEntity<ApiResponse<Void>> restore(@PathVariable Long id) {
         restoreUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Xóa vĩnh viễn phiếu khỏi thùng rác. @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('ticket.delete')")
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
@@ -137,6 +146,7 @@ public class TicketController {
     // ===== Hành động luồng trạng thái =====
 
     /** Giao phiếu cho nhân viên (new → assigned). @param id ID @param body người nhận @return 200 */
+    @PreAuthorize("hasAuthority('ticket.process')")
     @PostMapping("/{id}/assign")
     public ResponseEntity<ApiResponse<TicketResult>> assign(@PathVariable Long id, @Valid @RequestBody AssignTicketRequest body) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.assign(id, body.getToUserId())));
@@ -157,6 +167,7 @@ public class TicketController {
     }
 
     /** Duyệt yêu cầu trả/đổi (in_progress → approved). @param id ID @param body ghi chú @return 200 */
+    @PreAuthorize("hasAuthority('ticket.approve_return')")
     @PostMapping("/{id}/approve")
     public ResponseEntity<ApiResponse<TicketResult>> approve(@PathVariable Long id,
             @RequestBody(required = false) ResolveTicketRequest body) {
@@ -164,6 +175,7 @@ public class TicketController {
     }
 
     /** Từ chối yêu cầu trả/đổi (in_progress → rejected). @param id ID @param body lý do @return 200 */
+    @PreAuthorize("hasAuthority('ticket.approve_return')")
     @PostMapping("/{id}/reject")
     public ResponseEntity<ApiResponse<TicketResult>> reject(@PathVariable Long id,
             @RequestBody(required = false) RejectTicketRequest body) {
@@ -191,12 +203,14 @@ public class TicketController {
     }
 
     /** Đóng phiếu (resolved/rejected → closed). @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('ticket.process')")
     @PostMapping("/{id}/close")
     public ResponseEntity<ApiResponse<TicketResult>> close(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.close(id)));
     }
 
     /** Mở lại phiếu (resolved/closed → reopened). @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('ticket.process')")
     @PostMapping("/{id}/reopen")
     public ResponseEntity<ApiResponse<TicketResult>> reopen(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.reopen(id)));

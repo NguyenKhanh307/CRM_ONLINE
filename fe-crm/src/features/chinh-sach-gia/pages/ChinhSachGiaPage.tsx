@@ -8,7 +8,8 @@ import { CreateButton } from '@/shared/components/CreateButton';
 import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
-import { usePricePolicyList } from '../hooks/usePricePolicyList';
+import { usePermission } from '@/core/permissions/usePermission';
+import { usePagedPricePolicyList } from '../hooks/usePagedPricePolicyList';
 import { useDeletePricePolicy } from '../hooks/useDeletePricePolicy';
 import { pricingColumns } from '../config/pricingColumns';
 import { PricePolicyFormModal } from '../components/PricePolicyFormModal';
@@ -16,7 +17,22 @@ import type { PricePolicyResult } from '../types/pricingTypes';
 
 const ChinhSachGiaPage = () => {
     const navigate = useNavigate();
-    const { data = [], isLoading } = usePricePolicyList();
+    // Master data: gate nút theo permission (khớp guard BE pricing.create/edit/delete)
+    const { hasPermission } = usePermission();
+    const canCreate = hasPermission('pricing.create');
+    const canEdit = hasPermission('pricing.edit');
+    const canDelete = hasPermission('pricing.delete');
+
+    // Server-side pagination + search
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
+    const { data: pageData, isLoading } = usePagedPricePolicyList({
+        page, size: pageSize, sortBy: 'createdAt', sortDir: 'desc',
+        q: search || undefined,
+    });
+    const data = pageData?.items ?? [];
+    const total = pageData?.total ?? 0;
     const { mutate: deleteFn, isPending: isDeleting } = useDeletePricePolicy();
 
     const [formOpen, setFormOpen] = useState(false);
@@ -30,11 +46,11 @@ const ChinhSachGiaPage = () => {
 
     usePageShortcuts({ onCreate: openCreate });
 
-    /** Thao tác của một chính sách giá — hiện trong menu chuột phải. */
+    /** Thao tác của một chính sách giá — hiện trong menu chuột phải (theo permission). */
     const rowActions = (p: PricePolicyResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/chinh-sach-gia/${p.id}`) },
-        { key: 'edit', label: 'Chỉnh sửa', onClick: () => openEdit(p) },
-        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(p.id) },
+        ...(canEdit ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => openEdit(p) }] : []),
+        ...(canDelete ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(p.id) }] : []),
     ];
 
     return (
@@ -42,8 +58,8 @@ const ChinhSachGiaPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Chính sách giá</h1>
                 <div className="flex items-center gap-1.5">
-                    <CreateButton onClick={openCreate} />
-                    {selectedRows.length > 0 && (
+                    {canCreate && <CreateButton onClick={openCreate} />}
+                    {canDelete && selectedRows.length > 0 && (
                         <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
                             Xóa ({selectedRows.length})
                         </ActionButton>
@@ -58,6 +74,15 @@ const ChinhSachGiaPage = () => {
                     isLoading={isLoading}
                     emptyText="Chưa có chính sách giá nào"
                     onSelectionChange={setSelectedRows}
+                    server={{
+                        totalRows: total,
+                        pageIndex: page,
+                        pageSize,
+                        onPageChange: setPage,
+                        onPageSizeChange: setPageSize,
+                        searchValue: search,
+                        onSearchChange: (v) => { setSearch(v); setPage(0); },
+                    }}
                     rowActions={rowActions}
                     onRowDoubleClick={(p) => navigate(`/chinh-sach-gia/${p.id}`)}
                 />

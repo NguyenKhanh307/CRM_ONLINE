@@ -1,5 +1,6 @@
 package vn.com.be_crm.infrastructure.quotation.repository;
 
+import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -192,12 +193,22 @@ public class QuotationRepositoryImpl implements IQuotationRepository {
     @Override public PageResult<Quotation> findAll(PageRequest r) {
         try (Session s = sf.openSession()) {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
-            var q = s.createQuery("FROM QuotationHibernate WHERE deletedAt IS NULL" + yearFilter + " ORDER BY " + r.getSortBy() + " " + r.getSortDir(), QuotationHibernate.class)
+            String ownerFilter = r.getOwnerId() != null ? " AND ownerId = :ownerId" : "";
+            String searchFilter = ListQueryUtils.likeClause(r.getQ(), "code");
+            var statusVal = ListQueryUtils.parseEnum(vn.com.be_crm.domain.quotation.enums.QuotationStatus.class, r.getStatus());
+            String statusFilter = statusVal != null ? " AND status = :status" : "";
+            String where = " WHERE deletedAt IS NULL" + yearFilter + ownerFilter + searchFilter + statusFilter;
+            String orderBy = " ORDER BY " + ListQueryUtils.safeSortBy(r.getSortBy(), "createdAt") + " " + ListQueryUtils.safeSortDir(r.getSortDir());
+            var q = s.createQuery("FROM QuotationHibernate" + where + orderBy, QuotationHibernate.class)
                     .setFirstResult(r.getOffset()).setMaxResults(r.getSize());
-            if (r.getDataAccessFromYear() != null) q.setParameter("fromYear", r.getDataAccessFromYear());
+            var cq = s.createQuery("SELECT COUNT(*) FROM QuotationHibernate" + where, Long.class);
+            for (var query : List.of(q, cq)) {
+                if (r.getDataAccessFromYear() != null) query.setParameter("fromYear", r.getDataAccessFromYear());
+                if (r.getOwnerId() != null) query.setParameter("ownerId", r.getOwnerId());
+                if (!searchFilter.isEmpty()) query.setParameter("q", ListQueryUtils.likeParam(r.getQ()));
+                if (statusVal != null) query.setParameter("status", statusVal);
+            }
             List<Quotation> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            var cq = s.createQuery("SELECT COUNT(q) FROM QuotationHibernate q WHERE q.deletedAt IS NULL" + (r.getDataAccessFromYear() != null ? " AND YEAR(q.createdAt) >= :fromYear" : ""), Long.class);
-            if (r.getDataAccessFromYear() != null) cq.setParameter("fromYear", r.getDataAccessFromYear());
             long total = cq.uniqueResult();
             return PageResult.<Quotation>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
         }

@@ -1,5 +1,6 @@
 package vn.com.be_crm.presentation.pricing;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,7 @@ public class PricePolicyProductController {
     }
 
     /** Tạo mới sản phẩm trong chính sách giá. @param policyId ID chính sách @param cmd body @return 201 */
+    @PreAuthorize("hasAuthority('pricing.edit')")
     @PostMapping
     public ResponseEntity<ApiResponse<PricePolicyProductResult>> create(@PathVariable Long policyId,
                                                                          @Valid @RequestBody CreatePricePolicyProductCommand cmd) {
@@ -44,6 +46,7 @@ public class PricePolicyProductController {
     }
 
     /** Cập nhật sản phẩm. @param id ID @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('pricing.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<PricePolicyProductResult>> update(@PathVariable Long policyId, @PathVariable Long id,
                                                                          @Valid @RequestBody UpdatePricePolicyProductCommand cmd) {
@@ -53,6 +56,7 @@ public class PricePolicyProductController {
     }
 
     /** Xóa sản phẩm. @param id ID @return 204 */
+    @PreAuthorize("hasAuthority('pricing.edit')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long policyId, @PathVariable Long id) {
         deleteUC.execute(id); return ResponseEntity.noContent().build();
