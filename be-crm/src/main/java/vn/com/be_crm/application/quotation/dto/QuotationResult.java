@@ -39,6 +39,9 @@ public class QuotationResult {
     private LocalDateTime customerRespondedAt;
     /** Email đã gửi báo giá tới (chỉ điền khi gọi hành động send) — để FE hiển thị xác nhận. */
     private String sentToEmail;
+    // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
+    private Long createdBy;
+    private Long updatedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver).
@@ -46,4 +49,7 @@ public class QuotationResult {
     private String contactName;
     private String opportunityName;
     private String ownerName;
+    // Tên người tạo/người sửa — do BE resolve (INameResolver).
+    private String createdByName;
+    private String updatedByName;
 }

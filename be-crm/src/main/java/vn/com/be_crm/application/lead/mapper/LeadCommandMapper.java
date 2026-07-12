@@ -58,6 +58,7 @@ public class LeadCommandMapper {
                 .doNotCall(cmd.getDoNotCall() != null ? cmd.getDoNotCall() : e.isDoNotCall())
                 .doNotEmail(cmd.getDoNotEmail() != null ? cmd.getDoNotEmail() : e.isDoNotEmail())
                 .note(cmd.getNote() != null ? cmd.getNote() : e.getNote())
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).build();
     }
 
@@ -79,7 +80,8 @@ public class LeadCommandMapper {
                 .phone(e.getPhone())
                 .email(e.getEmail())
                 .doNotCall(e.isDoNotCall()).doNotEmail(e.isDoNotEmail())
-                .note(e.getNote()).createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
+                .note(e.getNote()).createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
+                .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 
     private LeadCommandMapper() {}

@@ -47,6 +47,10 @@ public class Campaign {
     private Long ownerId;
     /** Mô tả. */
     private String description;
+    /** ID người tạo bản ghi (BE tự đóng dấu, client không gửi lên). */
+    private Long createdBy;
+    /** ID người sửa bản ghi gần nhất (BE tự đóng dấu). */
+    private Long updatedBy;
     /** Thời điểm tạo. */
     private LocalDateTime createdAt;
     /** Thời điểm cập nhật gần nhất. */

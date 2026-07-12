@@ -8,6 +8,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.quotation.enums.QuotationStatus;
 
+import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,7 +20,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "quotations")
 @Getter @Setter @NoArgsConstructor
-public class QuotationHibernate {
+public class QuotationHibernate implements IAuditable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "code", nullable = false, unique = true, length = 20)
@@ -46,7 +48,8 @@ public class QuotationHibernate {
     @Column(name = "customer_response", length = 20) private String customerResponse;
     @Column(name = "customer_response_note", length = 1000) private String customerResponseNote;
     @Column(name = "customer_responded_at") private LocalDateTime customerRespondedAt;
-    @Column(name = "created_by") private Long createdBy;
+    // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
+    @Column(name = "created_by", updatable = false) private Long createdBy;
     @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false) private LocalDateTime createdAt;
     @UpdateTimestamp @Column(name = "updated_at") private LocalDateTime updatedAt;

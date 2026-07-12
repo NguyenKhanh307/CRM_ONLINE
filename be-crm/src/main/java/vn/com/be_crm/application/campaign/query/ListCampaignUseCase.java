@@ -23,6 +23,8 @@ public class ListCampaignUseCase implements IUseCase<PageRequest, PageResult<Cam
         var page = repo.findAll(r);
         List<CampaignResult> items = page.getItems().stream().map(CampaignCommandMapper::toResult).collect(Collectors.toList());
         NameEnricher.apply(items, CampaignResult::getOwnerId, names::users, CampaignResult::setOwnerName);
+        NameEnricher.apply(items, CampaignResult::getCreatedBy, names::users, CampaignResult::setCreatedByName);
+        NameEnricher.apply(items, CampaignResult::getUpdatedBy, names::users, CampaignResult::setUpdatedByName);
         return PageResult.<CampaignResult>builder()
                 .items(items)
                 .total(page.getTotal()).page(page.getPage()).size(page.getSize()).build();

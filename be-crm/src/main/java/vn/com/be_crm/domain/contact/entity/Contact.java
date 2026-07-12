@@ -55,6 +55,10 @@ public class Contact {
     private boolean doNotEmail;
     /** Là liên hệ chính của khách hàng. */
     private Boolean isPrimary;
+    /** ID người tạo bản ghi (BE tự đóng dấu, client không gửi lên). */
+    private Long createdBy;
+    /** ID người sửa bản ghi gần nhất (BE tự đóng dấu). */
+    private Long updatedBy;
     /** Thời điểm tạo. */
     private LocalDateTime createdAt;
     /** Thời điểm cập nhật gần nhất. */

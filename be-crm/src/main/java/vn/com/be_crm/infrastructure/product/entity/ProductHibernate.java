@@ -9,6 +9,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.product.enums.ProductType;
 import vn.com.be_crm.infrastructure.product.converter.ProductTypeConverter;
 
+import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -18,7 +20,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "products")
 @Getter @Setter @NoArgsConstructor
-public class ProductHibernate {
+public class ProductHibernate implements IAuditable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "sku", nullable = false, unique = true, length = 50)
@@ -44,7 +46,8 @@ public class ProductHibernate {
     private Boolean isDiscontinued;
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
-    @Column(name = "created_by") private Long createdBy;
+    // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
+    @Column(name = "created_by", updatable = false) private Long createdBy;
     @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -31,6 +31,8 @@ public class ListLeadUseCase implements IUseCase<PageRequest, PageResult<LeadRes
         NameEnricher.apply(items, LeadResult::getCustomerId, names::customers, LeadResult::setCustomerName);
         NameEnricher.apply(items, LeadResult::getContactId, names::contacts, LeadResult::setContactName);
         NameEnricher.apply(items, LeadResult::getCampaignId, names::campaigns, LeadResult::setCampaignName);
+        NameEnricher.apply(items, LeadResult::getCreatedBy, names::users, LeadResult::setCreatedByName);
+        NameEnricher.apply(items, LeadResult::getUpdatedBy, names::users, LeadResult::setUpdatedByName);
         return PageResult.<LeadResult>builder()
                 .items(items)
                 .total(page.getTotal()).page(page.getPage()).size(page.getSize()).build();

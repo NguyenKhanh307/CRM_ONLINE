@@ -36,8 +36,14 @@ public class ActivityResult {
     private ActivityStatus status;
     private LocalDateTime dueAt;
     private LocalDateTime completedAt;
+    // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
+    private Long createdBy;
+    private Long updatedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver).
     private String assignedUserName;
+    // Tên người tạo/người sửa — do BE resolve (INameResolver).
+    private String createdByName;
+    private String updatedByName;
 }

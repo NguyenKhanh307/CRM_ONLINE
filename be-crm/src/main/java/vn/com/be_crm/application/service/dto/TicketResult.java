@@ -42,10 +42,16 @@ public class TicketResult {
     private String satisfactionComment;
     /** Suy ra: quá hạn SLA khi slaDueAt đã qua mà phiếu chưa resolved/closed. */
     private Boolean isOverdue;
+    // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
+    private Long createdBy;
+    private Long updatedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver).
     private String customerName;
     private String contactName;
     private String assignedUserName;
+    // Tên người tạo/người sửa — do BE resolve (INameResolver).
+    private String createdByName;
+    private String updatedByName;
 }

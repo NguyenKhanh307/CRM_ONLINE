@@ -44,5 +44,8 @@ export const getLeadColumns = (): ColumnDef<LeadResult>[] => [
     { accessorKey: 'doNotCall', header: 'Không gọi', size: 100, cell: yesNoCell },
     { accessorKey: 'doNotEmail', header: 'Không email', size: 110, cell: yesNoCell },
     { accessorKey: 'note', header: 'Ghi chú', size: 200, cell: textCell },
+    { accessorKey: 'createdByName', header: 'Người tạo', size: 160, cell: textCell },
     { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
+    { accessorKey: 'updatedByName', header: 'Người sửa cuối', size: 160, cell: textCell },
+    { accessorKey: 'updatedAt', header: 'Ngày sửa', size: 120, enableSorting: true, cell: dateCell },
 ];

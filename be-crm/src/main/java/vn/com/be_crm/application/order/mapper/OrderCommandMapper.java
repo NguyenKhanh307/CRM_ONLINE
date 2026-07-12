@@ -56,6 +56,7 @@ public class OrderCommandMapper {
                 .tax(cmd.getTax() != null ? cmd.getTax() : e.getTax())
                 .total(cmd.getTotal() != null ? cmd.getTotal() : e.getTotal())
                 .note(cmd.getNote() != null ? cmd.getNote() : e.getNote())
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).build();
     }
 
@@ -74,6 +75,7 @@ public class OrderCommandMapper {
                 .isLocked(e.isLocked()).billingAddress(e.getBillingAddress()).taxCode(e.getTaxCode())
                 .subtotal(e.getSubtotal())
                 .discount(e.getDiscount()).tax(e.getTax()).total(e.getTotal()).note(e.getNote())
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 

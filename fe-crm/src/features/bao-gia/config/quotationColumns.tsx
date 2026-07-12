@@ -33,5 +33,8 @@ export const getQuotationColumns = (): ColumnDef<QuotationResult>[] => [
     { accessorKey: 'tax', header: 'Thuế', size: 140, cell: currencyCell },
     { accessorKey: 'total', header: 'Tổng tiền', size: 150, cell: currencyCell },
     { accessorKey: 'note', header: 'Ghi chú', size: 200, cell: textCell },
+    { accessorKey: 'createdByName', header: 'Người tạo', size: 160, cell: textCell },
     { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
+    { accessorKey: 'updatedByName', header: 'Người sửa cuối', size: 160, cell: textCell },
+    { accessorKey: 'updatedAt', header: 'Ngày sửa', size: 120, enableSorting: true, cell: dateCell },
 ];

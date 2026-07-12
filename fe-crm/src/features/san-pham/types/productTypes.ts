@@ -43,4 +43,9 @@ export interface ProductResult {
     updatedAt: string;
     // Tên khóa ngoại do BE resolve sẵn (INameResolver).
     categoryName: string | null;
+    // Audit: BE tự đóng dấu (AuditInterceptor).
+    createdBy: number | null;
+    updatedBy: number | null;
+    createdByName: string | null;
+    updatedByName: string | null;
 }

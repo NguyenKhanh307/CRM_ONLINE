@@ -27,6 +27,8 @@ public class ListProductUseCase implements IUseCase<PageRequest, PageResult<Prod
         var p = repo.findAll(r);
         List<ProductResult> items = p.getItems().stream().map(ProductCommandMapper::toResult).collect(Collectors.toList());
         NameEnricher.apply(items, ProductResult::getCategoryId, names::productCategories, ProductResult::setCategoryName);
+        NameEnricher.apply(items, ProductResult::getCreatedBy, names::users, ProductResult::setCreatedByName);
+        NameEnricher.apply(items, ProductResult::getUpdatedBy, names::users, ProductResult::setUpdatedByName);
         return PageResult.<ProductResult>builder()
                 .items(items)
                 .total(p.getTotal()).page(p.getPage()).size(p.getSize()).build();

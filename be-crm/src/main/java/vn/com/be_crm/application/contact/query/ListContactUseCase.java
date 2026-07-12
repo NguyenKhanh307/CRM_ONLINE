@@ -29,6 +29,8 @@ public class ListContactUseCase implements IUseCase<PageRequest, PageResult<Cont
         List<ContactResult> items = page.getItems().stream().map(ContactCommandMapper::toResult).collect(Collectors.toList());
         NameEnricher.apply(items, ContactResult::getCustomerId, names::customers, ContactResult::setCustomerName);
         NameEnricher.apply(items, ContactResult::getAssignedUserId, names::users, ContactResult::setAssignedUserName);
+        NameEnricher.apply(items, ContactResult::getCreatedBy, names::users, ContactResult::setCreatedByName);
+        NameEnricher.apply(items, ContactResult::getUpdatedBy, names::users, ContactResult::setUpdatedByName);
         return PageResult.<ContactResult>builder()
                 .items(items)
                 .total(page.getTotal()).page(page.getPage()).size(page.getSize()).build();

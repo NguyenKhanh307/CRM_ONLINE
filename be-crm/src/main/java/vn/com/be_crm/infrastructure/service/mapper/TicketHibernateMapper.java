@@ -6,6 +6,7 @@ import vn.com.be_crm.domain.service.enums.TicketChannel;
 import vn.com.be_crm.domain.service.enums.TicketPriority;
 import vn.com.be_crm.domain.service.enums.TicketStatus;
 import vn.com.be_crm.domain.service.enums.TicketType;
+import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.service.entity.TicketHibernate;
 
 /** Chuyển đổi giữa Ticket domain entity ↔ TicketHibernate. */
@@ -28,7 +29,8 @@ public class TicketHibernateMapper {
         h.setSlaDueAt(d.getSlaDueAt()); h.setResolvedAt(d.getResolvedAt()); h.setClosedAt(d.getClosedAt());
         h.setSatisfactionScore(d.getSatisfactionScore()); h.setSatisfactionComment(d.getSatisfactionComment());
         h.setDeletedAt(d.getDeletedAt()); h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
-        return h;
+        // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
+        return AuditStamper.stamp(h, d.getCreatedBy(), d.getUpdatedBy());
     }
     /** Chuyển Hibernate entity sang domain entity. @param h @return domain entity */
     public Ticket toDomain(TicketHibernate h) {
@@ -42,6 +44,7 @@ public class TicketHibernateMapper {
                 .firstResponseAt(h.getFirstResponseAt()).slaDueAt(h.getSlaDueAt())
                 .resolvedAt(h.getResolvedAt()).closedAt(h.getClosedAt())
                 .satisfactionScore(h.getSatisfactionScore()).satisfactionComment(h.getSatisfactionComment())
+                .createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt())
                 .deletedAt(h.getDeletedAt()).deletedBy(h.getDeletedBy()).isPurged(h.isPurged())
                 .build();

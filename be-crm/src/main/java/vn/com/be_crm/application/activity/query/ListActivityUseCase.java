@@ -28,6 +28,8 @@ public class ListActivityUseCase implements IUseCase<PageRequest, PageResult<Act
         var page = repository.findAll(request);
         List<ActivityResult> items = page.getItems().stream().map(ActivityCommandMapper::toResult).collect(Collectors.toList());
         NameEnricher.apply(items, ActivityResult::getAssignedUserId, names::users, ActivityResult::setAssignedUserName);
+        NameEnricher.apply(items, ActivityResult::getCreatedBy, names::users, ActivityResult::setCreatedByName);
+        NameEnricher.apply(items, ActivityResult::getUpdatedBy, names::users, ActivityResult::setUpdatedByName);
         return PageResult.<ActivityResult>builder()
                 .items(items)
                 .total(page.getTotal()).page(page.getPage()).size(page.getSize()).build();

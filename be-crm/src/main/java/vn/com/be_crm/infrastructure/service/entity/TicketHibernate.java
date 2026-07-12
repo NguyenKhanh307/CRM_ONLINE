@@ -15,6 +15,8 @@ import vn.com.be_crm.domain.service.enums.TicketType;
 import vn.com.be_crm.infrastructure.service.converter.TicketStatusConverter;
 import vn.com.be_crm.infrastructure.service.converter.TicketTypeConverter;
 
+import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+
 import java.time.LocalDateTime;
 
 /**
@@ -23,7 +25,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "support_tickets")
 @Getter @Setter @NoArgsConstructor
-public class TicketHibernate {
+public class TicketHibernate implements IAuditable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "code", nullable = false, unique = true, length = 20) private String code;
@@ -50,7 +52,8 @@ public class TicketHibernate {
     @Column(name = "closed_at") private LocalDateTime closedAt;
     @Column(name = "satisfaction_score") private Integer satisfactionScore;
     @Column(name = "satisfaction_comment", length = 255) private String satisfactionComment;
-    @Column(name = "created_by") private Long createdBy;
+    // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
+    @Column(name = "created_by", updatable = false) private Long createdBy;
     @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false) private LocalDateTime createdAt;
     @UpdateTimestamp @Column(name = "updated_at") private LocalDateTime updatedAt;

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.campaign.entity.Campaign;
 import vn.com.be_crm.domain.campaign.enums.CampaignStatus;
 import vn.com.be_crm.domain.campaign.enums.CampaignType;
+import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.campaign.entity.CampaignHibernate;
 
 /** Chuyển đổi giữa Campaign domain entity ↔ CampaignHibernate. */
@@ -21,7 +22,8 @@ public class CampaignHibernateMapper {
         h.setTargetSize(d.getTargetSize()); h.setExpectedRevenue(d.getExpectedRevenue());
         h.setOwnerId(d.getOwnerId()); h.setDescription(d.getDescription());
         h.setDeletedAt(d.getDeletedAt()); h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
-        return h;
+        // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
+        return AuditStamper.stamp(h, d.getCreatedBy(), d.getUpdatedBy());
     }
     /** Chuyển Hibernate entity sang domain entity. @param h @return domain entity */
     public Campaign toDomain(CampaignHibernate h) {
@@ -31,6 +33,7 @@ public class CampaignHibernateMapper {
                 .budget(h.getBudget()).actualCost(h.getActualCost())
                 .targetSize(h.getTargetSize()).expectedRevenue(h.getExpectedRevenue())
                 .ownerId(h.getOwnerId()).description(h.getDescription())
+                .createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }

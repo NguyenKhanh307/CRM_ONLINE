@@ -79,6 +79,7 @@ public class TicketCommandMapper {
                 .resolvedAt(e.getResolvedAt()).closedAt(e.getClosedAt())
                 .satisfactionScore(e.getSatisfactionScore()).satisfactionComment(e.getSatisfactionComment())
                 .isOverdue(overdue)
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt())
                 .build();
     }

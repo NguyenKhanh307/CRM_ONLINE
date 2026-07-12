@@ -44,5 +44,8 @@ export const getActivityColumns = (): ColumnDef<ActivityResult>[] => [
     { accessorKey: 'callDuration', header: 'Thời lượng (s)', size: 120, cell: numberCell },
     { accessorKey: 'dueAt', header: 'Hạn hoàn thành', size: 160, cell: dateCell },
     { accessorKey: 'completedAt', header: 'Ngày hoàn thành', size: 160, cell: dateCell },
+    { accessorKey: 'createdByName', header: 'Người tạo', size: 160, cell: textCell },
     { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
+    { accessorKey: 'updatedByName', header: 'Người sửa cuối', size: 160, cell: textCell },
+    { accessorKey: 'updatedAt', header: 'Ngày sửa', size: 120, enableSorting: true, cell: dateCell },
 ];

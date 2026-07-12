@@ -3,6 +3,7 @@ package vn.com.be_crm.infrastructure.quotation.mapper;
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.enums.QuotationStatus;
+import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.quotation.entity.QuotationHibernate;
 
 import java.math.BigDecimal;
@@ -36,7 +37,8 @@ public class QuotationHibernateMapper {
         // Phản hồi báo giá của khách hàng
         h.setResponseToken(d.getResponseToken()); h.setCustomerResponse(d.getCustomerResponse());
         h.setCustomerResponseNote(d.getCustomerResponseNote()); h.setCustomerRespondedAt(d.getCustomerRespondedAt());
-        return h;
+        // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
+        return AuditStamper.stamp(h, d.getCreatedBy(), d.getUpdatedBy());
     }
     /** Chuyển Hibernate entity sang domain entity. @param h @return domain entity */
     public Quotation toDomain(QuotationHibernate h) {
@@ -50,6 +52,7 @@ public class QuotationHibernateMapper {
                 .tax(h.getTax()).total(h.getTotal()).note(h.getNote())
                 .responseToken(h.getResponseToken()).customerResponse(h.getCustomerResponse())
                 .customerResponseNote(h.getCustomerResponseNote()).customerRespondedAt(h.getCustomerRespondedAt())
+                .createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }

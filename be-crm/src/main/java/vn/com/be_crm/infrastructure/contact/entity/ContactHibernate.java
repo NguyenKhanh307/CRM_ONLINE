@@ -8,6 +8,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.contact.enums.ContactGender;
 
+import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -17,7 +19,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "contacts")
 @Getter @Setter @NoArgsConstructor
-public class ContactHibernate {
+public class ContactHibernate implements IAuditable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "customer_id")
@@ -57,7 +59,8 @@ public class ContactHibernate {
     private boolean doNotEmail;
     @Column(name = "is_primary")
     private Boolean isPrimary;
-    @Column(name = "created_by") private Long createdBy;
+    // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
+    @Column(name = "created_by", updatable = false) private Long createdBy;
     @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

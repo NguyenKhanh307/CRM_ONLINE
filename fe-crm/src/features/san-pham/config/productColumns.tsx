@@ -19,5 +19,8 @@ export const getProductColumns = (): ColumnDef<ProductResult>[] => [
     { accessorKey: 'description', header: 'Mô tả', size: 200, cell: textCell },
     { accessorKey: 'isDiscontinued', header: 'Ngừng KD', size: 100, cell: yesNoCell },
     { accessorKey: 'isActive', header: 'Trạng thái', size: 120, cell: boolBadge('Đang bán', 'Ngừng bán') },
+    { accessorKey: 'createdByName', header: 'Người tạo', size: 160, cell: textCell },
     { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
+    { accessorKey: 'updatedByName', header: 'Người sửa cuối', size: 160, cell: textCell },
+    { accessorKey: 'updatedAt', header: 'Ngày sửa', size: 120, enableSorting: true, cell: dateCell },
 ];

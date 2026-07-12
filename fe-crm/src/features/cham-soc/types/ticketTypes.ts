@@ -48,6 +48,11 @@ export interface TicketResult {
     customerName: string | null;
     contactName: string | null;
     assignedUserName: string | null;
+    // Audit: BE tự đóng dấu (AuditInterceptor).
+    createdBy: number | null;
+    updatedBy: number | null;
+    createdByName: string | null;
+    updatedByName: string | null;
 }
 
 /** Một dòng hàng trả/đổi gửi kèm khi tạo phiếu. */

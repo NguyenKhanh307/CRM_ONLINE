@@ -29,6 +29,8 @@ public class ListCustomerUseCase implements IUseCase<PageRequest, PageResult<Cus
         List<CustomerResult> items = page.getItems().stream().map(CustomerCommandMapper::toResult).collect(Collectors.toList());
         NameEnricher.apply(items, CustomerResult::getOwnerId, names::users, CustomerResult::setOwnerName);
         NameEnricher.apply(items, CustomerResult::getUnitId, names::orgUnits, CustomerResult::setUnitName);
+        NameEnricher.apply(items, CustomerResult::getCreatedBy, names::users, CustomerResult::setCreatedByName);
+        NameEnricher.apply(items, CustomerResult::getUpdatedBy, names::users, CustomerResult::setUpdatedByName);
         return PageResult.<CustomerResult>builder()
                 .items(items)
                 .total(page.getTotal()).page(page.getPage()).size(page.getSize()).build();

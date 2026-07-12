@@ -84,4 +84,9 @@ export interface OpportunityResult {
     contactName: string | null;
     ownerName: string | null;
     stageName: string | null;
+    // Audit: BE tự đóng dấu (AuditInterceptor).
+    createdBy: number | null;
+    updatedBy: number | null;
+    createdByName: string | null;
+    updatedByName: string | null;
 }

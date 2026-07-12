@@ -2,6 +2,7 @@ package vn.com.be_crm.infrastructure.contact.mapper;
 
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.contact.entity.Contact;
+import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.contact.entity.ContactHibernate;
 
 /** Chuyển đổi giữa Contact domain entity ↔ ContactHibernate. */
@@ -25,7 +26,8 @@ public class ContactHibernateMapper {
         h.setIsPrimary(d.getIsPrimary() != null ? d.getIsPrimary() : false);
         h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
-        return h;
+        // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
+        return AuditStamper.stamp(h, d.getCreatedBy(), d.getUpdatedBy());
     }
 
     /**
@@ -42,7 +44,8 @@ public class ContactHibernateMapper {
                 .zalo(h.getZalo()).source(h.getSource())
                 .gender(h.getGender()).dateOfBirth(h.getDateOfBirth()).address(h.getAddress())
                 .doNotCall(h.isDoNotCall()).doNotEmail(h.isDoNotEmail())
-                .isPrimary(h.getIsPrimary()).createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt())
+                .isPrimary(h.getIsPrimary()).createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
+                .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt())
                 .deletedAt(h.getDeletedAt()).deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }
 }

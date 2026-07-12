@@ -25,8 +25,14 @@ public class ProductResult {
     private String description;
     private Boolean isDiscontinued;
     private Boolean isActive;
+    // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
+    private Long createdBy;
+    private Long updatedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver).
     private String categoryName;
+    // Tên người tạo/người sửa — do BE resolve (INameResolver).
+    private String createdByName;
+    private String updatedByName;
 }

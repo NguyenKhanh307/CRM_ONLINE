@@ -44,6 +44,7 @@ public class CampaignCommandMapper {
                 .expectedRevenue(cmd.getExpectedRevenue() != null ? cmd.getExpectedRevenue() : e.getExpectedRevenue())
                 .ownerId(cmd.getOwnerId() != null ? cmd.getOwnerId() : e.getOwnerId())
                 .description(cmd.getDescription() != null ? cmd.getDescription() : e.getDescription())
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).build();
     }
 
@@ -58,6 +59,7 @@ public class CampaignCommandMapper {
                 .budget(e.getBudget()).actualCost(e.getActualCost())
                 .targetSize(e.getTargetSize()).expectedRevenue(e.getExpectedRevenue())
                 .ownerId(e.getOwnerId()).description(e.getDescription())
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 

@@ -37,6 +37,9 @@ public class LeadResult {
     private boolean doNotCall;
     private boolean doNotEmail;
     private String note;
+    // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
+    private Long createdBy;
+    private Long updatedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver) để FE hiển thị trực tiếp, không còn "#id".
@@ -44,4 +47,7 @@ public class LeadResult {
     private String customerName;
     private String contactName;
     private String campaignName;
+    // Tên người tạo/người sửa — do BE resolve (INameResolver).
+    private String createdByName;
+    private String updatedByName;
 }

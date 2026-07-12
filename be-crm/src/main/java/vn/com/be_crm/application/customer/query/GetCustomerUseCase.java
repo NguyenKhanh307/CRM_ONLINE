@@ -33,6 +33,8 @@ public class GetCustomerUseCase implements IUseCase<Long, CustomerResult> {
         List<CustomerResult> one = List.of(result);
         NameEnricher.apply(one, CustomerResult::getOwnerId, names::users, CustomerResult::setOwnerName);
         NameEnricher.apply(one, CustomerResult::getUnitId, names::orgUnits, CustomerResult::setUnitName);
+        NameEnricher.apply(one, CustomerResult::getCreatedBy, names::users, CustomerResult::setCreatedByName);
+        NameEnricher.apply(one, CustomerResult::getUpdatedBy, names::users, CustomerResult::setUpdatedByName);
         return result;
     }
 }

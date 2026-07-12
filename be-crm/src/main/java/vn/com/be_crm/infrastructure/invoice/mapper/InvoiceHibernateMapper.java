@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.invoice.entity.Invoice;
 import vn.com.be_crm.domain.invoice.enums.InvoiceStatus;
 import vn.com.be_crm.domain.invoice.enums.PaymentStatus;
+import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.invoice.entity.InvoiceHibernate;
 
 import java.math.BigDecimal;
@@ -38,7 +39,8 @@ public class InvoiceHibernateMapper {
         // Ghi chú & cờ xóa mềm
         h.setNote(d.getNote()); h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
-        return h;
+        // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
+        return AuditStamper.stamp(h, d.getCreatedBy(), d.getUpdatedBy());
     }
     /** Chuyển Hibernate entity sang domain entity. @param h @return domain entity */
     public Invoice toDomain(InvoiceHibernate h) {
@@ -52,6 +54,7 @@ public class InvoiceHibernateMapper {
                 .isLocked(h.isLocked()).billingAddress(h.getBillingAddress()).taxCode(h.getTaxCode())
                 .subtotal(h.getSubtotal())
                 .discount(h.getDiscount()).tax(h.getTax()).total(h.getTotal()).note(h.getNote())
+                .createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }

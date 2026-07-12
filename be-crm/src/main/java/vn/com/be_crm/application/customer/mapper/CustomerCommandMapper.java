@@ -57,6 +57,9 @@ public class CustomerCommandMapper {
                 .isDistributor(cmd.getIsDistributor() != null ? cmd.getIsDistributor() : e.isDistributor())
                 .ownerId(cmd.getOwnerId() != null ? cmd.getOwnerId() : e.getOwnerId())
                 .unitId(cmd.getUnitId() != null ? cmd.getUnitId() : e.getUnitId())
+                // Audit: truyền tiếp từ bản ghi cũ — builder() (không phải toBuilder) nên field nào
+                // không liệt kê là mất; createdBy mất sẽ khiến người tạo bị xóa khỏi DB.
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).build();
     }
 
@@ -76,6 +79,7 @@ public class CustomerCommandMapper {
                 .rating(e.getRating()).annualRevenue(e.getAnnualRevenue())
                 .employeeSize(e.getEmployeeSize()).isDistributor(e.isDistributor())
                 .ownerId(e.getOwnerId()).unitId(e.getUnitId())
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 

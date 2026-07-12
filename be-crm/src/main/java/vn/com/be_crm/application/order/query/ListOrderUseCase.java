@@ -28,6 +28,8 @@ public class ListOrderUseCase implements IUseCase<PageRequest, PageResult<OrderR
         NameEnricher.apply(items, OrderResult::getOpportunityId, names::opportunities, OrderResult::setOpportunityName);
         NameEnricher.apply(items, OrderResult::getCampaignId, names::campaigns, OrderResult::setCampaignName);
         NameEnricher.apply(items, OrderResult::getOwnerId, names::users, OrderResult::setOwnerName);
+        NameEnricher.apply(items, OrderResult::getCreatedBy, names::users, OrderResult::setCreatedByName);
+        NameEnricher.apply(items, OrderResult::getUpdatedBy, names::users, OrderResult::setUpdatedByName);
         return PageResult.<OrderResult>builder()
                 .items(items)
                 .total(page.getTotal()).page(page.getPage()).size(page.getSize()).build();

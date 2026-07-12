@@ -3,6 +3,7 @@ package vn.com.be_crm.infrastructure.opportunity.mapper;
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
 import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
+import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.opportunity.entity.OpportunityHibernate;
 
 import java.math.BigDecimal;
@@ -30,7 +31,8 @@ public class OpportunityHibernateMapper {
         h.setStatus(d.getStatus() != null ? d.getStatus() : OpportunityStatus.open);
         h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
-        return h;
+        // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
+        return AuditStamper.stamp(h, d.getCreatedBy(), d.getUpdatedBy());
     }
 
     /**
@@ -47,6 +49,7 @@ public class OpportunityHibernateMapper {
                 .expectedCloseDate(h.getExpectedCloseDate())
                 .source(h.getSource()).campaignId(h.getCampaignId()).winLossReason(h.getWinLossReason()).description(h.getDescription())
                 .status(h.getStatus())
+                .createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }

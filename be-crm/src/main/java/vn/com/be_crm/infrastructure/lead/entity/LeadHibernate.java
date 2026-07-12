@@ -9,6 +9,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.lead.enums.LeadStatus;
 import vn.com.be_crm.infrastructure.lead.converter.LeadStatusConverter;
 
+import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -18,7 +20,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "leads")
 @Getter @Setter @NoArgsConstructor
-public class LeadHibernate {
+public class LeadHibernate implements IAuditable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "code", nullable = false, unique = true, length = 20)
@@ -68,7 +70,8 @@ public class LeadHibernate {
     private boolean doNotEmail;
     @Column(name = "note", length = 255)
     private String note;
-    @Column(name = "created_by") private Long createdBy;
+    // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
+    @Column(name = "created_by", updatable = false) private Long createdBy;
     @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

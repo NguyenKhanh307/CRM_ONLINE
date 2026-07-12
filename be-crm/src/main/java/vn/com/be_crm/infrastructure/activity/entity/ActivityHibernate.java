@@ -9,6 +9,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.activity.enums.ActivityStatus;
 import vn.com.be_crm.domain.activity.enums.ActivityType;
 
+import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+
 import java.time.LocalDateTime;
 
 /**
@@ -19,7 +21,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ActivityHibernate {
+public class ActivityHibernate implements IAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -75,7 +77,8 @@ public class ActivityHibernate {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @Column(name = "created_by")
+    // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
+    @Column(name = "created_by", updatable = false)
     private Long createdBy;
 
     @Column(name = "updated_by")

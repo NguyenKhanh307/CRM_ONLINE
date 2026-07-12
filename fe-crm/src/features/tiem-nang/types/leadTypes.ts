@@ -77,4 +77,9 @@ export interface LeadResult {
     customerName: string | null;
     contactName: string | null;
     campaignName: string | null;
+    // Audit: BE tự đóng dấu (AuditInterceptor).
+    createdBy: number | null;
+    updatedBy: number | null;
+    createdByName: string | null;
+    updatedByName: string | null;
 }

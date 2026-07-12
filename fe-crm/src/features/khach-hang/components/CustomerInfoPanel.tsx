@@ -37,7 +37,10 @@ export const CustomerInfoPanel = ({ customer: c }: CustomerInfoPanelProps) => (
             <InfoRow label="Ngân hàng" value={c.bankName} />
             <InfoRow label="Số tài khoản" value={c.bankAccount} />
             <InfoRow label="Nhà phân phối" value={c.isDistributor ? 'Có' : 'Không'} />
+            <InfoRow label="Người tạo" value={c.createdByName} />
             <InfoRow label="Ngày tạo" value={c.createdAt ? formatISODate(c.createdAt) : null} />
+            <InfoRow label="Người sửa cuối" value={c.updatedByName} />
+            <InfoRow label="Ngày sửa" value={c.updatedAt ? formatISODate(c.updatedAt) : null} />
         </div>
     </div>
 );

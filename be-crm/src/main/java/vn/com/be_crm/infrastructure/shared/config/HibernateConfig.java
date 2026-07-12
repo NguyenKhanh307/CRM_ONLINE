@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.hibernate.LocalSessionFactoryBuilder;
+import vn.com.be_crm.infrastructure.shared.audit.AuditInterceptor;
 
 import javax.sql.DataSource;
 
@@ -40,6 +41,8 @@ public class HibernateConfig {
         builder.setProperty("hibernate.format_sql", formatSql);
         builder.setProperty("hibernate.hbm2ddl.auto", hbm2ddl);
         builder.setProperty("hibernate.jdbc.time_zone", "Asia/Ho_Chi_Minh");
+        // Đóng dấu created_by/updated_by tự động cho mọi IAuditable entity (không phải sửa 68 use case)
+        builder.setInterceptor(new AuditInterceptor());
         return builder.buildSessionFactory();
     }
 }

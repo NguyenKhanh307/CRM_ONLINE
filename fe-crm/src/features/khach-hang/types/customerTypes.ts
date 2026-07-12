@@ -72,9 +72,14 @@ export interface CustomerResult {
     isDistributor: boolean;
     ownerId: number | null;
     unitId: number | null;
+    // Audit: BE tự đóng dấu, client không gửi lên.
+    createdBy: number | null;
+    updatedBy: number | null;
     createdAt: string;
     updatedAt: string;
     // Tên khóa ngoại do BE resolve sẵn (INameResolver).
     ownerName: string | null;
     unitName: string | null;
+    createdByName: string | null;
+    updatedByName: string | null;
 }

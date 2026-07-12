@@ -8,6 +8,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.order.enums.OrderStatus;
 
+import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,7 +20,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "orders")
 @Getter @Setter @NoArgsConstructor
-public class OrderHibernate {
+public class OrderHibernate implements IAuditable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "code", nullable = false, unique = true, length = 20) private String code;
@@ -41,7 +43,8 @@ public class OrderHibernate {
     @Column(name = "tax", precision = 18, scale = 2) private BigDecimal tax;
     @Column(name = "total", precision = 18, scale = 2) private BigDecimal total;
     @Column(name = "note", length = 255) private String note;
-    @Column(name = "created_by") private Long createdBy;
+    // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
+    @Column(name = "created_by", updatable = false) private Long createdBy;
     @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false) private LocalDateTime createdAt;
     @UpdateTimestamp @Column(name = "updated_at") private LocalDateTime updatedAt;

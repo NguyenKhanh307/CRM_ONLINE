@@ -36,6 +36,10 @@ export const OpportunityInfoPanel = ({ opportunity: o }: OpportunityInfoPanelPro
                     <InfoRow label="Xác suất thắng" value={o.probability != null ? `${formatNumber(o.probability)}%` : null} />
                     <InfoRow label="Ngày dự kiến chốt" value={o.expectedCloseDate ? formatISODate(o.expectedCloseDate) : null} />
                     <InfoRow label="Lý do thắng/thua" value={o.winLossReason} />
+                    <InfoRow label="Người tạo" value={o.createdByName} />
+                    <InfoRow label="Ngày tạo" value={o.createdAt ? formatISODate(o.createdAt) : null} />
+                    <InfoRow label="Người sửa cuối" value={o.updatedByName} />
+                    <InfoRow label="Ngày sửa" value={o.updatedAt ? formatISODate(o.updatedAt) : null} />
                 </div>
             </div>
 

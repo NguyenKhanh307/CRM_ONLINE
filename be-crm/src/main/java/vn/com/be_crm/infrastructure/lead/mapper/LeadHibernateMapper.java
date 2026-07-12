@@ -3,6 +3,7 @@ package vn.com.be_crm.infrastructure.lead.mapper;
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.lead.entity.Lead;
 import vn.com.be_crm.domain.lead.enums.LeadStatus;
+import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.lead.entity.LeadHibernate;
 
 /** Chuyển đổi giữa Lead domain entity ↔ LeadHibernate. */
@@ -30,7 +31,8 @@ public class LeadHibernateMapper {
         h.setDoNotCall(d.isDoNotCall()); h.setDoNotEmail(d.isDoNotEmail());
         h.setNote(d.getNote()); h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
-        return h;
+        // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
+        return AuditStamper.stamp(h, d.getCreatedBy(), d.getUpdatedBy());
     }
 
     /**
@@ -51,7 +53,8 @@ public class LeadHibernateMapper {
                 .phone(h.getPhone())
                 .email(h.getEmail())
                 .doNotCall(h.isDoNotCall()).doNotEmail(h.isDoNotEmail())
-                .note(h.getNote()).createdAt(h.getCreatedAt())
+                .note(h.getNote()).createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
+                .createdAt(h.getCreatedAt())
                 .updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }

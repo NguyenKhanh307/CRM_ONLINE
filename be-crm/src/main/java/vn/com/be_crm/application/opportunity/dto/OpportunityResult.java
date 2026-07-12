@@ -32,6 +32,9 @@ public class OpportunityResult {
     private String winLossReason;
     private String description;
     private OpportunityStatus status;
+    // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
+    private Long createdBy;
+    private Long updatedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver).
@@ -39,4 +42,7 @@ public class OpportunityResult {
     private String contactName;
     private String ownerName;
     private String stageName;
+    // Tên người tạo/người sửa — do BE resolve (INameResolver).
+    private String createdByName;
+    private String updatedByName;
 }

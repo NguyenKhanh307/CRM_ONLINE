@@ -43,6 +43,7 @@ public class ProductCommandMapper {
                 .description(cmd.getDescription() != null ? cmd.getDescription() : e.getDescription())
                 .isDiscontinued(cmd.getIsDiscontinued() != null ? cmd.getIsDiscontinued() : e.getIsDiscontinued())
                 .isActive(cmd.getIsActive() != null ? cmd.getIsActive() : e.getIsActive())
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).build();
     }
 
@@ -57,7 +58,8 @@ public class ProductCommandMapper {
                 .basePrice(e.getBasePrice())
                 .costPrice(e.getCostPrice()).vatRate(e.getVatRate())
                 .description(e.getDescription()).isDiscontinued(e.getIsDiscontinued())
-                .isActive(e.getIsActive()).createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
+                .isActive(e.getIsActive()).createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
+                .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 
     private ProductCommandMapper() {}

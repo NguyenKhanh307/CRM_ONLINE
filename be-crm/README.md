@@ -628,6 +628,26 @@ Trước đây `lead_hot` broadcast cho **mọi** user có role ADMIN + SALES_MA
 > ```
 > Chưa có UI gán trưởng đơn vị (FE không có trang quản lý đơn vị) — đặt qua SQL hoặc `POST/PUT /api/org-units` (body có `managerId`).
 
+### 2.13c Audit — Ghi "ai tạo / ai sửa cuối" tự động (MỚI 2026-07-12)
+
+Không có endpoint mới. Mọi bảng nghiệp vụ **đã có sẵn** 2 cột `created_by` / `updated_by`; nay chúng được ghi **tự động ở tầng Hibernate** và trả về trong Result DTO của **11 module** (lead, contact, customer, opportunity, quotation, order, invoice, activity, product, campaign, ticket) dưới dạng `createdBy` / `updatedBy` + `createdByName` / `updatedByName` (resolve qua `INameResolver`).
+
+| File | Vai trò |
+|------|---------|
+| `infrastructure/shared/audit/CurrentUserHolder.java` | ThreadLocal giữ userId của request; set ở `JwtAuthFilter`, **clear trong `finally`** |
+| `infrastructure/shared/audit/IAuditable.java` | Đánh dấu Hibernate entity có 2 cột audit |
+| `infrastructure/shared/audit/AuditInterceptor.java` | `onPersist` → ghi `created_by`; `onFlushDirty` → ghi `updated_by` + khôi phục `created_by` |
+| `infrastructure/shared/audit/AuditStamper.java` | Đóng dấu trước `merge` — để body JSON của `PUT` đúng |
+| `infrastructure/shared/config/HibernateConfig.java` | `builder.setInterceptor(new AuditInterceptor())` |
+
+**Bug đã vá:** trước đây `*HibernateMapper.toHibernate()` không set `createdBy`, trong khi entity **có** map cột đó → `session.merge()` ghi `NULL` đè lên `created_by` trong DB **mỗi lần sửa bản ghi**. Dữ liệu người tạo đang mất dần. Nay chặn bằng `@Column(name="created_by", updatable = false)` — cột này không bao giờ nằm trong câu `UPDATE`.
+
+**Ngữ nghĩa NULL:** lead do `/api/tracking/*` (công khai, không JWT) tạo → `created_by IS NULL` là **đúng** (khách ẩn danh tạo, không có người dùng nào). Bản ghi seed chưa từng sửa → `updated_by IS NULL` là **đúng**.
+
+**Bàn giao:** `handoverAll`/`handoverBulk` dùng native bulk `UPDATE` (bypass Hibernate) nên tự ghi `updated_by = :actor, updated_at = NOW()` trong câu SQL (7 repo).
+
+> Seed: `products.created_by` NULL (khối "giữ nguyên" của generator không liệt kê cột này). `data.sql` đã kèm `UPDATE products SET created_by = 1 WHERE created_by IS NULL;` ở cuối. Với DB đang chạy, chạy tay đúng câu đó.
+
 ### 2.13b Duplicate — Cảnh báo trùng email / SĐT / MST (MỚI)
 
 | Method | Endpoint | Mô tả |

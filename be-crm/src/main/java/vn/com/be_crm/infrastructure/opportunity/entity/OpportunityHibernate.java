@@ -8,6 +8,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
 
+import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,7 +20,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "opportunities")
 @Getter @Setter @NoArgsConstructor
-public class OpportunityHibernate {
+public class OpportunityHibernate implements IAuditable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "code", nullable = false, unique = true, length = 20)
@@ -56,7 +58,8 @@ public class OpportunityHibernate {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 10)
     private OpportunityStatus status;
-    @Column(name = "created_by") private Long createdBy;
+    // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
+    @Column(name = "created_by", updatable = false) private Long createdBy;
     @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

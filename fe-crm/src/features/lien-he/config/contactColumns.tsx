@@ -35,5 +35,8 @@ export const getContactColumns = (): ColumnDef<ContactResult>[] => [
     { accessorKey: 'doNotEmail', header: 'Không email', size: 110, cell: yesNoCell },
     { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },
     { accessorKey: 'assignedUserName', header: 'Người phụ trách', size: 160, cell: textCell },
+    { accessorKey: 'createdByName', header: 'Người tạo', size: 160, cell: textCell },
     { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
+    { accessorKey: 'updatedByName', header: 'Người sửa cuối', size: 160, cell: textCell },
+    { accessorKey: 'updatedAt', header: 'Ngày sửa', size: 120, enableSorting: true, cell: dateCell },
 ];

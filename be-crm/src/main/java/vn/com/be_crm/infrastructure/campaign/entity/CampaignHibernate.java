@@ -9,6 +9,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.campaign.enums.CampaignStatus;
 import vn.com.be_crm.domain.campaign.enums.CampaignType;
 
+import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,7 +21,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "campaigns")
 @Getter @Setter @NoArgsConstructor
-public class CampaignHibernate {
+public class CampaignHibernate implements IAuditable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "code", nullable = false, unique = true, length = 20) private String code;
@@ -35,7 +37,8 @@ public class CampaignHibernate {
     @Column(name = "expected_revenue", precision = 18, scale = 2) private BigDecimal expectedRevenue;
     @Column(name = "owner_id") private Long ownerId;
     @Column(name = "description", length = 500) private String description;
-    @Column(name = "created_by") private Long createdBy;
+    // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
+    @Column(name = "created_by", updatable = false) private Long createdBy;
     @Column(name = "updated_by") private Long updatedBy;
     @CreationTimestamp @Column(name = "created_at", updatable = false) private LocalDateTime createdAt;
     @UpdateTimestamp @Column(name = "updated_at") private LocalDateTime updatedAt;

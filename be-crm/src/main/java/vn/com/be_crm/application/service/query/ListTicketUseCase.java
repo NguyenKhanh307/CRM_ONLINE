@@ -25,6 +25,8 @@ public class ListTicketUseCase implements IUseCase<PageRequest, PageResult<Ticke
         NameEnricher.apply(items, TicketResult::getCustomerId, names::customers, TicketResult::setCustomerName);
         NameEnricher.apply(items, TicketResult::getContactId, names::contacts, TicketResult::setContactName);
         NameEnricher.apply(items, TicketResult::getAssignedUserId, names::users, TicketResult::setAssignedUserName);
+        NameEnricher.apply(items, TicketResult::getCreatedBy, names::users, TicketResult::setCreatedByName);
+        NameEnricher.apply(items, TicketResult::getUpdatedBy, names::users, TicketResult::setUpdatedByName);
         return PageResult.<TicketResult>builder()
                 .items(items)
                 .total(page.getTotal()).page(page.getPage()).size(page.getSize()).build();

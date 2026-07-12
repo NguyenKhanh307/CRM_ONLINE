@@ -54,6 +54,10 @@ public class Opportunity {
     private String description;
     /** Trạng thái cơ hội. */
     private OpportunityStatus status;
+    /** ID người tạo bản ghi (BE tự đóng dấu, client không gửi lên). */
+    private Long createdBy;
+    /** ID người sửa bản ghi gần nhất (BE tự đóng dấu). */
+    private Long updatedBy;
     /** Thời điểm tạo. */
     private LocalDateTime createdAt;
     /** Thời điểm cập nhật gần nhất. */

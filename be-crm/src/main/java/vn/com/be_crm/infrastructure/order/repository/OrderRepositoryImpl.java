@@ -1,5 +1,6 @@
 package vn.com.be_crm.infrastructure.order.repository;
 
+import vn.com.be_crm.infrastructure.shared.audit.CurrentUserHolder;
 import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -143,8 +144,10 @@ public class OrderRepositoryImpl implements IOrderRepository {
     /** Bàn giao toàn bộ Order của fromUserId sang toUserId. @param fromUserId @param toUserId */
     @Override public void handoverAll(Long fromUserId, Long toUserId) {
         TxSupport.writeVoid(sf, s -> {
-            s.createNativeQuery("UPDATE orders SET owner_id = :toUserId WHERE owner_id = :fromUserId AND deleted_at IS NULL")
-                    .setParameter("toUserId", toUserId).setParameter("fromUserId", fromUserId).executeUpdate();
+            // Bàn giao đi bằng native SQL (bypass Hibernate) → phải tự ghi updated_by/updated_at
+            s.createNativeQuery("UPDATE orders SET owner_id = :toUserId, updated_by = :actor, updated_at = NOW() WHERE owner_id = :fromUserId AND deleted_at IS NULL")
+                    .setParameter("toUserId", toUserId).setParameter("fromUserId", fromUserId)
+                    .setParameter("actor", CurrentUserHolder.get()).executeUpdate();
             });
     }
 
@@ -153,8 +156,9 @@ public class OrderRepositoryImpl implements IOrderRepository {
         if (ids == null || ids.isEmpty()) return;
         TxSupport.writeVoid(sf, s -> {
             String ownerFilter = isAdminOrManager ? "" : " AND owner_id = :currentUserId";
-            String sql = "UPDATE orders SET owner_id = :toUserId WHERE id IN (:ids) AND deleted_at IS NULL" + ownerFilter;
-            var q = s.createNativeQuery(sql).setParameter("toUserId", toUserId).setParameter("ids", ids);
+            String sql = "UPDATE orders SET owner_id = :toUserId, updated_by = :actor, updated_at = NOW() WHERE id IN (:ids) AND deleted_at IS NULL" + ownerFilter;
+            var q = s.createNativeQuery(sql).setParameter("toUserId", toUserId).setParameter("ids", ids)
+                    .setParameter("actor", currentUserId);
             if (!isAdminOrManager) q.setParameter("currentUserId", currentUserId);
             q.executeUpdate();
             });

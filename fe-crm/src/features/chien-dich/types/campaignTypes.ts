@@ -17,6 +17,11 @@ export interface CampaignResult {
     updatedAt: string;
     // Tên khóa ngoại do BE resolve sẵn (INameResolver).
     ownerName: string | null;
+    // Audit: BE tự đóng dấu (AuditInterceptor).
+    createdBy: number | null;
+    updatedBy: number | null;
+    createdByName: string | null;
+    updatedByName: string | null;
 }
 
 /** Payload tạo mới Chiến dịch — POST /api/campaigns. */

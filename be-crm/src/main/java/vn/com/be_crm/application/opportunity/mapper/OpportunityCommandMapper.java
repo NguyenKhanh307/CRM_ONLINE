@@ -53,6 +53,7 @@ public class OpportunityCommandMapper {
                 .winLossReason(cmd.getWinLossReason() != null ? cmd.getWinLossReason() : e.getWinLossReason())
                 .description(cmd.getDescription() != null ? cmd.getDescription() : e.getDescription())
                 .status(derivedStatus != null ? derivedStatus : e.getStatus())
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).build();
     }
 
@@ -70,6 +71,7 @@ public class OpportunityCommandMapper {
                 .expectedCloseDate(e.getExpectedCloseDate())
                 .source(e.getSource()).campaignId(e.getCampaignId()).winLossReason(e.getWinLossReason()).description(e.getDescription())
                 .status(e.getStatus())
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 

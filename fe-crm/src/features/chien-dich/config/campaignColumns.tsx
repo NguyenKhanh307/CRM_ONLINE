@@ -37,5 +37,8 @@ export const getCampaignColumns = (): ColumnDef<CampaignResult>[] => [
     { accessorKey: 'targetSize', header: 'Quy mô mục tiêu', size: 140, cell: numberCell },
     { accessorKey: 'expectedRevenue', header: 'Doanh số kỳ vọng', size: 160, cell: currencyCell },
     { accessorKey: 'description', header: 'Mô tả', size: 200, cell: textCell },
+    { accessorKey: 'createdByName', header: 'Người tạo', size: 160, cell: textCell },
     { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
+    { accessorKey: 'updatedByName', header: 'Người sửa cuối', size: 160, cell: textCell },
+    { accessorKey: 'updatedAt', header: 'Ngày sửa', size: 120, enableSorting: true, cell: dateCell },
 ];

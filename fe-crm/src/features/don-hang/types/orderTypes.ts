@@ -100,4 +100,9 @@ export interface OrderResult {
     opportunityName: string | null;
     campaignName: string | null;
     ownerName: string | null;
+    // Audit: BE tự đóng dấu (AuditInterceptor).
+    createdBy: number | null;
+    updatedBy: number | null;
+    createdByName: string | null;
+    updatedByName: string | null;
 }

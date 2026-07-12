@@ -49,6 +49,7 @@ public class ContactCommandMapper {
                 .doNotCall(cmd.getDoNotCall() != null ? cmd.getDoNotCall() : e.isDoNotCall())
                 .doNotEmail(cmd.getDoNotEmail() != null ? cmd.getDoNotEmail() : e.isDoNotEmail())
                 .isPrimary(cmd.getIsPrimary() != null ? cmd.getIsPrimary() : e.getIsPrimary())
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).build();
     }
 
@@ -66,7 +67,8 @@ public class ContactCommandMapper {
                 .zalo(e.getZalo()).source(e.getSource())
                 .gender(e.getGender()).dateOfBirth(e.getDateOfBirth()).address(e.getAddress())
                 .doNotCall(e.isDoNotCall()).doNotEmail(e.isDoNotEmail())
-                .isPrimary(e.getIsPrimary()).createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
+                .isPrimary(e.getIsPrimary()).createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
+                .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 
     private ContactCommandMapper() {}

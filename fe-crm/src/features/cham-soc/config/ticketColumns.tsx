@@ -30,5 +30,8 @@ export const getTicketColumns = (): ColumnDef<TicketResult>[] => [
         const v = getValue() as number | null;
         return v != null ? `${v}/5` : '—';
     } },
+    { accessorKey: 'createdByName', header: 'Người tạo', size: 160, cell: textCell },
     { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
+    { accessorKey: 'updatedByName', header: 'Người sửa cuối', size: 160, cell: textCell },
+    { accessorKey: 'updatedAt', header: 'Ngày sửa', size: 120, enableSorting: true, cell: dateCell },
 ];

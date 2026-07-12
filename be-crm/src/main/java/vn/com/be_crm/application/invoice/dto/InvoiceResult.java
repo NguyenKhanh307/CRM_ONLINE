@@ -38,6 +38,9 @@ public class InvoiceResult {
     private BigDecimal tax;
     private BigDecimal total;
     private String note;
+    // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
+    private Long createdBy;
+    private Long updatedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver).
@@ -46,4 +49,7 @@ public class InvoiceResult {
     private String quotationCode;
     private String opportunityName;
     private String ownerName;
+    // Tên người tạo/người sửa — do BE resolve (INameResolver).
+    private String createdByName;
+    private String updatedByName;
 }

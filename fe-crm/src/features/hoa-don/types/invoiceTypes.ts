@@ -123,4 +123,9 @@ export interface InvoiceResult {
     quotationCode: string | null;
     opportunityName: string | null;
     ownerName: string | null;
+    // Audit: BE tự đóng dấu (AuditInterceptor).
+    createdBy: number | null;
+    updatedBy: number | null;
+    createdByName: string | null;
+    updatedByName: string | null;
 }

@@ -5,6 +5,7 @@ import vn.com.be_crm.domain.customer.entity.Customer;
 import vn.com.be_crm.domain.customer.enums.CustomerStatus;
 import vn.com.be_crm.domain.customer.enums.CustomerType;
 import vn.com.be_crm.infrastructure.customer.entity.CustomerHibernate;
+import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
 
 /** Chuyển đổi giữa Customer domain entity ↔ CustomerHibernate. */
 @Component
@@ -30,7 +31,8 @@ public class CustomerHibernateMapper {
         h.setOwnerId(d.getOwnerId()); h.setUnitId(d.getUnitId());
         h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
-        return h;
+        // Đóng dấu người tạo/người sửa (xem AuditStamper: cần cho body response của PUT)
+        return AuditStamper.stamp(h, d.getCreatedBy(), d.getUpdatedBy());
     }
 
     /**
@@ -49,6 +51,7 @@ public class CustomerHibernateMapper {
                 .rating(h.getRating()).annualRevenue(h.getAnnualRevenue())
                 .employeeSize(h.getEmployeeSize()).isDistributor(h.isDistributor())
                 .ownerId(h.getOwnerId()).unitId(h.getUnitId())
+                .createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }

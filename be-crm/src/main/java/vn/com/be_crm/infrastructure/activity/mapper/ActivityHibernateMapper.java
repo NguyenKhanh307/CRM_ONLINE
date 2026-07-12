@@ -3,6 +3,7 @@ package vn.com.be_crm.infrastructure.activity.mapper;
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.activity.entity.Activity;
 import vn.com.be_crm.domain.activity.enums.ActivityStatus;
+import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.activity.entity.ActivityHibernate;
 
 /**
@@ -36,7 +37,8 @@ public class ActivityHibernateMapper {
         h.setStatus(domain.getStatus() != null ? domain.getStatus() : ActivityStatus.planned);
         h.setDueAt(domain.getDueAt());
         h.setCompletedAt(domain.getCompletedAt());
-        return h;
+        // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
+        return AuditStamper.stamp(h, domain.getCreatedBy(), domain.getUpdatedBy());
     }
 
     /**
@@ -55,7 +57,8 @@ public class ActivityHibernateMapper {
                 .callResult(h.getCallResult()).callDuration(h.getCallDuration())
                 .assignedUserId(h.getAssignedUserId())
                 .status(h.getStatus()).dueAt(h.getDueAt())
-                .completedAt(h.getCompletedAt()).createdAt(h.getCreatedAt())
+                .completedAt(h.getCompletedAt()).createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
+                .createdAt(h.getCreatedAt())
                 .updatedAt(h.getUpdatedAt())
                 .build();
     }

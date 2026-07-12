@@ -3,6 +3,7 @@ package vn.com.be_crm.infrastructure.order.mapper;
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.order.entity.Order;
 import vn.com.be_crm.domain.order.enums.OrderStatus;
+import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.order.entity.OrderHibernate;
 
 import java.math.BigDecimal;
@@ -35,7 +36,8 @@ public class OrderHibernateMapper {
         // Ghi chú & cờ xóa mềm
         h.setNote(d.getNote()); h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
-        return h;
+        // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
+        return AuditStamper.stamp(h, d.getCreatedBy(), d.getUpdatedBy());
     }
     /** Chuyển Hibernate entity sang domain entity. @param h @return domain entity */
     public Order toDomain(OrderHibernate h) {
@@ -49,6 +51,7 @@ public class OrderHibernateMapper {
                 .isLocked(h.isLocked()).billingAddress(h.getBillingAddress()).taxCode(h.getTaxCode())
                 .subtotal(h.getSubtotal())
                 .discount(h.getDiscount()).tax(h.getTax()).total(h.getTotal()).note(h.getNote())
+                .createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();
     }

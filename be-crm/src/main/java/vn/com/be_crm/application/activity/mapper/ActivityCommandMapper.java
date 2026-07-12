@@ -64,6 +64,8 @@ public class ActivityCommandMapper {
                 .status(existing.getStatus())
                 .dueAt(cmd.getDueAt() != null ? cmd.getDueAt() : existing.getDueAt())
                 .completedAt(existing.getCompletedAt())
+                // Audit: truyền tiếp từ bản ghi cũ (builder() chứ không phải toBuilder → không liệt kê là mất)
+                .createdBy(existing.getCreatedBy()).updatedBy(existing.getUpdatedBy())
                 .createdAt(existing.getCreatedAt())
                 .build();
     }
@@ -84,7 +86,9 @@ public class ActivityCommandMapper {
                 .callResult(entity.getCallResult()).callDuration(entity.getCallDuration())
                 .assignedUserId(entity.getAssignedUserId())
                 .status(entity.getStatus()).dueAt(entity.getDueAt())
-                .completedAt(entity.getCompletedAt()).createdAt(entity.getCreatedAt())
+                .completedAt(entity.getCompletedAt())
+                .createdBy(entity.getCreatedBy()).updatedBy(entity.getUpdatedBy())
+                .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
     }

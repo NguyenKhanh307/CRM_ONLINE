@@ -83,4 +83,9 @@ export interface ContactResult {
     // Tên khóa ngoại do BE resolve sẵn (INameResolver).
     customerName: string | null;
     assignedUserName: string | null;
+    // Audit: BE tự đóng dấu (AuditInterceptor).
+    createdBy: number | null;
+    updatedBy: number | null;
+    createdByName: string | null;
+    updatedByName: string | null;
 }
