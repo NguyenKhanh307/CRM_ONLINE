@@ -21,12 +21,16 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
     const { showAlert } = useAlert();
     const { data: draft, isLoading } = useQuotationEmailDraft(quotationId, open);
     const { mutate: workflowFn, isPending } = useQuotationWorkflow();
+    const [to, setTo] = useState('');
+    const [cc, setCc] = useState('');
+    const [bcc, setBcc] = useState('');
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
 
-    // Nạp nội dung mặc định vào ô soạn khi draft tải xong.
+    // Nạp nội dung mặc định vào ô soạn khi draft tải xong (người dùng vẫn sửa được người nhận).
     useEffect(() => {
         if (draft) {
+            setTo(draft.toEmail ?? '');
             setSubject(draft.subject ?? '');
             setBody(draft.body ?? '');
         }
@@ -36,9 +40,20 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
+        if (!to.trim()) { showAlert('Vui lòng nhập email người nhận'); return; }
         if (!subject.trim() || !body.trim()) { showAlert('Vui lòng nhập tiêu đề và nội dung email'); return; }
         workflowFn(
-            { id: quotationId, action: 'send', emailPayload: { subject: subject.trim(), body } },
+            {
+                id: quotationId,
+                action: 'send',
+                emailPayload: {
+                    to: to.trim(),
+                    cc: cc.trim() || undefined,
+                    bcc: bcc.trim() || undefined,
+                    subject: subject.trim(),
+                    body,
+                },
+            },
             {
                 onSuccess: (res: unknown) => {
                     const email = (res as { data?: { data?: { sentToEmail?: string | null } } })?.data?.data?.sentToEmail;
@@ -68,13 +83,26 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
                     <div>
                         <label className={lbl}>Người nhận</label>
                         <input
-                            className={`${inp} bg-gray-50 text-gray-500`}
-                            value={draft ? (draft.toEmail || 'Chưa có email khách hàng/liên hệ') : (isLoading ? 'Đang tải...' : '')}
-                            readOnly
+                            className={inp}
+                            value={to}
+                            onChange={e => setTo(e.target.value)}
+                            placeholder={isLoading ? 'Đang tải...' : 'email@congty.com'}
                         />
-                        {draft && !draft.toEmail && (
-                            <p className="text-sm text-danger mt-1">Báo giá chưa có email khách hàng/liên hệ để gửi.</p>
+                        {draft && !draft.toEmail && !to && (
+                            <p className="text-sm text-danger mt-1">Báo giá chưa có email khách hàng/liên hệ — hãy nhập địa chỉ người nhận.</p>
                         )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>CC</label>
+                            <input className={inp} value={cc} onChange={e => setCc(e.target.value)}
+                                placeholder="Nhiều email cách nhau bởi dấu phẩy" />
+                        </div>
+                        <div>
+                            <label className={lbl}>BCC</label>
+                            <input className={inp} value={bcc} onChange={e => setBcc(e.target.value)}
+                                placeholder="Nhiều email cách nhau bởi dấu phẩy" />
+                        </div>
                     </div>
                     <div>
                         <label className={lbl}>Tiêu đề</label>

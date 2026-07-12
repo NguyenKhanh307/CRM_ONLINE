@@ -239,8 +239,8 @@ Tất cả 8 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (
 |--------|-------|-------------|-------------|----------------|---------|
 | Tiềm năng | `/tiem-nang` | `GET /api/leads` | `PUT /api/leads/{id}` | `DELETE /api/leads/{id}` | ✓ |
 | Liên hệ | `/lien-he` | `GET /api/contacts` | `PUT /api/contacts/{id}` | `DELETE /api/contacts/{id}` | — |
-| Khách hàng | `/khach-hang` | `GET /api/customers` | `PUT /api/customers/{id}` | `DELETE /api/customers/{id}` | ✓ |
-| Cơ hội | `/co-hoi` | `GET /api/opportunities` | `PUT /api/opportunities/{id}` | `DELETE /api/opportunities/{id}` | ✓ |
+| Khách hàng | `/khach-hang` (+ **`/:id` chi tiết 360°**) | `GET /api/customers` | `PUT /api/customers/{id}` | `DELETE /api/customers/{id}` | ✓ |
+| Cơ hội | `/co-hoi` (+ **`/:id` chi tiết 360°**, **`/kanban` bảng kéo-thả**) | `GET /api/opportunities` | `PUT /api/opportunities/{id}` | `DELETE /api/opportunities/{id}` | ✓ |
 | Chiến dịch | `/chien-dich` (+ `/:id` chi tiết 3 tab) | `GET /api/campaigns` | `PUT /api/campaigns/{id}` | `DELETE /api/campaigns/{id}` | ✓ |
 | Báo giá | `/bao-gia` | `GET /api/quotations` | `PUT /api/quotations/{id}` | `DELETE /api/quotations/{id}` | ✓ |
 | Đơn hàng | `/don-hang` | `GET /api/orders` | `PUT /api/orders/{id}` | `DELETE /api/orders/{id}` | ✓ |
@@ -249,6 +249,32 @@ Tất cả 8 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (
 | Sản phẩm | `/san-pham` | `GET /api/products` | `PUT /api/products/{id}` | `DELETE /api/products/{id}` | — |
 
 > Module **Kho hàng** đã được gỡ (phân hệ Kho không còn ở backend).
+
+### Trang chi tiết 360° — Khách hàng & Cơ hội (MỚI 2026-07-12)
+
+Trước đây mọi thứ là edit-modal nên không có màn hình nào xem được "khách này đã có báo giá/đơn/hóa đơn/ticket gì". Nay:
+
+- **`/khach-hang/:id`** (`CustomerDetailPage`): header + 8 tab — Tổng quan (`CustomerInfoPanel`), Liên hệ, Cơ hội, Báo giá, Đơn hàng, Hóa đơn, Chăm sóc, Hoạt động (dòng thời gian).
+- **`/co-hoi/:id`** (`OpportunityDetailPage`): header + 5 tab — Tổng quan (thông tin + dòng hàng qua `RecordItemsPanel`), Báo giá, Đơn hàng, Hóa đơn, Hoạt động. Header có nút **Tạo báo giá** (clone từ cơ hội).
+- Dữ liệu từ **một** request: `GET /api/customers/{id}/related` · `GET /api/opportunities/{id}/related` → hooks `useCustomerRelated` / `useOpportunityRelated`. Badge trên tab = tổng số **thật** (mỗi nhóm chỉ nạp tối đa 50 dòng; vượt thì hiện "còn N bản ghi — xem trong danh sách").
+- **Vào trang**: nhấp đúp dòng ở `/khach-hang` và `/co-hoi` (trước đây mở edit-modal — modal chuyển vào menu chuột phải).
+- Component dùng chung mới `shared/components/detail/`: `DetailHeader`, `Tabs`, `InfoRow`, `RelatedTable`, `Timeline`, `relatedColumns.tsx` (cấu hình cột từng tab). Cross-link qua `shared/utils/moduleRoutes.ts#recordPath` — module có trang chi tiết thì mở thẳng, chưa có thì nhảy về danh sách + `?focus={id}` (tái dùng prop `focusId` của `DataTable`).
+- ⚠️ Tab liên quan hiện **đủ** bản ghi con kể cả của đồng nghiệp (BE kiểm quyền một lần trên bản ghi cha). Không dùng list endpoint chung cho các tab này — nó lọc `ownerId` nên sẽ **giấu** báo giá của đồng đội mà không có dấu hiệu gì → sale báo giá trùng.
+
+### Bảng Kanban Cơ hội — `/co-hoi/kanban` (MỚI 2026-07-12)
+
+`OpportunityBoardPage` — cột = giai đoạn pipeline, thẻ = cơ hội. Kéo thẻ sang cột khác = **đổi giai đoạn**; `status` (open/won/lost) vẫn do BE **suy ra tự động** từ giai đoạn, FE không bao giờ gửi `status`.
+
+- Dependency mới: **`@dnd-kit/core`** (^6.3.1 — bản 6.0.x peer-dep React ≤18, fail trên React 19). Không cần `@dnd-kit/sortable` (thẻ trong cột không sắp thứ tự thủ công).
+- Files: `pages/OpportunityBoardPage.tsx`, `components/board/{BoardColumn,OpportunityCard}.tsx`, `hooks/{useOpportunityBoard,useChangeOpportunityStage}.ts`, `types/boardTypes.ts`.
+- API: `GET /api/opportunities/board?q=` (1 request, kèm số cơ hội + tổng tiền mỗi cột, tối đa 50 thẻ/cột) · `POST /api/opportunities/{id}/stage`.
+- **Bẫy đã xử lý**: (1) bắt buộc `DragOverlay` — refetch giữa lúc kéo sẽ remount cột và thẻ đang kéo bị "snap" về chỗ cũ; (2) `PointerSensor` với `activationConstraint: { distance: 5 }` để **click** (không di chuột) vẫn mở được trang chi tiết; (3) kéo vào cột **thua** → `ReasonModal` bắt nhập lý do, hủy modal thì rollback optimistic; (4) sau khi đổi giai đoạn phải invalidate `['opportunities']` (khớp tiền tố nên làm mới cả board lẫn danh sách).
+
+### Cảnh báo trùng dữ liệu (MỚI 2026-07-12)
+
+`shared/hooks/useDuplicateCheck.ts` (debounce 500ms) + `shared/components/DuplicateWarning.tsx` → banner vàng ở `LeadAddPage`, `CustomerAddPage`, `ContactAddPage` khi email/SĐT/MST trùng bản ghi đã có. **Không chặn lưu** (nhiều khách dùng chung số tổng đài / email công ty), chỉ liệt kê + link tới bản ghi trùng.
+
+Khi **convert tiềm năng**: `ConvertLeadModal` dò trùng theo MST/email/SĐT của lead → nếu có khách hàng trùng, cho chọn **"Dùng khách hàng hiện có"** (gửi `customerId` → BE gắn Liên hệ + Cơ hội vào KH đó, không tạo KH thứ hai) hoặc **"Tạo khách hàng mới"**.
 
 ### Bàn làm việc (Dashboard) — `/dashboard` (MỚI 2026-07-04)
 

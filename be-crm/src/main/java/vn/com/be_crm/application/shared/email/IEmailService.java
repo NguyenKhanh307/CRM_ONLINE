@@ -20,13 +20,16 @@ public interface IEmailService {
      * khối 3 nút phản hồi (kèm token) được tầng gửi tự chèn vào cuối để link luôn đúng.
      *
      * @param toEmail      địa chỉ email nhận
+     * @param cc           danh sách CC (rỗng nếu không có)
+     * @param bcc          danh sách BCC (rỗng nếu không có)
      * @param subject      tiêu đề email
      * @param bodyHtml     nội dung message (HTML) — không gồm 3 nút phản hồi
      * @param responseLink URL trang phản hồi công khai (kèm token), email gắn ?action=agree|adjust|reject
      * @param pdf          nội dung file PDF bảng báo giá (có thể null nếu không đính kèm)
      * @param pdfFileName  tên file PDF đính kèm
      */
-    void sendQuotationEmail(String toEmail, String subject, String bodyHtml,
+    void sendQuotationEmail(String toEmail, java.util.List<String> cc, java.util.List<String> bcc,
+                            String subject, String bodyHtml,
                             String responseLink, byte[] pdf, String pdfFileName);
 
     /**

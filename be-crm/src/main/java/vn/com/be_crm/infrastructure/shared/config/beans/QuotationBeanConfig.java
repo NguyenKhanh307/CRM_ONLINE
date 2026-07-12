@@ -77,13 +77,13 @@ public class QuotationBeanConfig {
 
     /** @return QuotationWorkflowUseCase */
     @Bean public QuotationWorkflowUseCase quotationWorkflowUseCase(IQuotationRepository qr, IQuotationApprovalRepository ar,
-            CreateNotificationUseCase nuc, IUserRoleRepository urr, IEmailService es,
+            CreateNotificationUseCase nuc, vn.com.be_crm.application.shared.notify.IManagerResolver mr, IEmailService es,
             ICustomerRepository cr, IContactRepository cor, IQuotationItemRepository qir,
             IProductRepository pr, IQuotationPdfService pdf,
             vn.com.be_crm.application.quotation.email.QuotationEmailComposer composer,
             @Value("${app.frontend.base-url}") String frontendBaseUrl,
             ITransactionRunner tx) {
-        return new QuotationWorkflowUseCase(qr, ar, nuc, urr, es, cr, cor, qir, pr, pdf, composer, frontendBaseUrl, tx);
+        return new QuotationWorkflowUseCase(qr, ar, nuc, mr, es, cr, cor, qir, pr, pdf, composer, frontendBaseUrl, tx);
     }
 
     /** @return RespondToQuotationUseCase — khách phản hồi báo giá (đồng ý/điều chỉnh/không đồng ý) */

@@ -2,6 +2,8 @@ import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
 import type { CreateOpportunityPayload, OpportunityItemPayload, OpportunityItemResult, OpportunityResult, UpdateOpportunityPayload } from '../types/opportunityTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
+import type { OpportunityRelatedResult } from '@/shared/types/related';
+import type { BoardColumn, ChangeStagePayload } from '../types/boardTypes';
 
 export const opportunityService = {
     getList: (params?: PageParams) =>
@@ -32,4 +34,13 @@ export const opportunityService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/opportunities/handover-bulk', payload),
+    /** Bản ghi liên quan cho trang chi tiết 360° (báo giá, đơn, hóa đơn, hoạt động). */
+    getRelated: (id: number) =>
+        axiosInstance.get<ApiResponse<OpportunityRelatedResult>>(`/api/opportunities/${id}/related`),
+    /** Nạp bảng Kanban (cột = giai đoạn, thẻ = cơ hội). */
+    getBoard: (q?: string) =>
+        axiosInstance.get<ApiResponse<BoardColumn[]>>('/api/opportunities/board', { params: q ? { q } : undefined }),
+    /** Đổi giai đoạn khi kéo-thả thẻ; trạng thái do BE suy ra từ giai đoạn. */
+    changeStage: (id: number, payload: ChangeStagePayload) =>
+        axiosInstance.post<ApiResponse<OpportunityResult>>(`/api/opportunities/${id}/stage`, payload),
 };

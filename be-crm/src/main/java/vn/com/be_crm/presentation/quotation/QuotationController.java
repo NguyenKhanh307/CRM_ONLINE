@@ -216,14 +216,33 @@ public class QuotationController {
         return ResponseEntity.ok(ApiResponse.ok(emailDraftUC.execute(id)));
     }
 
-    /** Nhân viên gửi email báo giá cho khách (approved → sent). @param id ID @param body tiêu đề/nội dung tùy biến @return 200 */
+    /** Nhân viên gửi email báo giá cho khách (approved → sent). @param id ID @param body người nhận/CC/BCC/tiêu đề/nội dung tùy biến @return 200 */
     @PreAuthorize("hasAuthority('quotation.approve')")
     @PostMapping("/{id}/send")
     public ResponseEntity<ApiResponse<QuotationResult>> send(@PathVariable Long id,
             @RequestBody(required = false) SendQuotationRequest body) {
-        String subject = body != null ? body.getSubject() : null;
-        String content = body != null ? body.getBody() : null;
-        return ResponseEntity.ok(ApiResponse.ok(workflowUC.send(id, subject, content)));
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.send(
+                vn.com.be_crm.application.quotation.dto.SendQuotationCommand.builder()
+                        .id(id)
+                        .to(body != null ? body.getTo() : null)
+                        .cc(body != null ? body.getCc() : null)
+                        .bcc(body != null ? body.getBcc() : null)
+                        .subject(body != null ? body.getSubject() : null)
+                        .body(body != null ? body.getBody() : null)
+                        .build())));
+    }
+
+    /**
+     * Đánh dấu báo giá đã gửi mà không gửi email (approved → sent) — dùng khi gửi qua Zalo,
+     * in giấy hoặc gặp trực tiếp.
+     *
+     * @param id ID báo giá
+     * @return 200
+     */
+    @PreAuthorize("hasAuthority('quotation.approve')")
+    @PostMapping("/{id}/mark-sent")
+    public ResponseEntity<ApiResponse<QuotationResult>> markSent(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.markSent(id)));
     }
 
     /** Chỉ ADMIN/SALES_MANAGER mới được duyệt/từ chối báo giá. */

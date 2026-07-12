@@ -37,6 +37,18 @@ public enum LeadStatus {
     );
 
     /**
+     * Bước chuyển sang target có hợp lệ không (không ném exception).
+     * Dùng cho luồng TỰ ĐỘNG (chấm điểm) — ở đó bước chuyển không hợp lệ chỉ nghĩa là giữ nguyên
+     * trạng thái, không phải lỗi của người dùng.
+     *
+     * @param target trạng thái đích
+     * @return true nếu chuyển được
+     */
+    public boolean canTransitionTo(LeadStatus target) {
+        return ALLOWED.getOrDefault(this, Set.of()).contains(target);
+    }
+
+    /**
      * Đảm bảo bước chuyển sang target hợp lệ, nếu không ném DomainException.
      * @param target trạng thái đích
      */

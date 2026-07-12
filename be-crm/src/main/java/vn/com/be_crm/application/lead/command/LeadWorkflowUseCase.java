@@ -45,39 +45,49 @@ public class LeadWorkflowUseCase {
      * Chuyển đổi tiềm năng thành công (qualified → converted): tách dữ liệu phẳng thành
      * Khách hàng (Account) + Liên hệ (Contact) + Cơ hội (Opportunity) theo mô hình B2B, rồi khóa tiềm năng.
      * Cả 4 lệnh ghi chạy trong MỘT transaction — lỗi giữa chừng rollback hết, không để lại bản ghi mồ côi.
-     * @param id ID tiềm năng @return tiềm năng sau cập nhật
+     *
+     * @param id                 ID tiềm năng
+     * @param existingCustomerId dùng khách hàng đã có thay vì tạo mới (null = tạo mới) — chống trùng khách hàng
+     * @param existingContactId  dùng liên hệ đã có thay vì tạo mới (null = tạo mới)
+     * @return tiềm năng sau cập nhật
      */
-    public LeadResult convert(Long id) {
-        return tx.call(() -> convertInTx(id));
+    public LeadResult convert(Long id, Long existingCustomerId, Long existingContactId) {
+        return tx.call(() -> convertInTx(id, existingCustomerId, existingContactId));
     }
 
-    /** Thân nghiệp vụ convert — luôn chạy bên trong transaction do {@link #convert(Long)} mở. */
-    private LeadResult convertInTx(Long id) {
+    /** Thân nghiệp vụ convert — luôn chạy bên trong transaction do {@link #convert} mở. */
+    private LeadResult convertInTx(Long id, Long existingCustomerId, Long existingContactId) {
         Lead lead = load(id);
         lead.getStatus().ensureCanTransitionTo(LeadStatus.converted);
 
         long now = System.currentTimeMillis();
 
-        // 1) Tạo Khách hàng (mỏ neo B2B) từ thông tin tổ chức của tiềm năng
-        Customer customer = customerRepo.save(Customer.builder()
-                .code("KH-" + now)
-                .name(lead.getCompanyName() != null && !lead.getCompanyName().isBlank() ? lead.getCompanyName() : lead.getName())
-                .type(CustomerType.company)
-                .status(CustomerStatus.active)
-                .taxCode(lead.getTaxCode()).phone(lead.getPhone()).email(lead.getEmail())
-                .website(lead.getWebsite()).industry(lead.getIndustry()).source(lead.getSource())
-                .ownerId(lead.getOwnerId())
-                .build());
+        // 1) Khách hàng (mỏ neo B2B): dùng lại bản ghi người dùng đã chọn, hoặc tạo mới từ thông tin tổ chức
+        Customer customer = existingCustomerId != null
+                ? customerRepo.findById(existingCustomerId)
+                        .orElseThrow(() -> new NotFoundException("Customer not found: " + existingCustomerId))
+                : customerRepo.save(Customer.builder()
+                        .code("KH-" + now)
+                        .name(lead.getCompanyName() != null && !lead.getCompanyName().isBlank() ? lead.getCompanyName() : lead.getName())
+                        .type(CustomerType.company)
+                        .status(CustomerStatus.active)
+                        .taxCode(lead.getTaxCode()).phone(lead.getPhone()).email(lead.getEmail())
+                        .website(lead.getWebsite()).industry(lead.getIndustry()).source(lead.getSource())
+                        .ownerId(lead.getOwnerId())
+                        .build());
 
-        // 2) Tạo Liên hệ (cá nhân ra quyết định) gắn vào Khách hàng vừa tạo
-        Contact contact = contactRepo.save(Contact.builder()
-                .customerId(customer.getId())
-                .assignedUserId(lead.getOwnerId())
-                .fullName(lead.getName()).title(lead.getTitle()).department(lead.getDepartment())
-                .email(lead.getEmail()).source(lead.getSource())
-                .doNotCall(lead.isDoNotCall()).doNotEmail(lead.isDoNotEmail())
-                .isPrimary(true)
-                .build());
+        // 2) Liên hệ (cá nhân ra quyết định): dùng lại bản ghi đã chọn, hoặc tạo mới gắn vào khách hàng trên
+        Contact contact = existingContactId != null
+                ? contactRepo.findById(existingContactId)
+                        .orElseThrow(() -> new NotFoundException("Contact not found: " + existingContactId))
+                : contactRepo.save(Contact.builder()
+                        .customerId(customer.getId())
+                        .assignedUserId(lead.getOwnerId())
+                        .fullName(lead.getName()).title(lead.getTitle()).department(lead.getDepartment())
+                        .email(lead.getEmail()).source(lead.getSource())
+                        .doNotCall(lead.isDoNotCall()).doNotEmail(lead.isDoNotEmail())
+                        .isPrimary(true)
+                        .build());
 
         // 3) Tạo Cơ hội (giao dịch kỳ vọng đầu tiên) liên kết Khách hàng + Liên hệ
         BigDecimal estimated = lead.getEstimatedValue() != null ? lead.getEstimatedValue() : BigDecimal.ZERO;
@@ -99,6 +109,20 @@ public class LeadWorkflowUseCase {
                 .convertedOpportunityId(opportunity.getId())
                 .build());
         return LeadCommandMapper.toResult(saved);
+    }
+
+    /**
+     * Đánh dấu tiềm năng đủ điều kiện thủ công (new/contacting → qualified).
+     * Cần thiết vì luồng tự động chỉ qualify khi điểm vượt ngưỡng 50 — sale thẩm định qua điện thoại
+     * thì không có cách nào mở khóa bước convert.
+     *
+     * @param id ID tiềm năng
+     * @return tiềm năng sau cập nhật
+     */
+    public LeadResult qualify(Long id) {
+        Lead lead = load(id);
+        lead.getStatus().ensureCanTransitionTo(LeadStatus.qualified);
+        return LeadCommandMapper.toResult(repo.save(lead.toBuilder().status(LeadStatus.qualified).build()));
     }
 
     /**

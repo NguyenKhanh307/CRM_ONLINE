@@ -4,6 +4,8 @@ import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
+import { DuplicateWarning } from '@/shared/components/DuplicateWarning';
+import { useDuplicateCheck } from '@/shared/hooks/useDuplicateCheck';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
@@ -90,6 +92,9 @@ const ContactAddPage = () => {
     const formRef = useRef<HTMLDivElement>(null);
     useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
 
+    // Cảnh báo (không chặn) khi email/SĐT trùng bản ghi đã có
+    const { data: duplicates } = useDuplicateCheck({ email: form.email, phone: form.mobilePhone });
+
     return (
         <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader
@@ -99,6 +104,8 @@ const ContactAddPage = () => {
                 onSave={() => submit(false)}
                 onSaveAndNew={() => submit(true)}
             />
+
+            <DuplicateWarning matches={duplicates} />
 
             <div className="bg-white rounded-card shadow-sm p-6 space-y-8">
                 <FormSection title="Thông tin chung">

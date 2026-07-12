@@ -36,9 +36,16 @@ public class OpportunityBeanConfig {
     /** @return DeleteOpportunityUseCase */
     @Bean public DeleteOpportunityUseCase deleteOpportunityUseCase(IOpportunityRepository r) { return new DeleteOpportunityUseCase(r); }
     /** @return GetOpportunityUseCase */
-    @Bean public GetOpportunityUseCase getOpportunityUseCase(IOpportunityRepository r) { return new GetOpportunityUseCase(r); }
+    @Bean public GetOpportunityUseCase getOpportunityUseCase(IOpportunityRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new GetOpportunityUseCase(r, n); }
     /** @return ListOpportunityUseCase */
     @Bean public ListOpportunityUseCase listOpportunityUseCase(IOpportunityRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListOpportunityUseCase(r, n); }
+
+    // ===== Kanban (bảng giai đoạn) =====
+
+    /** @return ChangeOpportunityStageUseCase — đổi giai đoạn khi kéo-thả thẻ */
+    @Bean public ChangeOpportunityStageUseCase changeOpportunityStageUseCase(IOpportunityRepository r, IOpportunityStageRepository sr) { return new ChangeOpportunityStageUseCase(r, sr); }
+    /** @return GetOpportunityBoardUseCase — nạp cột + thẻ của bảng Kanban */
+    @Bean public GetOpportunityBoardUseCase getOpportunityBoardUseCase(vn.com.be_crm.domain.opportunity.repository.IOpportunityBoardRepository r) { return new GetOpportunityBoardUseCase(r); }
 
     // ===== Opportunity Item =====
 

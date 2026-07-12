@@ -28,6 +28,9 @@ public class OrgUnit {
     /** ID đơn vị cha (null nếu là gốc). */
     private Long parentId;
 
+    /** Trưởng đơn vị — người nhận thông báo thay cho cả đội (null nếu chưa gán). */
+    private Long managerId;
+
     /** Cấp bậc trong cây tổ chức. */
     private Integer level;
 

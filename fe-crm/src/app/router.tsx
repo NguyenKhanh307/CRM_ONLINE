@@ -16,10 +16,13 @@ const ContactImportPage = lazy(() => import('@/features/lien-he/pages/ContactImp
 const KhachHangPage   = lazy(() => import('@/features/khach-hang/pages/KhachHangPage'));
 const CustomerAddPage = lazy(() => import('@/features/khach-hang/pages/CustomerAddPage'));
 const CustomerImportPage = lazy(() => import('@/features/khach-hang/pages/CustomerImportPage'));
+const CustomerDetailPage = lazy(() => import('@/features/khach-hang/pages/CustomerDetailPage'));
 const CoHoiPage       = lazy(() => import('@/features/co-hoi/pages/CoHoiPage'));
 const OpportunityAddPage = lazy(() => import('@/features/co-hoi/pages/OpportunityAddPage'));
 const OpportunityImportPage = lazy(() => import('@/features/co-hoi/pages/OpportunityImportPage'));
 const OpportunityPipelinePage = lazy(() => import('@/features/co-hoi/pages/OpportunityPipelinePage'));
+const OpportunityDetailPage = lazy(() => import('@/features/co-hoi/pages/OpportunityDetailPage'));
+const OpportunityBoardPage = lazy(() => import('@/features/co-hoi/pages/OpportunityBoardPage'));
 const BaoGiaPage      = lazy(() => import('@/features/bao-gia/pages/BaoGiaPage'));
 const QuoteAddPage    = lazy(() => import('@/features/bao-gia/pages/QuoteAddPage'));
 const QuotationImportPage = lazy(() => import('@/features/bao-gia/pages/QuotationImportPage'));
@@ -67,10 +70,13 @@ export const router = createBrowserRouter([
             { path: '/khach-hang',            element: <Suspense fallback={fallback}><KhachHangPage /></Suspense> },
             { path: '/khach-hang/them-moi',   element: <Suspense fallback={fallback}><CustomerAddPage /></Suspense> },
             { path: '/khach-hang/nhap-file',  element: <Suspense fallback={fallback}><CustomerImportPage /></Suspense> },
+            { path: '/khach-hang/:id',        element: <Suspense fallback={fallback}><CustomerDetailPage /></Suspense> },
             { path: '/co-hoi',                element: <Suspense fallback={fallback}><CoHoiPage /></Suspense> },
             { path: '/co-hoi/them-moi',       element: <Suspense fallback={fallback}><OpportunityAddPage /></Suspense> },
             { path: '/co-hoi/nhap-file',      element: <Suspense fallback={fallback}><OpportunityImportPage /></Suspense> },
             { path: '/co-hoi/pipeline',       element: <Suspense fallback={fallback}><OpportunityPipelinePage /></Suspense> },
+            { path: '/co-hoi/kanban',         element: <Suspense fallback={fallback}><OpportunityBoardPage /></Suspense> },
+            { path: '/co-hoi/:id',            element: <Suspense fallback={fallback}><OpportunityDetailPage /></Suspense> },
             { path: '/bao-gia',               element: <Suspense fallback={fallback}><BaoGiaPage /></Suspense> },
             { path: '/bao-gia/them-moi',      element: <Suspense fallback={fallback}><QuoteAddPage /></Suspense> },
             { path: '/bao-gia/nhap-file',     element: <Suspense fallback={fallback}><QuotationImportPage /></Suspense> },

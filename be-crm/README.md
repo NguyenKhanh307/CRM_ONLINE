@@ -212,6 +212,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `DELETE` | `/api/customers/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 | `POST` | `/api/customers/import-bulk` | Nhập hàng loạt khách hàng từ file Excel/CSV |
 | `POST` | `/api/customers/handover-bulk` | Bàn giao nhiều khách hàng sang người dùng khác — body: `{ ids, toUserId, reason? }` |
+| `GET` | `/api/customers/{id}/related` | **MỚI** — bản ghi liên quan cho trang chi tiết 360°: liên hệ / cơ hội / báo giá / đơn / hóa đơn / phiếu CS / hoạt động. Quyền kiểm **một lần** trên khách hàng (không phải owner → 403); qua được thì thấy **đủ** bản ghi con kể cả của đồng nghiệp |
 
 #### Chia sẻ khách hàng — `/api/customers/{customerId}/shares`
 
@@ -239,6 +240,9 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `DELETE` | `/api/leads/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác (ẩn UI, DB giữ) |
 | `POST` | `/api/leads/import-bulk` | Nhập hàng loạt lead từ file Excel/CSV (hỗ trợ CREATE/UPDATE/BOTH) |
 | `POST` | `/api/leads/handover-bulk` | Bàn giao nhiều lead sang người dùng khác — body: `{ ids, toUserId, reason? }` |
+| `POST` | `/api/leads/{id}/qualify` | **MỚI** — đánh dấu đủ điều kiện thủ công (new/contacting → qualified), không cần đủ 50 điểm |
+| `POST` | `/api/leads/{id}/convert` | Chuyển đổi (qualified → converted) → tạo KH + LH + Cơ hội. Body **tùy chọn** `{ customerId?, contactId? }` — dùng lại bản ghi có sẵn thay vì tạo trùng |
+| `POST` | `/api/leads/{id}/lose` | Đánh mất (→ lost), body `{ reason? }` |
 
 > **Hoạt động của lead** không còn endpoint riêng `/api/leads/{leadId}/activities` (đã gỡ `LeadActivityController`). Ghi nhận hoạt động cho lead qua phân hệ Hoạt động dùng chung: `POST /api/activities` với `targetType=lead`, `targetId={leadId}` — và sẽ tự cộng điểm `leads.score`. Cộng điểm/web tracking xem [Tracking](#212-tracking--web-tracking--chấm-điểm-tiềm-năng-public).
 
@@ -269,6 +273,9 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `DELETE` | `/api/opportunities/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 | `POST` | `/api/opportunities/import-bulk` | Nhập hàng loạt cơ hội từ file Excel/CSV |
 | `POST` | `/api/opportunities/handover-bulk` | Bàn giao nhiều cơ hội sang người dùng khác — body: `{ ids, toUserId, reason? }` |
+| `GET` | `/api/opportunities/board` | **MỚI** — dữ liệu bảng Kanban: cột = giai đoạn (kèm số cơ hội + tổng tiền), tối đa 50 thẻ/cột. Param `q` tìm theo mã/tên. Lọc owner như list |
+| `POST` | `/api/opportunities/{id}/stage` | **MỚI** — đổi giai đoạn (kéo-thả Kanban), body `{ stageId, winLossReason? }`. Trạng thái won/lost/open **tự suy ra** từ giai đoạn (`OpportunityStatus.fromStage`); stage không tồn tại → 404 |
+| `GET` | `/api/opportunities/{id}/related` | **MỚI** — bản ghi liên quan cho trang chi tiết 360°: báo giá / đơn hàng / hóa đơn / hoạt động (mỗi nhóm tối đa 50 dòng + tổng số thật) |
 
 #### Giai đoạn cơ hội — `/api/opportunity-stages`
 
@@ -601,6 +608,34 @@ Mỗi thông báo trả về `{ id, type, title, content, leadId, targetId, isRe
 
 > DB đang chạy cần bổ sung cột: `ALTER TABLE notifications ADD COLUMN target_id INT UNSIGNED NULL;` (TiDB: mỗi lệnh ALTER chỉ thêm một cột).
 
+#### Phạm vi người nhận (thu hẹp 2026-07-12)
+
+Trước đây `lead_hot` broadcast cho **mọi** user có role ADMIN + SALES_MANAGER + SALES_STAFF, và `quotation_pending` cho mọi ADMIN + SALES_MANAGER → chuông 99+ cho mỗi sale. Nay:
+
+| Thông báo | Người nhận |
+|-----------|-----------|
+| `lead_hot` | Owner của tiềm năng **+ quản lý trực tiếp** của owner |
+| `quotation_pending` | **Chỉ quản lý trực tiếp** của người phụ trách báo giá |
+| `quotation_approved/rejected/accepted/customer_response`, `ticket_*` | Không đổi (vốn đã chỉ gửi owner/người xử lý) |
+
+"Quản lý trực tiếp" = `users.unit_id` → **`org_units.manager_id`** (cột **MỚI**), leo dần lên `parent_id` nếu đơn vị chưa gán trưởng; không tìm được ai thì fallback về toàn bộ role `SALES_MANAGER`. Port `application/shared/notify/IManagerResolver` + impl `infrastructure/shared/notify/ManagerResolverImpl`.
+
+> DB đang chạy cần bổ sung cột (FK vòng nên phải chạy sau khi bảng `users` tồn tại):
+> ```sql
+> ALTER TABLE org_units ADD COLUMN manager_id INT UNSIGNED NULL;
+> ALTER TABLE org_units ADD CONSTRAINT fk_org_units_manager FOREIGN KEY (manager_id) REFERENCES users (id) ON DELETE SET NULL;
+> UPDATE org_units SET manager_id = 2 WHERE id IN (1,2,3,4,5);   -- seed: quanly là trưởng cả 5 đơn vị
+> ```
+> Chưa có UI gán trưởng đơn vị (FE không có trang quản lý đơn vị) — đặt qua SQL hoặc `POST/PUT /api/org-units` (body có `managerId`).
+
+### 2.13b Duplicate — Cảnh báo trùng email / SĐT / MST (MỚI)
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `GET` | `/api/duplicates/check` | Dò bản ghi trùng trong **tiềm năng / khách hàng / liên hệ**. Param: `email`, `phone`, `taxCode`, `excludeModule`, `excludeId`. Trả `[{ module, id, code, name, matchedField, matchedValue }]` (tối đa 5 dòng/phân hệ) |
+
+Chỉ **cảnh báo**, KHÔNG chặn lưu (nhiều khách dùng chung số tổng đài / email công ty). FE hiện banner vàng ở form Thêm mới của 3 phân hệ trên; khi convert tiềm năng, nếu có khách hàng trùng thì hỏi "dùng KH hiện có hay tạo mới" và gửi `customerId` kèm `POST /api/leads/{id}/convert`.
+
 ### 2.13 Endpoint chuyển trạng thái (workflow — 2026-06-24)
 
 Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động (có guard `ensureCanTransitionTo`, trả 400 nếu bước sai):
@@ -612,7 +647,8 @@ Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động
 | `POST` | `/api/customers/{id}/activate` \| `/deactivate` | active ↔ inactive |
 | `POST` | `/api/activities/{id}/start` \| `/complete` \| `/cancel` | planned→in_progress→done / cancelled |
 | `POST` | `/api/invoices/{id}/issue` \| `/cancel` | draft→sent (khóa) / cancelled |
-| `POST` | `/api/quotations/{id}/submit` \| `/approve` \| `/reject` \| `/send` \| `/accept` | draft→pending→approved/rejected→sent→accepted (approve/reject cần ADMIN/SALES_MANAGER; **send** gửi email khách kèm **PDF bảng báo giá** + 3 nút phản hồi, sinh `response_token`). **send** nhận body tùy chọn `{ subject, body }` — người dùng tự soạn tiêu đề/nội dung; bỏ trống thì dùng mặc định. 3 nút phản hồi luôn được BE tự chèn vào cuối |
+| `POST` | `/api/quotations/{id}/submit` \| `/approve` \| `/reject` \| `/send` \| `/accept` | draft→pending→approved/rejected→sent→accepted (approve/reject cần ADMIN/SALES_MANAGER; **send** gửi email khách kèm **PDF bảng báo giá** + 3 nút phản hồi, sinh `response_token`). **send** nhận body tùy chọn `{ to, cc, bcc, subject, body }` — người dùng sửa được **người nhận** và thêm CC/BCC (nhiều email cách nhau dấu phẩy); bỏ trống `to` thì lấy email liên hệ/khách hàng. 3 nút phản hồi luôn được BE tự chèn vào cuối |
+| `POST` | `/api/quotations/{id}/mark-sent` | **MỚI** — đánh dấu đã gửi mà KHÔNG gửi email (approved → sent), dùng khi báo giá gửi qua Zalo / in giấy. Vẫn sinh `response_token` để chia sẻ link phản hồi khi cần |
 | `GET`  | `/api/quotations/{id}/email-draft` | Lấy nội dung email mặc định (`{ toEmail, recipientName, subject, body }`) để FE hiển thị trong ô soạn trước khi gửi |
 | `GET`  | `/api/public/quotations/{token}` | (public) Xem báo giá theo token để khách phản hồi |
 | `POST` | `/api/public/quotations/{token}/respond` | (public) Khách phản hồi — body `{ action: accept\|adjust\|reject, note? }`; `accept`→accepted + thông báo người phụ trách |

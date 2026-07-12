@@ -15,6 +15,7 @@ import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
 import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
+import vn.com.be_crm.presentation.opportunity.request.ChangeStageRequest;
 import vn.com.be_crm.presentation.shared.ApiResponse;
 import vn.com.be_crm.presentation.shared.HandoverBulkRequest;
 import vn.com.be_crm.presentation.shared.PageResponse;
@@ -35,19 +36,55 @@ public class OpportunityController {
     private final PurgeOpportunityUseCase purgeUC;
     private final ImportBulkOpportunityUseCase importBulkUC;
     private final HandoverBulkOpportunityUseCase handoverBulkUC;
+    private final ChangeOpportunityStageUseCase changeStageUC;
+    private final GetOpportunityBoardUseCase boardUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
      *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
-     *  @param handoverBulkUC bàn giao hàng loạt */
+     *  @param handoverBulkUC bàn giao hàng loạt @param changeStageUC đổi giai đoạn (Kanban) @param boardUC nạp bảng Kanban */
     public OpportunityController(CreateOpportunityUseCase createUC, UpdateOpportunityUseCase updateUC,
                                   DeleteOpportunityUseCase deleteUC, GetOpportunityUseCase getUC,
                                   ListOpportunityUseCase listUC, ListDeletedOpportunitiesUseCase listDeletedUC,
                                   RestoreOpportunityUseCase restoreUC, PurgeOpportunityUseCase purgeUC,
-                                  ImportBulkOpportunityUseCase importBulkUC, HandoverBulkOpportunityUseCase handoverBulkUC) {
+                                  ImportBulkOpportunityUseCase importBulkUC, HandoverBulkOpportunityUseCase handoverBulkUC,
+                                  ChangeOpportunityStageUseCase changeStageUC, GetOpportunityBoardUseCase boardUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
         this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC;
+        this.changeStageUC = changeStageUC; this.boardUC = boardUC;
+    }
+
+    /**
+     * Nạp bảng Kanban: cột = giai đoạn pipeline, kèm số cơ hội, tổng tiền và tối đa 50 thẻ mỗi cột.
+     * Lọc theo owner giống list (nhân viên chỉ thấy cơ hội mình phụ trách).
+     *
+     * @param req HTTP request (userId + dataAccessFromYear từ JWT)
+     * @param q   từ khóa tìm theo mã/tên cơ hội
+     * @return 200 kèm danh sách cột
+     */
+    @GetMapping("/board")
+    public ResponseEntity<ApiResponse<java.util.List<BoardColumnResult>>> board(
+            HttpServletRequest req, @RequestParam(required = false) String q) {
+        Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
+        Long userId = (Long) req.getAttribute("userId");
+        boolean privileged = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
+        return ResponseEntity.ok(ApiResponse.ok(boardUC.execute(privileged ? null : userId, fromYear, q)));
+    }
+
+    /**
+     * Đổi giai đoạn pipeline của cơ hội (kéo-thả trên bảng Kanban).
+     * Trạng thái open/won/lost tự suy ra từ giai đoạn — client không gửi status.
+     *
+     * @param id   ID cơ hội
+     * @param body giai đoạn đích + lý do thắng/thua (tùy chọn)
+     * @return 200 kèm cơ hội sau cập nhật
+     */
+    @PostMapping("/{id}/stage")
+    public ResponseEntity<ApiResponse<OpportunityResult>> changeStage(@PathVariable Long id,
+                                                                       @Valid @RequestBody ChangeStageRequest body) {
+        return ResponseEntity.ok(ApiResponse.ok(changeStageUC.execute(ChangeOpportunityStageCommand.builder()
+                .id(id).stageId(body.getStageId()).winLossReason(body.getWinLossReason()).build())));
     }
 
     /** Tạo mới cơ hội. @param cmd JSON body @return 201 */

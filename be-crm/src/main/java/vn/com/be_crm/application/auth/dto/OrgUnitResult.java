@@ -19,6 +19,9 @@ public class OrgUnitResult {
     private String code;
     private String name;
     private Long parentId;
+
+    /** Trưởng đơn vị — nhận thông báo thay cho nhân viên trong đơn vị. */
+    private Long managerId;
     private Integer level;
     private String path;
     private Integer sortOrder;

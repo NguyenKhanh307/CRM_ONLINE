@@ -3,12 +3,13 @@ package vn.com.be_crm.application.quotation.command;
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
 import vn.com.be_crm.application.quotation.dto.QuotationEmailDraft;
 import vn.com.be_crm.application.quotation.dto.QuotationResult;
+import vn.com.be_crm.application.quotation.dto.SendQuotationCommand;
 import vn.com.be_crm.application.quotation.email.QuotationEmailComposer;
 import vn.com.be_crm.application.quotation.mapper.QuotationCommandMapper;
 import vn.com.be_crm.application.shared.email.IEmailService;
 import vn.com.be_crm.application.shared.pdf.IQuotationPdfService;
 import vn.com.be_crm.application.shared.pdf.QuotationPdfData;
-import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
+import vn.com.be_crm.application.shared.notify.IManagerResolver;
 import vn.com.be_crm.domain.contact.entity.Contact;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
 import vn.com.be_crm.domain.customer.entity.Customer;
@@ -38,13 +39,11 @@ import java.util.UUID;
  * draft → (gửi duyệt) pending → (duyệt) approved / (từ chối) draft → (gửi mail) sent.
  */
 public class QuotationWorkflowUseCase {
-    /** Các role nhận thông báo có báo giá chờ duyệt. */
-    private static final List<String> MANAGER_ROLES = List.of("ADMIN", "SALES_MANAGER");
 
     private final IQuotationRepository quotationRepo;
     private final IQuotationApprovalRepository approvalRepo;
     private final CreateNotificationUseCase createNotificationUC;
-    private final IUserRoleRepository userRoleRepo;
+    private final IManagerResolver managerResolver;
     private final IEmailService emailService;
     private final ICustomerRepository customerRepo;
     private final IContactRepository contactRepo;
@@ -56,12 +55,13 @@ public class QuotationWorkflowUseCase {
     private final ITransactionRunner tx;
 
     /** @param quotationRepo báo giá @param approvalRepo bước duyệt @param createNotificationUC tạo thông báo
-     *  @param userRoleRepo tra cứu role @param emailService gửi email @param customerRepo khách hàng @param contactRepo liên hệ
+     *  @param managerResolver tìm quản lý trực tiếp của người phụ trách @param emailService gửi email
+     *  @param customerRepo khách hàng @param contactRepo liên hệ
      *  @param quotationItemRepo dòng hàng báo giá @param productRepo hàng hóa @param pdfService sinh PDF
      *  @param emailComposer dựng nội dung email mặc định + resolve người nhận @param frontendBaseUrl URL FE cho link phản hồi
      *  @param tx bộ chạy transaction */
     public QuotationWorkflowUseCase(IQuotationRepository quotationRepo, IQuotationApprovalRepository approvalRepo,
-                                    CreateNotificationUseCase createNotificationUC, IUserRoleRepository userRoleRepo,
+                                    CreateNotificationUseCase createNotificationUC, IManagerResolver managerResolver,
                                     IEmailService emailService, ICustomerRepository customerRepo,
                                     IContactRepository contactRepo, IQuotationItemRepository quotationItemRepo,
                                     IProductRepository productRepo, IQuotationPdfService pdfService,
@@ -70,7 +70,7 @@ public class QuotationWorkflowUseCase {
         this.quotationRepo = quotationRepo;
         this.approvalRepo = approvalRepo;
         this.createNotificationUC = createNotificationUC;
-        this.userRoleRepo = userRoleRepo;
+        this.managerResolver = managerResolver;
         this.emailService = emailService;
         this.customerRepo = customerRepo;
         this.contactRepo = contactRepo;
@@ -96,7 +96,8 @@ public class QuotationWorkflowUseCase {
             approvalRepo.save(QuotationApproval.builder()
                     .quotationId(quotationId).level(1).status(QuotationApprovalStatus.pending).build());
 
-            List<Long> recipients = new ArrayList<>(userRoleRepo.findUserIdsByRoleCodes(MANAGER_ROLES));
+            // Chỉ báo cho quản lý trực tiếp của người phụ trách báo giá (không broadcast mọi ADMIN/quản lý)
+            List<Long> recipients = new ArrayList<>(managerResolver.managersOf(saved.getOwnerId()));
             createNotificationUC.execute(recipients, "quotation_pending",
                     "Báo giá chờ duyệt: " + saved.getCode(),
                     "Báo giá " + saved.getCode() + " đang chờ bạn phê duyệt.", null, saved.getId());
@@ -149,29 +150,73 @@ public class QuotationWorkflowUseCase {
      * @param quotationId ID báo giá @param subject tiêu đề tùy biến (có thể null/blank) @param body nội dung tùy biến (có thể null/blank)
      * @return báo giá sau cập nhật
      */
-    public QuotationResult send(Long quotationId, String subject, String body) {
-        Quotation q = load(quotationId);
+    public QuotationResult send(SendQuotationCommand cmd) {
+        Quotation q = load(cmd.getId());
         q.getStatus().ensureCanTransitionTo(QuotationStatus.sent);
 
         QuotationEmailDraft draft = emailComposer.draft(q);
-        if (draft.toEmail() == null || draft.toEmail().isBlank()) {
+
+        // Người nhận: ưu tiên địa chỉ người dùng sửa tay, không có thì lấy email của liên hệ/khách hàng
+        String to = (cmd.getTo() != null && !cmd.getTo().isBlank()) ? cmd.getTo().trim() : draft.toEmail();
+        if (to == null || to.isBlank()) {
             throw new DomainException("Báo giá chưa có email khách hàng/liên hệ để gửi");
         }
+        requireValidEmails(to);
+        List<String> cc = parseEmailList(cmd.getCc());
+        List<String> bcc = parseEmailList(cmd.getBcc());
 
-        String finalSubject = (subject != null && !subject.isBlank()) ? subject : draft.subject();
-        String finalBody = (body != null && !body.isBlank()) ? body : draft.body();
+        String finalSubject = (cmd.getSubject() != null && !cmd.getSubject().isBlank()) ? cmd.getSubject() : draft.subject();
+        String finalBody = (cmd.getBody() != null && !cmd.getBody().isBlank()) ? cmd.getBody() : draft.body();
 
         String token = (q.getResponseToken() != null && !q.getResponseToken().isBlank())
                 ? q.getResponseToken() : UUID.randomUUID().toString().replace("-", "");
         String responseLink = trimTrailingSlash(frontendBaseUrl) + "/bao-gia-phan-hoi/" + token;
         byte[] pdf = pdfService.render(buildPdfData(q, draft.recipientName()));
 
-        emailService.sendQuotationEmail(draft.toEmail(), finalSubject, finalBody,
+        emailService.sendQuotationEmail(to, cc, bcc, finalSubject, finalBody,
                 responseLink, pdf, "BaoGia-" + q.getCode() + ".pdf");
 
         Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.sent).responseToken(token).build());
         // Trả kèm email đã gửi để FE hiển thị xác nhận "đã gửi tới <email>"
-        return QuotationCommandMapper.toResult(saved).toBuilder().sentToEmail(draft.toEmail()).build();
+        return QuotationCommandMapper.toResult(saved).toBuilder().sentToEmail(to).build();
+    }
+
+    /**
+     * Đánh dấu báo giá đã gửi mà KHÔNG gửi email: approved → sent.
+     * Dành cho trường hợp gửi ngoài hệ thống (Zalo, in giấy, gặp trực tiếp) — trước đây báo giá
+     * kẹt vĩnh viễn ở approved vì lối thoát duy nhất là gửi SMTP.
+     * Vẫn sinh token để có thể chia sẻ link phản hồi công khai cho khách khi cần.
+     *
+     * @param quotationId ID báo giá
+     * @return báo giá sau cập nhật
+     */
+    public QuotationResult markSent(Long quotationId) {
+        Quotation q = load(quotationId);
+        q.getStatus().ensureCanTransitionTo(QuotationStatus.sent);
+        String token = (q.getResponseToken() != null && !q.getResponseToken().isBlank())
+                ? q.getResponseToken() : UUID.randomUUID().toString().replace("-", "");
+        Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.sent).responseToken(token).build());
+        return QuotationCommandMapper.toResult(saved);
+    }
+
+    /** Tách chuỗi email phân tách bởi dấu phẩy/chấm phẩy thành danh sách đã kiểm định dạng. */
+    private List<String> parseEmailList(String raw) {
+        if (raw == null || raw.isBlank()) return List.of();
+        List<String> out = new ArrayList<>();
+        for (String part : raw.split("[,;]")) {
+            String e = part.trim();
+            if (e.isEmpty()) continue;
+            requireValidEmails(e);
+            out.add(e);
+        }
+        return out;
+    }
+
+    /** Kiểm định dạng một địa chỉ email, sai thì ném DomainException (HTTP 400). */
+    private void requireValidEmails(String email) {
+        if (!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            throw new DomainException("Email không hợp lệ: " + email);
+        }
     }
 
     /** Dựng dữ liệu PDF từ báo giá: tên KH, dòng hàng (kèm tên sản phẩm), tổng tiền. */

@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
+import { DuplicateWarning } from '@/shared/components/DuplicateWarning';
+import { useDuplicateCheck } from '@/shared/hooks/useDuplicateCheck';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
@@ -118,10 +120,15 @@ const CustomerAddPage = () => {
     const formRef = useRef<HTMLDivElement>(null);
     useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
 
+    // Cảnh báo (không chặn) khi email/SĐT/MST trùng bản ghi đã có
+    const { data: duplicates } = useDuplicateCheck({ email: form.email, phone: form.phone, taxCode: form.taxCode });
+
     return (
         <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm Khách hàng" saving={isPending}
                 onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
+
+            <DuplicateWarning matches={duplicates} />
 
             <div className="bg-white rounded-card shadow-sm p-6 space-y-8">
                 <FormSection title="Thông tin chung">

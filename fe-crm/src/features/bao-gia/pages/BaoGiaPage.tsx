@@ -117,7 +117,10 @@ const BaoGiaPage = () => {
             ]
             : []),
         ...(q.status === 'approved'
-            ? [{ key: 'send', label: 'Gửi email cho khách', onClick: () => setSendTarget(q.id) }]
+            ? [
+                { key: 'send', label: 'Gửi email cho khách', onClick: () => setSendTarget(q.id) },
+                { key: 'markSent', label: 'Đánh dấu đã gửi', onClick: () => runAction(q.id, 'markSent') },
+            ]
             : []),
         ...(q.status === 'sent'
             ? [{ key: 'accept', label: 'Khách chấp nhận', onClick: () => runAction(q.id, 'accept') }]

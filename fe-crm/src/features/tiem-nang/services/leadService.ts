@@ -24,8 +24,14 @@ export const leadService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/leads/handover-bulk', payload),
-    /** Chuyển đổi tiềm năng (qualified → converted). */
-    convert: (id: number) => axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/convert`),
+    /**
+     * Chuyển đổi tiềm năng (qualified → converted).
+     * `customerId` = dùng khách hàng đã có thay vì tạo mới (chống trùng khi phát hiện KH trùng MST/email/SĐT).
+     */
+    convert: (id: number, customerId?: number | null) =>
+        axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/convert`, { customerId: customerId ?? null }),
+    /** Đánh dấu tiềm năng đủ điều kiện thủ công (new/contacting → qualified), không cần đủ 50 điểm. */
+    qualify: (id: number) => axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/qualify`),
     /** Đánh mất tiềm năng (→ lost). */
     lose: (id: number, reason?: string) =>
         axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/lose`, { reason }),

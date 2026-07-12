@@ -22,6 +22,7 @@ import { useLeadWorkflow, type LeadAction } from '../hooks/useLeadWorkflow';
 import { getLeadColumns } from '../config/leadColumns';
 import { leadExportColumns } from '../config/leadExportColumns';
 import { LeadEditModal } from '../components/LeadEditModal';
+import { ConvertLeadModal } from '../components/ConvertLeadModal';
 import type { LeadResult } from '../types/leadTypes';
 
 /** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
@@ -57,6 +58,7 @@ const TiemNangPage = () => {
     const [editTarget, setEditTarget] = useState<LeadResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
     const [loseTarget, setLoseTarget] = useState<number | null>(null);
+    const [convertTarget, setConvertTarget] = useState<LeadResult | null>(null);
     const [selectedRows, setSelectedRows] = useState<LeadResult[]>([]);
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [handoverOpen, setHandoverOpen] = useState(false);
@@ -72,11 +74,14 @@ const TiemNangPage = () => {
 
     /** Chạy hành động chuyển trạng thái tiềm năng, báo lỗi qua alert nếu bước chuyển không hợp lệ.
      *  Convert thành công → điều hướng sang Cơ hội (KH + LH + Cơ hội vừa được tạo). */
-    const runAction = (id: number, action: LeadAction, reason?: string) =>
-        workflowFn({ id, action, reason }, {
+    const runAction = (id: number, action: LeadAction, reason?: string, customerId?: number | null) =>
+        workflowFn({ id, action, reason, customerId }, {
             onSuccess: () => {
                 if (action === 'convert') {
-                    showAlert('Đã tạo Khách hàng, Liên hệ và Cơ hội từ tiềm năng');
+                    setConvertTarget(null);
+                    showAlert(customerId
+                        ? 'Đã gắn Liên hệ và Cơ hội vào khách hàng đã có'
+                        : 'Đã tạo Khách hàng, Liên hệ và Cơ hội từ tiềm năng');
                     navigate('/co-hoi');
                 }
             },
@@ -93,8 +98,11 @@ const TiemNangPage = () => {
     const rowActions = (l: LeadResult): RowAction[] => {
         const isOpen = l.status !== 'converted' && l.status !== 'lost';
         return [
+            ...(l.status === 'new' || l.status === 'contacting'
+                ? [{ key: 'qualify', label: 'Đủ điều kiện', onClick: () => runAction(l.id, 'qualify') }]
+                : []),
             ...(l.status === 'qualified'
-                ? [{ key: 'convert', label: 'Chuyển đổi', onClick: () => runAction(l.id, 'convert') }]
+                ? [{ key: 'convert', label: 'Chuyển đổi', onClick: () => setConvertTarget(l) }]
                 : []),
             ...(isOpen
                 ? [{ key: 'lose', label: 'Đánh mất', onClick: () => setLoseTarget(l.id) }]
@@ -193,6 +201,14 @@ const TiemNangPage = () => {
                     setExportOpen(false);
                 }}
             />
+
+            {convertTarget && (
+                <ConvertLeadModal
+                    lead={convertTarget}
+                    onCancel={() => setConvertTarget(null)}
+                    onConfirm={(customerId) => runAction(convertTarget.id, 'convert', undefined, customerId)}
+                />
+            )}
 
             {loseTarget !== null && (
                 <ReasonModal

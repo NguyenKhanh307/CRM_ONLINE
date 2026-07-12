@@ -25,6 +25,12 @@ export interface QuotationEmailDraft {
 
 /** Payload gửi email báo giá — POST /api/quotations/{id}/send. */
 export interface SendQuotationPayload {
+    /** Người nhận chính (bỏ trống → BE lấy email của liên hệ/khách hàng trên báo giá). */
+    to?: string;
+    /** CC — nhiều email cách nhau bởi dấu phẩy/chấm phẩy. */
+    cc?: string;
+    /** BCC — nhiều email cách nhau bởi dấu phẩy/chấm phẩy. */
+    bcc?: string;
     subject: string;
     body: string;
 }

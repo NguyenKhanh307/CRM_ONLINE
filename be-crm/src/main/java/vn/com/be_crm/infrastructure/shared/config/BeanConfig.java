@@ -9,6 +9,7 @@ import vn.com.be_crm.infrastructure.shared.config.beans.ContactBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.CopilotBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.CustomerBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.DashboardBeanConfig;
+import vn.com.be_crm.infrastructure.shared.config.beans.DuplicateBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.HandoverBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.LeadBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.NotificationBeanConfig;
@@ -18,6 +19,7 @@ import vn.com.be_crm.infrastructure.shared.config.beans.OrderBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.PricingBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.ProductBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.QuotationBeanConfig;
+import vn.com.be_crm.infrastructure.shared.config.beans.RelatedBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.ServiceBeanConfig;
 
 /**
@@ -42,7 +44,9 @@ import vn.com.be_crm.infrastructure.shared.config.beans.ServiceBeanConfig;
         HandoverBeanConfig.class,
         NotificationBeanConfig.class,
         DashboardBeanConfig.class,
-        CopilotBeanConfig.class
+        CopilotBeanConfig.class,
+        RelatedBeanConfig.class,
+        DuplicateBeanConfig.class
 })
 public class BeanConfig {
 }

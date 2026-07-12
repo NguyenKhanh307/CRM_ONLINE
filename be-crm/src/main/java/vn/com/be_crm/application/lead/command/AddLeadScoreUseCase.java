@@ -3,7 +3,7 @@ package vn.com.be_crm.application.lead.command;
 import vn.com.be_crm.application.lead.dto.LeadResult;
 import vn.com.be_crm.application.lead.mapper.LeadCommandMapper;
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
-import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
+import vn.com.be_crm.application.shared.notify.IManagerResolver;
 import vn.com.be_crm.domain.lead.entity.Lead;
 import vn.com.be_crm.domain.lead.enums.LeadStatus;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
@@ -15,30 +15,28 @@ import java.util.List;
 /**
  * Use case dùng chung để cộng điểm cho tiềm năng (từ web tracking hoặc hoạt động).
  * Khi tổng điểm vượt mốc 50 (lần đầu): tự chuyển status sang qualified và gửi thông báo
- * cho người phụ trách (owner nếu có, cùng các user role ADMIN/SALES_MANAGER/SALES_STAFF).
+ * cho người phụ trách + quản lý trực tiếp của người đó (KHÔNG broadcast toàn bộ nhân viên).
  */
 public class AddLeadScoreUseCase {
     /** Mốc điểm để đánh giá tiềm năng đủ điều kiện. */
     public static final int QUALIFY_THRESHOLD = 50;
-    /** Các role nhận thông báo tiềm năng nóng (admin, quản lý, và nhân viên kinh doanh). */
-    private static final List<String> NOTIFY_ROLE_CODES = List.of("ADMIN", "SALES_MANAGER", "SALES_STAFF");
 
     private final ILeadRepository leadRepo;
     private final CreateNotificationUseCase createNotificationUC;
-    private final IUserRoleRepository userRoleRepo;
+    private final IManagerResolver managerResolver;
     private final ITransactionRunner tx;
 
     /**
      * @param leadRepo             port lưu trữ Lead
      * @param createNotificationUC use case tạo thông báo
-     * @param userRoleRepo         port tra cứu user theo role
+     * @param managerResolver      port tìm quản lý trực tiếp của người phụ trách
      * @param tx                   bộ chạy transaction
      */
     public AddLeadScoreUseCase(ILeadRepository leadRepo, CreateNotificationUseCase createNotificationUC,
-                               IUserRoleRepository userRoleRepo, ITransactionRunner tx) {
+                               IManagerResolver managerResolver, ITransactionRunner tx) {
         this.leadRepo = leadRepo;
         this.createNotificationUC = createNotificationUC;
-        this.userRoleRepo = userRoleRepo;
+        this.managerResolver = managerResolver;
         this.tx = tx;
     }
 
@@ -62,23 +60,32 @@ public class AddLeadScoreUseCase {
         boolean crossing = oldScore <= QUALIFY_THRESHOLD && newScore > QUALIFY_THRESHOLD;
 
         // Tự động: vượt ngưỡng → qualified; tương tác đầu tiên trên tiềm năng còn 'new' → contacting.
-        LeadStatus newStatus;
-        if (crossing) newStatus = LeadStatus.qualified;
-        else if (lead.getStatus() == LeadStatus.new_) newStatus = LeadStatus.contacting;
-        else newStatus = lead.getStatus();
+        // Đi qua guard của domain: tiềm năng đã converted/lost giữ nguyên trạng thái (chỉ cộng điểm).
+        LeadStatus current = lead.getStatus();
+        LeadStatus newStatus = current;
+        if (crossing && current.canTransitionTo(LeadStatus.qualified)) {
+            newStatus = LeadStatus.qualified;
+        } else if (current == LeadStatus.new_) {
+            newStatus = LeadStatus.contacting;
+        }
         Lead updated = lead.toBuilder().score(newScore).status(newStatus).build();
         Lead saved = leadRepo.save(updated);
 
-        if (crossing) {
+        if (crossing && newStatus == LeadStatus.qualified) {
             notifyOwners(saved, newScore);
         }
         return LeadCommandMapper.toResult(saved);
     }
 
-    /** Gửi thông báo "tiềm năng nóng" cho người phụ trách (admin/manager/sale + owner nếu có). */
+    /** Gửi thông báo "tiềm năng nóng" cho người phụ trách + quản lý trực tiếp của người đó. */
     private void notifyOwners(Lead lead, int score) {
-        List<Long> recipients = new ArrayList<>(userRoleRepo.findUserIdsByRoleCodes(NOTIFY_ROLE_CODES));
-        if (lead.getOwnerId() != null) recipients.add(lead.getOwnerId());
+        List<Long> recipients = new ArrayList<>();
+        if (lead.getOwnerId() != null) {
+            recipients.add(lead.getOwnerId());
+            recipients.addAll(managerResolver.managersOf(lead.getOwnerId()));
+        } else {
+            recipients.addAll(managerResolver.managersOf(null));
+        }
         String title = "Tiềm năng nóng: " + lead.getCode();
         String content = "Tiềm năng " + lead.getName() + " (" + lead.getCode() + ") đã đạt "
                 + score + " điểm và được đánh giá đủ điều kiện (qualified).";

@@ -22,6 +22,7 @@ public class OrgUnitHibernateMapper {
         h.setCode(domain.getCode());
         h.setName(domain.getName());
         h.setParentId(domain.getParentId());
+        h.setManagerId(domain.getManagerId());
         h.setLevel(domain.getLevel() != null ? domain.getLevel() : 1);
         h.setPath(domain.getPath());
         h.setSortOrder(domain.getSortOrder() != null ? domain.getSortOrder() : 0);
@@ -41,6 +42,7 @@ public class OrgUnitHibernateMapper {
                 .code(h.getCode())
                 .name(h.getName())
                 .parentId(h.getParentId())
+                .managerId(h.getManagerId())
                 .level(h.getLevel())
                 .path(h.getPath())
                 .sortOrder(h.getSortOrder())

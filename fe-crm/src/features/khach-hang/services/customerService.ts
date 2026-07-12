@@ -2,6 +2,7 @@ import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
 import type { CreateCustomerPayload, CustomerResult, UpdateCustomerPayload } from '../types/customerTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
+import type { CustomerRelatedResult } from '@/shared/types/related';
 
 export const customerService = {
     getList: (params?: PageParams) =>
@@ -24,6 +25,9 @@ export const customerService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/customers/handover-bulk', payload),
+    /** Bản ghi liên quan cho trang chi tiết 360° (liên hệ, cơ hội, báo giá, đơn, hóa đơn, phiếu CS, hoạt động). */
+    getRelated: (id: number) =>
+        axiosInstance.get<ApiResponse<CustomerRelatedResult>>(`/api/customers/${id}/related`),
     /** Kích hoạt khách hàng (→ active). */
     activate: (id: number) => axiosInstance.post<ApiResponse<CustomerResult>>(`/api/customers/${id}/activate`),
     /** Ngừng hoạt động khách hàng (→ inactive). */

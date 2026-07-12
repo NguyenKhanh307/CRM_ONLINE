@@ -15,6 +15,7 @@ import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
 import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
+import vn.com.be_crm.presentation.lead.request.ConvertLeadRequest;
 import vn.com.be_crm.presentation.lead.request.LeadActionRequest;
 import vn.com.be_crm.presentation.shared.ApiResponse;
 import vn.com.be_crm.presentation.shared.HandoverBulkRequest;
@@ -52,10 +53,32 @@ public class LeadController {
         this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC; this.workflowUC = workflowUC;
     }
 
-    /** Chuyển đổi tiềm năng (qualified → converted). @param id ID @return 200 */
+    /**
+     * Chuyển đổi tiềm năng (qualified → converted).
+     * Body tùy chọn: chỉ định khách hàng/liên hệ đã có để dùng lại (chống tạo trùng khi phát hiện
+     * bản ghi trùng MST/email/SĐT); bỏ trống → tạo mới như cũ.
+     *
+     * @param id   ID tiềm năng
+     * @param body { customerId?, contactId? } — có thể null
+     * @return 200
+     */
     @PostMapping("/{id}/convert")
-    public ResponseEntity<ApiResponse<LeadResult>> convert(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.ok(workflowUC.convert(id)));
+    public ResponseEntity<ApiResponse<LeadResult>> convert(@PathVariable Long id,
+            @RequestBody(required = false) ConvertLeadRequest body) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.convert(id,
+                body != null ? body.getCustomerId() : null,
+                body != null ? body.getContactId() : null)));
+    }
+
+    /**
+     * Đánh dấu tiềm năng đủ điều kiện thủ công (new/contacting → qualified) — không cần đủ 50 điểm.
+     *
+     * @param id ID tiềm năng
+     * @return 200
+     */
+    @PostMapping("/{id}/qualify")
+    public ResponseEntity<ApiResponse<LeadResult>> qualify(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.qualify(id)));
     }
 
     /** Đánh mất tiềm năng (→ lost). @param id ID @param body lý do @return 200 */

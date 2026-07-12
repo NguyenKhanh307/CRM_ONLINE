@@ -47,6 +47,9 @@ export const quotationService = {
     /** Nhân viên gửi email báo giá cho khách (approved → sent) kèm tiêu đề/nội dung tùy biến. */
     send: (id: number, payload?: SendQuotationPayload) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/send`, payload),
+    /** Đánh dấu đã gửi mà không gửi email (approved → sent) — báo giá gửi qua Zalo/in giấy. */
+    markSent: (id: number) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/mark-sent`),
     /** Khách chấp nhận báo giá (sent → accepted). */
     accept: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/accept`),

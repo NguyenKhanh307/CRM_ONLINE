@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.application.lead.command.*;
 import vn.com.be_crm.application.lead.query.*;
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
-import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
@@ -42,9 +41,10 @@ public class LeadBeanConfig {
     // ===== Lead Scoring & Web Tracking =====
 
     /** @return AddLeadScoreUseCase — cộng điểm dùng chung (tracking + activity) */
-    @Bean public AddLeadScoreUseCase addLeadScoreUseCase(ILeadRepository r, CreateNotificationUseCase n, IUserRoleRepository ur,
+    @Bean public AddLeadScoreUseCase addLeadScoreUseCase(ILeadRepository r, CreateNotificationUseCase n,
+                                                         vn.com.be_crm.application.shared.notify.IManagerResolver mr,
                                                          ITransactionRunner tx) {
-        return new AddLeadScoreUseCase(r, n, ur, tx);
+        return new AddLeadScoreUseCase(r, n, mr, tx);
     }
     /** @return TrackVisitUseCase */
     @Bean public TrackVisitUseCase trackVisitUseCase(ILeadRepository r) { return new TrackVisitUseCase(r); }

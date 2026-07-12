@@ -71,6 +71,7 @@ const KhachHangPage = () => {
 
     /** Thao tác của một khách hàng — hiện trong menu chuột phải. */
     const rowActions = (c: CustomerResult): RowAction[] => [
+        { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/khach-hang/${c.id}`) },
         ...(c.status !== 'active'
             ? [{ key: 'activate', label: 'Kích hoạt', onClick: () => runAction(c.id, 'activate') }]
             : [{ key: 'deactivate', label: 'Ngừng hoạt động', onClick: () => runAction(c.id, 'deactivate') }]),
@@ -120,7 +121,7 @@ const KhachHangPage = () => {
                         onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
                     }}
                     rowActions={rowActions}
-                    onRowDoubleClick={(c) => setEditTarget(c)}
+                    onRowDoubleClick={(c) => navigate(`/khach-hang/${c.id}`)}
                     quickFilters={QUICK_FILTERS}
                 />
             </div>

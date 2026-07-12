@@ -32,6 +32,9 @@ public class OrgUnitHibernate {
     @Column(name = "parent_id")
     private Long parentId;
 
+    @Column(name = "manager_id")
+    private Long managerId;
+
     @Column(name = "level", nullable = false)
     private Integer level;
 

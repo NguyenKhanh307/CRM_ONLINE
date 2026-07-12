@@ -3,7 +3,7 @@ import { quotationService } from '../services/quotationService';
 import type { SendQuotationPayload } from '../types/quotationTypes';
 
 /** Loại hành động chuyển trạng thái báo giá. */
-export type QuotationAction = 'submit' | 'approve' | 'reject' | 'send' | 'accept' | 'setPrimary' | 'convertToOrder';
+export type QuotationAction = 'submit' | 'approve' | 'reject' | 'send' | 'markSent' | 'accept' | 'setPrimary' | 'convertToOrder';
 
 interface ActionArgs {
     id: number;
@@ -27,6 +27,7 @@ export function useQuotationWorkflow() {
                 case 'approve': return quotationService.approve(id, comment);
                 case 'reject': return quotationService.reject(id, comment);
                 case 'send': return quotationService.send(id, emailPayload);
+                case 'markSent': return quotationService.markSent(id);
                 case 'accept': return quotationService.accept(id);
                 case 'setPrimary': return quotationService.setPrimary(id);
                 case 'convertToOrder': return quotationService.convertToOrder(id);

@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import vn.com.be_crm.domain.shared.exception.DomainException;
+import vn.com.be_crm.domain.shared.exception.ForbiddenException;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
 
 import java.util.stream.Collectors;
@@ -33,6 +34,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleNotFound(NotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(ex.getMessage(), 404));
+    }
+
+    /**
+     * Xử lý từ chối quyền ở mức bản ghi (record-level, vd xem khách hàng của người khác) — trả 403.
+     * Đặt trước handler DomainException vì ForbiddenException kế thừa DomainException.
+     *
+     * @param ex ForbiddenException từ use case
+     * @return 403 Forbidden
+     */
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleForbidden(ForbiddenException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage(), 403));
     }
 
     /**

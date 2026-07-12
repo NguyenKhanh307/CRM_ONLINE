@@ -47,17 +47,22 @@ public class GmailSmtpEmailServiceImpl implements IEmailService {
      * Gửi email báo giá tới khách hàng/liên hệ với tiêu đề + nội dung do người dùng soạn.
      *
      * @param toEmail      địa chỉ email nhận
+     * @param cc           danh sách CC (có thể rỗng)
+     * @param bcc          danh sách BCC (có thể rỗng)
      * @param subject      tiêu đề email
      * @param bodyHtml     nội dung message (HTML) — 3 nút phản hồi được tự chèn vào cuối
      * @param responseLink URL trang phản hồi công khai (kèm token)
      */
     @Override
-    public void sendQuotationEmail(String toEmail, String subject, String bodyHtml,
+    public void sendQuotationEmail(String toEmail, java.util.List<String> cc, java.util.List<String> bcc,
+                                   String subject, String bodyHtml,
                                    String responseLink, byte[] pdf, String pdfFileName) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo(toEmail);
+            if (cc != null && !cc.isEmpty()) helper.setCc(cc.toArray(String[]::new));
+            if (bcc != null && !bcc.isEmpty()) helper.setBcc(bcc.toArray(String[]::new));
             helper.setSubject(subject != null && !subject.isBlank() ? subject : "Báo giá");
             helper.setText(wrapQuotationBody(bodyHtml, responseLink), true);
             if (pdf != null && pdf.length > 0) {

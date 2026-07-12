@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiTrash2, FiUpload, FiShare2, FiDownload, FiSliders } from 'react-icons/fi';
+import { FiTrash2, FiUpload, FiShare2, FiDownload, FiSliders, FiColumns } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
@@ -86,6 +86,9 @@ const CoHoiPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Cơ hội</h1>
                 <div className="flex items-center gap-1.5">
+                    <ActionButton variant="secondary" icon={FiColumns} onClick={() => navigate('/co-hoi/kanban')}>
+                        Bảng
+                    </ActionButton>
                     <ActionButton variant="secondary" icon={FiSliders} onClick={() => navigate('/co-hoi/pipeline')}>
                         Giai đoạn
                     </ActionButton>
@@ -128,8 +131,9 @@ const CoHoiPage = () => {
                         onSearchChange: (v) => { setSearch(v); setPage(0); },
                         onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
                     }}
-                    onRowDoubleClick={(o) => setEditTarget(o)}
+                    onRowDoubleClick={(o) => navigate(`/co-hoi/${o.id}`)}
                     rowActions={(o) => [
+                        { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/co-hoi/${o.id}`) },
                         { key: 'quote', label: 'Tạo báo giá từ cơ hội', onClick: () => createQuote(o.id) },
                         { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) },
                         { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(o.id) },
