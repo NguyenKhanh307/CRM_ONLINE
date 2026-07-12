@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { nonNegativeError, percentError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -13,8 +14,7 @@ import {
     type LineItemRow,
     type ProductOption,
     emptyLineItem,
-    toItemPayloads,
-} from '@/shared/components/form/productLineItem';
+    toItemPayloads, validateLineItems } from '@/shared/components/form/productLineItem';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
@@ -84,6 +84,10 @@ const OpportunityAddPage = () => {
     const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã cơ hội không được để trống'); return; }
         if (!form.name.trim()) { showAlert('Tên cơ hội không được để trống'); return; }
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = percentError(form.probability, 'Xác suất') ?? nonNegativeError(form.expectedRevenue, 'Doanh thu kỳ vọng')
+            ?? validateLineItems(rows);
+        if (vErr) { showAlert(vErr); return; }
         const payload: CreateOpportunityPayload = {
             code: form.code.trim(),
             name: form.name.trim(),

@@ -1,5 +1,6 @@
 package vn.com.be_crm.application.campaign.dto;
 
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -18,8 +19,8 @@ public class CreateCampaignCommand {
     @NotBlank(message = "Tên chiến dịch không được để trống") @Size(max = 150) private String name;
     private CampaignType type;
     @Size(max = 50) private String channel;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    @FutureOrPresent(message = "Ngày bắt đầu không được là ngày quá khứ") private LocalDate startDate;
+    @FutureOrPresent(message = "Ngày kết thúc không được là ngày quá khứ") private LocalDate endDate;
     private BigDecimal budget;
     private BigDecimal actualCost;
     private Integer targetSize;

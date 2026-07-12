@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { dateRangeError, pastDateError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -14,8 +15,7 @@ import {
     type ProductOption,
     emptyLineItem,
     computeTotals,
-    toItemPayloads,
-} from '@/shared/components/form/productLineItem';
+    toItemPayloads, validateLineItems } from '@/shared/components/form/productLineItem';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
@@ -71,6 +71,10 @@ const OrderAddPage = () => {
 
     const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã Đơn hàng không được để trống'); return; }
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = pastDateError(form.orderDate, 'Ngày đặt hàng') ?? pastDateError(form.deliveryDate, 'Ngày giao hàng')
+            ?? dateRangeError(form.orderDate, form.deliveryDate, 'ngày đặt hàng', 'Ngày giao hàng') ?? validateLineItems(rows);
+        if (vErr) { showAlert(vErr); return; }
         const totals = computeTotals(rows);
         const payload: CreateOrderPayload = {
             code: form.code.trim(),

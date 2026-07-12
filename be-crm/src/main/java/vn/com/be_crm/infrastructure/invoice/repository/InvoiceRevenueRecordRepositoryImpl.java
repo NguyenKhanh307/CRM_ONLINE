@@ -2,7 +2,6 @@ package vn.com.be_crm.infrastructure.invoice.repository;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.domain.invoice.entity.InvoiceRevenueRecord;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRevenueRecordRepository;
@@ -12,6 +11,7 @@ import vn.com.be_crm.infrastructure.invoice.mapper.InvoiceRevenueRecordHibernate
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IInvoiceRevenueRecordRepository.
@@ -28,36 +28,33 @@ public class InvoiceRevenueRecordRepositoryImpl implements IInvoiceRevenueRecord
 
     /** Lưu bản ghi doanh thu. @param r @return entity sau khi lưu */
     @Override public InvoiceRevenueRecord save(InvoiceRevenueRecord r) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             InvoiceRevenueRecordHibernate m = s.merge(mapper.toHibernate(r));
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /** Tìm InvoiceRevenueRecord theo ID. @param id @return Optional */
     @Override public Optional<InvoiceRevenueRecord> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             InvoiceRevenueRecordHibernate h = s.find(InvoiceRevenueRecordHibernate.class, id);
             return Optional.ofNullable(h).map(mapper::toDomain);
-        }
+        });
     }
 
     /** Xóa InvoiceRevenueRecord. @param id */
     @Override public void deleteById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             InvoiceRevenueRecordHibernate h = s.find(InvoiceRevenueRecordHibernate.class, id);
             if (h != null) s.remove(h);
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách bản ghi doanh thu theo invoiceId. @param invoiceId @return danh sách */
     @Override public List<InvoiceRevenueRecord> findAllByInvoiceId(Long invoiceId) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM InvoiceRevenueRecordHibernate WHERE invoiceId = :oid", InvoiceRevenueRecordHibernate.class)
                     .setParameter("oid", invoiceId).list().stream().map(mapper::toDomain).collect(Collectors.toList());
-        }
+        });
     }
 }

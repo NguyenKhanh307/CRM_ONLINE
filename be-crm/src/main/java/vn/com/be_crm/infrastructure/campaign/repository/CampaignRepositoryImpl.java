@@ -3,7 +3,6 @@ package vn.com.be_crm.infrastructure.campaign.repository;
 import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.campaign.dto.CampaignStatsResult;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
@@ -20,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của ICampaignRepository.
@@ -36,44 +36,41 @@ public class CampaignRepositoryImpl implements ICampaignRepository {
 
     /** Lưu mới hoặc cập nhật Campaign. @param c @return entity sau khi lưu */
     @Override public Campaign save(Campaign c) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             CampaignHibernate m = s.merge(mapper.toHibernate(c));
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /** Tìm Campaign theo mã (chưa xóa mềm). @param code @return Optional */
     @Override public Optional<Campaign> findByCode(String code) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM CampaignHibernate WHERE code = :code AND deletedAt IS NULL", CampaignHibernate.class)
                     .setParameter("code", code).setMaxResults(1).list()
                     .stream().map(mapper::toDomain).findFirst();
-        }
+        });
     }
 
     /** Tìm Campaign theo ID — chỉ trả về nếu chưa xóa mềm. @param id @return Optional */
     @Override public Optional<Campaign> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             CampaignHibernate h = s.find(CampaignHibernate.class, id);
             if (h == null || h.getDeletedAt() != null) return Optional.empty();
             return Optional.of(mapper.toDomain(h));
-        }
+        });
     }
 
     /** Xóa mềm Campaign, ghi nhận người xóa. @param id ID @param deletedBy userId người xóa */
     @Override public void deleteById(Long id, Long deletedBy) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             CampaignHibernate h = s.find(CampaignHibernate.class, id);
             if (h != null) { h.setDeletedAt(LocalDateTime.now()); h.setDeletedBy(deletedBy); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách Campaign trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
     @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
             String userFilter = isAdmin ? "" : " AND o.deleted_by = :userId";
             String sql = "SELECT o.id, o.code, o.deleted_at, u.full_name FROM campaigns o" +
@@ -95,56 +92,48 @@ public class CampaignRepositoryImpl implements ICampaignRepository {
             if (!isAdmin) cq.setParameter("userId", userId);
             long total = ((Number) cq.uniqueResult()).longValue();
             return PageResult.<DeletedItemResult>builder().items(items).total(total).page(req.getPage()).size(req.getSize()).build();
-        }
+        });
     }
 
     /** Khôi phục Campaign từ thùng rác. @param id ID */
     @Override public void restoreById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             CampaignHibernate h = s.find(CampaignHibernate.class, id);
             if (h != null) { h.setDeletedAt(null); h.setDeletedBy(null); h.setPurged(false); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Ẩn Campaign khỏi thùng rác (is_purged = true). @param id ID */
     @Override public void purgeById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             CampaignHibernate h = s.find(CampaignHibernate.class, id);
             if (h != null) { h.setPurged(true); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Bàn giao toàn bộ Campaign của fromUserId sang toUserId. @param fromUserId @param toUserId */
     @Override public void handoverAll(Long fromUserId, Long toUserId) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             s.createNativeQuery("UPDATE campaigns SET owner_id = :toUserId WHERE owner_id = :fromUserId AND deleted_at IS NULL")
                     .setParameter("toUserId", toUserId).setParameter("fromUserId", fromUserId).executeUpdate();
-            tx.commit();
-        }
+            });
     }
 
     /** Bàn giao hàng loạt Campaign sang owner mới. @param ids IDs @param toUserId người nhận @param currentUserId người thực hiện @param isAdminOrManager quyền */
     @Override public void handoverBulk(List<Long> ids, Long toUserId, Long currentUserId, boolean isAdminOrManager) {
         if (ids == null || ids.isEmpty()) return;
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             String ownerFilter = isAdminOrManager ? "" : " AND owner_id = :currentUserId";
             String sql = "UPDATE campaigns SET owner_id = :toUserId WHERE id IN (:ids) AND deleted_at IS NULL" + ownerFilter;
             var q = s.createNativeQuery(sql).setParameter("toUserId", toUserId).setParameter("ids", ids);
             if (!isAdminOrManager) q.setParameter("currentUserId", currentUserId);
             q.executeUpdate();
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách Campaign chưa xóa có phân trang. @param r @return PageResult */
     @Override public PageResult<Campaign> findAll(PageRequest r) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
             String ownerFilter = r.getOwnerId() != null ? " AND ownerId = :ownerId" : "";
             String searchFilter = ListQueryUtils.likeClause(r.getQ(), "code", "name");
@@ -164,12 +153,12 @@ public class CampaignRepositoryImpl implements ICampaignRepository {
             List<Campaign> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
             long total = cq.uniqueResult();
             return PageResult.<Campaign>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
-        }
+        });
     }
 
     /** Tính chỉ số ROI của chiến dịch qua native query đếm trên các bảng liên quan. @param campaignId @return CampaignStatsResult */
     @Override public CampaignStatsResult getStats(Long campaignId) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             long memberCount = count(s, "SELECT COUNT(*) FROM campaign_members WHERE campaign_id = :id", campaignId);
             long sentCount = count(s, "SELECT COUNT(*) FROM campaign_members WHERE campaign_id = :id AND status IN ('sent','opened','clicked','responded')", campaignId);
             long leadCount = count(s, "SELECT COUNT(*) FROM leads WHERE campaign_id = :id AND deleted_at IS NULL", campaignId);
@@ -185,7 +174,7 @@ public class CampaignRepositoryImpl implements ICampaignRepository {
                     .campaignId(campaignId).memberCount(memberCount).sentCount(sentCount)
                     .leadCount(leadCount).opportunityCount(oppCount).wonOpportunityCount(wonOppCount)
                     .orderCount(orderCount).revenue(revenue).actualCost(actualCost).build();
-        }
+        });
     }
 
     /** Chạy native count query với tham số id. */

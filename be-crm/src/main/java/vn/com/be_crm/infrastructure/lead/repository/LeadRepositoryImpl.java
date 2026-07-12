@@ -2,7 +2,6 @@ package vn.com.be_crm.infrastructure.lead.repository;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
@@ -18,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của ILeadRepository.
@@ -38,35 +38,32 @@ public class LeadRepositoryImpl implements ILeadRepository {
 
     /** Lưu mới hoặc cập nhật Lead. @param l domain entity @return entity sau khi lưu */
     @Override public Lead save(Lead l) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             LeadHibernate m = s.merge(mapper.toHibernate(l));
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /** Tìm Lead theo ID — chỉ trả về nếu chưa xóa mềm. @param id ID @return Optional */
     @Override public Optional<Lead> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             LeadHibernate h = s.find(LeadHibernate.class, id);
             if (h == null || h.getDeletedAt() != null) return Optional.empty();
             return Optional.of(mapper.toDomain(h));
-        }
+        });
     }
 
     /** Xóa mềm Lead, ghi nhận người xóa. @param id ID @param deletedBy userId người xóa */
     @Override public void deleteById(Long id, Long deletedBy) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             LeadHibernate h = s.find(LeadHibernate.class, id);
             if (h != null) { h.setDeletedAt(LocalDateTime.now()); h.setDeletedBy(deletedBy); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách Lead trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
     @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             // Mốc 30 ngày: chỉ hiện bản ghi đã xóa trong 30 ngày gần đây
             LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
             // Không phải admin → chỉ xem bản ghi do chính mình xóa
@@ -93,83 +90,75 @@ public class LeadRepositoryImpl implements ILeadRepository {
             if (!isAdmin) cq.setParameter("userId", userId);
             long total = ((Number) cq.uniqueResult()).longValue();
             return PageResult.<DeletedItemResult>builder().items(items).total(total).page(req.getPage()).size(req.getSize()).build();
-        }
+        });
     }
 
     /** Khôi phục Lead từ thùng rác. @param id ID */
     @Override public void restoreById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             LeadHibernate h = s.find(LeadHibernate.class, id);
             if (h != null) { h.setDeletedAt(null); h.setDeletedBy(null); h.setPurged(false); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Ẩn Lead khỏi thùng rác (is_purged = true). @param id ID */
     @Override public void purgeById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             LeadHibernate h = s.find(LeadHibernate.class, id);
             if (h != null) { h.setPurged(true); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Tìm Lead theo số điện thoại (chưa xóa mềm). @param phone số điện thoại @return Optional */
     @Override public Optional<Lead> findByPhone(String phone) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM LeadHibernate WHERE phone = :phone AND deletedAt IS NULL", LeadHibernate.class)
                     .setParameter("phone", phone).setMaxResults(1).list()
                     .stream().map(mapper::toDomain).findFirst();
-        }
+        });
     }
 
     /** Tìm Lead theo email (chưa xóa mềm). @param email email @return Optional */
     @Override public Optional<Lead> findByEmail(String email) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM LeadHibernate WHERE email = :email AND deletedAt IS NULL", LeadHibernate.class)
                     .setParameter("email", email).setMaxResults(1).list()
                     .stream().map(mapper::toDomain).findFirst();
-        }
+        });
     }
 
     /** Tìm Lead theo mã (chưa xóa mềm) — web tracking. @param code mã @return Optional */
     @Override public Optional<Lead> findByCode(String code) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM LeadHibernate WHERE code = :code AND deletedAt IS NULL", LeadHibernate.class)
                     .setParameter("code", code).setMaxResults(1).list()
                     .stream().map(mapper::toDomain).findFirst();
-        }
+        });
     }
 
     /** Bàn giao toàn bộ Lead của fromUserId sang toUserId. @param fromUserId @param toUserId */
     @Override public void handoverAll(Long fromUserId, Long toUserId) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             s.createNativeQuery("UPDATE leads SET owner_id = :toUserId WHERE owner_id = :fromUserId AND deleted_at IS NULL")
                     .setParameter("toUserId", toUserId).setParameter("fromUserId", fromUserId).executeUpdate();
-            tx.commit();
-        }
+            });
     }
 
     /** Bàn giao hàng loạt Lead sang owner mới. @param ids IDs @param toUserId người nhận @param currentUserId người thực hiện @param isAdminOrManager quyền admin/manager */
     @Override public void handoverBulk(List<Long> ids, Long toUserId, Long currentUserId, boolean isAdminOrManager) {
         if (ids == null || ids.isEmpty()) return;
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             String ownerFilter = isAdminOrManager ? "" : " AND owner_id = :currentUserId";
             String sql = "UPDATE leads SET owner_id = :toUserId WHERE id IN (:ids) AND deleted_at IS NULL" + ownerFilter;
             var q = s.createNativeQuery(sql).setParameter("toUserId", toUserId).setParameter("ids", ids);
             if (!isAdminOrManager) q.setParameter("currentUserId", currentUserId);
             q.executeUpdate();
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách Lead chưa xóa có phân trang, lọc owner/trạng thái + tìm kiếm server-side. @param r phân trang @return PageResult */
     @Override public PageResult<Lead> findAll(PageRequest r) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
             String ownerFilter = r.getOwnerId() != null ? " AND ownerId = :ownerId" : "";
             String searchFilter = ListQueryUtils.likeClause(r.getQ(), "code", "name", "companyName", "phone", "email");
@@ -189,6 +178,6 @@ public class LeadRepositoryImpl implements ILeadRepository {
             List<Lead> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
             long total = cq.uniqueResult();
             return PageResult.<Lead>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
-        }
+        });
     }
 }

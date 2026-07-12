@@ -2,7 +2,6 @@ package vn.com.be_crm.infrastructure.auth.repository;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.domain.auth.entity.UserRole;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
@@ -11,6 +10,7 @@ import vn.com.be_crm.infrastructure.auth.mapper.UserRoleHibernateMapper;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IUserRoleRepository.
@@ -38,12 +38,10 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
      */
     @Override
     public UserRole save(UserRole userRole) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             UserRoleHibernate merged = s.merge(mapper.toHibernate(userRole));
-            tx.commit();
             return mapper.toDomain(merged);
-        }
+        });
     }
 
     /**
@@ -54,15 +52,13 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
      */
     @Override
     public void deleteByUserIdAndRoleId(Long userId, Long roleId) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             s.createMutationQuery(
                     "DELETE FROM UserRoleHibernate WHERE userId = :userId AND roleId = :roleId")
                     .setParameter("userId", userId)
                     .setParameter("roleId", roleId)
                     .executeUpdate();
-            tx.commit();
-        }
+            });
     }
 
     /**
@@ -73,14 +69,14 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
      */
     @Override
     public List<String> findRoleCodesByUserId(Long userId) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery(
                     "SELECT r.code FROM RoleHibernate r WHERE r.id IN " +
                     "(SELECT ur.roleId FROM UserRoleHibernate ur WHERE ur.userId = :userId)",
                     String.class)
                     .setParameter("userId", userId)
                     .list();
-        }
+        });
     }
 
     /**
@@ -91,13 +87,13 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
      */
     @Override
     public List<UserRole> findByRoleId(Long roleId) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery(
                     "FROM UserRoleHibernate WHERE roleId = :roleId", UserRoleHibernate.class)
                     .setParameter("roleId", roleId)
                     .list()
                     .stream().map(mapper::toDomain).collect(Collectors.toList());
-        }
+        });
     }
 
     /**
@@ -109,13 +105,13 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
     @Override
     public List<Long> findUserIdsByRoleCodes(List<String> roleCodes) {
         if (roleCodes == null || roleCodes.isEmpty()) return List.of();
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery(
                     "SELECT DISTINCT ur.userId FROM UserRoleHibernate ur WHERE ur.roleId IN " +
                     "(SELECT r.id FROM RoleHibernate r WHERE r.code IN (:codes))",
                     Long.class)
                     .setParameter("codes", roleCodes)
                     .list();
-        }
+        });
     }
 }

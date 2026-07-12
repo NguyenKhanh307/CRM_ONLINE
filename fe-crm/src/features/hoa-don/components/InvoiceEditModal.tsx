@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
+import { useAlert } from '@/shared/alert/useAlert';
+import { dateRangeError } from '@/shared/utils/validators';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -16,8 +18,7 @@ import {
     fromItemResult,
     diffLineItems,
     computeTotals,
-    toItemPayload,
-} from '@/shared/components/form/productLineItem';
+    toItemPayload, validateLineItems } from '@/shared/components/form/productLineItem';
 
 interface Props {
     item: InvoiceResult | null;
@@ -38,6 +39,7 @@ const PAYMENT_STATUS_COLORS: Record<string, string> = {
 };
 
 export function InvoiceEditModal({ item, onClose }: Props) {
+    const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateInvoice();
     const { data: products = [] } = useProductList();
     const [form, setForm] = useState<UpdateInvoicePayload>({
@@ -84,6 +86,9 @@ export function InvoiceEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = dateRangeError(form.invoiceDate, form.dueDate, 'ngày hóa đơn', 'Hạn thanh toán') ?? validateLineItems(rows);
+        if (vErr) { showAlert(vErr); return; }
         if (!(await confirmSave('hóa đơn'))) return;
         setSaving(true);
         try {

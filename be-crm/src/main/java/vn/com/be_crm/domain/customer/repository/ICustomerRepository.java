@@ -26,6 +26,12 @@ public interface ICustomerRepository {
     Optional<Customer> findByTaxCode(String taxCode);
 
     /**
+     * Tìm khách hàng theo mã (chưa xóa mềm) — dùng để báo trùng mã thân thiện khi tạo mới.
+     * @param code mã khách hàng @return Optional
+     */
+    Optional<Customer> findByCode(String code);
+
+    /**
      * Tìm khách hàng theo ID (chưa xóa mềm).
      * @param id ID @return Optional
      */

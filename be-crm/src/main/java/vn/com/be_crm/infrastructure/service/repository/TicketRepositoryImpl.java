@@ -3,7 +3,6 @@ package vn.com.be_crm.infrastructure.service.repository;
 import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
@@ -21,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của ITicketRepository.
@@ -39,20 +39,19 @@ public class TicketRepositoryImpl implements ITicketRepository {
 
     /** Lưu mới hoặc cập nhật phiếu. @param t @return entity sau khi lưu */
     @Override public Ticket save(Ticket t) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             TicketHibernate m = s.merge(mapper.toHibernate(t));
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /** Tìm phiếu theo mã (chưa xóa mềm). @param code mã @return Optional */
     @Override public Optional<Ticket> findByCode(String code) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM TicketHibernate WHERE code = :code AND deletedAt IS NULL", TicketHibernate.class)
                     .setParameter("code", code).setMaxResults(1).list()
                     .stream().map(mapper::toDomain).findFirst();
-        }
+        });
     }
 
     /**
@@ -62,40 +61,37 @@ public class TicketRepositoryImpl implements ITicketRepository {
      * @return phiếu sau khi lưu
      */
     @Override public Ticket saveWithReturnItems(Ticket t, List<TicketReturnItem> items) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             TicketHibernate m = s.merge(mapper.toHibernate(t));
             for (TicketReturnItem item : items) {
                 TicketReturnItemHibernate ih = itemMapper.toHibernate(item);
                 ih.setTicketId(m.getId());
                 s.merge(ih);
             }
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /** Tìm phiếu theo ID — chỉ trả về nếu chưa xóa mềm. @param id @return Optional */
     @Override public Optional<Ticket> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             TicketHibernate h = s.find(TicketHibernate.class, id);
             if (h == null || h.getDeletedAt() != null) return Optional.empty();
             return Optional.of(mapper.toDomain(h));
-        }
+        });
     }
 
     /** Xóa mềm phiếu, ghi nhận người xóa. @param id ID @param deletedBy userId người xóa */
     @Override public void deleteById(Long id, Long deletedBy) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             TicketHibernate h = s.find(TicketHibernate.class, id);
             if (h != null) { h.setDeletedAt(LocalDateTime.now()); h.setDeletedBy(deletedBy); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách phiếu chưa xóa có phân trang. @param r @return PageResult */
     @Override public PageResult<Ticket> findAll(PageRequest r) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
             String ownerFilter = r.getOwnerId() != null ? " AND assignedUserId = :ownerId" : "";
             String searchFilter = ListQueryUtils.likeClause(r.getQ(), "code", "subject");
@@ -115,12 +111,12 @@ public class TicketRepositoryImpl implements ITicketRepository {
             List<Ticket> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
             long total = cq.uniqueResult();
             return PageResult.<Ticket>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
-        }
+        });
     }
 
     /** Lấy danh sách phiếu trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
     @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
             String userFilter = isAdmin ? "" : " AND t.deleted_by = :userId";
             String sql = "SELECT t.id, t.code, t.deleted_at, u.full_name FROM support_tickets t" +
@@ -142,40 +138,34 @@ public class TicketRepositoryImpl implements ITicketRepository {
             if (!isAdmin) cq.setParameter("userId", userId);
             long total = ((Number) cq.uniqueResult()).longValue();
             return PageResult.<DeletedItemResult>builder().items(items).total(total).page(req.getPage()).size(req.getSize()).build();
-        }
+        });
     }
 
     /** Khôi phục phiếu từ thùng rác. @param id ID */
     @Override public void restoreById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             TicketHibernate h = s.find(TicketHibernate.class, id);
             if (h != null) { h.setDeletedAt(null); h.setDeletedBy(null); h.setPurged(false); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Ẩn phiếu khỏi thùng rác (is_purged = true). @param id ID */
     @Override public void purgeById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             TicketHibernate h = s.find(TicketHibernate.class, id);
             if (h != null) { h.setPurged(true); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Bàn giao hàng loạt phiếu sang nhân viên xử lý mới. @param ids IDs @param toUserId người nhận @param currentUserId người thực hiện @param isAdminOrManager quyền admin/manager */
     @Override public void handoverBulk(List<Long> ids, Long toUserId, Long currentUserId, boolean isAdminOrManager) {
         if (ids == null || ids.isEmpty()) return;
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             String ownerFilter = isAdminOrManager ? "" : " AND assigned_user_id = :currentUserId";
             String sql = "UPDATE support_tickets SET assigned_user_id = :toUserId WHERE id IN (:ids) AND deleted_at IS NULL" + ownerFilter;
             var q = s.createNativeQuery(sql).setParameter("toUserId", toUserId).setParameter("ids", ids);
             if (!isAdminOrManager) q.setParameter("currentUserId", currentUserId);
             q.executeUpdate();
-            tx.commit();
-        }
+            });
     }
 }

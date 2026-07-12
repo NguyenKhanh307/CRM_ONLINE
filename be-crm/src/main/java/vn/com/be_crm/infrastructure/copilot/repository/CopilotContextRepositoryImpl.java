@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Gom ngữ cảnh CRM cho trợ lý AI bằng native SQL (mẫu từ DashboardRepositoryImpl).
@@ -47,12 +48,12 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
     /** {@inheritDoc} */
     @Override
     public String assemble(String question, Long ownerId, boolean isPrivileged) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             StringBuilder ctx = new StringBuilder();
             appendAggregates(s, ctx, question, ownerId);
             appendRecords(s, ctx, question, ownerId, isPrivileged);
             return ctx.toString();
-        }
+        });
     }
 
     // ==================== Khối SỐ LIỆU TỔNG HỢP (Loại A) ====================

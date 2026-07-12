@@ -2,7 +2,6 @@ package vn.com.be_crm.infrastructure.pricing.repository;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
@@ -14,6 +13,7 @@ import vn.com.be_crm.infrastructure.pricing.mapper.PricePolicyHibernateMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IPricePolicyRepository.
@@ -30,34 +30,31 @@ public class PricePolicyRepositoryImpl implements IPricePolicyRepository {
 
     /** Lưu mới hoặc cập nhật PricePolicy. @param p @return entity sau khi lưu */
     @Override public PricePolicy save(PricePolicy p) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             PricePolicyHibernate m = s.merge(mapper.toHibernate(p));
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /** Tìm PricePolicy theo ID. @param id @return Optional */
     @Override public Optional<PricePolicy> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             PricePolicyHibernate h = s.find(PricePolicyHibernate.class, id);
             return Optional.ofNullable(h).map(mapper::toDomain);
-        }
+        });
     }
 
     /** Xóa PricePolicy. @param id */
     @Override public void deleteById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             PricePolicyHibernate h = s.find(PricePolicyHibernate.class, id);
             if (h != null) s.remove(h);
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách PricePolicy có phân trang. @param r @return PageResult */
     @Override public PageResult<PricePolicy> findAll(PageRequest r) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             List<PricePolicy> items = s.createQuery(
                     "FROM PricePolicyHibernate ORDER BY " + r.getSortBy() + " " + r.getSortDir(),
                     PricePolicyHibernate.class)
@@ -65,6 +62,6 @@ public class PricePolicyRepositoryImpl implements IPricePolicyRepository {
                     .list().stream().map(mapper::toDomain).collect(Collectors.toList());
             long total = s.createQuery("SELECT COUNT(p) FROM PricePolicyHibernate p", Long.class).uniqueResult();
             return PageResult.<PricePolicy>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
-        }
+        });
     }
 }

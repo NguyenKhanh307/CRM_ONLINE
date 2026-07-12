@@ -3,7 +3,6 @@ package vn.com.be_crm.infrastructure.activity.repository;
 import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
@@ -15,6 +14,7 @@ import vn.com.be_crm.infrastructure.activity.mapper.ActivityHibernateMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IActivityRepository.
@@ -42,12 +42,10 @@ public class ActivityRepositoryImpl implements IActivityRepository {
      */
     @Override
     public Activity save(Activity activity) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             ActivityHibernate merged = s.merge(mapper.toHibernate(activity));
-            tx.commit();
             return mapper.toDomain(merged);
-        }
+        });
     }
 
     /**
@@ -58,10 +56,10 @@ public class ActivityRepositoryImpl implements IActivityRepository {
      */
     @Override
     public Optional<Activity> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             ActivityHibernate h = s.find(ActivityHibernate.class, id);
             return Optional.ofNullable(h).map(mapper::toDomain);
-        }
+        });
     }
 
     /**
@@ -71,12 +69,10 @@ public class ActivityRepositoryImpl implements IActivityRepository {
      */
     @Override
     public void deleteById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             ActivityHibernate h = s.find(ActivityHibernate.class, id);
             if (h != null) s.remove(h);
-            tx.commit();
-        }
+            });
     }
 
     /**
@@ -87,7 +83,7 @@ public class ActivityRepositoryImpl implements IActivityRepository {
      */
     @Override
     public PageResult<Activity> findAll(PageRequest request) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             String yearFilter = request.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
             String ownerFilter = request.getOwnerId() != null ? " AND assignedUserId = :ownerId" : "";
             String searchFilter = ListQueryUtils.likeClause(request.getQ(), "subject");
@@ -107,6 +103,6 @@ public class ActivityRepositoryImpl implements IActivityRepository {
             List<Activity> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
             long total = cq.uniqueResult();
             return PageResult.<Activity>builder().items(items).total(total).page(request.getPage()).size(request.getSize()).build();
-        }
+        });
     }
 }

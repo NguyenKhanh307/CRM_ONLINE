@@ -20,7 +20,7 @@ public class InvoiceBeanConfig {
     /** @return CreateInvoiceUseCase */
     @Bean public CreateInvoiceUseCase createInvoiceUseCase(IInvoiceRepository r) { return new CreateInvoiceUseCase(r); }
     /** @return UpdateInvoiceUseCase */
-    @Bean public UpdateInvoiceUseCase updateInvoiceUseCase(IInvoiceRepository r) { return new UpdateInvoiceUseCase(r); }
+    @Bean public UpdateInvoiceUseCase updateInvoiceUseCase(IInvoiceRepository r, RecomputeInvoiceTotalsUseCase rc) { return new UpdateInvoiceUseCase(r, rc); }
     /** @return DeleteInvoiceUseCase */
     @Bean public DeleteInvoiceUseCase deleteInvoiceUseCase(IInvoiceRepository r) { return new DeleteInvoiceUseCase(r); }
     /** @return GetInvoiceUseCase */
@@ -33,11 +33,11 @@ public class InvoiceBeanConfig {
     // ===== Invoice Item =====
 
     /** @return CreateInvoiceItemUseCase */
-    @Bean public CreateInvoiceItemUseCase createInvoiceItemUseCase(IInvoiceItemRepository r) { return new CreateInvoiceItemUseCase(r); }
+    @Bean public CreateInvoiceItemUseCase createInvoiceItemUseCase(IInvoiceItemRepository r, RecomputeInvoiceTotalsUseCase rc) { return new CreateInvoiceItemUseCase(r, rc); }
     /** @return UpdateInvoiceItemUseCase */
-    @Bean public UpdateInvoiceItemUseCase updateInvoiceItemUseCase(IInvoiceItemRepository r) { return new UpdateInvoiceItemUseCase(r); }
+    @Bean public UpdateInvoiceItemUseCase updateInvoiceItemUseCase(IInvoiceItemRepository r, RecomputeInvoiceTotalsUseCase rc) { return new UpdateInvoiceItemUseCase(r, rc); }
     /** @return DeleteInvoiceItemUseCase */
-    @Bean public DeleteInvoiceItemUseCase deleteInvoiceItemUseCase(IInvoiceItemRepository r) { return new DeleteInvoiceItemUseCase(r); }
+    @Bean public DeleteInvoiceItemUseCase deleteInvoiceItemUseCase(IInvoiceItemRepository r, RecomputeInvoiceTotalsUseCase rc) { return new DeleteInvoiceItemUseCase(r, rc); }
     /** @return ListInvoiceItemUseCase */
     @Bean public ListInvoiceItemUseCase listInvoiceItemUseCase(IInvoiceItemRepository r) { return new ListInvoiceItemUseCase(r); }
 
@@ -78,4 +78,9 @@ public class InvoiceBeanConfig {
     @Bean public HandoverBulkInvoiceUseCase handoverBulkInvoiceUseCase(IInvoiceRepository r) { return new HandoverBulkInvoiceUseCase(r); }
     /** @return ImportBulkInvoiceUseCase */
     @Bean public ImportBulkInvoiceUseCase importBulkInvoiceUseCase(IInvoiceRepository r) { return new ImportBulkInvoiceUseCase(r); }
+
+    /** @return RecomputeInvoiceTotalsUseCase — tính lại tổng tiền từ dòng hàng (server là nguồn chân lý) */
+    @Bean public RecomputeInvoiceTotalsUseCase recomputeInvoiceTotalsUseCase(IInvoiceRepository r, IInvoiceItemRepository ir) {
+        return new RecomputeInvoiceTotalsUseCase(r, ir);
+    }
 }

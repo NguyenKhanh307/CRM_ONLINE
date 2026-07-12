@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect } from 'react';
+import { useAlert } from '@/shared/alert/useAlert';
+import { nonNegativeError, percentError, sellPriceError } from '@/shared/utils/validators';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -18,6 +20,7 @@ const PRODUCT_TYPE_OPTIONS: { value: string; label: string }[] = [
 ];
 
 export function ProductEditModal({ item, onClose }: Props) {
+    const { showAlert } = useAlert();
     const { mutate, isPending } = useUpdateProduct();
     const [form, setForm] = useState<UpdateProductPayload>({
         name: '',
@@ -60,6 +63,10 @@ export function ProductEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = nonNegativeError(form.basePrice, 'Giá bán') ?? nonNegativeError(form.costPrice, 'Giá vốn')
+            ?? percentError(form.vatRate, 'Thuế VAT') ?? sellPriceError(form.basePrice, form.costPrice);
+        if (vErr) { showAlert(vErr); return; }
         if (!(await confirmSave('hàng hóa'))) return;
         mutate({ id: item.id, payload: form }, { onSuccess: onClose });
     };

@@ -1,5 +1,9 @@
 package vn.com.be_crm.application.quotation.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,10 +18,10 @@ public class UpdateQuotationItemCommand {
     private Long id;
     private Long productId;
     @Size(max = 20) private String unit;
-    private BigDecimal quantity;
-    private BigDecimal unitPrice;
-    private BigDecimal discount;
-    private BigDecimal taxRate;
+    @Positive(message = "Số lượng phải lớn hơn 0") private BigDecimal quantity;
+    @PositiveOrZero(message = "Đơn giá không được âm") private BigDecimal unitPrice;
+    @PositiveOrZero(message = "Chiết khấu không được âm") private BigDecimal discount;
+    @DecimalMin(value = "0", message = "Thuế suất phải từ 0 đến 100") @DecimalMax(value = "100", message = "Thuế suất phải từ 0 đến 100") private BigDecimal taxRate;
     private BigDecimal amount;
     @Size(max = 255) private String note;
 }

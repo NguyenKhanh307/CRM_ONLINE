@@ -3,7 +3,6 @@ package vn.com.be_crm.infrastructure.product.repository;
 import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
@@ -18,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IProductRepository.
@@ -38,44 +38,41 @@ public class ProductRepositoryImpl implements IProductRepository {
 
     /** Lưu mới hoặc cập nhật Product. @param p domain entity @return entity sau khi lưu */
     @Override public Product save(Product p) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             ProductHibernate m = s.merge(mapper.toHibernate(p));
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /** Tìm Product theo ID — chỉ trả về nếu chưa xóa mềm. @param id ID @return Optional */
     @Override public Optional<Product> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             ProductHibernate h = s.find(ProductHibernate.class, id);
             if (h == null || h.getDeletedAt() != null) return Optional.empty();
             return Optional.of(mapper.toDomain(h));
-        }
+        });
     }
 
     /** Tìm Product theo SKU (chưa xóa mềm). @param sku SKU @return Optional */
     @Override public Optional<Product> findBySku(String sku) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM ProductHibernate WHERE sku = :sku AND deletedAt IS NULL", ProductHibernate.class)
                     .setParameter("sku", sku).setMaxResults(1).list()
                     .stream().map(mapper::toDomain).findFirst();
-        }
+        });
     }
 
     /** Xóa mềm Product, ghi nhận người xóa. @param id ID @param deletedBy userId người xóa */
     @Override public void deleteById(Long id, Long deletedBy) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             ProductHibernate h = s.find(ProductHibernate.class, id);
             if (h != null) { h.setDeletedAt(LocalDateTime.now()); h.setDeletedBy(deletedBy); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách Product trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
     @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             // Mốc 30 ngày: chỉ hiện bản ghi đã xóa trong 30 ngày gần đây
             LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
             // Không phải admin → chỉ xem bản ghi do chính mình xóa
@@ -102,32 +99,28 @@ public class ProductRepositoryImpl implements IProductRepository {
             if (!isAdmin) cq.setParameter("userId", userId);
             long total = ((Number) cq.uniqueResult()).longValue();
             return PageResult.<DeletedItemResult>builder().items(items).total(total).page(req.getPage()).size(req.getSize()).build();
-        }
+        });
     }
 
     /** Khôi phục Product từ thùng rác. @param id ID */
     @Override public void restoreById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             ProductHibernate h = s.find(ProductHibernate.class, id);
             if (h != null) { h.setDeletedAt(null); h.setDeletedBy(null); h.setPurged(false); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Ẩn Product khỏi thùng rác (is_purged = true). @param id ID */
     @Override public void purgeById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             ProductHibernate h = s.find(ProductHibernate.class, id);
             if (h != null) { h.setPurged(true); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách Product chưa xóa có phân trang. @param r tham số phân trang @return PageResult */
     @Override public PageResult<Product> findAll(PageRequest r) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
             String searchFilter = ListQueryUtils.likeClause(r.getQ(), "sku", "name");
             Boolean statusVal = r.getStatus() == null || r.getStatus().isBlank() ? null : Boolean.valueOf(r.getStatus());
@@ -145,6 +138,6 @@ public class ProductRepositoryImpl implements IProductRepository {
             List<Product> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
             long total = cq.uniqueResult();
             return PageResult.<Product>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
-        }
+        });
     }
 }

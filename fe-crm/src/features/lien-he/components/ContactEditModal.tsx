@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect } from 'react';
+import { useAlert } from '@/shared/alert/useAlert';
+import { emailError } from '@/shared/utils/validators';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -25,6 +27,7 @@ interface PhoneRow {
 const PHONE_TYPE_LABELS: Record<PhoneType, string> = { mobile: 'Di động', office: 'Cơ quan', home: 'Nhà', other: 'Khác' };
 
 export function ContactEditModal({ item, onClose }: Props) {
+    const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateContact();
     const [form, setForm] = useState<UpdateContactPayload>({
         customerId: null, assignedUserId: null, fullName: '', position: null,
@@ -71,6 +74,9 @@ export function ContactEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = emailError(form.email) ?? emailError(form.workEmail) ?? emailError(form.personalEmail);
+        if (vErr) { showAlert(vErr); return; }
         if (!(await confirmSave('liên hệ'))) return;
         setSaving(true);
         try {

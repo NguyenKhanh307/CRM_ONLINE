@@ -2,7 +2,6 @@ package vn.com.be_crm.infrastructure.contact.repository;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.domain.contact.entity.ContactPhone;
 import vn.com.be_crm.domain.contact.repository.IContactPhoneRepository;
@@ -12,6 +11,7 @@ import vn.com.be_crm.infrastructure.contact.mapper.ContactPhoneHibernateMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IContactPhoneRepository.
@@ -35,11 +35,10 @@ public class ContactPhoneRepositoryImpl implements IContactPhoneRepository {
      */
     @Override
     public ContactPhone save(ContactPhone phone) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             ContactPhoneHibernate m = s.merge(mapper.toHibernate(phone));
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /**
@@ -48,10 +47,10 @@ public class ContactPhoneRepositoryImpl implements IContactPhoneRepository {
      */
     @Override
     public Optional<ContactPhone> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             ContactPhoneHibernate h = s.find(ContactPhoneHibernate.class, id);
             return Optional.ofNullable(h).map(mapper::toDomain);
-        }
+        });
     }
 
     /**
@@ -60,12 +59,10 @@ public class ContactPhoneRepositoryImpl implements IContactPhoneRepository {
      */
     @Override
     public void deleteById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             ContactPhoneHibernate h = s.find(ContactPhoneHibernate.class, id);
             if (h != null) s.remove(h);
-            tx.commit();
-        }
+            });
     }
 
     /**
@@ -74,9 +71,9 @@ public class ContactPhoneRepositoryImpl implements IContactPhoneRepository {
      */
     @Override
     public List<ContactPhone> findAllByContactId(Long contactId) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM ContactPhoneHibernate WHERE contactId = :cid", ContactPhoneHibernate.class)
                     .setParameter("cid", contactId).list().stream().map(mapper::toDomain).collect(Collectors.toList());
-        }
+        });
     }
 }

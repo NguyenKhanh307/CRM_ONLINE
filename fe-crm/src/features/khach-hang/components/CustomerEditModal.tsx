@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect } from 'react';
+import { useAlert } from '@/shared/alert/useAlert';
+import { emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -19,6 +21,7 @@ const CUSTOMER_STATUS_COLORS: Record<string, string> = {
 };
 
 export function CustomerEditModal({ item, onClose }: Props) {
+    const { showAlert } = useAlert();
     const { mutate, isPending } = useUpdateCustomer();
     const [form, setForm] = useState<UpdateCustomerPayload>({
         name: '', type: 'individual', taxCode: null, phone: null,
@@ -53,6 +56,10 @@ export function CustomerEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = emailError(form.email) ?? phoneError(form.phone) ?? taxCodeError(form.taxCode)
+            ?? nonNegativeError(form.creditLimit, 'Hạn mức tín dụng') ?? nonNegativeError(form.annualRevenue, 'Doanh thu năm');
+        if (vErr) { showAlert(vErr); return; }
         if (!(await confirmSave('khách hàng'))) return;
         mutate({ id: item.id, payload: form }, { onSuccess: onClose });
     };

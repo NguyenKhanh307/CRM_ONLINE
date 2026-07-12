@@ -14,6 +14,7 @@ import vn.com.be_crm.domain.order.repository.IOrderItemRepository;
 import vn.com.be_crm.domain.order.repository.IOrderRepository;
 import vn.com.be_crm.domain.shared.exception.DomainException;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.application.shared.tx.ITransactionRunner;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,20 +28,28 @@ public class CreateInvoiceFromOrderUseCase {
     private final IOrderRepository orderRepo;
     private final IOrderItemRepository orderItemRepo;
     private final IInvoiceRepository invoiceRepo;
+    private final ITransactionRunner tx;
 
-    /** @param orderRepo đơn hàng @param orderItemRepo dòng đơn hàng @param invoiceRepo hóa đơn */
+    /** @param orderRepo đơn hàng @param orderItemRepo dòng đơn hàng @param invoiceRepo hóa đơn @param tx bộ chạy transaction */
     public CreateInvoiceFromOrderUseCase(IOrderRepository orderRepo, IOrderItemRepository orderItemRepo,
-                                         IInvoiceRepository invoiceRepo) {
+                                         IInvoiceRepository invoiceRepo, ITransactionRunner tx) {
         this.orderRepo = orderRepo;
         this.orderItemRepo = orderItemRepo;
         this.invoiceRepo = invoiceRepo;
+        this.tx = tx;
     }
 
     /**
      * Xuất hóa đơn từ đơn hàng.
+     * Tạo hóa đơn + dòng hàng và khóa đơn hàng chạy trong MỘT transaction.
      * @param orderId ID đơn hàng @return hóa đơn vừa tạo
      */
     public InvoiceResult execute(Long orderId) {
+        return tx.call(() -> executeInTx(orderId));
+    }
+
+    /** Thân nghiệp vụ xuất hóa đơn — luôn chạy bên trong transaction. */
+    private InvoiceResult executeInTx(Long orderId) {
         Order o = orderRepo.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));
         if (o.isLocked()) throw new DomainException("Đơn hàng đã xuất hóa đơn trước đó");

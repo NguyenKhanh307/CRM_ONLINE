@@ -1,5 +1,6 @@
 package vn.com.be_crm.application.order.command;
 
+import vn.com.be_crm.application.shared.util.CrossFieldRules;
 import vn.com.be_crm.application.order.dto.OrderResult;
 import vn.com.be_crm.application.order.dto.UpdateOrderCommand;
 import vn.com.be_crm.application.order.mapper.OrderCommandMapper;
@@ -12,12 +13,27 @@ import vn.com.be_crm.domain.shared.exception.NotFoundException;
 /** Use case cập nhật đơn hàng. */
 public class UpdateOrderUseCase implements IUseCase<UpdateOrderCommand, OrderResult> {
     private final IOrderRepository repo;
-    /** @param repo port lưu trữ */
-    public UpdateOrderUseCase(IOrderRepository repo) { this.repo = repo; }
-    /** Cập nhật Order; chặn sửa khi đã khóa (đã xuất hóa đơn). @param cmd @return OrderResult @throws NotFoundException */
+    private final RecomputeOrderTotalsUseCase recomputeUC;
+
+    /** @param repo port lưu trữ @param recomputeUC tính lại tổng tiền từ dòng hàng */
+    public UpdateOrderUseCase(IOrderRepository repo, RecomputeOrderTotalsUseCase recomputeUC) {
+        this.repo = repo;
+        this.recomputeUC = recomputeUC;
+    }
+
+    /**
+     * Cập nhật Order; chặn sửa khi đã khóa (đã xuất hóa đơn).
+     * Tổng tiền KHÔNG lấy từ client mà tính lại từ dòng hàng sau khi lưu.
+     * @param cmd @return OrderResult @throws NotFoundException
+     */
     @Override public OrderResult execute(UpdateOrderCommand cmd) {
+        // Ràng buộc khoảng thời gian: ngày giao hàng không được trước ngày đặt hàng
+        CrossFieldRules.requireDateRange(cmd.getOrderDate(), cmd.getDeliveryDate(), "Ngày đặt hàng", "Ngày giao hàng");
         Order e = repo.findById(cmd.getId()).orElseThrow(() -> new NotFoundException("Order not found: " + cmd.getId()));
         if (e.isLocked()) throw new DomainException("Đơn hàng đã khóa (đã xuất hóa đơn), không thể sửa");
-        return OrderCommandMapper.toResult(repo.save(OrderCommandMapper.toEntity(cmd, e)));
+        repo.save(OrderCommandMapper.toEntity(cmd, e));
+        recomputeUC.execute(cmd.getId());
+        return OrderCommandMapper.toResult(
+                repo.findById(cmd.getId()).orElseThrow(() -> new NotFoundException("Order not found: " + cmd.getId())));
     }
 }

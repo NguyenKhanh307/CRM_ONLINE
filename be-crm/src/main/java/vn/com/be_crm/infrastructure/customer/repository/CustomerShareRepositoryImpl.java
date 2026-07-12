@@ -2,7 +2,6 @@ package vn.com.be_crm.infrastructure.customer.repository;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.domain.customer.entity.CustomerShare;
 import vn.com.be_crm.domain.customer.repository.ICustomerShareRepository;
@@ -11,6 +10,7 @@ import vn.com.be_crm.infrastructure.customer.mapper.CustomerShareHibernateMapper
 
 import java.util.List;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của ICustomerShareRepository.
@@ -34,11 +34,10 @@ public class CustomerShareRepositoryImpl implements ICustomerShareRepository {
      */
     @Override
     public CustomerShare save(CustomerShare share) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             CustomerShareHibernate m = s.merge(mapper.toHibernate(share));
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /**
@@ -47,12 +46,10 @@ public class CustomerShareRepositoryImpl implements ICustomerShareRepository {
      */
     @Override
     public void deleteByCustomerIdAndUserId(Long customerId, Long userId) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             s.createMutationQuery("DELETE FROM CustomerShareHibernate WHERE customerId = :cid AND userId = :uid")
                     .setParameter("cid", customerId).setParameter("uid", userId).executeUpdate();
-            tx.commit();
-        }
+            });
     }
 
     /**
@@ -61,9 +58,9 @@ public class CustomerShareRepositoryImpl implements ICustomerShareRepository {
      */
     @Override
     public List<CustomerShare> findByCustomerId(Long customerId) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM CustomerShareHibernate WHERE customerId = :cid", CustomerShareHibernate.class)
                     .setParameter("cid", customerId).list().stream().map(mapper::toDomain).collect(Collectors.toList());
-        }
+        });
     }
 }

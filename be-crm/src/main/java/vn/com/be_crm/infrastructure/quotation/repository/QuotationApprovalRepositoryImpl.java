@@ -2,7 +2,6 @@ package vn.com.be_crm.infrastructure.quotation.repository;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.domain.quotation.entity.QuotationApproval;
 import vn.com.be_crm.domain.quotation.repository.IQuotationApprovalRepository;
@@ -12,6 +11,7 @@ import vn.com.be_crm.infrastructure.quotation.mapper.QuotationApprovalHibernateM
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IQuotationApprovalRepository.
@@ -28,36 +28,33 @@ public class QuotationApprovalRepositoryImpl implements IQuotationApprovalReposi
 
     /** Lưu mới hoặc cập nhật QuotationApproval. @param a @return entity sau khi lưu */
     @Override public QuotationApproval save(QuotationApproval a) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             QuotationApprovalHibernate m = s.merge(mapper.toHibernate(a));
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /** Tìm QuotationApproval theo ID. @param id @return Optional */
     @Override public Optional<QuotationApproval> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             QuotationApprovalHibernate h = s.find(QuotationApprovalHibernate.class, id);
             return Optional.ofNullable(h).map(mapper::toDomain);
-        }
+        });
     }
 
     /** Xóa QuotationApproval theo ID. @param id */
     @Override public void deleteById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             QuotationApprovalHibernate h = s.find(QuotationApprovalHibernate.class, id);
             if (h != null) s.remove(h);
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách QuotationApproval theo quotationId. @param quotationId @return danh sách */
     @Override public List<QuotationApproval> findAllByQuotationId(Long quotationId) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM QuotationApprovalHibernate WHERE quotationId = :qid", QuotationApprovalHibernate.class)
                     .setParameter("qid", quotationId).list().stream().map(mapper::toDomain).collect(Collectors.toList());
-        }
+        });
     }
 }

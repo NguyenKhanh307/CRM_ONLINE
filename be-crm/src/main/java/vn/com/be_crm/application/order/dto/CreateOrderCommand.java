@@ -1,5 +1,6 @@
 package vn.com.be_crm.application.order.dto;
 
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -22,8 +23,8 @@ public class CreateOrderCommand {
     private Long opportunityId;
     private Long campaignId;
     private Long ownerId;
-    private LocalDate orderDate;
-    private LocalDate deliveryDate;
+    @FutureOrPresent(message = "Ngày đặt hàng không được là ngày quá khứ") private LocalDate orderDate;
+    @FutureOrPresent(message = "Ngày giao hàng không được là ngày quá khứ") private LocalDate deliveryDate;
     @Size(max = 3) private String currency;
     private BigDecimal exchangeRate;
     @Size(max = 255) private String billingAddress;

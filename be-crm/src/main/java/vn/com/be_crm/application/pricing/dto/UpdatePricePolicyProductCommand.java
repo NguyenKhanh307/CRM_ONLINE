@@ -1,5 +1,7 @@
 package vn.com.be_crm.application.pricing.dto;
 
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,8 +14,8 @@ import java.math.BigDecimal;
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class UpdatePricePolicyProductCommand {
     private Long id;
-    private BigDecimal price;
+    @PositiveOrZero(message = "Đơn giá không được âm") private BigDecimal price;
     private DiscountType discountType;
-    private BigDecimal discountValue;
-    private BigDecimal minQty;
+    @PositiveOrZero(message = "Giá trị chiết khấu không được âm") private BigDecimal discountValue;
+    @Positive(message = "Số lượng phải lớn hơn 0") private BigDecimal minQty;
 }

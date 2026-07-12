@@ -1,5 +1,8 @@
 package vn.com.be_crm.application.lead.dto;
 
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -22,15 +25,15 @@ public class CreateLeadCommand {
     private Long contactId;
     @Size(max = 100) private String title;
     @Size(max = 100) private String department;
-    @Size(max = 15) private String taxCode;
+    @Size(max = 15) @Pattern(regexp = "^$|^[0-9-]{10,14}$", message = "Mã số thuế không hợp lệ (10-14 chữ số)") private String taxCode;
     @Size(max = 100) private String website;
     @Size(max = 50) private String industry;
     @Size(max = 20) private String source;
     private Long campaignId;
     private LeadStatus status;
-    private BigDecimal estimatedValue;
-    @Size(max = 11) private String phone;
-    @Size(max = 50) private String email;
+    @PositiveOrZero(message = "Giá trị ước tính không được âm") private BigDecimal estimatedValue;
+    @Size(max = 11) @Pattern(regexp = "^$|^[0-9+.() -]{8,15}$", message = "Số điện thoại không hợp lệ") private String phone;
+    @Size(max = 50) @Email(message = "Email không hợp lệ") private String email;
     private Boolean doNotCall;
     private Boolean doNotEmail;
     @Size(max = 255) private String note;

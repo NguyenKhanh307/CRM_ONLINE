@@ -111,3 +111,21 @@ export const diffLineItems = (original: LineItemRow[], current: LineItemRow[]) =
     const toUpdate = current.filter((r) => r.backendId && r.productId);
     return { toCreate, toUpdate, toDelete };
 };
+
+/**
+ * Kiểm tra biên các dòng hàng (khớp ràng buộc backend): SL > 0, đơn giá ≥ 0, CK% và Thuế% trong [0,100].
+ * @param rows danh sách dòng hàng
+ * @returns thông báo lỗi đầu tiên (kèm số thứ tự dòng), hoặc null nếu tất cả hợp lệ
+ */
+export const validateLineItems = (rows: LineItemRow[]): string | null => {
+    for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        const n = i + 1;
+        if (!r.productId) return `Dòng ${n}: chưa chọn hàng hóa`;
+        if (!(r.quantity > 0)) return `Dòng ${n}: số lượng phải lớn hơn 0`;
+        if (r.unitPrice < 0) return `Dòng ${n}: đơn giá không được âm`;
+        if (r.discountPct < 0 || r.discountPct > 100) return `Dòng ${n}: chiết khấu phải từ 0 đến 100%`;
+        if (r.taxRate < 0 || r.taxRate > 100) return `Dòng ${n}: thuế suất phải từ 0 đến 100%`;
+    }
+    return null;
+};

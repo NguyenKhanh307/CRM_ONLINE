@@ -12,6 +12,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IDashboardRepository — thống kê tổng hợp bằng native COUNT/SUM.
@@ -32,7 +33,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
     /** {@inheritDoc} */
     @Override
     public AdminDashboardResult getAdmin(DateRange cur, DateRange prev, LocalDate seriesFrom) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             long totalNow = count(s, "SELECT COUNT(*) FROM users WHERE deleted_at IS NULL", Map.of());
             long newCur = count(s, "SELECT COUNT(*) FROM users WHERE deleted_at IS NULL AND created_at >= :f AND created_at < :t",
                     Map.of("f", cur.from(), "t", cur.toExclusive()));
@@ -67,13 +68,13 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
                     byStatus,
                     KpiMetric.of(BigDecimal.valueOf(newCur), BigDecimal.valueOf(newPrev)),
                     usersByMonth, roleCount, permCount, byRole, byUnit, recordTotals);
-        }
+        });
     }
 
     /** {@inheritDoc} */
     @Override
     public SalesDashboardResult getSales(Long ownerId, boolean includeTeam, DateRange cur, DateRange prev, LocalDate seriesFrom) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             String of = ownerId == null ? "" : " AND owner_id = :o";           // lọc theo owner (bảng có owner_id)
             String ofI = ownerId == null ? "" : " AND i.owner_id = :o";        // alias i cho invoices
             String ofTicket = ownerId == null ? "" : " AND assigned_user_id = :o";
@@ -141,7 +142,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
                     expectedByMonth, funnel, topOpp,
                     leadsByStatus, oppByStatus, ordersByStatus, invByStatus, ticketsByStatus,
                     urgent, teamByOwner, revenueByOwner);
-        }
+        });
     }
 
     // ==================== Helpers truy vấn ====================

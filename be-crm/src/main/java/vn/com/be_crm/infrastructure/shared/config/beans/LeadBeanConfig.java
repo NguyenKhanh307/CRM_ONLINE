@@ -12,6 +12,7 @@ import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadTrackingEventRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadTransferRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
+import vn.com.be_crm.application.shared.tx.ITransactionRunner;
 
 /**
  * Wire các UseCase của module Lead (lead, activity, transfer, trash, handover, import) qua @Bean.
@@ -31,27 +32,31 @@ public class LeadBeanConfig {
     @Bean public GetLeadUseCase getLeadUseCase(ILeadRepository r) { return new GetLeadUseCase(r); }
     /** @return ListLeadUseCase */
     @Bean public ListLeadUseCase listLeadUseCase(ILeadRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListLeadUseCase(r, n); }
-    /** @return LeadWorkflowUseCase — convert (tách KH+LH+CH) / lose */
+    /** @return LeadWorkflowUseCase — convert (tách KH+LH+CH, 1 transaction) / lose */
     @Bean public LeadWorkflowUseCase leadWorkflowUseCase(ILeadRepository r, ICustomerRepository cr,
-                                                         IContactRepository ctr, IOpportunityRepository or) {
-        return new LeadWorkflowUseCase(r, cr, ctr, or);
+                                                         IContactRepository ctr, IOpportunityRepository or,
+                                                         ITransactionRunner tx) {
+        return new LeadWorkflowUseCase(r, cr, ctr, or, tx);
     }
 
     // ===== Lead Scoring & Web Tracking =====
 
     /** @return AddLeadScoreUseCase — cộng điểm dùng chung (tracking + activity) */
-    @Bean public AddLeadScoreUseCase addLeadScoreUseCase(ILeadRepository r, CreateNotificationUseCase n, IUserRoleRepository ur) {
-        return new AddLeadScoreUseCase(r, n, ur);
+    @Bean public AddLeadScoreUseCase addLeadScoreUseCase(ILeadRepository r, CreateNotificationUseCase n, IUserRoleRepository ur,
+                                                         ITransactionRunner tx) {
+        return new AddLeadScoreUseCase(r, n, ur, tx);
     }
     /** @return TrackVisitUseCase */
     @Bean public TrackVisitUseCase trackVisitUseCase(ILeadRepository r) { return new TrackVisitUseCase(r); }
     /** @return RecordTrackingEventUseCase */
-    @Bean public RecordTrackingEventUseCase recordTrackingEventUseCase(ILeadRepository r, ILeadTrackingEventRepository e, AddLeadScoreUseCase a) {
-        return new RecordTrackingEventUseCase(r, e, a);
+    @Bean public RecordTrackingEventUseCase recordTrackingEventUseCase(ILeadRepository r, ILeadTrackingEventRepository e, AddLeadScoreUseCase a,
+                                                                       ITransactionRunner tx) {
+        return new RecordTrackingEventUseCase(r, e, a, tx);
     }
     /** @return SubmitTrackingFormUseCase */
-    @Bean public SubmitTrackingFormUseCase submitTrackingFormUseCase(ILeadRepository r, ILeadTrackingEventRepository e, AddLeadScoreUseCase a) {
-        return new SubmitTrackingFormUseCase(r, e, a);
+    @Bean public SubmitTrackingFormUseCase submitTrackingFormUseCase(ILeadRepository r, ILeadTrackingEventRepository e, AddLeadScoreUseCase a,
+                                                                     ITransactionRunner tx) {
+        return new SubmitTrackingFormUseCase(r, e, a, tx);
     }
 
     // ===== Lead Transfer =====

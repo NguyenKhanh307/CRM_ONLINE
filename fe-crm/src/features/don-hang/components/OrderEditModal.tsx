@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
+import { useAlert } from '@/shared/alert/useAlert';
+import { dateRangeError } from '@/shared/utils/validators';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -15,8 +17,7 @@ import {
     fromItemResult,
     diffLineItems,
     computeTotals,
-    toItemPayload,
-} from '@/shared/components/form/productLineItem';
+    toItemPayload, validateLineItems } from '@/shared/components/form/productLineItem';
 
 interface Props {
     item: OrderResult | null;
@@ -33,6 +34,7 @@ const ORDER_STATUS_COLORS: Record<string, string> = {
 };
 
 export function OrderEditModal({ item, onClose }: Props) {
+    const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateOrder();
     const { data: products = [] } = useProductList();
     const [form, setForm] = useState<UpdateOrderPayload>({
@@ -79,6 +81,9 @@ export function OrderEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = dateRangeError(form.orderDate, form.deliveryDate, 'ngày đặt hàng', 'Ngày giao hàng') ?? validateLineItems(rows);
+        if (vErr) { showAlert(vErr); return; }
         if (!(await confirmSave('đơn hàng'))) return;
         setSaving(true);
         try {

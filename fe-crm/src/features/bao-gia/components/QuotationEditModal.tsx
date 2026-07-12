@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
+import { dateRangeError } from '@/shared/utils/validators';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -17,8 +18,7 @@ import {
     fromItemResult,
     diffLineItems,
     computeTotals,
-    toItemPayload,
-} from '@/shared/components/form/productLineItem';
+    toItemPayload, validateLineItems } from '@/shared/components/form/productLineItem';
 
 interface Props {
     item: QuotationResult | null;
@@ -80,6 +80,9 @@ export function QuotationEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = dateRangeError(form.quoteDate, form.validUntil, 'ngày báo giá', 'Ngày hiệu lực') ?? validateLineItems(rows);
+        if (vErr) { showAlert(vErr); return; }
         if (!(await confirmSave('báo giá'))) return;
         setSaving(true);
         try {

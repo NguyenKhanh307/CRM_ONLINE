@@ -15,6 +15,7 @@ import vn.com.be_crm.domain.opportunity.entity.Opportunity;
 import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.application.shared.tx.ITransactionRunner;
 
 import java.math.BigDecimal;
 
@@ -27,22 +28,31 @@ public class LeadWorkflowUseCase {
     private final ICustomerRepository customerRepo;
     private final IContactRepository contactRepo;
     private final IOpportunityRepository opportunityRepo;
+    private final ITransactionRunner tx;
 
-    /** @param repo Lead @param customerRepo Khách hàng @param contactRepo Liên hệ @param opportunityRepo Cơ hội */
+    /** @param repo Lead @param customerRepo Khách hàng @param contactRepo Liên hệ @param opportunityRepo Cơ hội @param tx bộ chạy transaction */
     public LeadWorkflowUseCase(ILeadRepository repo, ICustomerRepository customerRepo,
-                               IContactRepository contactRepo, IOpportunityRepository opportunityRepo) {
+                               IContactRepository contactRepo, IOpportunityRepository opportunityRepo,
+                               ITransactionRunner tx) {
         this.repo = repo;
         this.customerRepo = customerRepo;
         this.contactRepo = contactRepo;
         this.opportunityRepo = opportunityRepo;
+        this.tx = tx;
     }
 
     /**
      * Chuyển đổi tiềm năng thành công (qualified → converted): tách dữ liệu phẳng thành
      * Khách hàng (Account) + Liên hệ (Contact) + Cơ hội (Opportunity) theo mô hình B2B, rồi khóa tiềm năng.
+     * Cả 4 lệnh ghi chạy trong MỘT transaction — lỗi giữa chừng rollback hết, không để lại bản ghi mồ côi.
      * @param id ID tiềm năng @return tiềm năng sau cập nhật
      */
     public LeadResult convert(Long id) {
+        return tx.call(() -> convertInTx(id));
+    }
+
+    /** Thân nghiệp vụ convert — luôn chạy bên trong transaction do {@link #convert(Long)} mở. */
+    private LeadResult convertInTx(Long id) {
         Lead lead = load(id);
         lead.getStatus().ensureCanTransitionTo(LeadStatus.converted);
 

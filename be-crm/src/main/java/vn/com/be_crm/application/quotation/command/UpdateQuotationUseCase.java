@@ -1,5 +1,6 @@
 package vn.com.be_crm.application.quotation.command;
 
+import vn.com.be_crm.application.shared.util.CrossFieldRules;
 import vn.com.be_crm.application.quotation.dto.QuotationResult;
 import vn.com.be_crm.application.quotation.dto.UpdateQuotationCommand;
 import vn.com.be_crm.application.quotation.mapper.QuotationCommandMapper;
@@ -12,13 +13,27 @@ import vn.com.be_crm.domain.shared.exception.NotFoundException;
 /** Use case cập nhật báo giá. */
 public class UpdateQuotationUseCase implements IUseCase<UpdateQuotationCommand, QuotationResult> {
     private final IQuotationRepository repo;
-    /** @param repo port lưu trữ */
-    public UpdateQuotationUseCase(IQuotationRepository repo) { this.repo = repo; }
-    /** Cập nhật Quotation. @param cmd @return QuotationResult @throws NotFoundException */
+    private final RecomputeQuotationTotalsUseCase recomputeUC;
+
+    /** @param repo port lưu trữ @param recomputeUC tính lại tổng tiền từ dòng hàng */
+    public UpdateQuotationUseCase(IQuotationRepository repo, RecomputeQuotationTotalsUseCase recomputeUC) {
+        this.repo = repo;
+        this.recomputeUC = recomputeUC;
+    }
+
+    /**
+     * Cập nhật Quotation. Tổng tiền KHÔNG lấy từ client mà tính lại từ dòng hàng sau khi lưu.
+     * @param cmd @return QuotationResult @throws NotFoundException
+     */
     @Override public QuotationResult execute(UpdateQuotationCommand cmd) {
+        // Ràng buộc khoảng thời gian: ngày hiệu lực không được trước ngày báo giá
+        CrossFieldRules.requireDateRange(cmd.getQuoteDate(), cmd.getValidUntil(), "Ngày báo giá", "Ngày hiệu lực");
         Quotation e = repo.findById(cmd.getId()).orElseThrow(() -> new NotFoundException("Quotation not found: " + cmd.getId()));
         // Báo giá đã khóa (đã chuyển thành hóa đơn) là read-only — dấu vết kiểm toán
         if (e.isLocked()) throw new DomainException("Báo giá đã khóa (đã chuyển thành hóa đơn), không thể chỉnh sửa");
-        return QuotationCommandMapper.toResult(repo.save(QuotationCommandMapper.toEntity(cmd, e)));
+        repo.save(QuotationCommandMapper.toEntity(cmd, e));
+        recomputeUC.execute(cmd.getId());
+        return QuotationCommandMapper.toResult(
+                repo.findById(cmd.getId()).orElseThrow(() -> new NotFoundException("Quotation not found: " + cmd.getId())));
     }
 }

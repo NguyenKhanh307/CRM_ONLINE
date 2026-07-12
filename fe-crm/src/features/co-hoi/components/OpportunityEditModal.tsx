@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
+import { useAlert } from '@/shared/alert/useAlert';
+import { nonNegativeError, percentError } from '@/shared/utils/validators';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -30,6 +32,7 @@ const OPP_STATUS_COLORS: Record<string, string> = {
 };
 
 export function OpportunityEditModal({ item, onClose }: Props) {
+    const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateOpportunity();
     const { data: products = [] } = useProductList();
     const { data: stages = [] } = useOpportunityStages();
@@ -77,6 +80,9 @@ export function OpportunityEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = percentError(form.probability, 'Xác suất') ?? nonNegativeError(form.expectedRevenue, 'Doanh thu kỳ vọng');
+        if (vErr) { showAlert(vErr); return; }
         if (!(await confirmSave('cơ hội'))) return;
         setSaving(true);
         try {

@@ -4,15 +4,28 @@ import vn.com.be_crm.application.quotation.dto.CreateQuotationItemCommand;
 import vn.com.be_crm.application.quotation.dto.QuotationItemResult;
 import vn.com.be_crm.application.quotation.mapper.QuotationItemCommandMapper;
 import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.application.shared.util.LineItemTotals;
+import vn.com.be_crm.domain.quotation.entity.QuotationItem;
 import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 
-/** Use case tạo mới dòng báo giá. */
+/** Use case tạo mới dòng hàng báo giá. Thành tiền do server tính; tổng chứng từ được tính lại sau khi lưu. */
 public class CreateQuotationItemUseCase implements IUseCase<CreateQuotationItemCommand, QuotationItemResult> {
     private final IQuotationItemRepository repo;
-    /** @param repo port lưu trữ */
-    public CreateQuotationItemUseCase(IQuotationItemRepository repo) { this.repo = repo; }
-    /** Tạo mới QuotationItem. @param cmd @return QuotationItemResult */
+    private final RecomputeQuotationTotalsUseCase recomputeUC;
+
+    /** @param repo port lưu trữ @param recomputeUC tính lại tổng tiền chứng từ */
+    public CreateQuotationItemUseCase(IQuotationItemRepository repo, RecomputeQuotationTotalsUseCase recomputeUC) {
+        this.repo = repo;
+        this.recomputeUC = recomputeUC;
+    }
+
+    /** Tạo mới QuotationItem (thành tiền server tính) rồi tính lại tổng chứng từ. @param cmd @return QuotationItemResult */
     @Override public QuotationItemResult execute(CreateQuotationItemCommand cmd) {
-        return QuotationItemCommandMapper.toResult(repo.save(QuotationItemCommandMapper.toEntity(cmd)));
+        QuotationItem e = QuotationItemCommandMapper.toEntity(cmd);
+        QuotationItem saved = repo.save(e.toBuilder()
+                .amount(LineItemTotals.lineAmount(e.getQuantity(), e.getUnitPrice(), e.getDiscount(), e.getTaxRate()))
+                .build());
+        recomputeUC.execute(saved.getQuotationId());
+        return QuotationItemCommandMapper.toResult(saved);
     }
 }

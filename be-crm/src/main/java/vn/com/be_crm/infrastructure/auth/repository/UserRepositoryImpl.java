@@ -2,7 +2,6 @@ package vn.com.be_crm.infrastructure.auth.repository;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
@@ -16,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IUserRepository.
@@ -45,13 +45,11 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public User save(User user) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             UserHibernate h = mapper.toHibernate(user);
             UserHibernate merged = s.merge(h);
-            tx.commit();
             return mapper.toDomain(merged);
-        }
+        });
     }
 
     /**
@@ -62,11 +60,11 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public Optional<User> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             UserHibernate h = s.find(UserHibernate.class, id);
             if (h == null || h.getDeletedAt() != null) return Optional.empty();
             return Optional.of(mapper.toDomain(h));
-        }
+        });
     }
 
     /**
@@ -77,14 +75,14 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public Optional<User> findByEmail(String email) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             UserHibernate h = s.createQuery(
                     "FROM UserHibernate WHERE email = :email AND deletedAt IS NULL", UserHibernate.class)
                     .setParameter("email", email)
                     .uniqueResult();
             if (h == null) return Optional.empty();
             return Optional.of(mapper.toDomain(h));
-        }
+        });
     }
 
     /**
@@ -94,15 +92,13 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public void deleteById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             UserHibernate h = s.find(UserHibernate.class, id);
             if (h != null) {
                 h.setDeletedAt(LocalDateTime.now());
                 s.merge(h);
             }
-            tx.commit();
-        }
+            });
     }
 
     /**
@@ -113,7 +109,7 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public Optional<User> findByActivationToken(String token) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             UserHibernate h = s.createQuery(
                     "FROM UserHibernate WHERE activationToken = :token AND deletedAt IS NULL",
                     UserHibernate.class)
@@ -121,7 +117,7 @@ public class UserRepositoryImpl implements IUserRepository {
                     .uniqueResult();
             if (h == null) return Optional.empty();
             return Optional.of(mapper.toDomain(h));
-        }
+        });
     }
 
     /**
@@ -132,7 +128,7 @@ public class UserRepositoryImpl implements IUserRepository {
      */
     @Override
     public PageResult<User> findAll(PageRequest request) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             // status là field enum — phải bind enum, bind String sẽ ném QueryArgumentException
             var statusVal = ListQueryUtils.parseEnum(vn.com.be_crm.domain.auth.enums.UserStatus.class, request.getStatus());
             String statusFilter = statusVal != null ? " AND status = :status" : "";
@@ -148,6 +144,6 @@ public class UserRepositoryImpl implements IUserRepository {
             long total = cq.uniqueResult();
             return PageResult.<User>builder()
                     .items(items).total(total).page(request.getPage()).size(request.getSize()).build();
-        }
+        });
     }
 }

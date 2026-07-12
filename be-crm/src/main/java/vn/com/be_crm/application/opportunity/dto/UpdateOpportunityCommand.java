@@ -1,5 +1,8 @@
 package vn.com.be_crm.application.opportunity.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,8 +25,8 @@ public class UpdateOpportunityCommand {
     private Long stageId;
     private Long pricePolicyId;
     private BigDecimal amount;
-    private BigDecimal expectedRevenue;
-    private BigDecimal probability;
+    @PositiveOrZero(message = "Doanh thu kỳ vọng không được âm") private BigDecimal expectedRevenue;
+    @DecimalMin(value = "0", message = "Xác suất phải từ 0 đến 100") @DecimalMax(value = "100", message = "Xác suất phải từ 0 đến 100") private BigDecimal probability;
     private LocalDate expectedCloseDate;
     @Size(max = 30) private String source;
     private Long campaignId;

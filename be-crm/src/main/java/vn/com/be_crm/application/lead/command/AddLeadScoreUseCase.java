@@ -7,6 +7,7 @@ import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
 import vn.com.be_crm.domain.lead.entity.Lead;
 import vn.com.be_crm.domain.lead.enums.LeadStatus;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
+import vn.com.be_crm.application.shared.tx.ITransactionRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,25 +26,34 @@ public class AddLeadScoreUseCase {
     private final ILeadRepository leadRepo;
     private final CreateNotificationUseCase createNotificationUC;
     private final IUserRoleRepository userRoleRepo;
+    private final ITransactionRunner tx;
 
     /**
      * @param leadRepo             port lưu trữ Lead
      * @param createNotificationUC use case tạo thông báo
      * @param userRoleRepo         port tra cứu user theo role
+     * @param tx                   bộ chạy transaction
      */
     public AddLeadScoreUseCase(ILeadRepository leadRepo, CreateNotificationUseCase createNotificationUC,
-                               IUserRoleRepository userRoleRepo) {
+                               IUserRoleRepository userRoleRepo, ITransactionRunner tx) {
         this.leadRepo = leadRepo;
         this.createNotificationUC = createNotificationUC;
         this.userRoleRepo = userRoleRepo;
+        this.tx = tx;
     }
 
     /**
      * Cộng điểm cho tiềm năng và xử lý ngưỡng qualified.
+     * Cập nhật điểm + thông báo chạy trong MỘT transaction.
      * @param leadId ID tiềm năng @param points số điểm cộng thêm
      * @return LeadResult sau khi cập nhật, hoặc null nếu không tìm thấy tiềm năng
      */
     public LeadResult execute(Long leadId, int points) {
+        return tx.call(() -> executeInTx(leadId, points));
+    }
+
+    /** Thân nghiệp vụ cộng điểm — luôn chạy bên trong transaction. */
+    private LeadResult executeInTx(Long leadId, int points) {
         Lead lead = leadRepo.findById(leadId).orElse(null);
         if (lead == null) return null;
 

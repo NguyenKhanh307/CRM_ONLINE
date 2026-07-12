@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { dateRangeError, pastDateError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -48,6 +49,10 @@ const CampaignAddPage = () => {
     const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã Chiến dịch không được để trống'); return; }
         if (!form.name.trim()) { showAlert('Tên Chiến dịch không được để trống'); return; }
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = pastDateError(form.startDate, 'Ngày bắt đầu') ?? pastDateError(form.endDate, 'Ngày kết thúc')
+            ?? dateRangeError(form.startDate, form.endDate, 'ngày bắt đầu', 'Ngày kết thúc');
+        if (vErr) { showAlert(vErr); return; }
         const payload: CreateCampaignPayload = {
             code: form.code.trim(),
             name: form.name.trim(),

@@ -25,6 +25,7 @@ import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 import vn.com.be_crm.domain.shared.exception.DomainException;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.application.shared.tx.ITransactionRunner;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -52,17 +53,20 @@ public class QuotationWorkflowUseCase {
     private final IQuotationPdfService pdfService;
     private final QuotationEmailComposer emailComposer;
     private final String frontendBaseUrl;
+    private final ITransactionRunner tx;
 
     /** @param quotationRepo báo giá @param approvalRepo bước duyệt @param createNotificationUC tạo thông báo
      *  @param userRoleRepo tra cứu role @param emailService gửi email @param customerRepo khách hàng @param contactRepo liên hệ
      *  @param quotationItemRepo dòng hàng báo giá @param productRepo hàng hóa @param pdfService sinh PDF
-     *  @param emailComposer dựng nội dung email mặc định + resolve người nhận @param frontendBaseUrl URL FE cho link phản hồi */
+     *  @param emailComposer dựng nội dung email mặc định + resolve người nhận @param frontendBaseUrl URL FE cho link phản hồi
+     *  @param tx bộ chạy transaction */
     public QuotationWorkflowUseCase(IQuotationRepository quotationRepo, IQuotationApprovalRepository approvalRepo,
                                     CreateNotificationUseCase createNotificationUC, IUserRoleRepository userRoleRepo,
                                     IEmailService emailService, ICustomerRepository customerRepo,
                                     IContactRepository contactRepo, IQuotationItemRepository quotationItemRepo,
                                     IProductRepository productRepo, IQuotationPdfService pdfService,
-                                    QuotationEmailComposer emailComposer, String frontendBaseUrl) {
+                                    QuotationEmailComposer emailComposer, String frontendBaseUrl,
+                                    ITransactionRunner tx) {
         this.quotationRepo = quotationRepo;
         this.approvalRepo = approvalRepo;
         this.createNotificationUC = createNotificationUC;
@@ -75,25 +79,29 @@ public class QuotationWorkflowUseCase {
         this.pdfService = pdfService;
         this.emailComposer = emailComposer;
         this.frontendBaseUrl = frontendBaseUrl;
+        this.tx = tx;
     }
 
     /**
      * Nhân viên gửi báo giá lên quản lý duyệt: draft → pending, tạo bước duyệt + thông báo quản lý.
+     * Đổi trạng thái + bước duyệt + thông báo chạy trong MỘT transaction.
      * @param quotationId ID báo giá @param userId người gửi @return báo giá sau cập nhật
      */
     public QuotationResult submit(Long quotationId, Long userId) {
-        Quotation q = load(quotationId);
-        q.getStatus().ensureCanTransitionTo(QuotationStatus.pending);
-        Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.pending).build());
+        return tx.call(() -> {
+            Quotation q = load(quotationId);
+            q.getStatus().ensureCanTransitionTo(QuotationStatus.pending);
+            Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.pending).build());
 
-        approvalRepo.save(QuotationApproval.builder()
-                .quotationId(quotationId).level(1).status(QuotationApprovalStatus.pending).build());
+            approvalRepo.save(QuotationApproval.builder()
+                    .quotationId(quotationId).level(1).status(QuotationApprovalStatus.pending).build());
 
-        List<Long> recipients = new ArrayList<>(userRoleRepo.findUserIdsByRoleCodes(MANAGER_ROLES));
-        createNotificationUC.execute(recipients, "quotation_pending",
-                "Báo giá chờ duyệt: " + saved.getCode(),
-                "Báo giá " + saved.getCode() + " đang chờ bạn phê duyệt.", null, saved.getId());
-        return QuotationCommandMapper.toResult(saved);
+            List<Long> recipients = new ArrayList<>(userRoleRepo.findUserIdsByRoleCodes(MANAGER_ROLES));
+            createNotificationUC.execute(recipients, "quotation_pending",
+                    "Báo giá chờ duyệt: " + saved.getCode(),
+                    "Báo giá " + saved.getCode() + " đang chờ bạn phê duyệt.", null, saved.getId());
+            return QuotationCommandMapper.toResult(saved);
+        });
     }
 
     /**
@@ -102,14 +110,16 @@ public class QuotationWorkflowUseCase {
      * @return báo giá sau cập nhật
      */
     public QuotationResult approve(Long quotationId, Long approverId, String comment) {
-        Quotation q = load(quotationId);
-        q.getStatus().ensureCanTransitionTo(QuotationStatus.approved);
-        Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.approved).build());
+        return tx.call(() -> {
+            Quotation q = load(quotationId);
+            q.getStatus().ensureCanTransitionTo(QuotationStatus.approved);
+            Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.approved).build());
 
-        finalizePendingApproval(quotationId, approverId, QuotationApprovalStatus.approved, comment);
-        notifyOwner(saved, "quotation_approved", "Báo giá đã được duyệt: " + saved.getCode(),
-                "Báo giá " + saved.getCode() + " đã được phê duyệt. Bạn có thể gửi cho khách hàng.");
-        return QuotationCommandMapper.toResult(saved);
+            finalizePendingApproval(quotationId, approverId, QuotationApprovalStatus.approved, comment);
+            notifyOwner(saved, "quotation_approved", "Báo giá đã được duyệt: " + saved.getCode(),
+                    "Báo giá " + saved.getCode() + " đã được phê duyệt. Bạn có thể gửi cho khách hàng.");
+            return QuotationCommandMapper.toResult(saved);
+        });
     }
 
     /**
@@ -118,20 +128,24 @@ public class QuotationWorkflowUseCase {
      * @return báo giá sau cập nhật
      */
     public QuotationResult reject(Long quotationId, Long approverId, String reason) {
-        Quotation q = load(quotationId);
-        q.getStatus().ensureCanTransitionTo(QuotationStatus.draft);
-        Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.draft).build());
+        return tx.call(() -> {
+            Quotation q = load(quotationId);
+            q.getStatus().ensureCanTransitionTo(QuotationStatus.draft);
+            Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.draft).build());
 
-        finalizePendingApproval(quotationId, approverId, QuotationApprovalStatus.rejected, reason);
-        notifyOwner(saved, "quotation_rejected", "Báo giá bị từ chối: " + saved.getCode(),
-                "Báo giá " + saved.getCode() + " bị từ chối. Lý do: " + (reason != null ? reason : "(không có)"));
-        return QuotationCommandMapper.toResult(saved);
+            finalizePendingApproval(quotationId, approverId, QuotationApprovalStatus.rejected, reason);
+            notifyOwner(saved, "quotation_rejected", "Báo giá bị từ chối: " + saved.getCode(),
+                    "Báo giá " + saved.getCode() + " bị từ chối. Lý do: " + (reason != null ? reason : "(không có)"));
+            return QuotationCommandMapper.toResult(saved);
+        });
     }
 
     /**
      * Nhân viên gửi email báo giá cho khách hàng: approved → sent.
      * Sinh token phản hồi (nếu chưa có), dựng PDF bảng báo giá đính kèm + link 3 nút phản hồi công khai.
      * Tiêu đề/nội dung do người dùng soạn; nếu để trống thì dùng mặc định từ {@link QuotationEmailComposer}.
+     * CỐ Ý không bọc transaction: có I/O ngoài (render PDF + gửi SMTP) chậm, không nên giữ transaction DB mở;
+     * hơn nữa chỉ có MỘT lệnh ghi (save ở cuối) nên vốn đã nguyên tử.
      * @param quotationId ID báo giá @param subject tiêu đề tùy biến (có thể null/blank) @param body nội dung tùy biến (có thể null/blank)
      * @return báo giá sau cập nhật
      */
@@ -187,12 +201,14 @@ public class QuotationWorkflowUseCase {
      * @param quotationId ID báo giá @return báo giá sau cập nhật
      */
     public QuotationResult accept(Long quotationId) {
-        Quotation q = load(quotationId);
-        q.getStatus().ensureCanTransitionTo(QuotationStatus.accepted);
-        Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.accepted).build());
-        notifyOwner(saved, "quotation_accepted", "Báo giá được chấp nhận: " + saved.getCode(),
-                "Báo giá " + saved.getCode() + " đã được khách hàng chấp nhận. Bạn có thể chuyển thành hóa đơn.");
-        return QuotationCommandMapper.toResult(saved);
+        return tx.call(() -> {
+            Quotation q = load(quotationId);
+            q.getStatus().ensureCanTransitionTo(QuotationStatus.accepted);
+            Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.accepted).build());
+            notifyOwner(saved, "quotation_accepted", "Báo giá được chấp nhận: " + saved.getCode(),
+                    "Báo giá " + saved.getCode() + " đã được khách hàng chấp nhận. Bạn có thể chuyển thành hóa đơn.");
+            return QuotationCommandMapper.toResult(saved);
+        });
     }
 
     /** Tải báo giá theo ID hoặc ném NotFoundException. */

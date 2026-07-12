@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect } from 'react';
+import { useAlert } from '@/shared/alert/useAlert';
+import { emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -22,6 +24,7 @@ const LEAD_STATUS_COLORS: Record<string, string> = {
 const LEAD_SOURCES = ['website', 'referral', 'social', 'email', 'event', 'other'];
 
 export function LeadEditModal({ item, onClose }: Props) {
+    const { showAlert } = useAlert();
     const { mutate, isPending } = useUpdateLead();
     const { data: campaigns } = useCampaignList();
     const [form, setForm] = useState<UpdateLeadPayload>({
@@ -55,6 +58,10 @@ export function LeadEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = emailError(form.email) ?? phoneError(form.phone) ?? taxCodeError(form.taxCode)
+            ?? nonNegativeError(form.estimatedValue, 'Giá trị ước tính');
+        if (vErr) { showAlert(vErr); return; }
         if (!(await confirmSave('tiềm năng'))) return;
         mutate({ id: item.id, payload: form }, { onSuccess: onClose });
     };

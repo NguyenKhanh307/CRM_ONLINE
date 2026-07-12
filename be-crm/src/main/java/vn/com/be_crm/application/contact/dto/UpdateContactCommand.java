@@ -1,5 +1,6 @@
 package vn.com.be_crm.application.contact.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,9 +21,9 @@ public class UpdateContactCommand {
     @Size(max = 100) private String title;
     @Size(max = 100) private String department;
     @Size(max = 100) private String position;
-    @Size(max = 50) private String email;
-    @Size(max = 100) private String workEmail;
-    @Size(max = 100) private String personalEmail;
+    @Size(max = 50) @Email(message = "Email không hợp lệ") private String email;
+    @Size(max = 100) @Email(message = "Email không hợp lệ") private String workEmail;
+    @Size(max = 100) @Email(message = "Email không hợp lệ") private String personalEmail;
     @Size(max = 20) private String zalo;
     @Size(max = 30) private String source;
     private ContactGender gender;

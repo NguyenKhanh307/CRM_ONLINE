@@ -8,6 +8,7 @@ import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
+import { collectErrors, nonNegativeError, percentError, sellPriceError } from '@/shared/utils/validators';
 import { useProductCategories } from '../hooks/useProductCategories';
 import { useCreateProduct } from '../hooks/useCreateProduct';
 import type { CreateProductPayload } from '../types/productTypes';
@@ -37,16 +38,36 @@ const ProductAddPage = () => {
     const { showAlert } = useAlert();
     const { confirmCreate } = useConfirm();
     const [form, setForm] = useState<FormState>(INITIAL);
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const { mutate, isPending } = useCreateProduct();
     const { data: categories = [] } = useProductCategories();
 
     const categoryOptions = useMemo(() => categories.map((c) => ({ value: String(c.id), label: c.name })), [categories]);
 
-    const set = (patch: Partial<FormState>) => setForm((p) => ({ ...p, ...patch }));
+    /** Xóa lỗi của field khi người dùng gõ lại. */
+    const set = (patch: Partial<FormState>) => {
+        setForm((p) => ({ ...p, ...patch }));
+        setErrors((e) => {
+            const next = { ...e };
+            Object.keys(patch).forEach((k) => delete next[k]);
+            return next;
+        });
+    };
+
+    /** Kiểm tra biên (khớp ràng buộc backend) — trả map field→lỗi. */
+    const validate = (): Record<string, string> =>
+        collectErrors({
+            sku: !form.sku.trim() ? 'Mã SKU không được để trống' : null,
+            name: !form.name.trim() ? 'Tên hàng hóa không được để trống' : null,
+            basePrice: nonNegativeError(form.basePrice, 'Giá bán') ?? sellPriceError(form.basePrice, form.costPrice),
+            costPrice: nonNegativeError(form.costPrice, 'Giá vốn'),
+            vatRate: percentError(form.vatRate, 'Thuế VAT'),
+        });
 
     const submit = async (andNew: boolean) => {
-        if (!form.sku.trim()) { showAlert('SKU không được để trống'); return; }
-        if (!form.name.trim()) { showAlert('Tên hàng hóa không được để trống'); return; }
+        const errs = validate();
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
         const payload: CreateProductPayload = {
             sku: form.sku.trim(),
             name: form.name.trim(),
@@ -86,10 +107,10 @@ const ProductAddPage = () => {
                 <FormSection title="Thông tin chung">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
-                            <FieldRow label="Mã SKU" required>
+                            <FieldRow label="Mã SKU" required error={errors.sku}>
                                 <input type="text" value={form.sku} onChange={(e) => set({ sku: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Tên hàng hóa" required>
+                            <FieldRow label="Tên hàng hóa" required error={errors.name}>
                                 <input type="text" value={form.name} onChange={(e) => set({ name: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Danh mục">
@@ -110,16 +131,16 @@ const ProductAddPage = () => {
                 <FormSection title="Giá">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
-                            <FieldRow label="Giá bán">
-                                <input type="number" value={form.basePrice} onChange={(e) => set({ basePrice: e.target.value })} className={inputCls} />
+                            <FieldRow label="Giá bán" error={errors.basePrice}>
+                                <input type="number" min={0} value={form.basePrice} onChange={(e) => set({ basePrice: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Giá vốn">
-                                <input type="number" value={form.costPrice} onChange={(e) => set({ costPrice: e.target.value })} className={inputCls} />
+                            <FieldRow label="Giá vốn" error={errors.costPrice}>
+                                <input type="number" min={0} value={form.costPrice} onChange={(e) => set({ costPrice: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
-                            <FieldRow label="Thuế VAT (%)">
-                                <input type="number" value={form.vatRate} onChange={(e) => set({ vatRate: e.target.value })} className={inputCls} />
+                            <FieldRow label="Thuế VAT (%)" error={errors.vatRate}>
+                                <input type="number" min={0} max={100} value={form.vatRate} onChange={(e) => set({ vatRate: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
                     </div>

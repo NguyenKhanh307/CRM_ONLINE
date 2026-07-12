@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { emailError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -61,6 +62,9 @@ const ContactAddPage = () => {
 
     const submit = async (andNew: boolean) => {
         if (!form.ten.trim()) {
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = emailError(form.email) ?? emailError(form.workEmail) ?? emailError(form.personalEmail);
+        if (vErr) { showAlert(vErr); return; }
             showAlert('Tên không được để trống');
             return;
         }

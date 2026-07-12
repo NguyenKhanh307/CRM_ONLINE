@@ -1,5 +1,6 @@
 package vn.com.be_crm.application.contact.dto;
 
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -13,7 +14,7 @@ import vn.com.be_crm.domain.contact.enums.PhoneType;
 public class CreateContactPhoneCommand {
     /** ID liên hệ — controller set từ path; bỏ trống khi tạo nested kèm liên hệ. */
     private Long contactId;
-    @NotBlank(message = "Số điện thoại không được để trống") @Size(max = 11) private String phone;
+    @NotBlank(message = "Số điện thoại không được để trống") @Size(max = 11) @Pattern(regexp = "^$|^[0-9+.() -]{8,15}$", message = "Số điện thoại không hợp lệ") private String phone;
     private PhoneType phoneType;
     private Boolean isPrimary;
 }

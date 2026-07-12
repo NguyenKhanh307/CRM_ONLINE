@@ -5,6 +5,7 @@ import vn.com.be_crm.application.opportunity.dto.OpportunityResult;
 import vn.com.be_crm.application.opportunity.mapper.OpportunityCommandMapper;
 import vn.com.be_crm.application.opportunity.mapper.OpportunityItemCommandMapper;
 import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.domain.shared.exception.DomainException;
 import vn.com.be_crm.application.shared.util.LineItemTotals;
 import vn.com.be_crm.domain.opportunity.entity.OpportunityItem;
 import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
@@ -31,6 +32,10 @@ public class CreateOpportunityUseCase implements IUseCase<CreateOpportunityComma
      */
     @Override
     public OpportunityResult execute(CreateOpportunityCommand cmd) {
+        // Check trùng thân thiện trước khi insert (DB unique constraint là lớp phòng thủ 2)
+        if (cmd.getCode() != null && repo.findByCode(cmd.getCode()).isPresent()) {
+            throw new DomainException("Mã cơ hội \"" + cmd.getCode() + "\" đã tồn tại, vui lòng dùng mã khác");
+        }
         OpportunityStatus status = deriveStatus(cmd.getStageId());
         if (cmd.getItems() != null && !cmd.getItems().isEmpty()) {
             List<OpportunityItem> items = cmd.getItems().stream()

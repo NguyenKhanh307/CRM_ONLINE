@@ -2,7 +2,6 @@ package vn.com.be_crm.infrastructure.auth.repository;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
@@ -14,6 +13,7 @@ import vn.com.be_crm.infrastructure.auth.mapper.OrgUnitHibernateMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IOrgUnitRepository.
@@ -41,13 +41,11 @@ public class OrgUnitRepositoryImpl implements IOrgUnitRepository {
      */
     @Override
     public OrgUnit save(OrgUnit orgUnit) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             OrgUnitHibernate h = mapper.toHibernate(orgUnit);
             OrgUnitHibernate merged = s.merge(h);
-            tx.commit();
             return mapper.toDomain(merged);
-        }
+        });
     }
 
     /**
@@ -58,10 +56,10 @@ public class OrgUnitRepositoryImpl implements IOrgUnitRepository {
      */
     @Override
     public Optional<OrgUnit> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             OrgUnitHibernate h = s.find(OrgUnitHibernate.class, id);
             return Optional.ofNullable(h).map(mapper::toDomain);
-        }
+        });
     }
 
     /**
@@ -71,12 +69,10 @@ public class OrgUnitRepositoryImpl implements IOrgUnitRepository {
      */
     @Override
     public void deleteById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             OrgUnitHibernate h = s.find(OrgUnitHibernate.class, id);
             if (h != null) s.remove(h);
-            tx.commit();
-        }
+            });
     }
 
     /**
@@ -87,7 +83,7 @@ public class OrgUnitRepositoryImpl implements IOrgUnitRepository {
      */
     @Override
     public PageResult<OrgUnit> findAll(PageRequest request) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             String hql = "FROM OrgUnitHibernate ORDER BY " + request.getSortBy() + " " + request.getSortDir();
             List<OrgUnit> items = s.createQuery(hql, OrgUnitHibernate.class)
                     .setFirstResult(request.getOffset())
@@ -98,6 +94,6 @@ public class OrgUnitRepositoryImpl implements IOrgUnitRepository {
                     .uniqueResult();
             return PageResult.<OrgUnit>builder()
                     .items(items).total(total).page(request.getPage()).size(request.getSize()).build();
-        }
+        });
     }
 }

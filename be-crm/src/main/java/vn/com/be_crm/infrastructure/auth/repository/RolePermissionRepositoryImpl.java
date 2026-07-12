@@ -2,7 +2,6 @@ package vn.com.be_crm.infrastructure.auth.repository;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.domain.auth.entity.RolePermission;
 import vn.com.be_crm.domain.auth.repository.IRolePermissionRepository;
@@ -11,6 +10,7 @@ import vn.com.be_crm.infrastructure.auth.mapper.RolePermissionHibernateMapper;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IRolePermissionRepository.
@@ -38,12 +38,10 @@ public class RolePermissionRepositoryImpl implements IRolePermissionRepository {
      */
     @Override
     public RolePermission save(RolePermission rolePermission) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             RolePermissionHibernate merged = s.merge(mapper.toHibernate(rolePermission));
-            tx.commit();
             return mapper.toDomain(merged);
-        }
+        });
     }
 
     /**
@@ -54,15 +52,13 @@ public class RolePermissionRepositoryImpl implements IRolePermissionRepository {
      */
     @Override
     public void deleteByRoleIdAndPermissionId(Long roleId, Long permissionId) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             s.createMutationQuery(
                     "DELETE FROM RolePermissionHibernate WHERE roleId = :roleId AND permissionId = :permId")
                     .setParameter("roleId", roleId)
                     .setParameter("permId", permissionId)
                     .executeUpdate();
-            tx.commit();
-        }
+            });
     }
 
     /**
@@ -73,12 +69,12 @@ public class RolePermissionRepositoryImpl implements IRolePermissionRepository {
      */
     @Override
     public List<RolePermission> findByRoleId(Long roleId) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery(
                     "FROM RolePermissionHibernate WHERE roleId = :roleId", RolePermissionHibernate.class)
                     .setParameter("roleId", roleId)
                     .list()
                     .stream().map(mapper::toDomain).collect(Collectors.toList());
-        }
+        });
     }
 }

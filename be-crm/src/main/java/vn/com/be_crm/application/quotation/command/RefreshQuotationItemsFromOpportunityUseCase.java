@@ -11,6 +11,7 @@ import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 import vn.com.be_crm.domain.shared.exception.DomainException;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.application.shared.tx.ITransactionRunner;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,21 +26,30 @@ public class RefreshQuotationItemsFromOpportunityUseCase {
     private final IQuotationRepository quotationRepo;
     private final IQuotationItemRepository quotationItemRepo;
     private final IOpportunityItemRepository opportunityItemRepo;
+    private final ITransactionRunner tx;
 
-    /** @param quotationRepo báo giá @param quotationItemRepo dòng báo giá @param opportunityItemRepo dòng cơ hội */
+    /** @param quotationRepo báo giá @param quotationItemRepo dòng báo giá @param opportunityItemRepo dòng cơ hội @param tx bộ chạy transaction */
     public RefreshQuotationItemsFromOpportunityUseCase(IQuotationRepository quotationRepo,
                                                        IQuotationItemRepository quotationItemRepo,
-                                                       IOpportunityItemRepository opportunityItemRepo) {
+                                                       IOpportunityItemRepository opportunityItemRepo,
+                                                       ITransactionRunner tx) {
         this.quotationRepo = quotationRepo;
         this.quotationItemRepo = quotationItemRepo;
         this.opportunityItemRepo = opportunityItemRepo;
+        this.tx = tx;
     }
 
     /**
      * Cập nhật dòng hàng báo giá theo cơ hội (cơ hội là nguồn — không sync ngược).
+     * Xóa dòng cũ + tạo lại + tính lại tổng chạy trong MỘT transaction (không để báo giá mất dòng hàng giữa chừng).
      * @param quotationId ID báo giá @return báo giá sau cập nhật
      */
     public QuotationResult execute(Long quotationId) {
+        return tx.call(() -> executeInTx(quotationId));
+    }
+
+    /** Thân nghiệp vụ refresh — luôn chạy bên trong transaction. */
+    private QuotationResult executeInTx(Long quotationId) {
         Quotation q = quotationRepo.findById(quotationId)
                 .orElseThrow(() -> new NotFoundException("Quotation not found: " + quotationId));
         if (q.isLocked()) {

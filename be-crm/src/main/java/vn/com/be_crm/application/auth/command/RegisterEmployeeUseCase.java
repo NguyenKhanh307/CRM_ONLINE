@@ -10,6 +10,7 @@ import vn.com.be_crm.domain.auth.entity.UserRole;
 import vn.com.be_crm.domain.auth.enums.UserStatus;
 import vn.com.be_crm.domain.auth.repository.IUserRepository;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
+import vn.com.be_crm.domain.shared.exception.DomainException;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -44,12 +45,13 @@ public class RegisterEmployeeUseCase implements IUseCase<RegisterEmployeeCommand
      *
      * @param command dữ liệu đăng ký từ admin
      * @return UserResult nhân viên vừa tạo
-     * @throws RuntimeException nếu email đã tồn tại
+     * @throws DomainException nếu email đã tồn tại
      */
     @Override
     public UserResult execute(RegisterEmployeeCommand command) {
         userRepository.findByEmail(command.getEmail()).ifPresent(u -> {
-            throw new RuntimeException("Email đã được sử dụng");
+            // DomainException → HTTP 400 với message nghiệp vụ (RuntimeException sẽ rơi vào handler chung → 500)
+            throw new DomainException("Email \"" + command.getEmail() + "\" đã được sử dụng");
         });
 
         String token = UUID.randomUUID().toString();

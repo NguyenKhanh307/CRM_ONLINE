@@ -2,7 +2,6 @@ package vn.com.be_crm.infrastructure.auth.repository;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
@@ -14,6 +13,7 @@ import vn.com.be_crm.infrastructure.auth.mapper.RoleHibernateMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IRoleRepository.
@@ -41,12 +41,10 @@ public class RoleRepositoryImpl implements IRoleRepository {
      */
     @Override
     public Role save(Role role) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             RoleHibernate merged = s.merge(mapper.toHibernate(role));
-            tx.commit();
             return mapper.toDomain(merged);
-        }
+        });
     }
 
     /**
@@ -57,10 +55,10 @@ public class RoleRepositoryImpl implements IRoleRepository {
      */
     @Override
     public Optional<Role> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             RoleHibernate h = s.find(RoleHibernate.class, id);
             return Optional.ofNullable(h).map(mapper::toDomain);
-        }
+        });
     }
 
     /**
@@ -70,12 +68,10 @@ public class RoleRepositoryImpl implements IRoleRepository {
      */
     @Override
     public void deleteById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             RoleHibernate h = s.find(RoleHibernate.class, id);
             if (h != null) s.remove(h);
-            tx.commit();
-        }
+            });
     }
 
     /**
@@ -86,7 +82,7 @@ public class RoleRepositoryImpl implements IRoleRepository {
      */
     @Override
     public PageResult<Role> findAll(PageRequest request) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             String hql = "FROM RoleHibernate ORDER BY " + request.getSortBy() + " " + request.getSortDir();
             List<Role> items = s.createQuery(hql, RoleHibernate.class)
                     .setFirstResult(request.getOffset())
@@ -95,6 +91,6 @@ public class RoleRepositoryImpl implements IRoleRepository {
             long total = s.createQuery("SELECT COUNT(r) FROM RoleHibernate r", Long.class).uniqueResult();
             return PageResult.<Role>builder()
                     .items(items).total(total).page(request.getPage()).size(request.getSize()).build();
-        }
+        });
     }
 }

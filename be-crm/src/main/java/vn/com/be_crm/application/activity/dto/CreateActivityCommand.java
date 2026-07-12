@@ -1,5 +1,6 @@
 package vn.com.be_crm.application.activity.dto;
 
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -51,5 +52,5 @@ public class CreateActivityCommand {
     private Integer callDuration;
     private Long assignedUserId;
     private ActivityStatus status;
-    private LocalDateTime dueAt;
+    @FutureOrPresent(message = "Hạn xử lý không được là ngày quá khứ") private LocalDateTime dueAt;
 }

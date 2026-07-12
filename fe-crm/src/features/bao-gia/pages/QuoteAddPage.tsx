@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { dateRangeError, pastDateError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -14,8 +15,7 @@ import {
     type ProductOption,
     emptyLineItem,
     computeTotals,
-    toItemPayloads,
-} from '@/shared/components/form/productLineItem';
+    toItemPayloads, validateLineItems } from '@/shared/components/form/productLineItem';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
@@ -66,6 +66,10 @@ const QuoteAddPage = () => {
 
     const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã báo giá không được để trống'); return; }
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = pastDateError(form.quoteDate, 'Ngày báo giá') ?? pastDateError(form.validUntil, 'Ngày hiệu lực')
+            ?? dateRangeError(form.quoteDate, form.validUntil, 'ngày báo giá', 'Ngày hiệu lực') ?? validateLineItems(rows);
+        if (vErr) { showAlert(vErr); return; }
         const totals = computeTotals(rows);
         const payload: CreateQuotationPayload = {
             code: form.code.trim(),

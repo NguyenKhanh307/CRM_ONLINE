@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
@@ -111,6 +112,10 @@ const LeadAddPage = () => {
         if (!form.code.trim()) { showAlert('Mã tiềm năng không được để trống'); return; }
         if (!form.name.trim()) { showAlert('Tên tiềm năng không được để trống'); return; }
         if (!(await confirmCreate('tiềm năng'))) return;
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = emailError(form.email) ?? phoneError(form.phone) ?? taxCodeError(form.taxCode)
+            ?? nonNegativeError(form.estimatedValue, 'Giá trị ước tính');
+        if (vErr) { showAlert(vErr); return; }
         mutate(toPayload(form), {
             onSuccess: () => {
                 if (andNew) { setForm(initialState(defaultOwnerId)); showAlert('Đã lưu tiềm năng thành công'); }

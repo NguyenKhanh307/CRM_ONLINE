@@ -15,6 +15,7 @@ import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 import vn.com.be_crm.domain.shared.exception.DomainException;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.application.shared.tx.ITransactionRunner;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,21 +30,30 @@ public class ConvertQuotationToOrderUseCase {
     private final IQuotationItemRepository quotationItemRepo;
     private final IOrderRepository orderRepo;
     private final IOpportunityRepository opportunityRepo;
+    private final ITransactionRunner tx;
 
-    /** @param quotationRepo báo giá @param quotationItemRepo dòng báo giá @param orderRepo đơn hàng @param opportunityRepo cơ hội */
+    /** @param quotationRepo báo giá @param quotationItemRepo dòng báo giá @param orderRepo đơn hàng @param opportunityRepo cơ hội @param tx bộ chạy transaction */
     public ConvertQuotationToOrderUseCase(IQuotationRepository quotationRepo, IQuotationItemRepository quotationItemRepo,
-                                          IOrderRepository orderRepo, IOpportunityRepository opportunityRepo) {
+                                          IOrderRepository orderRepo, IOpportunityRepository opportunityRepo,
+                                          ITransactionRunner tx) {
         this.quotationRepo = quotationRepo;
         this.quotationItemRepo = quotationItemRepo;
         this.orderRepo = orderRepo;
         this.opportunityRepo = opportunityRepo;
+        this.tx = tx;
     }
 
     /**
      * Chuyển báo giá thành đơn hàng.
+     * Tạo đơn + dòng hàng, khóa báo giá, chốt thắng cơ hội — tất cả trong MỘT transaction.
      * @param quotationId ID báo giá @return đơn hàng vừa tạo
      */
     public OrderResult execute(Long quotationId) {
+        return tx.call(() -> executeInTx(quotationId));
+    }
+
+    /** Thân nghiệp vụ convert — luôn chạy bên trong transaction. */
+    private OrderResult executeInTx(Long quotationId) {
         Quotation q = quotationRepo.findById(quotationId)
                 .orElseThrow(() -> new NotFoundException("Quotation not found: " + quotationId));
         if (q.isLocked()) throw new DomainException("Báo giá đã được chuyển thành đơn hàng trước đó");

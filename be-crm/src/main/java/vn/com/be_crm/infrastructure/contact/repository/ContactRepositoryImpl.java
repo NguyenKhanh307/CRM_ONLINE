@@ -3,7 +3,6 @@ package vn.com.be_crm.infrastructure.contact.repository;
 import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
@@ -21,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của IContactRepository.
@@ -44,11 +44,10 @@ public class ContactRepositoryImpl implements IContactRepository {
 
     /** Lưu mới hoặc cập nhật Contact. @param c domain entity @return entity sau khi lưu */
     @Override public Contact save(Contact c) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             ContactHibernate m = s.merge(mapper.toHibernate(c));
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /**
@@ -58,8 +57,7 @@ public class ContactRepositoryImpl implements IContactRepository {
      * @return liên hệ sau khi lưu
      */
     @Override public Contact saveWithPhones(Contact c, List<ContactPhone> phones) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             // Lưu liên hệ trước để lấy ID
             ContactHibernate m = s.merge(mapper.toHibernate(c));
             // Gán contactId vừa có cho từng số điện thoại rồi lưu trong cùng transaction
@@ -69,41 +67,39 @@ public class ContactRepositoryImpl implements IContactRepository {
                 s.merge(ph);
             }
             // Commit và trả về domain entity đã lưu
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /** Tìm Contact theo email (chưa xóa mềm). @param email email @return Optional */
     @Override public Optional<Contact> findByEmail(String email) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM ContactHibernate WHERE email = :email AND deletedAt IS NULL", ContactHibernate.class)
                     .setParameter("email", email).setMaxResults(1).list()
                     .stream().map(mapper::toDomain).findFirst();
-        }
+        });
     }
 
     /** Tìm Contact theo ID — chỉ trả về nếu chưa xóa mềm. @param id ID @return Optional */
     @Override public Optional<Contact> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             ContactHibernate h = s.find(ContactHibernate.class, id);
             if (h == null || h.getDeletedAt() != null) return Optional.empty();
             return Optional.of(mapper.toDomain(h));
-        }
+        });
     }
 
     /** Xóa mềm Contact, ghi nhận người xóa. @param id ID @param deletedBy userId người xóa */
     @Override public void deleteById(Long id, Long deletedBy) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             ContactHibernate h = s.find(ContactHibernate.class, id);
             if (h != null) { h.setDeletedAt(LocalDateTime.now()); h.setDeletedBy(deletedBy); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách Contact trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
     @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             // Mốc 30 ngày: chỉ hiện bản ghi đã xóa trong 30 ngày gần đây
             LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
             // Không phải admin → chỉ xem bản ghi do chính mình xóa
@@ -130,32 +126,28 @@ public class ContactRepositoryImpl implements IContactRepository {
             if (!isAdmin) cq.setParameter("userId", userId);
             long total = ((Number) cq.uniqueResult()).longValue();
             return PageResult.<DeletedItemResult>builder().items(items).total(total).page(req.getPage()).size(req.getSize()).build();
-        }
+        });
     }
 
     /** Khôi phục Contact từ thùng rác. @param id ID */
     @Override public void restoreById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             ContactHibernate h = s.find(ContactHibernate.class, id);
             if (h != null) { h.setDeletedAt(null); h.setDeletedBy(null); h.setPurged(false); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Ẩn Contact khỏi thùng rác (is_purged = true). @param id ID */
     @Override public void purgeById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             ContactHibernate h = s.find(ContactHibernate.class, id);
             if (h != null) { h.setPurged(true); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách Contact chưa xóa có phân trang. @param r tham số phân trang @return PageResult */
     @Override public PageResult<Contact> findAll(PageRequest r) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
             String ownerFilter = r.getOwnerId() != null ? " AND assignedUserId = :ownerId" : "";
             String searchFilter = ListQueryUtils.likeClause(r.getQ(), "fullName", "email", "workEmail");
@@ -175,6 +167,6 @@ public class ContactRepositoryImpl implements IContactRepository {
             List<Contact> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
             long total = cq.uniqueResult();
             return PageResult.<Contact>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
-        }
+        });
     }
 }

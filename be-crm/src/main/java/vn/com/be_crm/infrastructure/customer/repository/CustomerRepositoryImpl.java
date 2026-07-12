@@ -3,7 +3,6 @@ package vn.com.be_crm.infrastructure.customer.repository;
 import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
@@ -18,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
 /**
  * Hibernate implementation của ICustomerRepository.
@@ -38,44 +38,50 @@ public class CustomerRepositoryImpl implements ICustomerRepository {
 
     /** Lưu mới hoặc cập nhật Customer. @param c domain entity @return entity sau khi lưu */
     @Override public Customer save(Customer c) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        return TxSupport.write(sf, s -> {
             CustomerHibernate m = s.merge(mapper.toHibernate(c));
-            tx.commit(); return mapper.toDomain(m);
-        }
+            return mapper.toDomain(m);
+        });
     }
 
     /** Tìm Customer theo mã số thuế (chưa xóa mềm). @param taxCode mã số thuế @return Optional */
     @Override public Optional<Customer> findByTaxCode(String taxCode) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             return s.createQuery("FROM CustomerHibernate WHERE taxCode = :taxCode AND deletedAt IS NULL", CustomerHibernate.class)
                     .setParameter("taxCode", taxCode).setMaxResults(1).list()
                     .stream().map(mapper::toDomain).findFirst();
-        }
+        });
+    }
+
+    /** Tìm khách hàng theo mã (chưa xóa mềm). @param code mã @return Optional */
+    @Override public Optional<Customer> findByCode(String code) {
+        return TxSupport.read(sf, s -> {
+            return s.createQuery("FROM CustomerHibernate WHERE code = :code AND deletedAt IS NULL", CustomerHibernate.class)
+                    .setParameter("code", code).setMaxResults(1).list()
+                    .stream().map(mapper::toDomain).findFirst();
+        });
     }
 
     /** Tìm Customer theo ID — chỉ trả về nếu chưa xóa mềm. @param id ID @return Optional */
     @Override public Optional<Customer> findById(Long id) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             CustomerHibernate h = s.find(CustomerHibernate.class, id);
             if (h == null || h.getDeletedAt() != null) return Optional.empty();
             return Optional.of(mapper.toDomain(h));
-        }
+        });
     }
 
     /** Xóa mềm Customer, ghi nhận người xóa. @param id ID @param deletedBy userId người xóa */
     @Override public void deleteById(Long id, Long deletedBy) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             CustomerHibernate h = s.find(CustomerHibernate.class, id);
             if (h != null) { h.setDeletedAt(LocalDateTime.now()); h.setDeletedBy(deletedBy); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách Customer trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
     @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             // Mốc 30 ngày: chỉ hiện bản ghi đã xóa trong 30 ngày gần đây
             LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
             // Không phải admin → chỉ xem bản ghi do chính mình xóa
@@ -102,56 +108,48 @@ public class CustomerRepositoryImpl implements ICustomerRepository {
             if (!isAdmin) cq.setParameter("userId", userId);
             long total = ((Number) cq.uniqueResult()).longValue();
             return PageResult.<DeletedItemResult>builder().items(items).total(total).page(req.getPage()).size(req.getSize()).build();
-        }
+        });
     }
 
     /** Khôi phục Customer từ thùng rác. @param id ID */
     @Override public void restoreById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             CustomerHibernate h = s.find(CustomerHibernate.class, id);
             if (h != null) { h.setDeletedAt(null); h.setDeletedBy(null); h.setPurged(false); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Ẩn Customer khỏi thùng rác (is_purged = true). @param id ID */
     @Override public void purgeById(Long id) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             CustomerHibernate h = s.find(CustomerHibernate.class, id);
             if (h != null) { h.setPurged(true); s.merge(h); }
-            tx.commit();
-        }
+            });
     }
 
     /** Bàn giao toàn bộ Customer của fromUserId sang toUserId. @param fromUserId @param toUserId */
     @Override public void handoverAll(Long fromUserId, Long toUserId) {
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             s.createNativeQuery("UPDATE customers SET owner_id = :toUserId WHERE owner_id = :fromUserId AND deleted_at IS NULL")
                     .setParameter("toUserId", toUserId).setParameter("fromUserId", fromUserId).executeUpdate();
-            tx.commit();
-        }
+            });
     }
 
     /** Bàn giao hàng loạt Customer sang owner mới. @param ids IDs @param toUserId người nhận @param currentUserId người thực hiện @param isAdminOrManager quyền admin/manager */
     @Override public void handoverBulk(List<Long> ids, Long toUserId, Long currentUserId, boolean isAdminOrManager) {
         if (ids == null || ids.isEmpty()) return;
-        try (Session s = sf.openSession()) {
-            Transaction tx = s.beginTransaction();
+        TxSupport.writeVoid(sf, s -> {
             String ownerFilter = isAdminOrManager ? "" : " AND owner_id = :currentUserId";
             String sql = "UPDATE customers SET owner_id = :toUserId WHERE id IN (:ids) AND deleted_at IS NULL" + ownerFilter;
             var q = s.createNativeQuery(sql).setParameter("toUserId", toUserId).setParameter("ids", ids);
             if (!isAdminOrManager) q.setParameter("currentUserId", currentUserId);
             q.executeUpdate();
-            tx.commit();
-        }
+            });
     }
 
     /** Lấy danh sách Customer chưa xóa có phân trang. @param r tham số phân trang @return PageResult */
     @Override public PageResult<Customer> findAll(PageRequest r) {
-        try (Session s = sf.openSession()) {
+        return TxSupport.read(sf, s -> {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
             String ownerFilter = r.getOwnerId() != null ? " AND ownerId = :ownerId" : "";
             String searchFilter = ListQueryUtils.likeClause(r.getQ(), "code", "name", "taxCode", "phone", "email");
@@ -171,6 +169,6 @@ public class CustomerRepositoryImpl implements ICustomerRepository {
             List<Customer> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
             long total = cq.uniqueResult();
             return PageResult.<Customer>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
-        }
+        });
     }
 }

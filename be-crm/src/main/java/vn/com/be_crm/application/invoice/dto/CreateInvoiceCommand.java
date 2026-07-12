@@ -1,5 +1,6 @@
 package vn.com.be_crm.application.invoice.dto;
 
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -23,8 +24,8 @@ public class CreateInvoiceCommand {
     private Long orderId;
     private Long campaignId;
     private Long ownerId;
-    private LocalDate invoiceDate;
-    private LocalDate dueDate;
+    @FutureOrPresent(message = "Ngày hóa đơn không được là ngày quá khứ") private LocalDate invoiceDate;
+    @FutureOrPresent(message = "Hạn thanh toán không được là ngày quá khứ") private LocalDate dueDate;
     @Size(max = 3) private String currency;
     private BigDecimal exchangeRate;
     @Size(max = 255) private String billingAddress;

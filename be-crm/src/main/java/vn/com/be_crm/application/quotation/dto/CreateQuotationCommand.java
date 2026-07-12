@@ -1,5 +1,6 @@
 package vn.com.be_crm.application.quotation.dto;
 
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -22,8 +23,8 @@ public class CreateQuotationCommand {
     private Long opportunityId;
     private Long pricePolicyId;
     private Long ownerId;
-    private LocalDate quoteDate;
-    private LocalDate validUntil;
+    @FutureOrPresent(message = "Ngày báo giá không được là ngày quá khứ") private LocalDate quoteDate;
+    @FutureOrPresent(message = "Ngày hiệu lực không được là ngày quá khứ") private LocalDate validUntil;
     @Size(max = 3) private String currency;
     private BigDecimal exchangeRate;
     private QuotationStatus status;

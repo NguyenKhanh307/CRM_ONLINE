@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect } from 'react';
+import { useAlert } from '@/shared/alert/useAlert';
+import { dateRangeError } from '@/shared/utils/validators';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -18,6 +20,7 @@ interface Props {
 const TYPE_OPTIONS = Object.entries(CAMPAIGN_TYPE_LABELS).map(([value, label]) => ({ value, label }));
 
 export function CampaignEditModal({ item, onClose }: Props) {
+    const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateCampaign();
     const { data: users = [] } = useActiveUsers();
     const [form, setForm] = useState<UpdateCampaignPayload>({
@@ -50,6 +53,9 @@ export function CampaignEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
+        const vErr = dateRangeError(form.startDate, form.endDate, 'ngày bắt đầu', 'Ngày kết thúc');
+        if (vErr) { showAlert(vErr); return; }
         if (!(await confirmSave('chiến dịch'))) return;
         await mutateAsync({ id: item.id, payload: form });
         onClose();

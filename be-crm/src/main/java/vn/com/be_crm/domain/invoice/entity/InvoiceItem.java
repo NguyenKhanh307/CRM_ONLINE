@@ -11,7 +11,7 @@ import java.math.BigDecimal;
  * Domain entity đại diện cho dòng sản phẩm trong đơn hàng.
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class InvoiceItem {
