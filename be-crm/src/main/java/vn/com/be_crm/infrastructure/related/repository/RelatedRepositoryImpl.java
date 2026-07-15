@@ -3,8 +3,13 @@ package vn.com.be_crm.infrastructure.related.repository;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
+import vn.com.be_crm.application.related.dto.ContactRelatedResult;
 import vn.com.be_crm.application.related.dto.CustomerRelatedResult;
+import vn.com.be_crm.application.related.dto.InvoiceRelatedResult;
+import vn.com.be_crm.application.related.dto.LeadRelatedResult;
 import vn.com.be_crm.application.related.dto.OpportunityRelatedResult;
+import vn.com.be_crm.application.related.dto.OrderRelatedResult;
+import vn.com.be_crm.application.related.dto.QuotationRelatedResult;
 import vn.com.be_crm.application.related.dto.RelatedGroup;
 import vn.com.be_crm.application.related.dto.RelatedRecord;
 import vn.com.be_crm.domain.related.repository.IRelatedRepository;
@@ -41,11 +46,11 @@ public class RelatedRepositoryImpl implements IRelatedRepository {
         Map<String, Object> p = Map.of("id", customerId);
         return TxSupport.read(sf, s -> new CustomerRelatedResult(
                 group(s, "contact", CONTACTS_SQL, "contacts c", "c.deleted_at IS NULL AND c.customer_id = :id", p),
-                group(s, "opportunity", OPPORTUNITIES_SQL, "opportunities o", "o.deleted_at IS NULL AND o.customer_id = :id", p),
+                group(s, "opportunity", opportunitiesSql("o.customer_id = :id"), "opportunities o", "o.deleted_at IS NULL AND o.customer_id = :id", p),
                 group(s, "quotation", quotationsSql("q.customer_id = :id"), "quotations q", "q.deleted_at IS NULL AND q.customer_id = :id", p),
                 group(s, "order", ordersSql("o.customer_id = :id"), "orders o", "o.deleted_at IS NULL AND o.customer_id = :id", p),
                 group(s, "invoice", invoicesSql("i.customer_id = :id"), "invoices i", "i.deleted_at IS NULL AND i.customer_id = :id", p),
-                group(s, "ticket", TICKETS_SQL, "support_tickets t", "t.deleted_at IS NULL AND t.customer_id = :id", p),
+                group(s, "ticket", ticketsSql("t.customer_id = :id"), "support_tickets t", "t.deleted_at IS NULL AND t.customer_id = :id", p),
                 group(s, "activity", activitiesSql("customer"), "activities a",
                         "(a.target_type = 'customer' AND a.target_id = :id) OR (a.related_type = 'customer' AND a.related_id = :id)", p)));
     }
@@ -62,6 +67,62 @@ public class RelatedRepositoryImpl implements IRelatedRepository {
                         "(a.target_type = 'opportunity' AND a.target_id = :id) OR (a.related_type = 'opportunity' AND a.related_id = :id)", p)));
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public LeadRelatedResult getLeadRelated(Long leadId) {
+        Map<String, Object> p = Map.of("id", leadId);
+        String oppCond = "o.id IN (SELECT l.converted_opportunity_id FROM leads l WHERE l.id = :id AND l.converted_opportunity_id IS NOT NULL)";
+        return TxSupport.read(sf, s -> new LeadRelatedResult(
+                group(s, "opportunity", opportunitiesSql(oppCond), "opportunities o", "o.deleted_at IS NULL AND " + oppCond, p),
+                group(s, "activity", activitiesSql("lead"), "activities a",
+                        "(a.target_type = 'lead' AND a.target_id = :id) OR (a.related_type = 'lead' AND a.related_id = :id)", p)));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public ContactRelatedResult getContactRelated(Long contactId) {
+        Map<String, Object> p = Map.of("id", contactId);
+        return TxSupport.read(sf, s -> new ContactRelatedResult(
+                group(s, "opportunity", opportunitiesSql("o.contact_id = :id"), "opportunities o", "o.deleted_at IS NULL AND o.contact_id = :id", p),
+                group(s, "quotation", quotationsSql("q.contact_id = :id"), "quotations q", "q.deleted_at IS NULL AND q.contact_id = :id", p),
+                group(s, "order", ordersSql("o.contact_id = :id"), "orders o", "o.deleted_at IS NULL AND o.contact_id = :id", p),
+                group(s, "invoice", invoicesSql("i.contact_id = :id"), "invoices i", "i.deleted_at IS NULL AND i.contact_id = :id", p),
+                group(s, "ticket", ticketsSql("t.contact_id = :id"), "support_tickets t", "t.deleted_at IS NULL AND t.contact_id = :id", p),
+                group(s, "activity", activitiesSql("contact"), "activities a",
+                        "(a.target_type = 'contact' AND a.target_id = :id) OR (a.related_type = 'contact' AND a.related_id = :id)", p)));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public QuotationRelatedResult getQuotationRelated(Long quotationId) {
+        Map<String, Object> p = Map.of("id", quotationId);
+        return TxSupport.read(sf, s -> new QuotationRelatedResult(
+                group(s, "order", ordersSql("o.quotation_id = :id"), "orders o", "o.deleted_at IS NULL AND o.quotation_id = :id", p),
+                group(s, "invoice", invoicesSql("i.quotation_id = :id"), "invoices i", "i.deleted_at IS NULL AND i.quotation_id = :id", p),
+                group(s, "activity", activitiesSql("quotation"), "activities a",
+                        "(a.target_type = 'quotation' AND a.target_id = :id) OR (a.related_type = 'quotation' AND a.related_id = :id)", p)));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public OrderRelatedResult getOrderRelated(Long orderId) {
+        Map<String, Object> p = Map.of("id", orderId);
+        return TxSupport.read(sf, s -> new OrderRelatedResult(
+                group(s, "invoice", invoicesSql("i.order_id = :id"), "invoices i", "i.deleted_at IS NULL AND i.order_id = :id", p),
+                group(s, "activity", activitiesSql("order"), "activities a",
+                        "(a.target_type = 'order' AND a.target_id = :id) OR (a.related_type = 'order' AND a.related_id = :id)", p)));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public InvoiceRelatedResult getInvoiceRelated(Long invoiceId) {
+        Map<String, Object> p = Map.of("id", invoiceId);
+        return TxSupport.read(sf, s -> new InvoiceRelatedResult(
+                group(s, "ticket", ticketsSql("t.invoice_id = :id"), "support_tickets t", "t.deleted_at IS NULL AND t.invoice_id = :id", p),
+                group(s, "activity", activitiesSql("invoice"), "activities a",
+                        "(a.target_type = 'invoice' AND a.target_id = :id) OR (a.related_type = 'invoice' AND a.related_id = :id)", p)));
+    }
+
     // ==================== SQL từng phân hệ ====================
     // Mọi câu SELECT trả đúng 7 cột theo thứ tự: id, code, name, status, date, amount, owner_name
 
@@ -70,15 +131,19 @@ public class RelatedRepositoryImpl implements IRelatedRepository {
                     "FROM contacts c LEFT JOIN users u ON u.id = c.assigned_user_id " +
                     "WHERE c.deleted_at IS NULL AND c.customer_id = :id ORDER BY c.is_primary DESC, c.id DESC LIMIT " + LIMIT;
 
-    private static final String OPPORTUNITIES_SQL =
-            "SELECT o.id, o.code, o.name, o.status, o.expected_close_date, o.amount, u.full_name " +
-                    "FROM opportunities o LEFT JOIN users u ON u.id = o.owner_id " +
-                    "WHERE o.deleted_at IS NULL AND o.customer_id = :id ORDER BY o.id DESC LIMIT " + LIMIT;
+    /** Cơ hội — {@code cond} là điều kiện liên kết (theo khách hàng / liên hệ / cơ hội convert). */
+    private String opportunitiesSql(String cond) {
+        return "SELECT o.id, o.code, o.name, o.status, o.expected_close_date, o.amount, u.full_name " +
+                "FROM opportunities o LEFT JOIN users u ON u.id = o.owner_id " +
+                "WHERE o.deleted_at IS NULL AND " + cond + " ORDER BY o.id DESC LIMIT " + LIMIT;
+    }
 
-    private static final String TICKETS_SQL =
-            "SELECT t.id, t.code, t.subject, t.status, t.created_at, NULL, u.full_name " +
-                    "FROM support_tickets t LEFT JOIN users u ON u.id = t.assigned_user_id " +
-                    "WHERE t.deleted_at IS NULL AND t.customer_id = :id ORDER BY t.id DESC LIMIT " + LIMIT;
+    /** Phiếu chăm sóc — {@code cond} là điều kiện liên kết (theo khách hàng / liên hệ / hóa đơn). */
+    private String ticketsSql(String cond) {
+        return "SELECT t.id, t.code, t.subject, t.status, t.created_at, NULL, u.full_name " +
+                "FROM support_tickets t LEFT JOIN users u ON u.id = t.assigned_user_id " +
+                "WHERE t.deleted_at IS NULL AND " + cond + " ORDER BY t.id DESC LIMIT " + LIMIT;
+    }
 
     /** Báo giá — {@code cond} là điều kiện liên kết (theo khách hàng hoặc theo cơ hội). */
     private String quotationsSql(String cond) {

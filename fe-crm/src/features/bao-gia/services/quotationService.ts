@@ -2,6 +2,7 @@ import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
 import type { CreateQuotationPayload, QuotationEmailDraft, QuotationItemPayload, QuotationItemResult, QuotationResult, SendQuotationPayload, UpdateQuotationPayload } from '../types/quotationTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
+import type { QuotationRelatedResult } from '@/shared/types/related';
 
 export const quotationService = {
     getList: (params?: PageParams) =>
@@ -32,6 +33,9 @@ export const quotationService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/quotations/handover-bulk', payload),
+    /** Bản ghi liên quan cho trang chi tiết (đơn hàng, hóa đơn, hoạt động). */
+    getRelated: (id: number) =>
+        axiosInstance.get<ApiResponse<QuotationRelatedResult>>(`/api/quotations/${id}/related`),
     /** Nhân viên gửi báo giá lên quản lý duyệt (draft → pending). */
     submit: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/submit`),

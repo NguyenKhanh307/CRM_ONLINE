@@ -98,6 +98,7 @@ const TiemNangPage = () => {
     const rowActions = (l: LeadResult): RowAction[] => {
         const isOpen = l.status !== 'converted' && l.status !== 'lost';
         return [
+            { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/tiem-nang/${l.id}`) },
             ...(l.status === 'new' || l.status === 'contacting'
                 ? [{ key: 'qualify', label: 'Đủ điều kiện', onClick: () => runAction(l.id, 'qualify') }]
                 : []),
@@ -157,7 +158,7 @@ const TiemNangPage = () => {
                         onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
                     }}
                     rowActions={rowActions}
-                    onRowDoubleClick={(l) => { if (l.status !== 'converted') setEditTarget(l); }}
+                    onRowDoubleClick={(l) => navigate(`/tiem-nang/${l.id}`)}
                     quickFilters={QUICK_FILTERS}
                 />
             </div>

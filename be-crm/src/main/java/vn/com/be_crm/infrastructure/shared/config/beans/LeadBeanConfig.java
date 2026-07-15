@@ -28,7 +28,7 @@ public class LeadBeanConfig {
     /** @return DeleteLeadUseCase */
     @Bean public DeleteLeadUseCase deleteLeadUseCase(ILeadRepository r) { return new DeleteLeadUseCase(r); }
     /** @return GetLeadUseCase */
-    @Bean public GetLeadUseCase getLeadUseCase(ILeadRepository r) { return new GetLeadUseCase(r); }
+    @Bean public GetLeadUseCase getLeadUseCase(ILeadRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new GetLeadUseCase(r, n); }
     /** @return ListLeadUseCase */
     @Bean public ListLeadUseCase listLeadUseCase(ILeadRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListLeadUseCase(r, n); }
     /** @return LeadWorkflowUseCase — convert (tách KH+LH+CH, 1 transaction) / lose */

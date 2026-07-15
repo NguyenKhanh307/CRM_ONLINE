@@ -24,7 +24,7 @@ public class InvoiceBeanConfig {
     /** @return DeleteInvoiceUseCase */
     @Bean public DeleteInvoiceUseCase deleteInvoiceUseCase(IInvoiceRepository r) { return new DeleteInvoiceUseCase(r); }
     /** @return GetInvoiceUseCase */
-    @Bean public GetInvoiceUseCase getInvoiceUseCase(IInvoiceRepository r) { return new GetInvoiceUseCase(r); }
+    @Bean public GetInvoiceUseCase getInvoiceUseCase(IInvoiceRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new GetInvoiceUseCase(r, n); }
     /** @return ListInvoiceUseCase */
     @Bean public ListInvoiceUseCase listInvoiceUseCase(IInvoiceRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListInvoiceUseCase(r, n); }
     /** @return InvoiceWorkflowUseCase — luồng trạng thái + suy ra trạng thái thanh toán */

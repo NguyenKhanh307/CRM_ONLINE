@@ -85,8 +85,9 @@ const LienHePage = () => {
                         onSearchChange: (v) => { setSearch(v); setPage(0); },
                         onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
                     }}
-                    onRowDoubleClick={(c) => setEditTarget(c)}
+                    onRowDoubleClick={(c) => navigate(`/lien-he/${c.id}`)}
                     rowActions={(c) => [
+                        { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/lien-he/${c.id}`) },
                         { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) },
                         { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(c.id) },
                     ]}

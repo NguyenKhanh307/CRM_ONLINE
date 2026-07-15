@@ -2,6 +2,7 @@ import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
 import type { CreateInvoicePayload, InvoiceItemPayload, InvoiceItemResult, InvoiceResult, UpdateInvoicePayload, InvoicePaymentScheduleResult, PaymentSchedulePayload } from '../types/invoiceTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
+import type { InvoiceRelatedResult } from '@/shared/types/related';
 
 export const invoiceService = {
     getList: (params?: PageParams) =>
@@ -32,6 +33,9 @@ export const invoiceService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/invoices/handover-bulk', payload),
+    /** Bản ghi liên quan cho trang chi tiết (phiếu chăm sóc, hoạt động). */
+    getRelated: (id: number) =>
+        axiosInstance.get<ApiResponse<InvoiceRelatedResult>>(`/api/invoices/${id}/related`),
     /** Phát hành hóa đơn (draft → sent, khóa dữ liệu). */
     issue: (id: number) => axiosInstance.post<ApiResponse<InvoiceResult>>(`/api/invoices/${id}/issue`),
     /** Hủy hóa đơn (→ cancelled). */

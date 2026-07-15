@@ -2,6 +2,7 @@ import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
 import type { ContactPhonePayload, ContactPhoneResult, ContactResult, CreateContactPayload, UpdateContactPayload } from '../types/contactTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
+import type { ContactRelatedResult } from '@/shared/types/related';
 
 export const contactService = {
     getList: (params?: PageParams) =>
@@ -22,6 +23,9 @@ export const contactService = {
         axiosInstance.put<ApiResponse<ContactResult>>(`/api/contacts/${id}`, payload),
     remove: (id: number) =>
         axiosInstance.delete(`/api/contacts/${id}`),
+    /** Bản ghi liên quan cho trang chi tiết (cơ hội, báo giá, đơn, hóa đơn, phiếu CS, hoạt động). */
+    getRelated: (id: number) =>
+        axiosInstance.get<ApiResponse<ContactRelatedResult>>(`/api/contacts/${id}/related`),
     importBulk: (rows: Record<string, unknown>[], options: ImportOptions) =>
         axiosInstance.post<ApiResponse<ImportBulkResult>>('/api/contacts/import-bulk', {
             importType: options.importType,

@@ -11,9 +11,11 @@ const DashboardPage   = lazy(() => import('@/features/dashboard/pages/DashboardP
 const TiemNangPage    = lazy(() => import('@/features/tiem-nang/pages/TiemNangPage'));
 const LeadAddPage     = lazy(() => import('@/features/tiem-nang/pages/LeadAddPage'));
 const LeadImportPage  = lazy(() => import('@/features/tiem-nang/pages/LeadImportPage'));
+const LeadDetailPage  = lazy(() => import('@/features/tiem-nang/pages/LeadDetailPage'));
 const LienHePage      = lazy(() => import('@/features/lien-he/pages/LienHePage'));
 const ContactAddPage  = lazy(() => import('@/features/lien-he/pages/ContactAddPage'));
 const ContactImportPage = lazy(() => import('@/features/lien-he/pages/ContactImportPage'));
+const ContactDetailPage = lazy(() => import('@/features/lien-he/pages/ContactDetailPage'));
 const KhachHangPage   = lazy(() => import('@/features/khach-hang/pages/KhachHangPage'));
 const CustomerAddPage = lazy(() => import('@/features/khach-hang/pages/CustomerAddPage'));
 const CustomerImportPage = lazy(() => import('@/features/khach-hang/pages/CustomerImportPage'));
@@ -27,12 +29,15 @@ const OpportunityBoardPage = lazy(() => import('@/features/co-hoi/pages/Opportun
 const BaoGiaPage      = lazy(() => import('@/features/bao-gia/pages/BaoGiaPage'));
 const QuoteAddPage    = lazy(() => import('@/features/bao-gia/pages/QuoteAddPage'));
 const QuotationImportPage = lazy(() => import('@/features/bao-gia/pages/QuotationImportPage'));
+const QuotationDetailPage = lazy(() => import('@/features/bao-gia/pages/QuotationDetailPage'));
 const HoaDonPage      = lazy(() => import('@/features/hoa-don/pages/HoaDonPage'));
 const InvoiceAddPage  = lazy(() => import('@/features/hoa-don/pages/InvoiceAddPage'));
 const InvoiceImportPage = lazy(() => import('@/features/hoa-don/pages/InvoiceImportPage'));
+const InvoiceDetailPage = lazy(() => import('@/features/hoa-don/pages/InvoiceDetailPage'));
 const DonHangPage     = lazy(() => import('@/features/don-hang/pages/DonHangPage'));
 const OrderAddPage    = lazy(() => import('@/features/don-hang/pages/OrderAddPage'));
 const OrderImportPage = lazy(() => import('@/features/don-hang/pages/OrderImportPage'));
+const OrderDetailPage = lazy(() => import('@/features/don-hang/pages/OrderDetailPage'));
 const ChienDichPage   = lazy(() => import('@/features/chien-dich/pages/ChienDichPage'));
 const CampaignAddPage = lazy(() => import('@/features/chien-dich/pages/CampaignAddPage'));
 const CampaignDetailPage = lazy(() => import('@/features/chien-dich/pages/CampaignDetailPage'));
@@ -66,9 +71,11 @@ export const router = createBrowserRouter([
             { path: '/tiem-nang',              element: <Suspense fallback={fallback}><TiemNangPage /></Suspense> },
             { path: '/tiem-nang/them-moi',    element: <Suspense fallback={fallback}><LeadAddPage /></Suspense> },
             { path: '/tiem-nang/nhap-file',   element: <Suspense fallback={fallback}><LeadImportPage /></Suspense> },
+            { path: '/tiem-nang/:id',         element: <Suspense fallback={fallback}><LeadDetailPage /></Suspense> },
             { path: '/lien-he',               element: <Suspense fallback={fallback}><LienHePage /></Suspense> },
             { path: '/lien-he/them-moi',      element: <Suspense fallback={fallback}><ContactAddPage /></Suspense> },
             { path: '/lien-he/nhap-file',     element: <Suspense fallback={fallback}><ContactImportPage /></Suspense> },
+            { path: '/lien-he/:id',           element: <Suspense fallback={fallback}><ContactDetailPage /></Suspense> },
             { path: '/khach-hang',            element: <Suspense fallback={fallback}><KhachHangPage /></Suspense> },
             { path: '/khach-hang/them-moi',   element: <Suspense fallback={fallback}><CustomerAddPage /></Suspense> },
             { path: '/khach-hang/nhap-file',  element: <Suspense fallback={fallback}><CustomerImportPage /></Suspense> },
@@ -82,12 +89,15 @@ export const router = createBrowserRouter([
             { path: '/bao-gia',               element: <Suspense fallback={fallback}><BaoGiaPage /></Suspense> },
             { path: '/bao-gia/them-moi',      element: <Suspense fallback={fallback}><QuoteAddPage /></Suspense> },
             { path: '/bao-gia/nhap-file',     element: <Suspense fallback={fallback}><QuotationImportPage /></Suspense> },
+            { path: '/bao-gia/:id',           element: <Suspense fallback={fallback}><QuotationDetailPage /></Suspense> },
             { path: '/hoa-don',               element: <Suspense fallback={fallback}><HoaDonPage /></Suspense> },
             { path: '/hoa-don/them-moi',      element: <Suspense fallback={fallback}><InvoiceAddPage /></Suspense> },
             { path: '/hoa-don/nhap-file',     element: <Suspense fallback={fallback}><InvoiceImportPage /></Suspense> },
+            { path: '/hoa-don/:id',           element: <Suspense fallback={fallback}><InvoiceDetailPage /></Suspense> },
             { path: '/don-hang',              element: <Suspense fallback={fallback}><DonHangPage /></Suspense> },
             { path: '/don-hang/them-moi',     element: <Suspense fallback={fallback}><OrderAddPage /></Suspense> },
             { path: '/don-hang/nhap-file',    element: <Suspense fallback={fallback}><OrderImportPage /></Suspense> },
+            { path: '/don-hang/:id',          element: <Suspense fallback={fallback}><OrderDetailPage /></Suspense> },
             { path: '/chien-dich',            element: <Suspense fallback={fallback}><ChienDichPage /></Suspense> },
             { path: '/chien-dich/them-moi',   element: <Suspense fallback={fallback}><CampaignAddPage /></Suspense> },
             { path: '/chien-dich/nhap-file',  element: <Suspense fallback={fallback}><CampaignImportPage /></Suspense> },

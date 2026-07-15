@@ -2,6 +2,7 @@ import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
 import type { CreateLeadPayload, LeadResult, UpdateLeadPayload } from '../types/leadTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
+import type { LeadRelatedResult } from '@/shared/types/related';
 
 export const leadService = {
     getList: (params?: PageParams) =>
@@ -24,6 +25,9 @@ export const leadService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/leads/handover-bulk', payload),
+    /** Bản ghi liên quan cho trang chi tiết (cơ hội đã convert + hoạt động). */
+    getRelated: (id: number) =>
+        axiosInstance.get<ApiResponse<LeadRelatedResult>>(`/api/leads/${id}/related`),
     /**
      * Chuyển đổi tiềm năng (qualified → converted).
      * `customerId` = dùng khách hàng đã có thay vì tạo mới (chống trùng khi phát hiện KH trùng MST/email/SĐT).

@@ -82,6 +82,7 @@ const HoaDonPage = () => {
 
     /** Thao tác của một hóa đơn — hiện trong menu chuột phải. */
     const rowActions = (o: InvoiceResult): RowAction[] => [
+        { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/hoa-don/${o.id}`) },
         ...(o.status === 'draft'
             ? [{ key: 'issue', label: 'Phát hành', onClick: () => runAction(o.id, 'issue') }]
             : []),
@@ -139,7 +140,7 @@ const HoaDonPage = () => {
                         onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
                     }}
                     rowActions={rowActions}
-                    onRowDoubleClick={(o) => { if (!o.isLocked) setEditTarget(o); }}
+                    onRowDoubleClick={(o) => navigate(`/hoa-don/${o.id}`)}
                     quickFilters={QUICK_FILTERS}
                 />
             </div>

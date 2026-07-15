@@ -2,6 +2,7 @@ import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
 import type { CreateOrderPayload, OrderItemPayload, OrderItemResult, OrderResult, UpdateOrderPayload } from '../types/orderTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
+import type { OrderRelatedResult } from '@/shared/types/related';
 
 export const orderService = {
     getList: (params?: PageParams) =>
@@ -32,6 +33,9 @@ export const orderService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/orders/handover-bulk', payload),
+    /** Bản ghi liên quan cho trang chi tiết (hóa đơn, hoạt động). */
+    getRelated: (id: number) =>
+        axiosInstance.get<ApiResponse<OrderRelatedResult>>(`/api/orders/${id}/related`),
     /** Xác nhận đơn hàng (draft → confirmed). */
     confirm: (id: number) => axiosInstance.post<ApiResponse<OrderResult>>(`/api/orders/${id}/confirm`),
     /** Chuyển đơn hàng sang đang xử lý (confirmed → processing). */

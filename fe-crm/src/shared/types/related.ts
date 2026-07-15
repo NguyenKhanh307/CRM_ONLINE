@@ -50,3 +50,38 @@ export interface OpportunityRelatedResult {
     invoices: RelatedGroup;
     activities: RelatedGroup;
 }
+
+/** Bản ghi liên quan của một tiềm năng (trang chi tiết Tiềm năng). */
+export interface LeadRelatedResult {
+    opportunities: RelatedGroup;
+    activities: RelatedGroup;
+}
+
+/** Bản ghi liên quan của một liên hệ (trang chi tiết Liên hệ). */
+export interface ContactRelatedResult {
+    opportunities: RelatedGroup;
+    quotations: RelatedGroup;
+    orders: RelatedGroup;
+    invoices: RelatedGroup;
+    tickets: RelatedGroup;
+    activities: RelatedGroup;
+}
+
+/** Bản ghi liên quan của một báo giá (trang chi tiết Báo giá). */
+export interface QuotationRelatedResult {
+    orders: RelatedGroup;
+    invoices: RelatedGroup;
+    activities: RelatedGroup;
+}
+
+/** Bản ghi liên quan của một đơn hàng (trang chi tiết Đơn hàng). */
+export interface OrderRelatedResult {
+    invoices: RelatedGroup;
+    activities: RelatedGroup;
+}
+
+/** Bản ghi liên quan của một hóa đơn (trang chi tiết Hóa đơn). */
+export interface InvoiceRelatedResult {
+    tickets: RelatedGroup;
+    activities: RelatedGroup;
+}

@@ -22,7 +22,7 @@ public class ContactBeanConfig {
     /** @return DeleteContactUseCase */
     @Bean public DeleteContactUseCase deleteContactUseCase(IContactRepository r) { return new DeleteContactUseCase(r); }
     /** @return GetContactUseCase */
-    @Bean public GetContactUseCase getContactUseCase(IContactRepository r) { return new GetContactUseCase(r); }
+    @Bean public GetContactUseCase getContactUseCase(IContactRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new GetContactUseCase(r, n); }
     /** @return ListContactUseCase */
     @Bean public ListContactUseCase listContactUseCase(IContactRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListContactUseCase(r, n); }
 

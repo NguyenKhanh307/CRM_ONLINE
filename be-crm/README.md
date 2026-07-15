@@ -198,7 +198,8 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 |--------|----------|-------|
 | `POST` | `/api/contacts` | Tạo liên hệ — nhận `phones[]` để lưu kèm SĐT trong 1 transaction; bổ sung field V6 (salutation, title, department, workEmail, personalEmail, zalo, source, doNotCall, doNotEmail) |
 | `GET` | `/api/contacts` | Danh sách liên hệ (phân trang) |
-| `GET` | `/api/contacts/{id}` | Lấy liên hệ theo ID |
+| `GET` | `/api/contacts/{id}` | Lấy liên hệ theo ID (kèm tên khóa ngoại) |
+| `GET` | `/api/contacts/{id}/related` | **MỚI** — bản ghi liên quan cho trang chi tiết: cơ hội / báo giá / đơn / hóa đơn / phiếu CS / hoạt động (theo `contact_id`). Kiểm quyền một lần trên liên hệ (`assignedUserId`) → 403 |
 | `PUT` | `/api/contacts/{id}` | Cập nhật liên hệ |
 | `DELETE` | `/api/contacts/{id}` | Xóa mềm liên hệ |
 | `GET` | `/api/contacts/deleted` | Thùng rác — danh sách liên hệ đã xóa (30 ngày) |
@@ -253,7 +254,8 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 |--------|----------|-------|
 | `POST` | `/api/leads` | Tạo lead |
 | `GET` | `/api/leads` | Danh sách lead (phân trang) |
-| `GET` | `/api/leads/{id}` | Lấy lead theo ID |
+| `GET` | `/api/leads/{id}` | Lấy lead theo ID (kèm tên khóa ngoại) |
+| `GET` | `/api/leads/{id}/related` | **MỚI** — bản ghi liên quan cho trang chi tiết: cơ hội đã convert + hoạt động. Kiểm quyền một lần trên lead (`ownerId`) → 403 |
 | `PUT` | `/api/leads/{id}` | Cập nhật lead |
 | `DELETE` | `/api/leads/{id}` | Xóa mềm lead |
 | `GET` | `/api/leads/deleted` | Thùng rác — danh sách lead đã xóa (30 ngày) |
@@ -368,6 +370,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/orders/{id}/create-invoice` | Xuất hóa đơn 1-1 (khóa đơn + đơn→completed) |
 | `POST` | `/api/orders/import-bulk` · `/api/orders/handover-bulk` | Nhập / bàn giao hàng loạt |
 | `POST/GET/PUT/DELETE` | `/api/orders/{orderId}/items[/{id}]` | Dòng hàng đơn hàng |
+| `GET` | `/api/orders/{id}/related` | **MỚI** — bản ghi liên quan cho trang chi tiết: hóa đơn + hoạt động. Kiểm quyền một lần trên đơn hàng (`ownerId`) → 403 |
 | `POST` | `/api/quotations/{id}/convert-to-order` | Chuyển Báo giá → Đơn hàng (đã gỡ `convert-to-invoice`; báo giá có `campaign_id` truyền attribution sang đơn) |
 
 ### 2.7 Invoice — Hóa đơn
@@ -380,7 +383,8 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 |--------|----------|-------|
 | `POST` | `/api/invoices` | Tạo hóa đơn — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; field: quotationId, opportunityId, invoiceDate, dueDate, currency, exchangeRate, billingAddress, taxCode |
 | `GET` | `/api/invoices` | Danh sách hóa đơn (phân trang) |
-| `GET` | `/api/invoices/{id}` | Lấy hóa đơn theo ID |
+| `GET` | `/api/invoices/{id}` | Lấy hóa đơn theo ID (kèm tên khóa ngoại) |
+| `GET` | `/api/invoices/{id}/related` | **MỚI** — bản ghi liên quan cho trang chi tiết: phiếu chăm sóc + hoạt động. Kiểm quyền một lần trên hóa đơn (`ownerId`) → 403 |
 | `PUT` | `/api/invoices/{id}` | Cập nhật hóa đơn (chặn khi đã khóa) |
 | `DELETE` | `/api/invoices/{id}` | Xóa mềm hóa đơn |
 | `GET` | `/api/invoices/deleted` | Thùng rác — hóa đơn đã xóa (30 ngày) |
@@ -549,7 +553,8 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 |--------|----------|-------|
 | `POST` | `/api/quotations` | Tạo báo giá — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; bổ sung field V6 (opportunityId, currency, exchangeRate) |
 | `GET` | `/api/quotations` | Danh sách báo giá (phân trang) |
-| `GET` | `/api/quotations/{id}` | Lấy báo giá theo ID |
+| `GET` | `/api/quotations/{id}` | Lấy báo giá theo ID (kèm tên khóa ngoại) |
+| `GET` | `/api/quotations/{id}/related` | **MỚI** — bản ghi liên quan cho trang chi tiết: đơn hàng / hóa đơn phát sinh + hoạt động. Kiểm quyền một lần trên báo giá (`ownerId`) → 403 |
 | `PUT` | `/api/quotations/{id}` | Cập nhật báo giá |
 | `DELETE` | `/api/quotations/{id}` | Xóa mềm báo giá |
 | `GET` | `/api/quotations/deleted` | Thùng rác — danh sách báo giá đã xóa (30 ngày) |

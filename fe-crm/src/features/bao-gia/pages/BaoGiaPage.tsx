@@ -107,6 +107,7 @@ const BaoGiaPage = () => {
 
     /** Thao tác của một báo giá — hiện trong menu chuột phải. */
     const rowActions = (q: QuotationResult): RowAction[] => [
+        { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/bao-gia/${q.id}`) },
         ...(q.status === 'draft'
             ? [{ key: 'submit', label: 'Gửi duyệt', onClick: () => runAction(q.id, 'submit') }]
             : []),
@@ -183,7 +184,7 @@ const BaoGiaPage = () => {
                         onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
                     }}
                     rowActions={rowActions}
-                    onRowDoubleClick={(q) => { if (!q.isLocked) setEditTarget(q); }}
+                    onRowDoubleClick={(q) => navigate(`/bao-gia/${q.id}`)}
                     quickFilters={QUICK_FILTERS}
                 />
             </div>

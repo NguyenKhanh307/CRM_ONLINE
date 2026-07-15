@@ -89,6 +89,7 @@ const DonHangPage = () => {
 
     /** Thao tác của một đơn hàng — hiện trong menu chuột phải. */
     const rowActions = (o: OrderResult): RowAction[] => [
+        { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/don-hang/${o.id}`) },
         ...(o.status === 'draft'
             ? [{ key: 'confirm', label: 'Xác nhận đơn', onClick: () => runAction(o.id, 'confirm') }]
             : []),
@@ -155,7 +156,7 @@ const DonHangPage = () => {
                         onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
                     }}
                     rowActions={rowActions}
-                    onRowDoubleClick={(o) => { if (!o.isLocked) setEditTarget(o); }}
+                    onRowDoubleClick={(o) => navigate(`/don-hang/${o.id}`)}
                     quickFilters={QUICK_FILTERS}
                 />
             </div>

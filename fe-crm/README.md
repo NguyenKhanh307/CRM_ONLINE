@@ -253,14 +253,14 @@ Tất cả 8 module đều có: danh sách, nút Sửa (mở modal), nút Xóa (
 
 | Module | Route | Endpoint GET | Endpoint PUT | Endpoint DELETE | Handover |
 |--------|-------|-------------|-------------|----------------|---------|
-| Tiềm năng | `/tiem-nang` | `GET /api/leads` | `PUT /api/leads/{id}` | `DELETE /api/leads/{id}` | ✓ |
-| Liên hệ | `/lien-he` | `GET /api/contacts` | `PUT /api/contacts/{id}` | `DELETE /api/contacts/{id}` | — |
+| Tiềm năng | `/tiem-nang` (+ **`/:id` chi tiết 2 cột**) | `GET /api/leads` | `PUT /api/leads/{id}` | `DELETE /api/leads/{id}` | ✓ |
+| Liên hệ | `/lien-he` (+ **`/:id` chi tiết 2 cột**) | `GET /api/contacts` | `PUT /api/contacts/{id}` | `DELETE /api/contacts/{id}` | — |
 | Khách hàng | `/khach-hang` (+ **`/:id` chi tiết 360°**) | `GET /api/customers` | `PUT /api/customers/{id}` | `DELETE /api/customers/{id}` | ✓ |
 | Cơ hội | `/co-hoi` (+ **`/:id` chi tiết 360°**, **`/kanban` bảng kéo-thả**) | `GET /api/opportunities` | `PUT /api/opportunities/{id}` | `DELETE /api/opportunities/{id}` | ✓ |
 | Chiến dịch | `/chien-dich` (+ `/:id` chi tiết 3 tab) | `GET /api/campaigns` | `PUT /api/campaigns/{id}` | `DELETE /api/campaigns/{id}` | ✓ |
-| Báo giá | `/bao-gia` | `GET /api/quotations` | `PUT /api/quotations/{id}` | `DELETE /api/quotations/{id}` | ✓ |
-| Đơn hàng | `/don-hang` | `GET /api/orders` | `PUT /api/orders/{id}` | `DELETE /api/orders/{id}` | ✓ |
-| Hóa đơn | `/hoa-don` | `GET /api/invoices` | `PUT /api/invoices/{id}` | `DELETE /api/invoices/{id}` | ✓ |
+| Báo giá | `/bao-gia` (+ **`/:id` chi tiết 2 cột**) | `GET /api/quotations` | `PUT /api/quotations/{id}` | `DELETE /api/quotations/{id}` | ✓ |
+| Đơn hàng | `/don-hang` (+ **`/:id` chi tiết 2 cột**) | `GET /api/orders` | `PUT /api/orders/{id}` | `DELETE /api/orders/{id}` | ✓ |
+| Hóa đơn | `/hoa-don` (+ **`/:id` chi tiết 2 cột**) | `GET /api/invoices` | `PUT /api/invoices/{id}` | `DELETE /api/invoices/{id}` | ✓ |
 | Hoạt động | `/hoat-dong` | `GET /api/activities` | `PUT /api/activities/{id}` | `DELETE /api/activities/{id}` | — |
 | Sản phẩm | `/san-pham` | `GET /api/products` | `PUT /api/products/{id}` | `DELETE /api/products/{id}` | — |
 
@@ -276,6 +276,16 @@ Trước đây mọi thứ là edit-modal nên không có màn hình nào xem đ
 - **Vào trang**: nhấp đúp dòng ở `/khach-hang` và `/co-hoi` (trước đây mở edit-modal — modal chuyển vào menu chuột phải).
 - Component dùng chung mới `shared/components/detail/`: `DetailHeader`, `Tabs`, `InfoRow`, `RelatedTable`, `Timeline`, `relatedColumns.tsx` (cấu hình cột từng tab). Cross-link qua `shared/utils/moduleRoutes.ts#recordPath` — module có trang chi tiết thì mở thẳng, chưa có thì nhảy về danh sách + `?focus={id}` (tái dùng prop `focusId` của `DataTable`).
 - ⚠️ Tab liên quan hiện **đủ** bản ghi con kể cả của đồng nghiệp (BE kiểm quyền một lần trên bản ghi cha). Không dùng list endpoint chung cho các tab này — nó lọc `ownerId` nên sẽ **giấu** báo giá của đồng đội mà không có dấu hiệu gì → sale báo giá trùng.
+
+### Trang chi tiết 2 cột — Tiềm năng / Liên hệ / Báo giá / Đơn hàng / Hóa đơn (MỚI 2026-07-15)
+
+5 phân hệ giao dịch có trang chi tiết bố cục **2 cột** (giống ảnh mẫu), giữ nguyên trang 360° Khách hàng/Cơ hội (tab):
+
+- **Bố cục**: `DetailHeader` (back + tiêu đề + badge trạng thái + nút **Sửa**) → lưới `lg:grid-cols-3`: **trái** (`InfoCard` chứa `<Mod>InfoPanel` — mọi field nghiệp vụ, một field/dòng), **phải** (`StatCards` 3 thẻ thống kê + `Tabs` bản ghi liên quan / `Timeline`).
+- Routes: `/tiem-nang/:id` (`LeadDetailPage`), `/lien-he/:id` (`ContactDetailPage`), `/bao-gia/:id` (`QuotationDetailPage`), `/don-hang/:id` (`OrderDetailPage`), `/hoa-don/:id` (`InvoiceDetailPage`).
+- Dữ liệu: `use<Mod>Detail` (`GET /api/<m>/{id}`, FK đã enrich tên) + `use<Mod>Related` (`GET /api/<m>/{id}/related`).
+- **Component shared mới**: `shared/components/detail/StatCards.tsx` (thẻ thống kê, tone `neutral/success/warning`), `InfoCard.tsx` (thẻ thông tin cột trái). Dùng lại `DetailHeader/Tabs/RelatedTable/Timeline/InfoRow/relatedColumns`.
+- **Vào trang**: nhấp đúp dòng ở danh sách → mở chi tiết; nút "Chỉnh sửa" (mở EditModal) nằm trong menu chuột phải. `moduleRoutes.HAS_DETAIL_PAGE` thêm `contact/quotation/order/invoice` → link chéo mở thẳng trang chi tiết.
 
 ### Bảng Kanban Cơ hội — `/co-hoi/kanban` (MỚI 2026-07-12)
 

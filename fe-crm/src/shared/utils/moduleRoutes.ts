@@ -12,7 +12,7 @@ export const MODULE_ROUTES: Record<RelatedModule, string> = {
 };
 
 /** Phân hệ có trang chi tiết riêng — bấm vào dòng sẽ mở trang đó thay vì nhảy về danh sách. */
-const HAS_DETAIL_PAGE: RelatedModule[] = ['opportunity', 'ticket'];
+const HAS_DETAIL_PAGE: RelatedModule[] = ['opportunity', 'ticket', 'contact', 'quotation', 'order', 'invoice'];
 
 /**
  * Đường dẫn tới một bản ghi cụ thể.
