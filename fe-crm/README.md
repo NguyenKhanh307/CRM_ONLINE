@@ -40,6 +40,16 @@
 ```bash
 # fe-crm/.env  (bắt buộc — không có file này thì API calls sẽ thất bại)
 VITE_API_BASE_URL=http://localhost:8080
+
+# Đăng nhập Google (nút "Đăng nhập bằng Google" ở trang Login)
+# OAuth Client ID (Web) tạo ở Google Cloud Console → APIs & Services → Credentials.
+# Authorized JavaScript origins: http://localhost:5173 (dev) + domain Netlify (prod).
+VITE_GOOGLE_CLIENT_ID=<client-id>.apps.googleusercontent.com
+
+# Ảnh đại diện (trang Thiết lập tài khoản) — upload qua Cloudinary unsigned preset.
+# Tạo preset kiểu Unsigned ở Cloudinary Dashboard → Settings → Upload → Upload presets.
+VITE_CLOUDINARY_CLOUD_NAME=<cloud-name>
+VITE_CLOUDINARY_UPLOAD_PRESET=<unsigned-preset>
 ```
 
 ### Bước 2 — Cài dependencies
@@ -73,7 +83,7 @@ Frontend deploy lên **Netlify**. Cấu hình nằm trong `fe-crm/netlify.toml`:
 
 Các bước:
 1. Netlify → **New site from Git**, chọn repo, **Base directory = `fe-crm`** (tự đọc `netlify.toml`).
-2. **Site settings → Environment variables**: đặt `VITE_API_BASE_URL = https://<ten-service>.onrender.com` (URL backend Render, **không** dấu `/` cuối).
+2. **Site settings → Environment variables**: đặt `VITE_API_BASE_URL = https://<ten-service>.onrender.com` (URL backend Render, **không** dấu `/` cuối); thêm `VITE_GOOGLE_CLIENT_ID`, `VITE_CLOUDINARY_CLOUD_NAME`, `VITE_CLOUDINARY_UPLOAD_PRESET` (nhớ thêm domain Netlify vào Authorized JavaScript origins của OAuth Client). Đổi các biến `VITE_*` phải build lại vì Vite nhúng lúc build.
 3. Deploy → lấy URL `https://<ten-site>.netlify.app`. Điền URL này vào biến `APP_CORS_ALLOWED_ORIGINS` và `APP_FRONTEND_BASE_URL` bên Render, rồi build lại Netlify sau khi có domain backend.
 
 ### Tài khoản test
@@ -228,8 +238,14 @@ export function useUpdateLead() {
 - `POST /api/auth/login` → JWT token lưu localStorage. **Email phải là @gmail.com** (validate cả FE lẫn BE)
 - `POST /api/auth/register-employee` → Admin đăng ký nhân viên, BE gửi email kích hoạt (route `/dang-ky-nhan-vien`)
 - `POST /api/auth/activate` → Nhân viên kích hoạt tài khoản qua link email (route public `/activate?token=...`)
+- `POST /api/auth/google` → Đăng nhập bằng Google (`GoogleLoginButton` dùng Google Identity Services lấy ID token). Chỉ vào được nếu email có trong bảng `users` + active. Cần `VITE_GOOGLE_CLIENT_ID` + script GSI trong `index.html`
 - Token tự động đính kèm vào mọi request qua axios interceptor
 - 401 response → tự động redirect về `/login`
+
+### Tài khoản cá nhân (route `/tai-khoan`)
+- Mở từ menu người dùng (avatar góc phải) → **Thiết lập tài khoản**: `AccountSettingsPage` sửa họ tên + SĐT + **ảnh đại diện** (upload qua Cloudinary — `shared/utils/cloudinary.ts`, cần `VITE_CLOUDINARY_*`). Email chỉ-đọc. Lưu qua `PUT /api/auth/me` (`useUpdateProfile`), rồi `AuthContext.updateUser({fullName})` cập nhật tên trên header ngay
+- **Đổi mật khẩu**: `ChangePasswordModal` (menu người dùng) → `POST /api/auth/change-password` (`useChangePassword`), BE xác minh mật khẩu hiện tại
+- `AuthContext` thêm helper `updateUser(patch)` — đồng bộ state + localStorage
 
 ### Data modules (list view + edit/delete)
 

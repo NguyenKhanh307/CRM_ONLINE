@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.application.auth.command.*;
 import vn.com.be_crm.application.auth.query.*;
 import vn.com.be_crm.application.shared.email.IEmailService;
+import vn.com.be_crm.application.shared.security.IGoogleTokenVerifier;
 import vn.com.be_crm.application.shared.security.IPasswordEncoder;
 import vn.com.be_crm.application.shared.security.ITokenProvider;
 import vn.com.be_crm.domain.auth.repository.*;
@@ -40,6 +41,23 @@ public class AuthBeanConfig {
     public ActivateAccountUseCase activateAccountUseCase(IUserRepository userRepo,
                                                          IPasswordEncoder passwordEncoder) {
         return new ActivateAccountUseCase(userRepo, passwordEncoder);
+    }
+
+    /** @return GoogleLoginUseCase được inject IGoogleTokenVerifier, IUserRepository, IUserRoleRepository, IPermissionRepository, ITokenProvider */
+    @Bean
+    public GoogleLoginUseCase googleLoginUseCase(IGoogleTokenVerifier googleTokenVerifier,
+                                                 IUserRepository userRepo,
+                                                 IUserRoleRepository userRoleRepo,
+                                                 IPermissionRepository permissionRepo,
+                                                 ITokenProvider tokenProvider) {
+        return new GoogleLoginUseCase(googleTokenVerifier, userRepo, userRoleRepo, permissionRepo, tokenProvider);
+    }
+
+    /** @return ChangePasswordUseCase được inject IUserRepository, IPasswordEncoder */
+    @Bean
+    public ChangePasswordUseCase changePasswordUseCase(IUserRepository userRepo,
+                                                       IPasswordEncoder passwordEncoder) {
+        return new ChangePasswordUseCase(userRepo, passwordEncoder);
     }
 
     // ===== OrgUnit =====

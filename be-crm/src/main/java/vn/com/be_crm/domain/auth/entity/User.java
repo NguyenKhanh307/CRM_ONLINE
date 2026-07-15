@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * Domain entity đại diện cho người dùng hệ thống.
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {

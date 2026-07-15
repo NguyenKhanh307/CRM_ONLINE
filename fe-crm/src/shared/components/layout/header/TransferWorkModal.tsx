@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { FiHelpCircle, FiMoreHorizontal, FiX, FiUser } from 'react-icons/fi';
+import { FiMoreHorizontal, FiX, FiUser } from 'react-icons/fi';
 import { userService } from '@/features/users/services/userService';
 import { useHandoverAll } from '@/features/users/hooks/useHandoverAll';
 import { DialogFooter } from '@/shared/components/ModalFooter';
@@ -45,17 +45,12 @@ const TransferWorkModal = ({ onClose }: ModalProps) => {
                     <span className="font-semibold text-lg text-text-main">
                         Bàn giao toàn bộ công việc
                     </span>
-                    <div className="flex items-center gap-2">
-                        <button className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600">
-                            <FiHelpCircle size={16} />
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-                        >
-                            <FiX size={18} />
-                        </button>
-                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                    >
+                        <FiX size={18} />
+                    </button>
                 </div>
 
                 <div className="px-5 py-4 space-y-4">

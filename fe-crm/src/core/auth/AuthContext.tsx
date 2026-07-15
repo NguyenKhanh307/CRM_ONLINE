@@ -20,6 +20,7 @@ interface AuthContextValue {
     user: AuthUser | null;
     token: string | null;
     login: (token: string, user: AuthUser) => void;
+    updateUser: (patch: Partial<AuthUser>) => void;
     logout: () => void;
     isAuthenticated: boolean;
 }
@@ -56,6 +57,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(newUser);
     }, []);
 
+    /** Cập nhật một phần thông tin user đang lưu (vd sau khi sửa hồ sơ) — đồng bộ cả state lẫn localStorage. */
+    const updateUser = useCallback((patch: Partial<AuthUser>) => {
+        setUser((prev) => {
+            if (!prev) return prev;
+            const next = { ...prev, ...patch };
+            setStoredUser(next);
+            return next;
+        });
+    }, []);
+
     const logout = useCallback(() => {
         clearSession();
         setTokenState(null);
@@ -64,7 +75,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return (
         <AuthContext.Provider
-            value={{ user, token, login, logout, isAuthenticated: !!token }}
+            value={{ user, token, login, updateUser, logout, isAuthenticated: !!token }}
         >
             {children}
         </AuthContext.Provider>

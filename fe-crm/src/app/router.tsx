@@ -4,6 +4,7 @@ import { MainLayout } from '@/shared/components/layout/MainLayout';
 import { RequireAuth } from '@/core/auth/RequireAuth';
 
 const RegisterEmployeePage    = lazy(() => import('@/features/users/pages/RegisterEmployeePage'));
+const AccountSettingsPage     = lazy(() => import('@/features/users/pages/AccountSettingsPage'));
 const LoginPage               = lazy(() => import('@/features/auth/pages/LoginPage'));
 const ActivatePage            = lazy(() => import('@/features/auth/pages/ActivatePage'));
 const DashboardPage   = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
@@ -60,6 +61,7 @@ export const router = createBrowserRouter([
         children: [
             { path: '/',                     element: <Navigate to="/dashboard" replace /> },
             { path: '/dang-ky-nhan-vien',    element: <Suspense fallback={fallback}><RegisterEmployeePage /></Suspense> },
+            { path: '/tai-khoan',            element: <Suspense fallback={fallback}><AccountSettingsPage /></Suspense> },
             { path: '/dashboard',            element: <Suspense fallback={fallback}><DashboardPage /></Suspense> },
             { path: '/tiem-nang',              element: <Suspense fallback={fallback}><TiemNangPage /></Suspense> },
             { path: '/tiem-nang/them-moi',    element: <Suspense fallback={fallback}><LeadAddPage /></Suspense> },

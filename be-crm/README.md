@@ -84,12 +84,21 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 | Method | Endpoint | Mô tả | Auth yêu cầu |
 |--------|----------|-------|--------------|
 | `POST` | `/api/auth/login` | Đăng nhập, trả JWT token. Email phải là @gmail.com | Không |
-| `POST` | `/api/auth/register-employee` | Admin đăng ký tài khoản nhân viên, gửi email kích hoạt | Bearer JWT |
+| `POST` | `/api/auth/google` | Đăng nhập bằng Google — xác thực ID token, chỉ cho vào nếu email có trong bảng `users` + active; tự điền avatar từ ảnh Google khi trống | Không |
+| `POST` | `/api/auth/register-employee` | Admin đăng ký tài khoản nhân viên, gửi email kích hoạt | Bearer JWT (ADMIN) |
 | `POST` | `/api/auth/activate` | Nhân viên kích hoạt tài khoản và đặt mật khẩu lần đầu | Không |
+| `GET` | `/api/auth/me` | Lấy hồ sơ của người dùng đang đăng nhập | Bearer JWT |
+| `PUT` | `/api/auth/me` | Người dùng tự sửa hồ sơ (fullName, phone, avatarUrl) | Bearer JWT |
+| `POST` | `/api/auth/change-password` | Người dùng tự đổi mật khẩu (xác minh mật khẩu hiện tại) | Bearer JWT |
 
 **POST /api/auth/login — Request:**
 ```json
 { "email": "admin@gmail.com", "password": "12345678" }
+```
+
+**POST /api/auth/google — Request:**
+```json
+{ "idToken": "<Google ID token do Google Identity Services cấp>" }
 ```
 
 **POST /api/auth/register-employee — Request:**
@@ -101,6 +110,18 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 ```json
 { "token": "550e8400-e29b-41d4-a716-446655440000", "newPassword": "MyPass@2026" }
 ```
+
+**PUT /api/auth/me — Request:**
+```json
+{ "fullName": "Nguyễn Văn A", "phone": "0901234567", "avatarUrl": "https://res.cloudinary.com/.../avatar.jpg" }
+```
+
+**POST /api/auth/change-password — Request:**
+```json
+{ "currentPassword": "MyPass@2026", "newPassword": "MyNewPass@2026" }
+```
+
+> **Đăng nhập Google** cần env `APP_GOOGLE_CLIENT_ID` = OAuth Client ID (Web) tạo ở Google Cloud Console → Credentials; dùng làm audience khi xác thực ID token (`app.google.client-id`). Thiếu env → `/api/auth/google` trả lỗi cấu hình.
 
 Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer <token>`
 
@@ -720,7 +741,7 @@ be-crm/src/main/java/vn/com/be_crm/
 | `presentation/shared/ApiResponse.java` | Presentation | Wrapper chuẩn cho mọi HTTP response đơn lẻ |
 | `presentation/shared/PageResponse.java` | Presentation | Wrapper chuẩn cho HTTP response phân trang |
 | `presentation/shared/GlobalExceptionHandler.java` | Presentation | Bắt exception toàn cục, trả lỗi dạng chuẩn |
-| `infrastructure/shared/config/SecurityConfig.java` | Infrastructure | Spring Security: stateless JWT, CORS cho localhost:5173, permit /api/auth/login và /api/auth/activate; trả **401** (không phải 403) khi token hết hạn/không hợp lệ |
+| `infrastructure/shared/config/SecurityConfig.java` | Infrastructure | Spring Security: stateless JWT, CORS cho localhost:5173, permit /api/auth/login, /api/auth/google và /api/auth/activate; trả **401** (không phải 403) khi token hết hạn/không hợp lệ |
 | `infrastructure/shared/security/JwtAuthFilter.java` | Infrastructure | OncePerRequestFilter — extract Bearer token, set SecurityContext |
 | `infrastructure/shared/security/JwtProvider.java` | Infrastructure | Generate + validate JWT (JJWT 0.12.x, HS256, 24h) |
 | `infrastructure/shared/security/BcryptPasswordEncoderImpl.java` | Infrastructure | BCrypt password verification |

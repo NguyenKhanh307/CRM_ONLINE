@@ -18,7 +18,13 @@ export interface LoginApiResponse {
     status: number;
 }
 
+export interface GoogleLoginPayload {
+    idToken: string;
+}
+
 export const authService = {
     login: (body: LoginPayload) =>
         axiosInstance.post<LoginApiResponse>('/api/auth/login', body),
+    googleLogin: (body: GoogleLoginPayload) =>
+        axiosInstance.post<LoginApiResponse>('/api/auth/google', body),
 };

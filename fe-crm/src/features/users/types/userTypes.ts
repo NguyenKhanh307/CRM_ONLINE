@@ -31,3 +31,19 @@ export interface HandoverAllPayload {
     toUserId: number;
     reason?: string;
 }
+
+/** Hồ sơ của người dùng đang đăng nhập (GET /api/auth/me). */
+export type ProfileResult = UserResult;
+
+/** Payload cập nhật hồ sơ cá nhân (PUT /api/auth/me). */
+export interface UpdateProfilePayload {
+    fullName: string;
+    phone?: string;
+    avatarUrl?: string;
+}
+
+/** Payload đổi mật khẩu (POST /api/auth/change-password). */
+export interface ChangePasswordPayload {
+    currentPassword: string;
+    newPassword: string;
+}
