@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FiMessageSquare, FiSend, FiX } from 'react-icons/fi';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAskCopilot } from './useAskCopilot';
+import { renderAnswer } from './answerRenderer';
 import type { ChatMessage } from './copilotTypes';
 
 /**
@@ -14,11 +15,32 @@ export const CopilotWidget = () => {
     const [input, setInput] = useState('');
     const { mutate, isPending } = useAskCopilot();
     const scrollRef = useRef<HTMLDivElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null);
 
     // Tự cuộn xuống tin nhắn mới nhất.
     useEffect(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }, [messages, isPending]);
+
+    // Bấm ra ngoài hộp (trừ bong bóng) hoặc nhấn Escape → đóng hộp thoại.
+    useEffect(() => {
+        if (!open) return;
+        const onMouseDown = (e: MouseEvent) => {
+            const target = e.target as Node;
+            if (panelRef.current?.contains(target) || buttonRef.current?.contains(target)) return;
+            setOpen(false);
+        };
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setOpen(false);
+        };
+        document.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('keydown', onKeyDown);
+        return () => {
+            document.removeEventListener('mousedown', onMouseDown);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+    }, [open]);
 
     /** Gửi câu hỏi hiện tại lên trợ lý. */
     const handleSend = () => {
@@ -48,6 +70,7 @@ export const CopilotWidget = () => {
         <>
             {/* Bong bóng mở/đóng */}
             <button
+                ref={buttonRef}
                 onClick={() => setOpen((v) => !v)}
                 aria-label="Trợ lý AI"
                 className="fixed bottom-6 right-6 z-[9999] w-14 h-14 rounded-full bg-primary text-white
@@ -58,7 +81,7 @@ export const CopilotWidget = () => {
 
             {/* Panel chat */}
             {open && (
-                <div className="fixed bottom-24 right-6 z-[9999] w-[360px] max-w-[calc(100vw-3rem)] h-[480px]
+                <div ref={panelRef} className="fixed bottom-24 right-6 z-[9999] w-[360px] max-w-[calc(100vw-3rem)] h-[480px]
                                 max-h-[calc(100vh-8rem)] bg-white rounded-card shadow-2xl border border-gray-200
                                 flex flex-col overflow-hidden">
                     <div className="px-4 py-3 bg-primary text-white flex items-center gap-2">
@@ -77,13 +100,13 @@ export const CopilotWidget = () => {
                             <div key={i} className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
                                 <div
                                     className={
-                                        'max-w-[85%] px-3 py-2 rounded-card text-table whitespace-pre-wrap break-words ' +
+                                        'max-w-[85%] px-3 py-2 rounded-card text-table break-words ' +
                                         (m.role === 'user'
-                                            ? 'bg-primary text-white'
+                                            ? 'bg-primary text-white whitespace-pre-wrap'
                                             : 'bg-white text-text-main border border-gray-200')
                                     }
                                 >
-                                    {m.text}
+                                    {m.role === 'assistant' ? renderAnswer(m.text) : m.text}
                                 </div>
                             </div>
                         ))}
