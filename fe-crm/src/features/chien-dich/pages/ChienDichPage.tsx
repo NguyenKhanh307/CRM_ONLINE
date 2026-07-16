@@ -7,6 +7,7 @@ import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { CreateButton } from '@/shared/components/CreateButton';
 import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
+import { usePermission } from '@/core/permissions/usePermission';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
@@ -33,8 +34,9 @@ const QUICK_FILTERS = [
 
 const ChienDichPage = () => {
     const navigate = useNavigate();
+    const { can } = usePermission();
     const goCreate = () => navigate('/chien-dich/them-moi');
-    usePageShortcuts({ onCreate: goCreate });
+    usePageShortcuts({ onCreate: can('campaign', 'create') ? goCreate : undefined });
     const { showAlert } = useAlert();
     // Server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
@@ -73,20 +75,24 @@ const ChienDichPage = () => {
     /** Thao tác của một chiến dịch — hiện trong menu chuột phải. */
     const rowActions = (c: CampaignResult): RowAction[] => [
         { key: 'detail', label: 'Chi tiết', onClick: () => navigate(`/chien-dich/${c.id}`) },
-        ...(c.status === 'draft' || c.status === 'scheduled' || c.status === 'paused'
+        ...((c.status === 'draft' || c.status === 'scheduled' || c.status === 'paused') && can('campaign', 'edit')
             ? [{ key: 'start', label: 'Bắt đầu chạy', onClick: () => runAction(c.id, 'start') }]
             : []),
-        ...(c.status === 'running'
+        ...(c.status === 'running' && can('campaign', 'edit')
             ? [{ key: 'pause', label: 'Tạm dừng', onClick: () => runAction(c.id, 'pause') }]
             : []),
-        ...(c.status === 'running' || c.status === 'paused'
+        ...((c.status === 'running' || c.status === 'paused') && can('campaign', 'edit')
             ? [{ key: 'complete', label: 'Hoàn tất', onClick: () => runAction(c.id, 'complete') }]
             : []),
-        ...(c.status !== 'completed' && c.status !== 'cancelled'
+        ...(c.status !== 'completed' && c.status !== 'cancelled' && can('campaign', 'edit')
             ? [{ key: 'cancel', label: 'Hủy', onClick: () => runAction(c.id, 'cancel') }]
             : []),
-        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) },
-        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(c.id) },
+        ...(can('campaign', 'edit')
+            ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) }]
+            : []),
+        ...(can('campaign', 'delete')
+            ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(c.id) }]
+            : []),
     ];
 
     return (
@@ -94,21 +100,29 @@ const ChienDichPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Chiến dịch</h1>
                 <div className="flex items-center gap-1.5">
-                    <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/chien-dich/nhap-file')}>
-                        Nhập
-                    </ActionButton>
-                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
-                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </ActionButton>
-                    <CreateButton onClick={goCreate} />
+                    {can('campaign', 'import') && (
+                        <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/chien-dich/nhap-file')}>
+                            Nhập
+                        </ActionButton>
+                    )}
+                    {can('campaign', 'export') && (
+                        <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                            Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                        </ActionButton>
+                    )}
+                    {can('campaign', 'create') && <CreateButton onClick={goCreate} />}
                     {selectedRows.length > 0 && (
                         <>
-                            <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
-                                Bàn giao ({selectedRows.length})
-                            </ActionButton>
-                            <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
-                                Xóa ({selectedRows.length})
-                            </ActionButton>
+                            {can('campaign', 'handover') && (
+                                <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
+                                    Bàn giao ({selectedRows.length})
+                                </ActionButton>
+                            )}
+                            {can('campaign', 'delete') && (
+                                <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
+                                    Xóa ({selectedRows.length})
+                                </ActionButton>
+                            )}
                         </>
                     )}
                 </div>

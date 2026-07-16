@@ -11,8 +11,8 @@ export const useGoogleLogin = () => {
     return useMutation({
         mutationFn: (payload: GoogleLoginPayload) => authService.googleLogin(payload),
         onSuccess: ({ data }) => {
-            const { token, id, email, fullName, roles, permissions } = data.data;
-            login(token, { id, email, fullName, roles, permissions });
+            const { token, id, email, fullName, avatarUrl, roles, permissions } = data.data;
+            login(token, { id, email, fullName, avatarUrl, roles, permissions });
             navigate('/', { replace: true });
         },
     });

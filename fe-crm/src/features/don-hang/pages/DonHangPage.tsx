@@ -7,6 +7,7 @@ import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { CreateButton } from '@/shared/components/CreateButton';
 import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
+import { usePermission } from '@/core/permissions/usePermission';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { RecordItemsPanel } from '@/shared/components/table/RecordItemsPanel';
 import { getLineItemPanelColumns } from '@/shared/components/table/lineItemPanelColumns';
@@ -37,8 +38,9 @@ const QUICK_FILTERS = [
 
 const DonHangPage = () => {
     const navigate = useNavigate();
+    const { can } = usePermission();
     const goCreate = () => navigate('/don-hang/them-moi');
-    usePageShortcuts({ onCreate: goCreate });
+    usePageShortcuts({ onCreate: can('order', 'create') ? goCreate : undefined });
     const { showAlert } = useAlert();
     // Server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
@@ -90,25 +92,27 @@ const DonHangPage = () => {
     /** Thao tác của một đơn hàng — hiện trong menu chuột phải. */
     const rowActions = (o: OrderResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/don-hang/${o.id}`) },
-        ...(o.status === 'draft'
+        ...(o.status === 'draft' && can('order', 'edit')
             ? [{ key: 'confirm', label: 'Xác nhận đơn', onClick: () => runAction(o.id, 'confirm') }]
             : []),
-        ...(o.status === 'confirmed'
+        ...(o.status === 'confirmed' && can('order', 'edit')
             ? [{ key: 'process', label: 'Bắt đầu xử lý', onClick: () => runAction(o.id, 'process') }]
             : []),
-        ...(o.status === 'confirmed' || o.status === 'processing'
+        ...((o.status === 'confirmed' || o.status === 'processing') && can('invoice', 'create')
             ? [{ key: 'createInvoice', label: 'Xuất hóa đơn', onClick: () => runAction(o.id, 'createInvoice') }]
             : []),
-        ...(o.status === 'processing'
+        ...(o.status === 'processing' && can('order', 'edit')
             ? [{ key: 'complete', label: 'Hoàn tất đơn', onClick: () => runAction(o.id, 'complete') }]
             : []),
-        ...(o.status === 'draft' || o.status === 'confirmed' || o.status === 'processing'
+        ...((o.status === 'draft' || o.status === 'confirmed' || o.status === 'processing') && can('order', 'edit')
             ? [{ key: 'cancel', label: 'Hủy đơn', onClick: () => runAction(o.id, 'cancel') }]
             : []),
-        ...(!o.isLocked
+        ...(!o.isLocked && can('order', 'edit')
             ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) }]
             : []),
-        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(o.id) },
+        ...(can('order', 'delete')
+            ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(o.id) }]
+            : []),
     ];
 
     return (
@@ -116,21 +120,29 @@ const DonHangPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Đơn hàng</h1>
                 <div className="flex items-center gap-1.5">
-                    <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/don-hang/nhap-file')}>
-                        Nhập
-                    </ActionButton>
-                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
-                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </ActionButton>
-                    <CreateButton onClick={goCreate} />
+                    {can('order', 'import') && (
+                        <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/don-hang/nhap-file')}>
+                            Nhập
+                        </ActionButton>
+                    )}
+                    {can('order', 'export') && (
+                        <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                            Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                        </ActionButton>
+                    )}
+                    {can('order', 'create') && <CreateButton onClick={goCreate} />}
                     {selectedRows.length > 0 && (
                         <>
-                            <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
-                                Bàn giao ({selectedRows.length})
-                            </ActionButton>
-                            <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
-                                Xóa ({selectedRows.length})
-                            </ActionButton>
+                            {can('order', 'handover') && (
+                                <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
+                                    Bàn giao ({selectedRows.length})
+                                </ActionButton>
+                            )}
+                            {can('order', 'delete') && (
+                                <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
+                                    Xóa ({selectedRows.length})
+                                </ActionButton>
+                            )}
                         </>
                     )}
                 </div>

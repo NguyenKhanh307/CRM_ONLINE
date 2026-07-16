@@ -7,6 +7,7 @@ import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { CreateButton } from '@/shared/components/CreateButton';
 import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
+import { usePermission } from '@/core/permissions/usePermission';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
@@ -31,8 +32,9 @@ const QUICK_FILTERS = [
 
 const KhachHangPage = () => {
     const navigate = useNavigate();
+    const { can } = usePermission();
     const goCreate = () => navigate('/khach-hang/them-moi');
-    usePageShortcuts({ onCreate: goCreate });
+    usePageShortcuts({ onCreate: can('customer', 'create') ? goCreate : undefined });
     const { showAlert } = useAlert();
     // Server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
@@ -72,11 +74,17 @@ const KhachHangPage = () => {
     /** Thao tác của một khách hàng — hiện trong menu chuột phải. */
     const rowActions = (c: CustomerResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/khach-hang/${c.id}`) },
-        ...(c.status !== 'active'
-            ? [{ key: 'activate', label: 'Kích hoạt', onClick: () => runAction(c.id, 'activate') }]
-            : [{ key: 'deactivate', label: 'Ngừng hoạt động', onClick: () => runAction(c.id, 'deactivate') }]),
-        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) },
-        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(c.id) },
+        ...(can('customer', 'edit')
+            ? (c.status !== 'active'
+                ? [{ key: 'activate', label: 'Kích hoạt', onClick: () => runAction(c.id, 'activate') }]
+                : [{ key: 'deactivate', label: 'Ngừng hoạt động', onClick: () => runAction(c.id, 'deactivate') }])
+            : []),
+        ...(can('customer', 'edit')
+            ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) }]
+            : []),
+        ...(can('customer', 'delete')
+            ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(c.id) }]
+            : []),
     ];
 
     return (
@@ -84,21 +92,29 @@ const KhachHangPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Khách hàng</h1>
                 <div className="flex items-center gap-1.5">
-                    <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/khach-hang/nhap-file')}>
-                        Nhập
-                    </ActionButton>
-                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
-                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </ActionButton>
-                    <CreateButton onClick={goCreate} />
+                    {can('customer', 'import') && (
+                        <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/khach-hang/nhap-file')}>
+                            Nhập
+                        </ActionButton>
+                    )}
+                    {can('customer', 'export') && (
+                        <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                            Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                        </ActionButton>
+                    )}
+                    {can('customer', 'create') && <CreateButton onClick={goCreate} />}
                     {selectedRows.length > 0 && (
                         <>
-                            <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
-                                Bàn giao ({selectedRows.length})
-                            </ActionButton>
-                            <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
-                                Xóa ({selectedRows.length})
-                            </ActionButton>
+                            {can('customer', 'handover') && (
+                                <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
+                                    Bàn giao ({selectedRows.length})
+                                </ActionButton>
+                            )}
+                            {can('customer', 'delete') && (
+                                <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
+                                    Xóa ({selectedRows.length})
+                                </ActionButton>
+                            )}
                         </>
                     )}
                 </div>

@@ -9,9 +9,10 @@ import java.util.List;
  * @param id          ID người dùng
  * @param email       email tài khoản
  * @param fullName    họ tên đầy đủ
+ * @param avatarUrl   URL ảnh đại diện (có thể null nếu chưa đặt)
  * @param roles       danh sách code vai trò (vd: ADMIN, SALES)
  * @param permissions danh sách code quyền hạn (vd: lead.view, order.create)
  */
-public record LoginResult(String token, Long id, String email, String fullName,
+public record LoginResult(String token, Long id, String email, String fullName, String avatarUrl,
                           List<String> roles, List<String> permissions) {
 }

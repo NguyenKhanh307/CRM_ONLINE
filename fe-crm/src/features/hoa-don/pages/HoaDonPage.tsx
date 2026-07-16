@@ -7,6 +7,7 @@ import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { CreateButton } from '@/shared/components/CreateButton';
 import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
+import { usePermission } from '@/core/permissions/usePermission';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { RecordItemsPanel } from '@/shared/components/table/RecordItemsPanel';
 import { getLineItemPanelColumns } from '@/shared/components/table/lineItemPanelColumns';
@@ -37,8 +38,9 @@ const QUICK_FILTERS = [
 
 const HoaDonPage = () => {
     const navigate = useNavigate();
+    const { can } = usePermission();
     const goCreate = () => navigate('/hoa-don/them-moi');
-    usePageShortcuts({ onCreate: goCreate });
+    usePageShortcuts({ onCreate: can('invoice', 'create') ? goCreate : undefined });
     const { showAlert } = useAlert();
     // Server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
@@ -83,16 +85,18 @@ const HoaDonPage = () => {
     /** Thao tác của một hóa đơn — hiện trong menu chuột phải. */
     const rowActions = (o: InvoiceResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/hoa-don/${o.id}`) },
-        ...(o.status === 'draft'
+        ...(o.status === 'draft' && can('invoice', 'approve')
             ? [{ key: 'issue', label: 'Phát hành', onClick: () => runAction(o.id, 'issue') }]
             : []),
-        ...(o.status === 'draft' || o.status === 'sent' || o.status === 'partially_paid'
+        ...((o.status === 'draft' || o.status === 'sent' || o.status === 'partially_paid') && can('invoice', 'approve')
             ? [{ key: 'cancel', label: 'Hủy hóa đơn', onClick: () => runAction(o.id, 'cancel') }]
             : []),
-        ...(!o.isLocked
+        ...(!o.isLocked && can('invoice', 'edit')
             ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) }]
             : []),
-        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(o.id) },
+        ...(can('invoice', 'delete')
+            ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(o.id) }]
+            : []),
     ];
 
     return (
@@ -100,21 +104,29 @@ const HoaDonPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Hóa đơn</h1>
                 <div className="flex items-center gap-1.5">
-                    <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/hoa-don/nhap-file')}>
-                        Nhập
-                    </ActionButton>
-                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
-                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </ActionButton>
-                    <CreateButton onClick={goCreate} />
+                    {can('invoice', 'import') && (
+                        <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/hoa-don/nhap-file')}>
+                            Nhập
+                        </ActionButton>
+                    )}
+                    {can('invoice', 'export') && (
+                        <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                            Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                        </ActionButton>
+                    )}
+                    {can('invoice', 'create') && <CreateButton onClick={goCreate} />}
                     {selectedRows.length > 0 && (
                         <>
-                            <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
-                                Bàn giao ({selectedRows.length})
-                            </ActionButton>
-                            <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
-                                Xóa ({selectedRows.length})
-                            </ActionButton>
+                            {can('invoice', 'handover') && (
+                                <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
+                                    Bàn giao ({selectedRows.length})
+                                </ActionButton>
+                            )}
+                            {can('invoice', 'delete') && (
+                                <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
+                                    Xóa ({selectedRows.length})
+                                </ActionButton>
+                            )}
                         </>
                     )}
                 </div>

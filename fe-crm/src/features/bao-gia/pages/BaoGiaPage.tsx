@@ -40,13 +40,12 @@ const QUICK_FILTERS = [
 
 const BaoGiaPage = () => {
     const navigate = useNavigate();
+    const { can } = usePermission();
     const goCreate = () => navigate('/bao-gia/them-moi');
-    usePageShortcuts({ onCreate: goCreate });
+    usePageShortcuts({ onCreate: can('quotation', 'create') ? goCreate : undefined });
     const [searchParams] = useSearchParams();
     const focusId = searchParams.get('focus');
     const { showAlert } = useAlert();
-    const { hasRole } = usePermission();
-    const isManager = hasRole('ADMIN') || hasRole('SALES_MANAGER');
     // Server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
@@ -108,34 +107,36 @@ const BaoGiaPage = () => {
     /** Thao tác của một báo giá — hiện trong menu chuột phải. */
     const rowActions = (q: QuotationResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/bao-gia/${q.id}`) },
-        ...(q.status === 'draft'
+        ...(q.status === 'draft' && can('quotation', 'edit')
             ? [{ key: 'submit', label: 'Gửi duyệt', onClick: () => runAction(q.id, 'submit') }]
             : []),
-        ...(q.status === 'pending' && isManager
+        ...(q.status === 'pending' && can('quotation', 'approve')
             ? [
                 { key: 'approve', label: 'Duyệt', onClick: () => runAction(q.id, 'approve') },
                 { key: 'reject', label: 'Từ chối', onClick: () => setRejectTarget(q.id) },
             ]
             : []),
-        ...(q.status === 'approved'
+        ...(q.status === 'approved' && can('quotation', 'approve')
             ? [
                 { key: 'send', label: 'Gửi email cho khách', onClick: () => setSendTarget(q.id) },
                 { key: 'markSent', label: 'Đánh dấu đã gửi', onClick: () => runAction(q.id, 'markSent') },
             ]
             : []),
-        ...(q.status === 'sent'
+        ...(q.status === 'sent' && can('quotation', 'approve')
             ? [{ key: 'accept', label: 'Khách chấp nhận', onClick: () => runAction(q.id, 'accept') }]
             : []),
-        ...(q.opportunityId && !q.isPrimary
+        ...(q.opportunityId && !q.isPrimary && can('quotation', 'edit')
             ? [{ key: 'setPrimary', label: 'Đặt làm báo giá đồng bộ', onClick: () => runAction(q.id, 'setPrimary') }]
             : []),
-        ...(q.status === 'accepted' && !q.isLocked
+        ...(q.status === 'accepted' && !q.isLocked && can('quotation', 'edit')
             ? [{ key: 'convertToOrder', label: 'Chuyển thành đơn hàng', onClick: () => runAction(q.id, 'convertToOrder') }]
             : []),
-        ...(!q.isLocked
+        ...(!q.isLocked && can('quotation', 'edit')
             ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(q) }]
             : []),
-        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(q.id) },
+        ...(can('quotation', 'delete')
+            ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(q.id) }]
+            : []),
     ];
 
     return (
@@ -143,21 +144,29 @@ const BaoGiaPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Báo giá</h1>
                 <div className="flex items-center gap-1.5">
-                    <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/bao-gia/nhap-file')}>
-                        Nhập
-                    </ActionButton>
-                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
-                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </ActionButton>
-                    <CreateButton onClick={goCreate} />
+                    {can('quotation', 'import') && (
+                        <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/bao-gia/nhap-file')}>
+                            Nhập
+                        </ActionButton>
+                    )}
+                    {can('quotation', 'export') && (
+                        <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                            Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                        </ActionButton>
+                    )}
+                    {can('quotation', 'create') && <CreateButton onClick={goCreate} />}
                     {selectedRows.length > 0 && (
                         <>
-                            <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
-                                Bàn giao ({selectedRows.length})
-                            </ActionButton>
-                            <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
-                                Xóa ({selectedRows.length})
-                            </ActionButton>
+                            {can('quotation', 'handover') && (
+                                <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
+                                    Bàn giao ({selectedRows.length})
+                                </ActionButton>
+                            )}
+                            {can('quotation', 'delete') && (
+                                <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
+                                    Xóa ({selectedRows.length})
+                                </ActionButton>
+                            )}
                         </>
                     )}
                 </div>

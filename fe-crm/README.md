@@ -117,7 +117,8 @@ fe-crm/src/
 │   │   ├── authStorage.ts      # localStorage helpers
 │   │   └── useAuth.ts
 │   ├── permissions/
-│   │   ├── PermissionContext.tsx  # hasRole(), hasPermission(), hasModuleAccess()
+│   │   ├── PermissionContext.tsx  # hasRole(), hasPermission(), hasModuleAccess(), can(module, action)
+│   │   ├── RequirePermission.tsx   # guard route theo quyền → redirect /forbidden
 │   │   └── usePermission.ts
 │   └── axios/
 │       └── axiosInstance.ts    # Axios instance — đọc VITE_API_BASE_URL
@@ -360,6 +361,19 @@ Trang quản lý nhóm người dùng và phân quyền theo nhóm. Kết nối 
 - **Panel trái**: Danh sách nhóm (roles) — tạo/sửa/xóa nhóm
 - **Tab Thành viên**: Xem + thêm/xóa người dùng trong nhóm; Thu hồi/kích hoạt lại tài khoản; Chỉnh sửa năm xem data (`dataAccessFromYear`)
 - **Tab Phân quyền**: Accordion theo module, toggle gán/thu hồi quyền ngay lập tức
+
+#### Ẩn/hiện nút thao tác theo quyền — `can(module, action)`
+
+Mọi nút Thêm/Sửa/Xóa/Nhập/Xuất/Bàn giao + menu chuột phải + phím tắt Alt+N + route `them-moi`/`nhap-file` đều gate theo quyền, **khớp guard BE**. Dùng `const { can } = usePermission();`:
+
+- `can(m,'create')` → `CreateButton`, Alt+N (`usePageShortcuts({ onCreate: can(m,'create') ? goCreate : undefined })`), route `them-moi`
+- `can(m,'import')` → nút Nhập + route `nhap-file` (= `<m>.create`)
+- `can(m,'export')` → nút Xuất (**quyền mới `<m>.export`** trong DB — reseed + đăng nhập lại mới có)
+- `can(m,'edit')` / `can(m,'delete')` → menu Chỉnh sửa / Xóa + nút Xóa hàng loạt
+- `can(m,'handover')` → nút Bàn giao (role ADMIN/SALES_MANAGER)
+- `can(m,'approve'|'process'|'approve_return')` → hành động workflow (duyệt báo giá, phát hành hóa đơn, xử lý phiếu...)
+
+Ngoại lệ do BE: quotation/invoice/product xóa gate bằng role; product quản lý bằng role (chỉ có `product.view`). Helper tự xử lý qua `MANAGE_BY_ROLE`/`DELETE_BY_ROLE`. Route thiếu quyền → `RequirePermission` redirect `/forbidden`.
 
 | Endpoint | Mô tả |
 |----------|-------|

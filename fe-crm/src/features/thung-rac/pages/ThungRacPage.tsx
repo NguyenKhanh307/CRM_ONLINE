@@ -8,8 +8,22 @@ import { useDeletedItems, useRestore, usePurge } from '@/features/thung-rac/hook
 import { TRASH_MODULE_LABELS } from '@/features/thung-rac/types/thungRacTypes';
 import type { TrashModule, DeletedItemRow } from '@/features/thung-rac/types/thungRacTypes';
 import type { RowAction } from '@/shared/types/table';
+import { usePermission } from '@/core/permissions/usePermission';
 
 type ConfirmState = { type: 'restore' | 'purge'; id: number } | null;
+
+/** Map slug tab thùng rác → key module permission (để gate Khôi phục/Xóa vĩnh viễn theo `<m>.delete`). */
+const TRASH_TO_PERM: Record<TrashModule, string> = {
+    'chien-dich': 'campaign',
+    'tiem-nang': 'lead',
+    'lien-he': 'contact',
+    'khach-hang': 'customer',
+    'co-hoi': 'opportunity',
+    'bao-gia': 'quotation',
+    'don-hang': 'order',
+    'hoa-don': 'invoice',
+    'san-pham': 'product',
+};
 
 /** Nội dung tab — load data theo module đang chọn. */
 const TrashTabContent = ({
@@ -21,12 +35,16 @@ const TrashTabContent = ({
 }) => {
     const { data, isLoading } = useDeletedItems(module);
     const items = data?.items ?? [];
+    const { can } = usePermission();
+    const canManage = can(TRASH_TO_PERM[module], 'delete');
 
-    /** Thao tác của một bản ghi đã xóa — hiện trong menu chuột phải. */
-    const rowActions = (row: DeletedItemRow): RowAction[] => [
-        { key: 'restore', label: 'Khôi phục', onClick: () => onAction('restore', row.id) },
-        { key: 'purge', label: 'Xóa vĩnh viễn', danger: true, onClick: () => onAction('purge', row.id) },
-    ];
+    /** Thao tác của một bản ghi đã xóa — hiện trong menu chuột phải (theo quyền xóa của phân hệ). */
+    const rowActions = (row: DeletedItemRow): RowAction[] => canManage
+        ? [
+            { key: 'restore', label: 'Khôi phục', onClick: () => onAction('restore', row.id) },
+            { key: 'purge', label: 'Xóa vĩnh viễn', danger: true, onClick: () => onAction('purge', row.id) },
+        ]
+        : [];
 
     if (isLoading) {
         return (

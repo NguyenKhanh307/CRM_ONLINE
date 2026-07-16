@@ -27,11 +27,11 @@ const QUICK_FILTERS = [
 
 const SanPhamPage = () => {
     const navigate = useNavigate();
+    // Master data: product chỉ có quyền .view → create/edit/delete gate bằng role ADMIN/SALES_MANAGER
+    // (helper can() tự xử lý qua MANAGE_BY_ROLE) — sale chỉ xem
+    const { can } = usePermission();
     const goCreate = () => navigate('/san-pham/them-moi');
-    usePageShortcuts({ onCreate: goCreate });
-    // Master data: chỉ ADMIN/SALES_MANAGER được thêm/sửa/xóa (khớp guard BE) — sale chỉ xem
-    const { hasRole } = usePermission();
-    const canManage = hasRole('ADMIN') || hasRole('SALES_MANAGER');
+    usePageShortcuts({ onCreate: can('product', 'create') ? goCreate : undefined });
 
     // Server-side pagination + search + tag lọc nhanh (tag Sản phẩm lọc theo isActive — BE map param status → isActive)
     const [page, setPage] = useState(0);
@@ -60,16 +60,18 @@ const SanPhamPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Sản phẩm</h1>
                 <div className="flex items-center gap-1.5">
-                    {canManage && (
+                    {can('product', 'import') && (
                         <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/san-pham/nhap-file')}>
                             Nhập
                         </ActionButton>
                     )}
-                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
-                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </ActionButton>
-                    {canManage && <CreateButton onClick={goCreate} />}
-                    {canManage && selectedRows.length > 0 && (
+                    {can('product', 'export') && (
+                        <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                            Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                        </ActionButton>
+                    )}
+                    {can('product', 'create') && <CreateButton onClick={goCreate} />}
+                    {can('product', 'delete') && selectedRows.length > 0 && (
                         <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
                             Xóa ({selectedRows.length})
                         </ActionButton>
@@ -93,13 +95,15 @@ const SanPhamPage = () => {
                         onSearchChange: (v) => { setSearch(v); setPage(0); },
                         onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
                     }}
-                    onRowDoubleClick={(p) => { if (canManage) setEditTarget(p); }}
-                    rowActions={(p) => (canManage
-                        ? [
-                            { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(p) },
-                            { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(p.id) },
-                        ]
-                        : [])}
+                    onRowDoubleClick={(p) => { if (can('product', 'edit')) setEditTarget(p); }}
+                    rowActions={(p) => [
+                        ...(can('product', 'edit')
+                            ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(p) }]
+                            : []),
+                        ...(can('product', 'delete')
+                            ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(p.id) }]
+                            : []),
+                    ]}
                     quickFilters={QUICK_FILTERS}
                 />
             </div>

@@ -18,10 +18,10 @@ import type { PricePolicyResult } from '../types/pricingTypes';
 const ChinhSachGiaPage = () => {
     const navigate = useNavigate();
     // Master data: gate nút theo permission (khớp guard BE pricing.create/edit/delete)
-    const { hasPermission } = usePermission();
-    const canCreate = hasPermission('pricing.create');
-    const canEdit = hasPermission('pricing.edit');
-    const canDelete = hasPermission('pricing.delete');
+    const { can } = usePermission();
+    const canCreate = can('pricing', 'create');
+    const canEdit = can('pricing', 'edit');
+    const canDelete = can('pricing', 'delete');
 
     // Server-side pagination + search
     const [page, setPage] = useState(0);
@@ -44,7 +44,7 @@ const ChinhSachGiaPage = () => {
     const openCreate = () => { setEditTarget(null); setFormOpen(true); };
     const openEdit = (item: PricePolicyResult) => { setEditTarget(item); setFormOpen(true); };
 
-    usePageShortcuts({ onCreate: openCreate });
+    usePageShortcuts({ onCreate: canCreate ? openCreate : undefined });
 
     /** Thao tác của một chính sách giá — hiện trong menu chuột phải (theo permission). */
     const rowActions = (p: PricePolicyResult): RowAction[] => [

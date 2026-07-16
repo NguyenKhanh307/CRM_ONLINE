@@ -11,6 +11,7 @@ export interface LoginApiResponse {
         id: number;
         email: string;
         fullName: string;
+        avatarUrl?: string | null;
         roles: string[];
         permissions: string[];
     };

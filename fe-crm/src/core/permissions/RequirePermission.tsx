@@ -1,0 +1,25 @@
+import type { ReactNode } from 'react';
+import { Navigate } from 'react-router-dom';
+import { usePermission } from './usePermission';
+import type { PermAction } from './PermissionContext';
+
+interface Props {
+    /** Key module cần kiểm quyền (vd 'lead', 'quotation'). */
+    module: string;
+    /** Thao tác cần quyền để vào route (mặc định 'create' cho form thêm mới / nhập file). */
+    action?: PermAction;
+    children: ReactNode;
+}
+
+/**
+ * Guard route theo quyền — thiếu quyền thì chuyển hướng về /forbidden.
+ * Đặt BÊN TRONG RequireAuth (đã đảm bảo đăng nhập). Dùng cho route
+ * /{module}/them-moi và /{module}/nhap-file để chặn gõ URL trực tiếp.
+ */
+export function RequirePermission({ module, action = 'create', children }: Props) {
+    const { can } = usePermission();
+    if (!can(module, action)) {
+        return <Navigate to="/forbidden" replace />;
+    }
+    return <>{children}</>;
+}

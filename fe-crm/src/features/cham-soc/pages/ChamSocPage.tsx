@@ -6,6 +6,7 @@ import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { CreateButton } from '@/shared/components/CreateButton';
 import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
+import { usePermission } from '@/core/permissions/usePermission';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
@@ -29,8 +30,9 @@ const QUICK_FILTERS = [
 
 const ChamSocPage = () => {
     const navigate = useNavigate();
+    const { can } = usePermission();
     const goCreate = () => navigate('/cham-soc/them-moi');
-    usePageShortcuts({ onCreate: goCreate });
+    usePageShortcuts({ onCreate: can('ticket', 'create') ? goCreate : undefined });
     const [searchParams] = useSearchParams();
     const focusId = searchParams.get('focus');
     // Server-side pagination + search + tag lọc nhanh (tag Chăm sóc lọc theo `type` — BE map param status → type)
@@ -68,18 +70,24 @@ const ChamSocPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Chăm sóc sau bán</h1>
                 <div className="flex items-center gap-1.5">
-                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
-                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </ActionButton>
-                    <CreateButton onClick={goCreate} />
+                    {can('ticket', 'export') && (
+                        <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                            Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                        </ActionButton>
+                    )}
+                    {can('ticket', 'create') && <CreateButton onClick={goCreate} />}
                     {selectedRows.length > 0 && (
                         <>
-                            <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
-                                Bàn giao ({selectedRows.length})
-                            </ActionButton>
-                            <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
-                                Xóa ({selectedRows.length})
-                            </ActionButton>
+                            {can('ticket', 'handover') && (
+                                <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
+                                    Bàn giao ({selectedRows.length})
+                                </ActionButton>
+                            )}
+                            {can('ticket', 'delete') && (
+                                <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
+                                    Xóa ({selectedRows.length})
+                                </ActionButton>
+                            )}
                         </>
                     )}
                 </div>
@@ -105,7 +113,9 @@ const ChamSocPage = () => {
                     onRowDoubleClick={(t) => navigate(`/cham-soc/${t.id}`)}
                     rowActions={(t) => [
                         { key: 'view', label: 'Xem / xử lý', onClick: () => navigate(`/cham-soc/${t.id}`) },
-                        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(t.id) },
+                        ...(can('ticket', 'delete')
+                            ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(t.id) }]
+                            : []),
                     ]}
                     quickFilters={QUICK_FILTERS}
                 />

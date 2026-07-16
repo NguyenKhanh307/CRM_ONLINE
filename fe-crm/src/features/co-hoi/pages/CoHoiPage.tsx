@@ -6,6 +6,7 @@ import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { CreateButton } from '@/shared/components/CreateButton';
 import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
+import { usePermission } from '@/core/permissions/usePermission';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { RecordItemsPanel } from '@/shared/components/table/RecordItemsPanel';
 import { getLineItemPanelColumns } from '@/shared/components/table/lineItemPanelColumns';
@@ -35,8 +36,9 @@ const QUICK_FILTERS = [
 
 const CoHoiPage = () => {
     const navigate = useNavigate();
+    const { can } = usePermission();
     const goCreate = () => navigate('/co-hoi/them-moi');
-    usePageShortcuts({ onCreate: goCreate });
+    usePageShortcuts({ onCreate: can('opportunity', 'create') ? goCreate : undefined });
     const { showAlert } = useAlert();
     // Server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
@@ -92,21 +94,29 @@ const CoHoiPage = () => {
                     <ActionButton variant="secondary" icon={FiSliders} onClick={() => navigate('/co-hoi/pipeline')}>
                         Giai đoạn
                     </ActionButton>
-                    <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/co-hoi/nhap-file')}>
-                        Nhập
-                    </ActionButton>
-                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
-                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </ActionButton>
-                    <CreateButton onClick={goCreate} />
+                    {can('opportunity', 'import') && (
+                        <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/co-hoi/nhap-file')}>
+                            Nhập
+                        </ActionButton>
+                    )}
+                    {can('opportunity', 'export') && (
+                        <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                            Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                        </ActionButton>
+                    )}
+                    {can('opportunity', 'create') && <CreateButton onClick={goCreate} />}
                     {selectedRows.length > 0 && (
                         <>
-                            <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
-                                Bàn giao ({selectedRows.length})
-                            </ActionButton>
-                            <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
-                                Xóa ({selectedRows.length})
-                            </ActionButton>
+                            {can('opportunity', 'handover') && (
+                                <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
+                                    Bàn giao ({selectedRows.length})
+                                </ActionButton>
+                            )}
+                            {can('opportunity', 'delete') && (
+                                <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
+                                    Xóa ({selectedRows.length})
+                                </ActionButton>
+                            )}
                         </>
                     )}
                 </div>
@@ -134,9 +144,15 @@ const CoHoiPage = () => {
                     onRowDoubleClick={(o) => navigate(`/co-hoi/${o.id}`)}
                     rowActions={(o) => [
                         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/co-hoi/${o.id}`) },
-                        { key: 'quote', label: 'Tạo báo giá từ cơ hội', onClick: () => createQuote(o.id) },
-                        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) },
-                        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(o.id) },
+                        ...(can('quotation', 'create')
+                            ? [{ key: 'quote', label: 'Tạo báo giá từ cơ hội', onClick: () => createQuote(o.id) }]
+                            : []),
+                        ...(can('opportunity', 'edit')
+                            ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) }]
+                            : []),
+                        ...(can('opportunity', 'delete')
+                            ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(o.id) }]
+                            : []),
                     ]}
                     quickFilters={QUICK_FILTERS}
                 />

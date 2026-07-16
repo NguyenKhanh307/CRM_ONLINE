@@ -6,6 +6,7 @@ import { useAlert } from '@/shared/alert/useAlert';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { phoneError } from '@/shared/utils/validators';
 import { uploadImage } from '@/shared/utils/cloudinary';
+import { UserAvatar } from '@/shared/components/UserAvatar';
 import { useMyProfile } from '../hooks/useMyProfile';
 import { useUpdateProfile } from '../hooks/useUpdateProfile';
 
@@ -38,8 +39,6 @@ const AccountSettingsPage = () => {
         setPhone(profile.phone ?? '');
         setAvatarUrl(profile.avatarUrl ?? '');
     }, [profile]);
-
-    const initials = (fullName || user?.fullName || 'U').slice(0, 2).toUpperCase();
 
     const handlePickFile = () => fileInputRef.current?.click();
 
@@ -78,7 +77,7 @@ const AccountSettingsPage = () => {
             },
             {
                 onSuccess: (updated) => {
-                    updateUser({ fullName: updated.fullName });
+                    updateUser({ fullName: updated.fullName, avatarUrl: updated.avatarUrl });
                     showAlert('Đã cập nhật thông tin tài khoản.');
                 },
             },
@@ -112,13 +111,7 @@ const AccountSettingsPage = () => {
                     <form onSubmit={handleSubmit} noValidate className="space-y-5">
                         {/* Ảnh đại diện */}
                         <div className="flex items-center gap-4">
-                            <div className="w-20 h-20 rounded-full overflow-hidden bg-primary flex items-center justify-center text-white text-xl font-semibold shrink-0">
-                                {avatarUrl ? (
-                                    <img src={avatarUrl} alt="Ảnh đại diện" className="w-full h-full object-cover" />
-                                ) : (
-                                    initials
-                                )}
-                            </div>
+                            <UserAvatar fullName={fullName || user?.fullName} avatarUrl={avatarUrl} size={80} />
                             <div>
                                 <button
                                     type="button"

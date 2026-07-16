@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiKey, FiUser, FiLogOut } from 'react-icons/fi';
 import { useAuth } from '@/core/auth/useAuth';
+import { UserAvatar } from '@/shared/components/UserAvatar';
 import { ChangePasswordModal } from '@/features/users/components/ChangePasswordModal';
 
 interface Props {
@@ -35,13 +36,16 @@ const UserMenuDropdown = ({ onClose, onChangePassword }: Props) => {
             className="absolute right-0 top-full mt-2 w-[220px] bg-white rounded-card shadow-lg border border-gray-200 z-50 py-1"
         >
             {/* User info */}
-            <div className="px-4 py-3 border-b border-gray-100">
-                <p className="text-sm font-semibold text-text-main truncate">
-                    {user?.fullName ?? 'Người dùng'}
-                </p>
-                <p className="text-sm text-gray-400 truncate mt-0.5">
-                    {user?.email ?? ''}
-                </p>
+            <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+                <UserAvatar fullName={user?.fullName} avatarUrl={user?.avatarUrl} size={40} />
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold text-text-main truncate">
+                        {user?.fullName ?? 'Người dùng'}
+                    </p>
+                    <p className="text-sm text-gray-400 truncate mt-0.5">
+                        {user?.email ?? ''}
+                    </p>
+                </div>
             </div>
 
             {/* Menu items */}
@@ -77,18 +81,14 @@ export const UserMenuButton = () => {
     const [open, setOpen] = useState(false);
     const [showChangePassword, setShowChangePassword] = useState(false);
 
-    const initials = user?.fullName
-        ? user.fullName.slice(0, 2).toUpperCase()
-        : 'U';
-
     return (
         <div className="relative">
             <button
                 onClick={() => setOpen(v => !v)}
-                className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-semibold hover:opacity-90"
+                className="rounded-full hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 title={user?.fullName ?? 'Tài khoản'}
             >
-                {initials}
+                <UserAvatar fullName={user?.fullName} avatarUrl={user?.avatarUrl} size={32} />
             </button>
             {open && (
                 <UserMenuDropdown

@@ -7,6 +7,7 @@ import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { CreateButton } from '@/shared/components/CreateButton';
 import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
+import { usePermission } from '@/core/permissions/usePermission';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ReasonModal } from '@/shared/components/ReasonModal';
@@ -35,8 +36,9 @@ const QUICK_FILTERS = [
 
 const TiemNangPage = () => {
     const navigate = useNavigate();
+    const { can } = usePermission();
     const goCreate = () => navigate('/tiem-nang/them-moi');
-    usePageShortcuts({ onCreate: goCreate });
+    usePageShortcuts({ onCreate: can('lead', 'create') ? goCreate : undefined });
     const [searchParams] = useSearchParams();
     const focusId = searchParams.get('focus');
     const { showAlert } = useAlert();
@@ -108,10 +110,12 @@ const TiemNangPage = () => {
             ...(isOpen
                 ? [{ key: 'lose', label: 'Đánh mất', onClick: () => setLoseTarget(l.id) }]
                 : []),
-            ...(l.status !== 'converted'
+            ...(l.status !== 'converted' && can('lead', 'edit')
                 ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(l) }]
                 : []),
-            { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(l.id) },
+            ...(can('lead', 'delete')
+                ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(l.id) }]
+                : []),
         ];
     };
 
@@ -120,21 +124,29 @@ const TiemNangPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Tiềm năng</h1>
                 <div className="flex items-center gap-1.5">
-                    <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/tiem-nang/nhap-file')}>
-                        Nhập
-                    </ActionButton>
-                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
-                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </ActionButton>
-                    <CreateButton onClick={goCreate} />
+                    {can('lead', 'import') && (
+                        <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/tiem-nang/nhap-file')}>
+                            Nhập
+                        </ActionButton>
+                    )}
+                    {can('lead', 'export') && (
+                        <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                            Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                        </ActionButton>
+                    )}
+                    {can('lead', 'create') && <CreateButton onClick={goCreate} />}
                     {selectedRows.length > 0 && (
                         <>
-                            <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
-                                Bàn giao ({selectedRows.length})
-                            </ActionButton>
-                            <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
-                                Xóa ({selectedRows.length})
-                            </ActionButton>
+                            {can('lead', 'handover') && (
+                                <ActionButton variant="info" icon={FiShare2} onClick={() => setHandoverOpen(true)}>
+                                    Bàn giao ({selectedRows.length})
+                                </ActionButton>
+                            )}
+                            {can('lead', 'delete') && (
+                                <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
+                                    Xóa ({selectedRows.length})
+                                </ActionButton>
+                            )}
                         </>
                     )}
                 </div>

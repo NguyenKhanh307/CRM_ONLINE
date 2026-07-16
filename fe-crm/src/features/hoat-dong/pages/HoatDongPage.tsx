@@ -7,6 +7,7 @@ import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { CreateButton } from '@/shared/components/CreateButton';
 import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
+import { usePermission } from '@/core/permissions/usePermission';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
@@ -30,8 +31,9 @@ const QUICK_FILTERS = [
 
 const HoatDongPage = () => {
     const navigate = useNavigate();
+    const { can } = usePermission();
     const goCreate = () => navigate('/hoat-dong/them-moi');
-    usePageShortcuts({ onCreate: goCreate });
+    usePageShortcuts({ onCreate: can('activity', 'create') ? goCreate : undefined });
     const { showAlert } = useAlert();
     // Server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
@@ -68,17 +70,21 @@ const HoatDongPage = () => {
 
     /** Thao tác của một hoạt động — hiện trong menu chuột phải. */
     const rowActions = (a: ActivityResult): RowAction[] => [
-        ...(a.status === 'planned'
+        ...(a.status === 'planned' && can('activity', 'edit')
             ? [{ key: 'start', label: 'Bắt đầu', onClick: () => runAction(a.id, 'start') }]
             : []),
-        ...(a.status === 'in_progress'
+        ...(a.status === 'in_progress' && can('activity', 'edit')
             ? [{ key: 'complete', label: 'Hoàn thành', onClick: () => runAction(a.id, 'complete') }]
             : []),
-        ...(a.status === 'planned' || a.status === 'in_progress'
+        ...((a.status === 'planned' || a.status === 'in_progress') && can('activity', 'edit')
             ? [{ key: 'cancel', label: 'Hủy', onClick: () => runAction(a.id, 'cancel') }]
             : []),
-        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(a) },
-        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(a.id) },
+        ...(can('activity', 'edit')
+            ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(a) }]
+            : []),
+        ...(can('activity', 'delete')
+            ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(a.id) }]
+            : []),
     ];
 
     return (
@@ -86,14 +92,18 @@ const HoatDongPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Hoạt động</h1>
                 <div className="flex items-center gap-1.5">
-                    <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/hoat-dong/nhap-file')}>
-                        Nhập
-                    </ActionButton>
-                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
-                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </ActionButton>
-                    <CreateButton onClick={goCreate} />
-                    {selectedRows.length > 0 && (
+                    {can('activity', 'import') && (
+                        <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/hoat-dong/nhap-file')}>
+                            Nhập
+                        </ActionButton>
+                    )}
+                    {can('activity', 'export') && (
+                        <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                            Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                        </ActionButton>
+                    )}
+                    {can('activity', 'create') && <CreateButton onClick={goCreate} />}
+                    {can('activity', 'delete') && selectedRows.length > 0 && (
                         <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
                             Xóa ({selectedRows.length})
                         </ActionButton>
@@ -118,7 +128,7 @@ const HoatDongPage = () => {
                         onQuickFilterChange: (v) => { setQuickStatus(v); setPage(0); },
                     }}
                     rowActions={rowActions}
-                    onRowDoubleClick={(a) => setEditTarget(a)}
+                    onRowDoubleClick={(a) => { if (can('activity', 'edit')) setEditTarget(a); }}
                     quickFilters={QUICK_FILTERS}
                 />
             </div>

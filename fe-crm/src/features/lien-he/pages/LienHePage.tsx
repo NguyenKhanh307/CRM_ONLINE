@@ -6,6 +6,7 @@ import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { CreateButton } from '@/shared/components/CreateButton';
 import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
+import { usePermission } from '@/core/permissions/usePermission';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
@@ -25,8 +26,9 @@ const QUICK_FILTERS = [
 
 const LienHePage = () => {
     const navigate = useNavigate();
+    const { can } = usePermission();
     const goCreate = () => navigate('/lien-he/them-moi');
-    usePageShortcuts({ onCreate: goCreate });
+    usePageShortcuts({ onCreate: can('contact', 'create') ? goCreate : undefined });
     // Server-side pagination + search + tag lọc nhanh (tag Liên hệ lọc theo isPrimary — BE map param status → isPrimary)
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
@@ -54,14 +56,18 @@ const LienHePage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Liên hệ</h1>
                 <div className="flex items-center gap-1.5">
-                    <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/lien-he/nhap-file')}>
-                        Nhập
-                    </ActionButton>
-                    <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
-                        Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
-                    </ActionButton>
-                    <CreateButton onClick={goCreate} />
-                    {selectedRows.length > 0 && (
+                    {can('contact', 'import') && (
+                        <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/lien-he/nhap-file')}>
+                            Nhập
+                        </ActionButton>
+                    )}
+                    {can('contact', 'export') && (
+                        <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
+                            Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}
+                        </ActionButton>
+                    )}
+                    {can('contact', 'create') && <CreateButton onClick={goCreate} />}
+                    {can('contact', 'delete') && selectedRows.length > 0 && (
                         <ActionButton variant="danger" icon={FiTrash2} onClick={() => setBulkDeleteOpen(true)}>
                             Xóa ({selectedRows.length})
                         </ActionButton>
@@ -88,8 +94,12 @@ const LienHePage = () => {
                     onRowDoubleClick={(c) => navigate(`/lien-he/${c.id}`)}
                     rowActions={(c) => [
                         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/lien-he/${c.id}`) },
-                        { key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) },
-                        { key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(c.id) },
+                        ...(can('contact', 'edit')
+                            ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(c) }]
+                            : []),
+                        ...(can('contact', 'delete')
+                            ? [{ key: 'delete', label: 'Xóa', danger: true, onClick: () => setDeleteTarget(c.id) }]
+                            : []),
                     ]}
                     quickFilters={QUICK_FILTERS}
                 />
