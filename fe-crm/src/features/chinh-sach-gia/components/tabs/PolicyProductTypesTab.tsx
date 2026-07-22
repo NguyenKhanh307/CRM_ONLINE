@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
+import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
 import { toIdNameMap } from '@/shared/utils/lookup';
 import { useProductCategories } from '@/features/san-pham/hooks/useProductCategories';
 import AddEntityModal from '../AddEntityModal';
@@ -38,11 +39,12 @@ export function PolicyProductTypesTab({ policyId }: Props) {
             {data.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-6">Chưa có loại sản phẩm nào trong chính sách này</p>
             ) : (
+                <ScrollFrame visibleRows={10}>
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="border-b border-gray-200 text-gray-500 text-left">
-                            <th className="pb-2 font-medium">Tên loại</th>
-                            <th className="pb-2 w-10"></th>
+                        <tr className="text-gray-500 text-left">
+                            <th className="py-2 font-medium">Tên loại</th>
+                            <th className="py-2 w-10"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -56,6 +58,7 @@ export function PolicyProductTypesTab({ policyId }: Props) {
                         ))}
                     </tbody>
                 </table>
+                </ScrollFrame>
             )}
 
             {showAdd && (

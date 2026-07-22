@@ -30,13 +30,15 @@ const STATUS_CLASS: Record<string, string> = {
 interface TimelineProps {
     group: RelatedGroup | undefined;
     emptyText?: string;
+    /** Chiều cao tối đa khung cuộn (px) — dòng timeline cao không đều nên dùng số cố định. */
+    maxHeight?: number;
 }
 
 /**
  * Dòng thời gian hoạt động của một bản ghi (khách hàng / cơ hội).
  * Dữ liệu lấy từ nhóm `activities` của API `/related`.
  */
-export const Timeline = ({ group, emptyText = 'Chưa có hoạt động nào.' }: TimelineProps) => {
+export const Timeline = ({ group, emptyText = 'Chưa có hoạt động nào.', maxHeight = 420 }: TimelineProps) => {
     const items = group?.items ?? [];
 
     if (items.length === 0) {
@@ -44,7 +46,8 @@ export const Timeline = ({ group, emptyText = 'Chưa có hoạt động nào.' }
     }
 
     return (
-        <ul className="space-y-3">
+        // Khung cuộn riêng: dòng thời gian dài không kéo dài trang
+        <ul className="space-y-3 overflow-auto pr-1" style={{ maxHeight }}>
             {items.map(a => {
                 const meta = TYPE_META[a.code ?? ''] ?? { icon: FiFileText, label: a.code ?? '' };
                 const Icon = meta.icon;

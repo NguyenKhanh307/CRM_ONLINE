@@ -32,4 +32,13 @@ public interface IDashboardRepository {
      * @return dữ liệu dashboard kinh doanh
      */
     SalesDashboardResult getSales(Long ownerId, boolean includeTeam, DateRange cur, DateRange prev, LocalDate seriesFrom);
+
+    /**
+     * Doanh thu theo chiến dịch trong kỳ (top 8) — phục vụ trang phân tích so sánh.
+     *
+     * @param ownerId null = toàn bộ; khác null = lọc hóa đơn theo owner
+     * @param cur     kỳ thống kê
+     * @return danh sách xếp hạng {campaignId, tên chiến dịch, tổng doanh thu}
+     */
+    java.util.List<vn.com.be_crm.application.dashboard.dto.RankedItem> revenueByCampaign(Long ownerId, DateRange cur);
 }

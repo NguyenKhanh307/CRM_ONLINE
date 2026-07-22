@@ -9,11 +9,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import vn.com.be_crm.application.dashboard.dto.AdminDashboardResult;
+import vn.com.be_crm.application.dashboard.dto.RankedItem;
 import vn.com.be_crm.application.dashboard.dto.SalesDashboardResult;
 import vn.com.be_crm.application.dashboard.query.GetAdminDashboardUseCase;
+import vn.com.be_crm.application.dashboard.query.GetRevenueByCampaignUseCase;
 import vn.com.be_crm.application.dashboard.query.GetSalesDashboardUseCase;
 import vn.com.be_crm.application.dashboard.query.SalesDashboardQuery;
 import vn.com.be_crm.presentation.shared.ApiResponse;
+
+import java.util.List;
 
 /**
  * REST controller cho Dashboard "Bàn làm việc" — dữ liệu thống kê phân theo vai trò.
@@ -23,11 +27,18 @@ import vn.com.be_crm.presentation.shared.ApiResponse;
 public class DashboardController {
     private final GetAdminDashboardUseCase adminUC;
     private final GetSalesDashboardUseCase salesUC;
+    private final GetRevenueByCampaignUseCase revenueByCampaignUC;
 
-    /** @param adminUC use case dashboard admin @param salesUC use case dashboard kinh doanh */
-    public DashboardController(GetAdminDashboardUseCase adminUC, GetSalesDashboardUseCase salesUC) {
+    /**
+     * @param adminUC             use case dashboard admin
+     * @param salesUC             use case dashboard kinh doanh
+     * @param revenueByCampaignUC use case doanh thu theo chiến dịch
+     */
+    public DashboardController(GetAdminDashboardUseCase adminUC, GetSalesDashboardUseCase salesUC,
+                               GetRevenueByCampaignUseCase revenueByCampaignUC) {
         this.adminUC = adminUC;
         this.salesUC = salesUC;
+        this.revenueByCampaignUC = revenueByCampaignUC;
     }
 
     /**
@@ -66,6 +77,23 @@ public class DashboardController {
                                                                   HttpServletRequest req) {
         Long userId = (Long) req.getAttribute("userId");
         return ResponseEntity.ok(ApiResponse.ok(salesUC.execute(new SalesDashboardQuery(userId, false, period))));
+    }
+
+    /**
+     * Doanh thu theo chiến dịch trong kỳ — trang phân tích so sánh. ADMIN/SALES_MANAGER xem toàn bộ,
+     * nhân viên chỉ xem hóa đơn mình phụ trách.
+     *
+     * @param period mã kỳ (month|quarter|year)
+     * @param req    HTTP request (lấy userId từ JWT)
+     * @return danh sách xếp hạng doanh thu theo chiến dịch
+     */
+    @GetMapping("/revenue-by-campaign")
+    public ResponseEntity<ApiResponse<List<RankedItem>>> revenueByCampaign(
+            @RequestParam(defaultValue = "quarter") String period, HttpServletRequest req) {
+        boolean privileged = hasRole("ADMIN") || hasRole("SALES_MANAGER");
+        Long ownerId = privileged ? null : (Long) req.getAttribute("userId");
+        return ResponseEntity.ok(ApiResponse.ok(
+                revenueByCampaignUC.execute(new GetRevenueByCampaignUseCase.Query(ownerId, period))));
     }
 
     /** Kiểm tra người dùng hiện tại có authority (role name) chỉ định không. */

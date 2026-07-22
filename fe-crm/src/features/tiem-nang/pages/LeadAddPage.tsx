@@ -9,6 +9,8 @@ import { DuplicateWarning } from '@/shared/components/DuplicateWarning';
 import { useDuplicateCheck } from '@/shared/hooks/useDuplicateCheck';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
+import { PrefillHint } from '@/shared/components/form/PrefillHint';
+import { fillEmpty, hasFilled, primaryContactOf } from '@/shared/utils/prefill';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
@@ -110,6 +112,28 @@ const LeadAddPage = () => {
 
     const set = (patch: Partial<FormState>) => setForm((p) => ({ ...p, ...patch }));
 
+    /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
+    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
+
+    /** Chọn khách hàng → tự điền thông tin công ty + liên hệ chính (chỉ ô còn trống). */
+    const onPickCustomer = (v: string) => {
+        set({ customerId: v });
+        setPrefillFrom(null);
+        const customer = customers.find((c) => String(c.id) === v);
+        if (!customer) return;
+        const contact = primaryContactOf(contacts, customer.id);
+        const patch = fillEmpty(form, {
+            contactId: contact ? String(contact.id) : '',
+            companyName: customer.name,
+            taxCode: customer.taxCode ?? '',
+            website: customer.website ?? '',
+            industry: customer.industry ?? '',
+            phone: customer.phone ?? '',
+            email: customer.email ?? '',
+        });
+        if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
+    };
+
     const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã tiềm năng không được để trống'); return; }
         if (!form.name.trim()) { showAlert('Tên tiềm năng không được để trống'); return; }
@@ -120,7 +144,7 @@ const LeadAddPage = () => {
         if (vErr) { showAlert(vErr); return; }
         mutate(toPayload(form), {
             onSuccess: () => {
-                if (andNew) { setForm(initialState(defaultOwnerId)); showAlert('Đã lưu tiềm năng thành công'); }
+                if (andNew) { setForm(initialState(defaultOwnerId)); setPrefillFrom(null); showAlert('Đã lưu tiềm năng thành công'); }
                 else navigate('/tiem-nang');
             },
             onError: (err: unknown) => {
@@ -211,7 +235,8 @@ const LeadAddPage = () => {
                                 <SearchableSelect value={form.ownerId} onChange={(v) => set({ ownerId: v })} options={userOptions} />
                             </FieldRow>
                             <FieldRow label="Khách hàng">
-                                <SearchableSelect value={form.customerId} onChange={(v) => set({ customerId: v })} options={customerOptions} />
+                                <SearchableSelect value={form.customerId} onChange={onPickCustomer} options={customerOptions} />
+                                <PrefillHint source={prefillFrom} />
                             </FieldRow>
                         </div>
                         <div className="space-y-4">

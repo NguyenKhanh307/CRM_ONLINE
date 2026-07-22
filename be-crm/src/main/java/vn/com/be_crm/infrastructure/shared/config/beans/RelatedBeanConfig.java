@@ -2,6 +2,7 @@ package vn.com.be_crm.infrastructure.shared.config.beans;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import vn.com.be_crm.application.related.query.GetCampaignRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetContactRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetCustomerRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetInvoiceRelatedUseCase;
@@ -9,6 +10,7 @@ import vn.com.be_crm.application.related.query.GetLeadRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetOpportunityRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetOrderRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetQuotationRelatedUseCase;
+import vn.com.be_crm.domain.campaign.repository.ICampaignRepository;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
@@ -64,5 +66,11 @@ public class RelatedBeanConfig {
     @Bean
     public GetInvoiceRelatedUseCase getInvoiceRelatedUseCase(IInvoiceRepository invoiceRepo, IRelatedRepository relatedRepo) {
         return new GetInvoiceRelatedUseCase(invoiceRepo, relatedRepo);
+    }
+
+    /** @param campaignRepo port chiến dịch @param relatedRepo port bản ghi liên quan @return use case bản ghi quy về chiến dịch */
+    @Bean
+    public GetCampaignRelatedUseCase getCampaignRelatedUseCase(ICampaignRepository campaignRepo, IRelatedRepository relatedRepo) {
+        return new GetCampaignRelatedUseCase(campaignRepo, relatedRepo);
     }
 }

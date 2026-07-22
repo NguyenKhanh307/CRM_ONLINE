@@ -4,6 +4,7 @@ import type { RelatedGroup, RelatedModule, RelatedRecord } from '../../types/rel
 import { MODULE_ROUTES, recordPath } from '../../utils/moduleRoutes';
 import { formatISODate } from '../../utils/date';
 import { formatCurrency } from '../../utils/number';
+import { ScrollFrame } from '../table/ScrollFrame';
 
 /** Cột hiển thị của bảng bản ghi liên quan — mỗi tab tự chọn cột và nhãn phù hợp. */
 export interface RelatedColumn {
@@ -20,6 +21,8 @@ interface RelatedTableProps {
     /** Phân hệ — dùng cho link "xem trong danh sách" khi số bản ghi vượt quá số dòng đã nạp. */
     module: RelatedModule;
     emptyText: string;
+    /** Số dòng thấy được mà không cần cuộn; phần dư cuộn trong khung riêng của bảng. */
+    visibleRows?: number;
 }
 
 /** Giá trị mặc định của một ô theo kiểu dữ liệu. */
@@ -35,7 +38,7 @@ const defaultCell = (row: RelatedRecord, key: keyof RelatedRecord): ReactNode =>
  * Bảng bản ghi liên quan (chỉ đọc) trên trang chi tiết 360°.
  * Bấm một dòng → mở bản ghi đó (trang chi tiết nếu có, ngược lại nhảy về danh sách + focus dòng).
  */
-export const RelatedTable = ({ group, columns, module, emptyText }: RelatedTableProps) => {
+export const RelatedTable = ({ group, columns, module, emptyText, visibleRows = 10 }: RelatedTableProps) => {
     const navigate = useNavigate();
     const items = group?.items ?? [];
     const total = group?.total ?? 0;
@@ -46,10 +49,10 @@ export const RelatedTable = ({ group, columns, module, emptyText }: RelatedTable
 
     return (
         <div>
-            <div className="overflow-x-auto">
+            <ScrollFrame visibleRows={visibleRows}>
                 <table className="w-full text-table">
                     <thead>
-                        <tr className="text-left text-sm text-gray-500 border-b border-gray-200">
+                        <tr className="text-left text-sm text-gray-500">
                             {columns.map(c => (
                                 <th key={String(c.key)} className={`py-2 px-3 font-medium ${c.align === 'right' ? 'text-right' : ''}`}>
                                     {c.label}
@@ -73,7 +76,7 @@ export const RelatedTable = ({ group, columns, module, emptyText }: RelatedTable
                         ))}
                     </tbody>
                 </table>
-            </div>
+            </ScrollFrame>
 
             {total > items.length && (
                 <div className="pt-3 text-sm text-gray-500">

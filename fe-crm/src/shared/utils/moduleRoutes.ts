@@ -2,6 +2,7 @@ import type { RelatedModule } from '../types/related';
 
 /** Route danh sách của từng phân hệ — nguồn sự thật duy nhất cho mọi link chéo giữa các module. */
 export const MODULE_ROUTES: Record<RelatedModule, string> = {
+    lead:        '/tiem-nang',
     contact:     '/lien-he',
     opportunity: '/co-hoi',
     quotation:   '/bao-gia',
@@ -12,7 +13,7 @@ export const MODULE_ROUTES: Record<RelatedModule, string> = {
 };
 
 /** Phân hệ có trang chi tiết riêng — bấm vào dòng sẽ mở trang đó thay vì nhảy về danh sách. */
-const HAS_DETAIL_PAGE: RelatedModule[] = ['opportunity', 'ticket', 'contact', 'quotation', 'order', 'invoice'];
+const HAS_DETAIL_PAGE: RelatedModule[] = ['lead', 'opportunity', 'ticket', 'contact', 'quotation', 'order', 'invoice'];
 
 /**
  * Đường dẫn tới một bản ghi cụ thể.

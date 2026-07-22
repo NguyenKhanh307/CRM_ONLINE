@@ -8,7 +8,7 @@ import vn.com.be_crm.application.shared.usecase.IUseCase;
 import vn.com.be_crm.domain.shared.exception.DomainException;
 import vn.com.be_crm.application.shared.util.LineItemTotals;
 import vn.com.be_crm.domain.opportunity.entity.OpportunityItem;
-import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
+import vn.com.be_crm.domain.opportunity.entity.OpportunityStage;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityStageRepository;
 
@@ -27,7 +27,7 @@ public class CreateOpportunityUseCase implements IUseCase<CreateOpportunityComma
 
     /**
      * Tạo mới Opportunity; nếu có items thì lưu header + dòng hàng trong một transaction.
-     * Trạng thái suy ra tự động từ giai đoạn pipeline được chọn.
+     * Trạng thái và xác suất thắng suy ra tự động từ giai đoạn pipeline được chọn.
      * @param cmd dữ liệu tạo mới @return OpportunityResult
      */
     @Override
@@ -36,24 +36,24 @@ public class CreateOpportunityUseCase implements IUseCase<CreateOpportunityComma
         if (cmd.getCode() != null && repo.findByCode(cmd.getCode()).isPresent()) {
             throw new DomainException("Mã cơ hội \"" + cmd.getCode() + "\" đã tồn tại, vui lòng dùng mã khác");
         }
-        OpportunityStatus status = deriveStatus(cmd.getStageId());
+        OpportunityStage stage = resolveStage(cmd.getStageId());
         if (cmd.getItems() != null && !cmd.getItems().isEmpty()) {
             List<OpportunityItem> items = cmd.getItems().stream()
                     .map(OpportunityItemCommandMapper::toEntity).collect(Collectors.toList());
             // Roll-up: giá trị cơ hội = tổng thành tiền các dòng hàng (không nhận amount thủ công từ FE)
-            var entity = OpportunityCommandMapper.toEntity(cmd, status).toBuilder()
+            var entity = OpportunityCommandMapper.toEntity(cmd, stage).toBuilder()
                     .amount(LineItemTotals.sumAmount(items, OpportunityItem::getAmount)).build();
             return OpportunityCommandMapper.toResult(repo.saveWithItems(entity, items));
         }
-        return OpportunityCommandMapper.toResult(repo.save(OpportunityCommandMapper.toEntity(cmd, status)));
+        return OpportunityCommandMapper.toResult(repo.save(OpportunityCommandMapper.toEntity(cmd, stage)));
     }
 
     /**
-     * Suy ra trạng thái cơ hội từ giai đoạn pipeline (null stage → open).
-     * @param stageId ID giai đoạn (có thể null) @return trạng thái suy ra
+     * Nạp giai đoạn pipeline được chọn — nguồn suy ra cả trạng thái lẫn xác suất thắng.
+     * @param stageId ID giai đoạn (có thể null) @return giai đoạn, hoặc null nếu chưa chọn / không tồn tại
      */
-    private OpportunityStatus deriveStatus(Long stageId) {
-        if (stageId == null) return OpportunityStatus.open;
-        return OpportunityStatus.fromStage(stageRepo.findById(stageId).orElse(null));
+    private OpportunityStage resolveStage(Long stageId) {
+        if (stageId == null) return null;
+        return stageRepo.findById(stageId).orElse(null);
     }
 }

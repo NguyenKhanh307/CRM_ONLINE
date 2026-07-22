@@ -13,5 +13,6 @@ export const invoiceExportColumns: ExportColumn<InvoiceResult>[] = [
     { key: 'paymentStatus', label: 'Thanh toán', format: r => PAYMENT_LABELS[r.paymentStatus] ?? r.paymentStatus },
     { key: 'total', label: 'Tổng tiền', format: r => r.total ?? '' },
     { key: 'invoiceDate', label: 'Ngày hóa đơn' },
+    { key: 'campaignName', label: 'Chiến dịch', format: r => r.campaignName ?? '' },
     { key: 'createdAt', label: 'Ngày tạo', format: r => formatISODate(r.createdAt) },
 ];

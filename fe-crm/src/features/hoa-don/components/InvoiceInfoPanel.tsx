@@ -19,6 +19,7 @@ export const InvoiceInfoPanel = ({ invoice: i }: Props) => (
         <InfoRow label="Liên hệ" value={i.contactName} />
         <InfoRow label="Báo giá nguồn" value={i.quotationCode} />
         <InfoRow label="Cơ hội" value={i.opportunityName} />
+        <InfoRow label="Chiến dịch" value={i.campaignName} />
         <InfoRow label="Người phụ trách" value={i.ownerName} />
         <InfoRow label="Ngày hóa đơn" value={i.invoiceDate ? formatISODate(i.invoiceDate) : null} />
         <InfoRow label="Hạn thanh toán" value={i.dueDate ? formatISODate(i.dueDate) : null} />

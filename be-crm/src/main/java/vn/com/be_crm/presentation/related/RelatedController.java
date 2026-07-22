@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import vn.com.be_crm.application.related.dto.CampaignRelatedResult;
 import vn.com.be_crm.application.related.dto.ContactRelatedResult;
 import vn.com.be_crm.application.related.dto.CustomerRelatedResult;
 import vn.com.be_crm.application.related.dto.InvoiceRelatedResult;
@@ -14,6 +15,7 @@ import vn.com.be_crm.application.related.dto.LeadRelatedResult;
 import vn.com.be_crm.application.related.dto.OpportunityRelatedResult;
 import vn.com.be_crm.application.related.dto.OrderRelatedResult;
 import vn.com.be_crm.application.related.dto.QuotationRelatedResult;
+import vn.com.be_crm.application.related.query.GetCampaignRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetContactRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetCustomerRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetInvoiceRelatedUseCase;
@@ -38,6 +40,7 @@ public class RelatedController {
     private final GetQuotationRelatedUseCase quotationUC;
     private final GetOrderRelatedUseCase orderUC;
     private final GetInvoiceRelatedUseCase invoiceUC;
+    private final GetCampaignRelatedUseCase campaignUC;
 
     /**
      * @param customerUC    use case 360° khách hàng
@@ -47,11 +50,12 @@ public class RelatedController {
      * @param quotationUC   use case 360° báo giá
      * @param orderUC       use case 360° đơn hàng
      * @param invoiceUC     use case 360° hóa đơn
+     * @param campaignUC    use case bản ghi quy về chiến dịch
      */
     public RelatedController(GetCustomerRelatedUseCase customerUC, GetOpportunityRelatedUseCase opportunityUC,
                              GetLeadRelatedUseCase leadUC, GetContactRelatedUseCase contactUC,
                              GetQuotationRelatedUseCase quotationUC, GetOrderRelatedUseCase orderUC,
-                             GetInvoiceRelatedUseCase invoiceUC) {
+                             GetInvoiceRelatedUseCase invoiceUC, GetCampaignRelatedUseCase campaignUC) {
         this.customerUC = customerUC;
         this.opportunityUC = opportunityUC;
         this.leadUC = leadUC;
@@ -59,6 +63,7 @@ public class RelatedController {
         this.quotationUC = quotationUC;
         this.orderUC = orderUC;
         this.invoiceUC = invoiceUC;
+        this.campaignUC = campaignUC;
     }
 
     /**
@@ -143,6 +148,18 @@ public class RelatedController {
     @GetMapping("/invoices/{id}/related")
     public ResponseEntity<ApiResponse<InvoiceRelatedResult>> invoiceRelated(@PathVariable Long id, HttpServletRequest req) {
         return ResponseEntity.ok(ApiResponse.ok(invoiceUC.execute(id, userId(req), privileged())));
+    }
+
+    /**
+     * Bản ghi quy về một chiến dịch (tiềm năng, cơ hội, đơn hàng, hóa đơn) — chiều đọc ngược của attribution.
+     *
+     * @param id  ID chiến dịch
+     * @param req HTTP request (lấy userId từ JWT)
+     * @return 200 kèm dữ liệu; 403 nếu không phụ trách chiến dịch này
+     */
+    @GetMapping("/campaigns/{id}/related")
+    public ResponseEntity<ApiResponse<CampaignRelatedResult>> campaignRelated(@PathVariable Long id, HttpServletRequest req) {
+        return ResponseEntity.ok(ApiResponse.ok(campaignUC.execute(id, userId(req), privileged())));
     }
 
     /** ID người dùng hiện tại (JwtAuthFilter set vào request attribute). */

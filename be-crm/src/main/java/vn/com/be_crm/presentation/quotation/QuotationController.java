@@ -105,7 +105,8 @@ public class QuotationController {
                                                                 @Valid @RequestBody UpdateQuotationCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateQuotationCommand.builder().id(id).customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
-                        .opportunityId(cmd.getOpportunityId()).pricePolicyId(cmd.getPricePolicyId())
+                        .opportunityId(cmd.getOpportunityId()).campaignId(cmd.getCampaignId())
+                        .pricePolicyId(cmd.getPricePolicyId())
                         .ownerId(cmd.getOwnerId()).quoteDate(cmd.getQuoteDate()).validUntil(cmd.getValidUntil())
                         .subtotal(cmd.getSubtotal()).discount(cmd.getDiscount())
                         .tax(cmd.getTax()).total(cmd.getTotal()).note(cmd.getNote()).build())));

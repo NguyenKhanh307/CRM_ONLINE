@@ -124,7 +124,7 @@ public class OpportunityController {
                         .customerId(cmd.getCustomerId())
                         .contactId(cmd.getContactId()).ownerId(cmd.getOwnerId()).stageId(cmd.getStageId())
                         .pricePolicyId(cmd.getPricePolicyId())
-                        .amount(cmd.getAmount()).expectedRevenue(cmd.getExpectedRevenue()).probability(cmd.getProbability())
+                        .amount(cmd.getAmount()).expectedRevenue(cmd.getExpectedRevenue())
                         .expectedCloseDate(cmd.getExpectedCloseDate())
                         .source(cmd.getSource()).campaignId(cmd.getCampaignId()).winLossReason(cmd.getWinLossReason()).description(cmd.getDescription())
                         .status(cmd.getStatus()).build())));

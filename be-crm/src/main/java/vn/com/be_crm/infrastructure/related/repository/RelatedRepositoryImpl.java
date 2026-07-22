@@ -3,6 +3,7 @@ package vn.com.be_crm.infrastructure.related.repository;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
+import vn.com.be_crm.application.related.dto.CampaignRelatedResult;
 import vn.com.be_crm.application.related.dto.ContactRelatedResult;
 import vn.com.be_crm.application.related.dto.CustomerRelatedResult;
 import vn.com.be_crm.application.related.dto.InvoiceRelatedResult;
@@ -123,6 +124,17 @@ public class RelatedRepositoryImpl implements IRelatedRepository {
                         "(a.target_type = 'invoice' AND a.target_id = :id) OR (a.related_type = 'invoice' AND a.related_id = :id)", p)));
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public CampaignRelatedResult getCampaignRelated(Long campaignId) {
+        Map<String, Object> p = Map.of("id", campaignId);
+        return TxSupport.read(sf, s -> new CampaignRelatedResult(
+                group(s, "lead", leadsSql("l.campaign_id = :id"), "leads l", "l.deleted_at IS NULL AND l.campaign_id = :id", p),
+                group(s, "opportunity", opportunitiesSql("o.campaign_id = :id"), "opportunities o", "o.deleted_at IS NULL AND o.campaign_id = :id", p),
+                group(s, "order", ordersSql("o.campaign_id = :id"), "orders o", "o.deleted_at IS NULL AND o.campaign_id = :id", p),
+                group(s, "invoice", invoicesSql("i.campaign_id = :id"), "invoices i", "i.deleted_at IS NULL AND i.campaign_id = :id", p)));
+    }
+
     // ==================== SQL từng phân hệ ====================
     // Mọi câu SELECT trả đúng 7 cột theo thứ tự: id, code, name, status, date, amount, owner_name
 
@@ -130,6 +142,13 @@ public class RelatedRepositoryImpl implements IRelatedRepository {
             "SELECT c.id, c.email, c.full_name, c.title, c.created_at, NULL, u.full_name " +
                     "FROM contacts c LEFT JOIN users u ON u.id = c.assigned_user_id " +
                     "WHERE c.deleted_at IS NULL AND c.customer_id = :id ORDER BY c.is_primary DESC, c.id DESC LIMIT " + LIMIT;
+
+    /** Tiềm năng — {@code cond} là điều kiện liên kết (theo chiến dịch). */
+    private String leadsSql(String cond) {
+        return "SELECT l.id, l.code, l.name, l.status, l.created_at, l.estimated_value, u.full_name " +
+                "FROM leads l LEFT JOIN users u ON u.id = l.owner_id " +
+                "WHERE l.deleted_at IS NULL AND " + cond + " ORDER BY l.id DESC LIMIT " + LIMIT;
+    }
 
     /** Cơ hội — {@code cond} là điều kiện liên kết (theo khách hàng / liên hệ / cơ hội convert). */
     private String opportunitiesSql(String cond) {

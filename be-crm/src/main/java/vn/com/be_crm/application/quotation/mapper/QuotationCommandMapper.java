@@ -18,7 +18,8 @@ public class QuotationCommandMapper {
     public static Quotation toEntity(CreateQuotationCommand cmd) {
         return Quotation.builder()
                 .code(cmd.getCode()).customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
-                .opportunityId(cmd.getOpportunityId()).pricePolicyId(cmd.getPricePolicyId())
+                .opportunityId(cmd.getOpportunityId()).campaignId(cmd.getCampaignId())
+                .pricePolicyId(cmd.getPricePolicyId())
                 .ownerId(cmd.getOwnerId()).quoteDate(cmd.getQuoteDate()).validUntil(cmd.getValidUntil())
                 .currency(cmd.getCurrency() != null ? cmd.getCurrency() : "VND")
                 .exchangeRate(cmd.getExchangeRate() != null ? cmd.getExchangeRate() : BigDecimal.ONE)
@@ -40,7 +41,7 @@ public class QuotationCommandMapper {
                 .customerId(cmd.getCustomerId() != null ? cmd.getCustomerId() : e.getCustomerId())
                 .contactId(cmd.getContactId() != null ? cmd.getContactId() : e.getContactId())
                 .opportunityId(cmd.getOpportunityId() != null ? cmd.getOpportunityId() : e.getOpportunityId())
-                .campaignId(e.getCampaignId())
+                .campaignId(cmd.getCampaignId() != null ? cmd.getCampaignId() : e.getCampaignId())
                 .pricePolicyId(cmd.getPricePolicyId() != null ? cmd.getPricePolicyId() : e.getPricePolicyId())
                 .isPrimary(e.isPrimary()).isLocked(e.isLocked())
                 .ownerId(cmd.getOwnerId() != null ? cmd.getOwnerId() : e.getOwnerId())

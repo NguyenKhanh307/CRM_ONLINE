@@ -47,7 +47,7 @@ const ContactDetailPage = () => {
     ];
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
+        <div className="p-6 bg-bg-main">
             <DetailHeader
                 backTo="/lien-he"
                 title={contact.fullName}

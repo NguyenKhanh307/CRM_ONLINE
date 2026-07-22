@@ -1,5 +1,6 @@
 package vn.com.be_crm.domain.related.repository;
 
+import vn.com.be_crm.application.related.dto.CampaignRelatedResult;
 import vn.com.be_crm.application.related.dto.ContactRelatedResult;
 import vn.com.be_crm.application.related.dto.CustomerRelatedResult;
 import vn.com.be_crm.application.related.dto.InvoiceRelatedResult;
@@ -70,4 +71,12 @@ public interface IRelatedRepository {
      * @return các nhóm bản ghi liên quan kèm tổng số
      */
     InvoiceRelatedResult getInvoiceRelated(Long invoiceId);
+
+    /**
+     * Lấy bản ghi quy về một chiến dịch (tiềm năng/cơ hội/đơn hàng/hóa đơn có campaign_id trỏ tới).
+     *
+     * @param campaignId ID chiến dịch
+     * @return các nhóm bản ghi liên quan kèm tổng số
+     */
+    CampaignRelatedResult getCampaignRelated(Long campaignId);
 }

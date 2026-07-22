@@ -1,6 +1,7 @@
 import { useState, useMemo, type FormEvent } from 'react';
 import { FiPlus, FiTrash2, FiEdit2, FiX } from 'react-icons/fi';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
+import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
 import { toIdNameMap } from '@/shared/utils/lookup';
 import { formatNumber } from '@/shared/utils/number';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
@@ -59,14 +60,15 @@ export function PolicyProductsTab({ policyId }: Props) {
             {data.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-6">Chưa có sản phẩm nào trong chính sách này</p>
             ) : (
+                <ScrollFrame visibleRows={10}>
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="border-b border-gray-200 text-gray-500 text-left">
-                            <th className="pb-2 font-medium">Tên sản phẩm</th>
-                            <th className="pb-2 font-medium">Giá</th>
-                            <th className="pb-2 font-medium">Giảm giá</th>
-                            <th className="pb-2 font-medium">SL tối thiểu</th>
-                            <th className="pb-2 w-16"></th>
+                        <tr className="text-gray-500 text-left">
+                            <th className="py-2 font-medium">Tên sản phẩm</th>
+                            <th className="py-2 font-medium">Giá</th>
+                            <th className="py-2 font-medium">Giảm giá</th>
+                            <th className="py-2 font-medium">SL tối thiểu</th>
+                            <th className="py-2 w-16"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -90,6 +92,7 @@ export function PolicyProductsTab({ policyId }: Props) {
                         ))}
                     </tbody>
                 </table>
+                </ScrollFrame>
             )}
 
             {showAdd && (

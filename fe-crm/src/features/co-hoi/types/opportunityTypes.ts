@@ -5,10 +5,11 @@ export interface UpdateOpportunityPayload {
     contactId: number | null;
     ownerId: number | null;
     stageId: number | null;
+    campaignId: number | null;
     pricePolicyId: number | null;
     amount: number | null;
     expectedRevenue?: number | null;
-    probability: number | null;
+    // probability: KHÔNG gửi — backend suy ra từ xác suất của giai đoạn pipeline.
     expectedCloseDate: string | null;
     source?: string | null;
     winLossReason?: string | null;
@@ -35,10 +36,11 @@ export interface CreateOpportunityPayload {
     contactId: number | null;
     ownerId: number | null;
     stageId: number | null;
+    campaignId: number | null;
     pricePolicyId: number | null;
     amount: number | null;
     expectedRevenue: number | null;
-    probability: number | null;
+    // probability: KHÔNG gửi — backend suy ra từ xác suất của giai đoạn pipeline.
     expectedCloseDate: string | null;
     source: string | null;
     winLossReason: string | null;
@@ -68,6 +70,7 @@ export interface OpportunityResult {
     contactId: number | null;
     ownerId: number | null;
     stageId: number | null;
+    campaignId: number | null;
     pricePolicyId: number | null;
     amount: number | null;
     expectedRevenue: number | null;
@@ -84,6 +87,7 @@ export interface OpportunityResult {
     contactName: string | null;
     ownerName: string | null;
     stageName: string | null;
+    campaignName: string | null;
     // Audit: BE tự đóng dấu (AuditInterceptor).
     createdBy: number | null;
     updatedBy: number | null;

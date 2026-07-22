@@ -86,6 +86,7 @@ public class InvoiceController {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateInvoiceCommand.builder().id(id).customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
                         .quotationId(cmd.getQuotationId()).opportunityId(cmd.getOpportunityId())
+                        .campaignId(cmd.getCampaignId())
                         .ownerId(cmd.getOwnerId())
                         .invoiceDate(cmd.getInvoiceDate()).dueDate(cmd.getDueDate())
                         .currency(cmd.getCurrency()).exchangeRate(cmd.getExchangeRate())

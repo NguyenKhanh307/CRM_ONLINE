@@ -48,6 +48,7 @@ public class QuotationResult {
     private String customerName;
     private String contactName;
     private String opportunityName;
+    private String campaignName;
     private String ownerName;
     // Tên người tạo/người sửa — do BE resolve (INameResolver).
     private String createdByName;

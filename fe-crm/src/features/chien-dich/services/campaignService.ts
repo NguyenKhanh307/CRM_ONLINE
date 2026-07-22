@@ -5,6 +5,7 @@ import type {
     CampaignMemberResult, CreateCampaignMemberPayload, CampaignStatsResult, SendCampaignEmailPayload,
 } from '../types/campaignTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
+import type { CampaignRelatedResult } from '@/shared/types/related';
 
 export const campaignService = {
     getList: (params?: PageParams) =>
@@ -46,4 +47,7 @@ export const campaignService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/campaigns/handover-bulk', payload),
+    // ----- Bản ghi quy về chiến dịch (trang chi tiết) -----
+    getRelated: (id: number) =>
+        axiosInstance.get<ApiResponse<CampaignRelatedResult>>(`/api/campaigns/${id}/related`),
 };

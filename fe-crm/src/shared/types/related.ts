@@ -1,5 +1,6 @@
 /** Phân hệ của một bản ghi liên quan — dùng để deep-link sang trang tương ứng. */
 export type RelatedModule =
+    | 'lead'
     | 'contact'
     | 'opportunity'
     | 'quotation'
@@ -84,4 +85,15 @@ export interface OrderRelatedResult {
 export interface InvoiceRelatedResult {
     tickets: RelatedGroup;
     activities: RelatedGroup;
+}
+
+/**
+ * Bản ghi quy về một chiến dịch (trang chi tiết Chiến dịch).
+ * Chiều đọc ngược của attribution: `campaign_id` gắn khi tạo/convert ở từng phân hệ.
+ */
+export interface CampaignRelatedResult {
+    leads: RelatedGroup;
+    opportunities: RelatedGroup;
+    orders: RelatedGroup;
+    invoices: RelatedGroup;
 }

@@ -7,6 +7,10 @@ import type { RelatedColumn } from './RelatedTable';
  */
 
 const STATUS_LABELS: Record<string, Record<string, string>> = {
+    lead: {
+        new: 'Mới', contacting: 'Đang liên hệ', qualified: 'Đủ điều kiện',
+        converted: 'Đã chuyển đổi', lost: 'Thất bại',
+    },
     opportunity: { open: 'Đang mở', won: 'Đã thắng', lost: 'Đã thua' },
     quotation: {
         draft: 'Nháp', pending: 'Chờ duyệt', approved: 'Đã duyệt',
@@ -51,6 +55,9 @@ const STATUS_COLORS: Record<string, string> = {
     closed: 'bg-gray-200 text-gray-700',
     reopened: 'bg-amber-100 text-amber-700',
     expired: 'bg-orange-100 text-orange-700',
+    contacting: 'bg-blue-100 text-blue-700',
+    qualified: 'bg-teal-100 text-teal-700',
+    converted: 'bg-green-100 text-green-700',
 };
 
 /** Cột trạng thái dạng badge, nhãn tra theo phân hệ của dòng. */
@@ -67,6 +74,15 @@ const statusColumn = (label = 'Trạng thái'): RelatedColumn => ({
         );
     },
 });
+
+export const LEAD_COLUMNS: RelatedColumn[] = [
+    { key: 'code', label: 'Mã tiềm năng' },
+    { key: 'name', label: 'Tên tiềm năng' },
+    statusColumn(),
+    { key: 'date', label: 'Ngày tạo' },
+    { key: 'amount', label: 'Giá trị ước tính', align: 'right' },
+    { key: 'ownerName', label: 'Người phụ trách' },
+];
 
 export const CONTACT_COLUMNS: RelatedColumn[] = [
     { key: 'name', label: 'Họ tên' },

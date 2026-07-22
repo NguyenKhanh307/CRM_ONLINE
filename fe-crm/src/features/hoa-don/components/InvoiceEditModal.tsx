@@ -10,6 +10,8 @@ import { useUpdateInvoice } from '../hooks/useUpdateInvoice';
 import { invoiceService } from '../services/invoiceService';
 import { PaymentSchedulesTable } from './PaymentSchedulesTable';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
+import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import { DateInput } from '@/shared/components/form/DateInput';
 import {
@@ -42,8 +44,9 @@ export function InvoiceEditModal({ item, onClose }: Props) {
     const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateInvoice();
     const { data: products = [] } = useProductList();
+    const { data: campaigns = [] } = useCampaignList();
     const [form, setForm] = useState<UpdateInvoicePayload>({
-        customerId: null, contactId: null, ownerId: null,
+        customerId: null, contactId: null, campaignId: null, ownerId: null,
         invoiceDate: null, dueDate: null,
         currency: 'VND', exchangeRate: 1, billingAddress: null, taxCode: null,
         subtotal: null, discount: null, tax: null, total: null, note: null,
@@ -56,12 +59,13 @@ export function InvoiceEditModal({ item, onClose }: Props) {
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
         [products],
     );
+    const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
 
     useEffect(() => {
         if (!item) return;
         setForm({
             customerId: item.customerId, contactId: item.contactId, quotationId: item.quotationId,
-            opportunityId: item.opportunityId, ownerId: item.ownerId,
+            opportunityId: item.opportunityId, campaignId: item.campaignId, ownerId: item.ownerId,
             invoiceDate: item.invoiceDate, dueDate: item.dueDate,
             currency: item.currency, exchangeRate: item.exchangeRate,
             billingAddress: item.billingAddress, taxCode: item.taxCode,
@@ -153,6 +157,14 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                         <div>
                             <label className={lbl}>Địa chỉ xuất HĐ</label>
                             <input className={inp} value={form.billingAddress ?? ''} onChange={e => setForm(f => ({ ...f, billingAddress: e.target.value || null }))} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Chiến dịch</label>
+                            <SearchableSelect
+                                value={form.campaignId != null ? String(form.campaignId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, campaignId: v ? Number(v) : null }))}
+                                options={campaignOptions}
+                            />
                         </div>
                     </div>
                     <div>

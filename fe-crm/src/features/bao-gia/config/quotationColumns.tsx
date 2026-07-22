@@ -22,6 +22,7 @@ export const getQuotationColumns = (): ColumnDef<QuotationResult>[] => [
     { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },
     { accessorKey: 'contactName', header: 'Liên hệ', size: 160, cell: textCell },
     { accessorKey: 'opportunityName', header: 'Cơ hội', size: 160, cell: textCell },
+    { accessorKey: 'campaignName', header: 'Chiến dịch', size: 160, cell: textCell },
     { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
     { accessorKey: 'status', header: 'Trạng thái', size: 120, cell: badgeCell(STATUS_LABELS, STATUS_COLORS) },
     { accessorKey: 'quoteDate', header: 'Ngày báo giá', size: 130, cell: dateCell },

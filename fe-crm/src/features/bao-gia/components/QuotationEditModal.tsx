@@ -10,6 +10,8 @@ import { useUpdateQuotation } from '../hooks/useUpdateQuotation';
 import { quotationService } from '../services/quotationService';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
+import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import { DateInput } from '@/shared/components/form/DateInput';
 import {
@@ -38,9 +40,10 @@ export function QuotationEditModal({ item, onClose }: Props) {
     const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateQuotation();
     const { data: products = [] } = useProductList();
+    const { data: campaigns = [] } = useCampaignList();
     const [pulling, setPulling] = useState(false);
     const [form, setForm] = useState<UpdateQuotationPayload>({
-        customerId: null, contactId: null, ownerId: null, quoteDate: null,
+        customerId: null, contactId: null, campaignId: null, ownerId: null, quoteDate: null,
         validUntil: null, currency: 'VND', exchangeRate: 1,
         subtotal: null, discount: null, tax: null, total: null, note: null,
     });
@@ -52,11 +55,13 @@ export function QuotationEditModal({ item, onClose }: Props) {
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
         [products],
     );
+    const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
 
     useEffect(() => {
         if (!item) return;
         setForm({
             customerId: item.customerId, contactId: item.contactId, opportunityId: item.opportunityId,
+            campaignId: item.campaignId,
             ownerId: item.ownerId, quoteDate: item.quoteDate, validUntil: item.validUntil,
             currency: item.currency, exchangeRate: item.exchangeRate,
             subtotal: item.subtotal, discount: item.discount, tax: item.tax, total: item.total, note: item.note,
@@ -162,6 +167,16 @@ export function QuotationEditModal({ item, onClose }: Props) {
                         <div>
                             <label className={lbl}>Tỷ giá</label>
                             <input type="number" className={inp} value={form.exchangeRate ?? ''} onChange={e => setForm(f => ({ ...f, exchangeRate: e.target.value ? +e.target.value : null }))} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Chiến dịch</label>
+                            <SearchableSelect
+                                value={form.campaignId != null ? String(form.campaignId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, campaignId: v ? Number(v) : null }))}
+                                options={campaignOptions}
+                            />
                         </div>
                     </div>
                     <div>

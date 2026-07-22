@@ -43,7 +43,7 @@ const ChinhSachGiaDetailPage = () => {
     }
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
+        <div className="p-6 bg-bg-main">
             <button
                 onClick={() => navigate('/chinh-sach-gia')}
                 className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-4"

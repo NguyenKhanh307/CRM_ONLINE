@@ -40,7 +40,8 @@ export function TicketTimeline({ ticketId }: Props) {
             {isLoading ? (
                 <p className="text-gray-400 text-md">Đang tải lịch sử...</p>
             ) : (
-                <ul className="space-y-3">
+                // Khung cuộn riêng — lịch sử audit + trao đổi dài không kéo dài trang
+                <ul className="space-y-3 overflow-auto pr-1 max-h-[420px]">
                     {comments.map(c => (
                         <li key={c.id} className="flex gap-3">
                             <div className={`mt-0.5 flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${c.type === 'system' ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-primary'}`}>

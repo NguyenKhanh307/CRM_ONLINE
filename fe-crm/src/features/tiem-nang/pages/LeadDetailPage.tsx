@@ -49,7 +49,7 @@ const LeadDetailPage = () => {
     ];
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
+        <div className="p-6 bg-bg-main">
             <DetailHeader
                 backTo="/tiem-nang"
                 title={lead.name}

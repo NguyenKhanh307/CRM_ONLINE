@@ -286,10 +286,10 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/opportunities` | Tạo cơ hội — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; bổ sung field V6 (opportunityType, expectedRevenue, source, winLossReason, description) |
+| `POST` | `/api/opportunities` | Tạo cơ hội — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; bổ sung field V6 (opportunityType, expectedRevenue, source, winLossReason, description). ⚠️ Body **không** nhận `status` lẫn `probability` — cả hai suy ra từ giai đoạn pipeline |
 | `GET` | `/api/opportunities` | Danh sách cơ hội (phân trang) |
 | `GET` | `/api/opportunities/{id}` | Lấy cơ hội theo ID |
-| `PUT` | `/api/opportunities/{id}` | Cập nhật cơ hội |
+| `PUT` | `/api/opportunities/{id}` | Cập nhật cơ hội. ⚠️ Body **không** nhận `status` lẫn `probability` — cả hai suy lại từ giai đoạn sau cập nhật (kể cả khi request không đổi giai đoạn) |
 | `DELETE` | `/api/opportunities/{id}` | Xóa mềm cơ hội |
 | `GET` | `/api/opportunities/deleted` | Thùng rác — danh sách cơ hội đã xóa (30 ngày) |
 | `POST` | `/api/opportunities/{id}/restore` | Khôi phục cơ hội từ thùng rác |
@@ -297,7 +297,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/opportunities/import-bulk` | Nhập hàng loạt cơ hội từ file Excel/CSV |
 | `POST` | `/api/opportunities/handover-bulk` | Bàn giao nhiều cơ hội sang người dùng khác — body: `{ ids, toUserId, reason? }` |
 | `GET` | `/api/opportunities/board` | **MỚI** — dữ liệu bảng Kanban: cột = giai đoạn (kèm số cơ hội + tổng tiền), tối đa 50 thẻ/cột. Param `q` tìm theo mã/tên. Lọc owner như list |
-| `POST` | `/api/opportunities/{id}/stage` | **MỚI** — đổi giai đoạn (kéo-thả Kanban), body `{ stageId, winLossReason? }`. Trạng thái won/lost/open **tự suy ra** từ giai đoạn (`OpportunityStatus.fromStage`); stage không tồn tại → 404 |
+| `POST` | `/api/opportunities/{id}/stage` | **MỚI** — đổi giai đoạn (kéo-thả Kanban), body `{ stageId, winLossReason? }`. Trạng thái won/lost/open **tự suy ra** từ giai đoạn (`OpportunityStatus.fromStage`) và `probability` lấy theo `opportunity_stages.probability`; stage không tồn tại → 404 |
 | `GET` | `/api/opportunities/{id}/related` | **MỚI** — bản ghi liên quan cho trang chi tiết 360°: báo giá / đơn hàng / hóa đơn / hoạt động (mỗi nhóm tối đa 50 dòng + tổng số thật) |
 
 #### Giai đoạn cơ hội — `/api/opportunity-stages`
@@ -338,6 +338,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/campaigns/{id}/schedule\|start\|pause\|complete\|cancel` | Chuyển trạng thái (có guard) |
 | `POST` | `/api/campaigns/{id}/send-email` | Gửi email hàng loạt — body `{ subject, body }`, trả số email đã gửi |
 | `GET` | `/api/campaigns/{id}/stats` | Thống kê ROI (#member/#lead/#cơ hội thắng/#đơn/doanh thu) |
+| `GET` | `/api/campaigns/{id}/related` | **MỚI** — bản ghi **quy về** chiến dịch cho trang chi tiết: tiềm năng / cơ hội / đơn hàng / hóa đơn (chiều đọc ngược của attribution). Kiểm quyền một lần trên chiến dịch (`ownerId`) → 403 |
 | `POST` | `/api/campaigns/import-bulk` · `/api/campaigns/handover-bulk` | Nhập / bàn giao hàng loạt |
 
 #### Thành viên — `/api/campaigns/{campaignId}/members`
@@ -551,11 +552,11 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/quotations` | Tạo báo giá — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; bổ sung field V6 (opportunityId, currency, exchangeRate) |
+| `POST` | `/api/quotations` | Tạo báo giá — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; bổ sung field V6 (opportunityId, currency, exchangeRate) và **`campaignId`** (attribution khi tạo trực tiếp, không clone từ cơ hội) |
 | `GET` | `/api/quotations` | Danh sách báo giá (phân trang) |
 | `GET` | `/api/quotations/{id}` | Lấy báo giá theo ID (kèm tên khóa ngoại) |
 | `GET` | `/api/quotations/{id}/related` | **MỚI** — bản ghi liên quan cho trang chi tiết: đơn hàng / hóa đơn phát sinh + hoạt động. Kiểm quyền một lần trên báo giá (`ownerId`) → 403 |
-| `PUT` | `/api/quotations/{id}` | Cập nhật báo giá |
+| `PUT` | `/api/quotations/{id}` | Cập nhật báo giá (body nhận cả **`campaignId`**) |
 | `DELETE` | `/api/quotations/{id}` | Xóa mềm báo giá |
 | `GET` | `/api/quotations/deleted` | Thùng rác — danh sách báo giá đã xóa (30 ngày) |
 | `POST` | `/api/quotations/{id}/restore` | Khôi phục báo giá từ thùng rác |
@@ -713,10 +714,29 @@ Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/copilot/ask` | Hỏi trợ lý AI. Body `{ question }` → trả `{ answer }` (văn bản tiếng Việt). Cần JWT. |
+| `POST` | `/api/copilot/ask` | Hỏi trợ lý AI. Body `{ question }` → trả `{ answer, action? }`. Cần JWT. |
+| `GET` | `/api/dashboard/revenue-by-campaign?period=` | Doanh thu theo chiến dịch trong kỳ (top 8) — dữ liệu cho trang phân tích `/phan-tich`. ADMIN/manager toàn bộ, nhân viên lọc owner. |
+
+**`action` trong response** (`CopilotAction{type, route, label}`): `type="navigate"` → FE tự điều hướng ngay;
+`type="link"` → FE hiện nút (vd "Xem biểu đồ so sánh" → `/phan-tich?period=...`).
+
+**Lệnh điều hướng (không gọi AI — `CopilotIntentDetector` dò keyword tiếng Việt, bỏ dấu khi so khớp):**
+- "mở/vào/xem trang `<phân hệ>`" → mở trang danh sách (`/khach-hang`, `/bao-gia`, ...).
+- "tạo/thêm `<phân hệ>` mới" → mở form thêm mới (`/{route}/them-moi`).
+- "mở `<phân hệ>` `<tên hoặc mã>`" → `findRecord` tìm bản ghi theo tên/mã (**lọc owner theo quyền**) → mở trang chi tiết `/{route}/{id}`; không thấy → "Không tìm thấy ... trong phạm vi của bạn."
+- Câu chứa từ nghi vấn (nào/bao nhiêu/không...) không bị nhận nhầm là lệnh → vẫn đi luồng RAG.
+- Câu hỏi có ý so sánh/số liệu ("so sánh", "doanh thu", "tỷ lệ"...) → trả lời RAG như thường **+ đính** `action link` tới `/phan-tich?period=<kỳ suy từ câu hỏi>`.
 
 - **RAG có cấu trúc (structured RAG), KHÔNG train, KHÔNG vector DB**: `CopilotContextRepositoryImpl` chạy native SQL gom ngữ cảnh thật từ DB rồi nhồi vào prompt; mô hình chỉ diễn giải. Mọi con số do SQL tính.
-- Ngữ cảnh gồm 2 loại: **(A) số liệu tổng hợp** (doanh thu kỳ này/kỳ trước, đếm KH/SP/cơ hội mở/HĐ quá hạn, tỷ lệ thắng, tỷ lệ chốt đơn, phễu — dùng lại `PeriodRanges` như Dashboard) và **(B) phễu bản ghi cụ thể** khi câu hỏi nhắc tên/mã khách (cơ hội→báo giá→đơn→hóa đơn→ticket).
+- **Các khối ngữ cảnh** (file SQL tách riêng — xem bảng dưới):
+  1. **Số liệu tổng hợp**: doanh thu kỳ này/kỳ trước, cơ hội mở, HĐ quá hạn, tỷ lệ thắng, tỷ lệ chốt đơn, phễu giai đoạn.
+  2. **Chuỗi 24 tháng**: doanh thu + số hóa đơn từng tháng → trả lời "tháng nào cao nhất", "so sánh tháng 5 với tháng 6", cộng tháng thành quý.
+  3. **Khối theo KHOẢNG THỜI GIAN bất kỳ** (`CopilotRangeParser` dò trong câu hỏi): "từ 3/5/2025 tới 4/9/2025", "ngày 3/5/2025", "tháng 5/2025", "quý 2/2025", "năm 2024", "tháng trước", "7 ngày qua"… Mỗi khoảng dựng **đủ mọi phân hệ** (tiềm năng/liên hệ/khách hàng/cơ hội/báo giá/đơn hàng/hóa đơn/chăm sóc/chiến dịch/sản phẩm) kèm **số lượng + phân rã trạng thái + giá trị tiền**. Chạy SQL trực tiếp trên khoảng nên **đúng cả ngày lẻ và mốc ngoài 24 tháng**. Tối đa 2 khoảng (đủ cho câu so sánh A với B).
+  4. **Xếp hạng top 8**: doanh thu theo **nhân viên** (chỉ ADMIN/SALES_MANAGER), **chiến dịch**, **khách hàng**, **sản phẩm** (doanh thu + số lượng). Bám theo khoảng được hỏi nếu câu hỏi có nêu.
+  5. **Đếm theo phân hệ**: tổng + phát sinh trong kỳ cho 10 phân hệ.
+  6. **Phễu bản ghi cụ thể** khi câu hỏi nhắc tên/mã khách (cơ hội→báo giá→đơn→hóa đơn→ticket).
+- ⛔ **Mọi truy vấn loại bản ghi đã xóa**: `deleted_at IS NULL` (loại luôn bản ghi trong Thùng rác và đã xóa vĩnh viễn) — áp cho **cả bảng JOIN** (users/campaigns/customers/products). `invoice_items` không có `deleted_at` nên lọc qua hóa đơn cha.
+- Prompt **cho phép AI so sánh/xếp hạng/cộng trừ trên số đã cấp** (trước đây cấm tính toán nên hay trả "không có thông tin"), nhưng vẫn cấm bịa số không có trong DỮ LIỆU.
 - **Phân quyền dữ liệu**: ADMIN/SALES_MANAGER xem toàn bộ (`ownerId=null`); nhân viên chỉ xem bản ghi `owner_id = userId` (kỳ + phễu đều lọc theo owner).
 - **Nhà cung cấp**: Google Gemini qua `GeminiAiServiceImpl` (adapter của port `IAiService`) — dùng `RestClient` của spring-web, **không thêm dependency**. Đổi nhà cung cấp chỉ cần thay implementation.
 - **Cấu hình** (externalize như JWT/mail): `app.ai.api-key` (env `APP_AI_API_KEY` — bắt buộc, không commit), `app.ai.model` (mặc định `gemini-flash-latest` — model chạy được trên free tier; `gemini-2.0-flash` bị giới hạn quota 0 nên **không dùng free tier**), `app.ai.base-url`. Dev đặt key trong `application-local.properties`.

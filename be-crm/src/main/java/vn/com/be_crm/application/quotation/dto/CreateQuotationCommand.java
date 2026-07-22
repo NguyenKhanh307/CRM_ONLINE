@@ -21,6 +21,8 @@ public class CreateQuotationCommand {
     private Long customerId;
     private Long contactId;
     private Long opportunityId;
+    /** Chiến dịch nguồn — dùng cho attribution/ROI khi báo giá được tạo trực tiếp (không clone từ cơ hội). */
+    private Long campaignId;
     private Long pricePolicyId;
     private Long ownerId;
     @FutureOrPresent(message = "Ngày báo giá không được là ngày quá khứ") private LocalDate quoteDate;

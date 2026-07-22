@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
-import { nonNegativeError, percentError } from '@/shared/utils/validators';
+import { nonNegativeError } from '@/shared/utils/validators';
+import { formatNumber } from '@/shared/utils/number';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -7,6 +8,8 @@ import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
+import { PrefillHint } from '@/shared/components/form/PrefillHint';
+import { fillEmpty, hasFilled, primaryContactOf } from '@/shared/utils/prefill';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { DateInput } from '@/shared/components/form/DateInput';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
@@ -22,6 +25,7 @@ import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useContactList } from '@/features/lien-he/hooks/useContactList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { usePricePolicyList } from '@/features/chinh-sach-gia/hooks/usePricePolicyList';
+import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { useCreateOpportunity } from '../hooks/useCreateOpportunity';
 import { useOpportunityStages } from '../hooks/useOpportunityStages';
 import type { CreateOpportunityPayload } from '../types/opportunityTypes';
@@ -36,15 +40,15 @@ const SOURCE_OPTIONS = [
 
 interface HeaderState {
     code: string; name: string; opportunityType: string; customerId: string; contactId: string;
-    ownerId: string; stageId: string; pricePolicyId: string; source: string;
-    amount: string; expectedRevenue: string; probability: string; expectedCloseDate: string;
+    ownerId: string; stageId: string; campaignId: string; pricePolicyId: string; source: string;
+    amount: string; expectedRevenue: string; expectedCloseDate: string;
     description: string; winLossReason: string;
 }
 
 /** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
 const initialState = (ownerId: string): HeaderState => ({
     code: '', name: '', opportunityType: '', customerId: '', contactId: '', ownerId, stageId: '',
-    pricePolicyId: '', source: '', amount: '', expectedRevenue: '', probability: '', expectedCloseDate: '',
+    campaignId: '', pricePolicyId: '', source: '', amount: '', expectedRevenue: '', expectedCloseDate: '',
     description: '', winLossReason: '',
 });
 
@@ -67,11 +71,15 @@ const OpportunityAddPage = () => {
     const { data: products = [] } = useProductList();
     const { data: stages = [] } = useOpportunityStages();
     const { data: pricePolicies = [] } = usePricePolicyList();
+    const { data: campaigns = [] } = useCampaignList();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
+    const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
     const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
     const stageOptions = useMemo(() => stages.map((s) => ({ value: String(s.id), label: s.name })), [stages]);
+    /** Giai đoạn đang chọn — nguồn của xác suất thắng (BE cũng suy ra từ đúng bản ghi này). */
+    const selectedStage = useMemo(() => stages.find((s) => String(s.id) === form.stageId), [stages, form.stageId]);
     const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
     const productOptions = useMemo<ProductOption[]>(
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0 })),
@@ -79,14 +87,31 @@ const OpportunityAddPage = () => {
     );
 
     const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
-    const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); };
+    const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); setPrefillFrom(null); };
+
+    /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
+    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
+
+    /** Chọn khách hàng → tự điền liên hệ chính, người phụ trách, nguồn (chỉ ô còn trống). */
+    const onPickCustomer = (v: string) => {
+        set({ customerId: v });
+        setPrefillFrom(null);
+        const customer = customers.find((c) => String(c.id) === v);
+        if (!customer) return;
+        const contact = primaryContactOf(contacts, customer.id);
+        const patch = fillEmpty(form, {
+            contactId: contact ? String(contact.id) : '',
+            ownerId: customer.ownerId ? String(customer.ownerId) : '',
+            source: customer.source ?? '',
+        });
+        if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
+    };
 
     const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã cơ hội không được để trống'); return; }
         if (!form.name.trim()) { showAlert('Tên cơ hội không được để trống'); return; }
         // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = percentError(form.probability, 'Xác suất') ?? nonNegativeError(form.expectedRevenue, 'Doanh thu kỳ vọng')
-            ?? validateLineItems(rows);
+        const vErr = nonNegativeError(form.expectedRevenue, 'Doanh thu kỳ vọng') ?? validateLineItems(rows);
         if (vErr) { showAlert(vErr); return; }
         const payload: CreateOpportunityPayload = {
             code: form.code.trim(),
@@ -96,10 +121,10 @@ const OpportunityAddPage = () => {
             contactId: form.contactId ? Number(form.contactId) : null,
             ownerId: form.ownerId ? Number(form.ownerId) : null,
             stageId: form.stageId ? Number(form.stageId) : null,
+            campaignId: form.campaignId ? Number(form.campaignId) : null,
             pricePolicyId: form.pricePolicyId ? Number(form.pricePolicyId) : null,
             amount: num(form.amount),
             expectedRevenue: num(form.expectedRevenue),
-            probability: num(form.probability),
             expectedCloseDate: form.expectedCloseDate || null,
             source: form.source || null,
             winLossReason: form.winLossReason || null,
@@ -142,7 +167,8 @@ const OpportunityAddPage = () => {
                                 <input type="text" value={form.opportunityType} onChange={(e) => set({ opportunityType: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Khách hàng">
-                                <SearchableSelect value={form.customerId} onChange={(v) => set({ customerId: v })} options={customerOptions} />
+                                <SearchableSelect value={form.customerId} onChange={onPickCustomer} options={customerOptions} />
+                                <PrefillHint source={prefillFrom} />
                             </FieldRow>
                             <FieldRow label="Liên hệ">
                                 <SearchableSelect value={form.contactId} onChange={(v) => set({ contactId: v })} options={contactOptions} />
@@ -161,6 +187,9 @@ const OpportunityAddPage = () => {
                             <FieldRow label="Nguồn gốc">
                                 <SearchableSelect value={form.source} onChange={(v) => set({ source: v })} options={SOURCE_OPTIONS} />
                             </FieldRow>
+                            <FieldRow label="Chiến dịch">
+                                <SearchableSelect value={form.campaignId} onChange={(v) => set({ campaignId: v })} options={campaignOptions} />
+                            </FieldRow>
                         </div>
                     </div>
                 </FormSection>
@@ -176,8 +205,14 @@ const OpportunityAddPage = () => {
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
+                            {/* Xác suất do giai đoạn pipeline định nghĩa (opportunity_stages.probability) — chỉ hiển thị */}
                             <FieldRow label="Xác suất (%)">
-                                <input type="number" value={form.probability} onChange={(e) => set({ probability: e.target.value })} className={inputCls} />
+                                <div className="flex items-center gap-2">
+                                    <span className="text-md font-medium text-text-main">
+                                        {selectedStage ? `${formatNumber(selectedStage.probability)}%` : '—'}
+                                    </span>
+                                    <span className="text-sm text-gray-400">(tự động theo giai đoạn)</span>
+                                </div>
                             </FieldRow>
                             <FieldRow label="Ngày đóng dự kiến">
                                 <DateInput value={form.expectedCloseDate} onChange={(v) => set({ expectedCloseDate: v })} />

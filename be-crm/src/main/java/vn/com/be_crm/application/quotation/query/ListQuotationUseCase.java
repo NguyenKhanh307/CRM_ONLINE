@@ -25,6 +25,7 @@ public class ListQuotationUseCase implements IUseCase<PageRequest, PageResult<Qu
         NameEnricher.apply(items, QuotationResult::getCustomerId, names::customers, QuotationResult::setCustomerName);
         NameEnricher.apply(items, QuotationResult::getContactId, names::contacts, QuotationResult::setContactName);
         NameEnricher.apply(items, QuotationResult::getOpportunityId, names::opportunities, QuotationResult::setOpportunityName);
+        NameEnricher.apply(items, QuotationResult::getCampaignId, names::campaigns, QuotationResult::setCampaignName);
         NameEnricher.apply(items, QuotationResult::getOwnerId, names::users, QuotationResult::setOwnerName);
         NameEnricher.apply(items, QuotationResult::getCreatedBy, names::users, QuotationResult::setCreatedByName);
         NameEnricher.apply(items, QuotationResult::getUpdatedBy, names::users, QuotationResult::setUpdatedByName);

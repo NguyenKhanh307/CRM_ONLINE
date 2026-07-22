@@ -30,6 +30,7 @@ public class ListOpportunityUseCase implements IUseCase<PageRequest, PageResult<
         NameEnricher.apply(items, OpportunityResult::getCustomerId, names::customers, OpportunityResult::setCustomerName);
         NameEnricher.apply(items, OpportunityResult::getContactId, names::contacts, OpportunityResult::setContactName);
         NameEnricher.apply(items, OpportunityResult::getStageId, names::stages, OpportunityResult::setStageName);
+        NameEnricher.apply(items, OpportunityResult::getCampaignId, names::campaigns, OpportunityResult::setCampaignName);
         NameEnricher.apply(items, OpportunityResult::getOwnerId, names::users, OpportunityResult::setOwnerName);
         NameEnricher.apply(items, OpportunityResult::getCreatedBy, names::users, OpportunityResult::setCreatedByName);
         NameEnricher.apply(items, OpportunityResult::getUpdatedBy, names::users, OpportunityResult::setUpdatedByName);

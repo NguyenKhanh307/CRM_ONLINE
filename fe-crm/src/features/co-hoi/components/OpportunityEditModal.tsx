@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
 import { useAlert } from '@/shared/alert/useAlert';
-import { nonNegativeError, percentError } from '@/shared/utils/validators';
+import { nonNegativeError } from '@/shared/utils/validators';
+import { formatNumber } from '@/shared/utils/number';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -8,6 +9,7 @@ import { FiX } from 'react-icons/fi';
 import type { OpportunityResult, UpdateOpportunityPayload } from '../types/opportunityTypes';
 import { useUpdateOpportunity } from '../hooks/useUpdateOpportunity';
 import { useOpportunityStages } from '../hooks/useOpportunityStages';
+import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { opportunityService } from '../services/opportunityService';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
@@ -36,9 +38,10 @@ export function OpportunityEditModal({ item, onClose }: Props) {
     const { mutateAsync, isPending } = useUpdateOpportunity();
     const { data: products = [] } = useProductList();
     const { data: stages = [] } = useOpportunityStages();
+    const { data: campaigns = [] } = useCampaignList();
     const [form, setForm] = useState<UpdateOpportunityPayload>({
         name: '', opportunityType: null, customerId: null, contactId: null, ownerId: null,
-        stageId: null, pricePolicyId: null, amount: null, expectedRevenue: null, probability: null, expectedCloseDate: null,
+        stageId: null, campaignId: null, pricePolicyId: null, amount: null, expectedRevenue: null, expectedCloseDate: null,
         source: null, winLossReason: null, description: null,
     });
     const [rows, setRows] = useState<LineItemRow[]>([]);
@@ -50,14 +53,17 @@ export function OpportunityEditModal({ item, onClose }: Props) {
         [products],
     );
     const stageOptions = useMemo(() => stages.map((s) => ({ value: String(s.id), label: s.name })), [stages]);
+    const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
+    /** Giai đoạn đang chọn — nguồn của xác suất thắng; đổi giai đoạn thì số đổi ngay trước cả khi lưu. */
+    const selectedStage = useMemo(() => stages.find((s) => s.id === form.stageId), [stages, form.stageId]);
 
     useEffect(() => {
         if (!item) return;
         setForm({
             name: item.name, opportunityType: item.opportunityType, customerId: item.customerId,
-            contactId: item.contactId, ownerId: item.ownerId, stageId: item.stageId,
+            contactId: item.contactId, ownerId: item.ownerId, stageId: item.stageId, campaignId: item.campaignId,
             pricePolicyId: item.pricePolicyId, amount: item.amount,
-            expectedRevenue: item.expectedRevenue, probability: item.probability,
+            expectedRevenue: item.expectedRevenue,
             expectedCloseDate: item.expectedCloseDate, source: item.source,
             winLossReason: item.winLossReason, description: item.description,
         });
@@ -81,7 +87,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = percentError(form.probability, 'Xác suất') ?? nonNegativeError(form.expectedRevenue, 'Doanh thu kỳ vọng');
+        const vErr = nonNegativeError(form.expectedRevenue, 'Doanh thu kỳ vọng');
         if (vErr) { showAlert(vErr); return; }
         if (!(await confirmSave('cơ hội'))) return;
         setSaving(true);
@@ -138,9 +144,20 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
+                        {/* Xác suất do giai đoạn pipeline định nghĩa (opportunity_stages.probability) — chỉ hiển thị */}
                         <div>
-                            <label className={lbl}>Xác suất (%)</label>
-                            <input type="number" min="0" max="100" className={inp} value={form.probability ?? ''} onChange={e => setForm(f => ({ ...f, probability: e.target.value ? +e.target.value : null }))} />
+                            <label className={lbl}>Xác suất (tự động theo giai đoạn)</label>
+                            <span className="inline-block px-2 py-1 rounded text-sm font-medium bg-blue-50 text-primary">
+                                {selectedStage ? `${formatNumber(selectedStage.probability)}%` : '—'}
+                            </span>
+                        </div>
+                        <div>
+                            <label className={lbl}>Chiến dịch</label>
+                            <SearchableSelect
+                                value={form.campaignId != null ? String(form.campaignId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, campaignId: v ? Number(v) : null }))}
+                                options={campaignOptions}
+                            />
                         </div>
                     </div>
                     <div className="grid grid-cols-3 gap-3">

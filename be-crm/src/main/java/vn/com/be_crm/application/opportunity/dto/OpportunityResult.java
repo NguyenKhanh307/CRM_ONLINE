@@ -42,6 +42,7 @@ public class OpportunityResult {
     private String contactName;
     private String ownerName;
     private String stageName;
+    private String campaignName;
     // Tên người tạo/người sửa — do BE resolve (INameResolver).
     private String createdByName;
     private String updatedByName;

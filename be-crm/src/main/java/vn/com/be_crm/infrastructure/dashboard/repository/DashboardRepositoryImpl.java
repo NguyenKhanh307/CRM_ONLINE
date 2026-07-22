@@ -224,6 +224,17 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
                 .map(e -> new GroupedStatusRow(e.getKey(), e.getValue())).toList();
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public List<RankedItem> revenueByCampaign(Long ownerId, DateRange cur) {
+        String of = ownerId == null ? "" : " AND i.owner_id = :o";
+        return TxSupport.read(sf, s -> rows(s,
+                "SELECT c.id, c.name, COALESCE(SUM(i.total),0) v FROM invoices i JOIN campaigns c ON c.id = i.campaign_id " +
+                        "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL AND i.invoice_date >= :f AND i.invoice_date < :t" + of +
+                        " GROUP BY c.id, c.name ORDER BY v DESC LIMIT 8", dateOwner(cur, ownerId))
+                .stream().map(r -> new RankedItem(((Number) r[0]).longValue(), str(r[1]), toBig(r[2]))).toList());
+    }
+
     /** Doanh thu theo nhân viên trong kỳ (top 8). */
     private List<RankedItem> revenueByOwner(Session s, DateRange cur) {
         return rows(s, "SELECT u.id, u.full_name, COALESCE(SUM(i.total),0) v FROM invoices i JOIN users u ON u.id = i.owner_id " +

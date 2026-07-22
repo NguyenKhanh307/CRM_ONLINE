@@ -20,6 +20,7 @@ export const getOpportunityColumns = (): ColumnDef<OpportunityResult>[] => [
     { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },
     { accessorKey: 'contactName', header: 'Liên hệ', size: 160, cell: textCell },
     { accessorKey: 'stageName', header: 'Giai đoạn', size: 150, cell: textCell },
+    { accessorKey: 'campaignName', header: 'Chiến dịch', size: 160, cell: textCell },
     { accessorKey: 'amount', header: 'Giá trị', size: 140, cell: currencyCell },
     { accessorKey: 'expectedRevenue', header: 'Doanh thu dự kiến', size: 160, cell: currencyCell },
     {

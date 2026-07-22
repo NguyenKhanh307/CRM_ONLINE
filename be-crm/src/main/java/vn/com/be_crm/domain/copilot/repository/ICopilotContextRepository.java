@@ -1,5 +1,9 @@
 package vn.com.be_crm.domain.copilot.repository;
 
+import vn.com.be_crm.application.copilot.dto.RecordRef;
+
+import java.util.Optional;
+
 /**
  * Port gom ngữ cảnh dữ liệu CRM cho trợ lý AI (RAG) — truy vấn DB thật rồi dựng chuỗi ngữ cảnh.
  * Con số do SQL tính, AI chỉ diễn giải.
@@ -16,4 +20,15 @@ public interface ICopilotContextRepository {
      * @return chuỗi ngữ cảnh tiếng Việt để nhồi vào prompt
      */
     String assemble(String question, Long ownerId, boolean isPrivileged);
+
+    /**
+     * Tìm một bản ghi theo tên/mã (phục vụ lệnh "mở <module> <tên>") — lấy bản ghi khớp mới cập nhật nhất.
+     *
+     * @param module       khóa module (customer/lead/contact/opportunity/quotation/order/invoice/campaign/ticket)
+     * @param term         cụm tên/mã cần tìm (giữ dấu)
+     * @param ownerId      lọc người phụ trách (null = không lọc)
+     * @param isPrivileged true nếu ADMIN/SALES_MANAGER (bỏ lọc owner)
+     * @return bản ghi khớp nhất nếu có
+     */
+    Optional<RecordRef> findRecord(String module, String term, Long ownerId, boolean isPrivileged);
 }

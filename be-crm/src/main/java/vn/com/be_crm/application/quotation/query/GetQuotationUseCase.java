@@ -29,6 +29,7 @@ public class GetQuotationUseCase implements IUseCase<Long, QuotationResult> {
         NameEnricher.apply(one, QuotationResult::getCustomerId, names::customers, QuotationResult::setCustomerName);
         NameEnricher.apply(one, QuotationResult::getContactId, names::contacts, QuotationResult::setContactName);
         NameEnricher.apply(one, QuotationResult::getOpportunityId, names::opportunities, QuotationResult::setOpportunityName);
+        NameEnricher.apply(one, QuotationResult::getCampaignId, names::campaigns, QuotationResult::setCampaignName);
         NameEnricher.apply(one, QuotationResult::getOwnerId, names::users, QuotationResult::setOwnerName);
         NameEnricher.apply(one, QuotationResult::getCreatedBy, names::users, QuotationResult::setCreatedByName);
         NameEnricher.apply(one, QuotationResult::getUpdatedBy, names::users, QuotationResult::setUpdatedByName);

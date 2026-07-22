@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FieldRow } from '@/shared/components/form/FieldRow';
+import { PrefillHint } from '@/shared/components/form/PrefillHint';
+import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
@@ -30,6 +32,23 @@ export const ContactGeneralSection = ({ value, onChange }: Props) => {
         () => users.map((u) => ({ value: String(u.id), label: u.fullName })),
         [users],
     );
+
+    /** Tên tổ chức vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Tổ chức. */
+    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
+
+    /** Chọn tổ chức → tự điền địa chỉ, SĐT cơ quan, nguồn gốc (chỉ ô còn trống). */
+    const onPickCustomer = (v: string) => {
+        onChange({ customerId: v });
+        setPrefillFrom(null);
+        const customer = customers.find((c) => String(c.id) === v);
+        if (!customer) return;
+        const patch = fillEmpty(value, {
+            address: customer.address ?? '',
+            officePhone: customer.phone ?? '',
+            source: customer.source ?? '',
+        });
+        if (hasFilled(patch)) { onChange(patch); setPrefillFrom(`tổ chức «${customer.name}»`); }
+    };
 
     return (
         <div className="grid grid-cols-2 gap-x-10 gap-y-4">
@@ -103,9 +122,10 @@ export const ContactGeneralSection = ({ value, onChange }: Props) => {
                 <FieldRow label="Tổ chức">
                     <SearchableSelect
                         value={value.customerId}
-                        onChange={(v) => onChange({ customerId: v })}
+                        onChange={onPickCustomer}
                         options={customerOptions}
                     />
+                    <PrefillHint source={prefillFrom} />
                 </FieldRow>
                 <FieldRow label="Nguồn gốc">
                     <SearchableSelect

@@ -27,6 +27,7 @@ export const OpportunityInfoPanel = ({ opportunity: o }: OpportunityInfoPanelPro
                     <InfoRow label="Khách hàng" value={o.customerName} />
                     <InfoRow label="Liên hệ" value={o.contactName} />
                     <InfoRow label="Giai đoạn" value={o.stageName} />
+                    <InfoRow label="Chiến dịch" value={o.campaignName} />
                     <InfoRow label="Nguồn" value={o.source} />
                 </div>
                 <div>

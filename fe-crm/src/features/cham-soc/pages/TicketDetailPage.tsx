@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiEdit2, FiStar } from 'react-icons/fi';
 import { useAlert } from '@/shared/alert/useAlert';
 import { ReasonModal } from '@/shared/components/ReasonModal';
+import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
 import { formatISODate } from '@/shared/utils/date';
 import { formatNumber } from '@/shared/utils/number';
 import { toIdNameMap, lookupName } from '@/shared/utils/lookup';
@@ -83,7 +84,7 @@ const TicketDetailPage = () => {
     const canCsat = ticket.status === 'resolved' || ticket.status === 'closed';
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen space-y-4">
+        <div className="p-6 bg-bg-main space-y-4">
             <button onClick={() => navigate('/cham-soc')} className="flex items-center gap-1.5 text-md text-gray-500 hover:text-primary">
                 <FiArrowLeft size={15} /> Quay lại danh sách
             </button>
@@ -132,31 +133,30 @@ const TicketDetailPage = () => {
                     {isReturn && (
                         <div className="bg-white rounded-card shadow-sm p-5">
                             <h2 className="text-md font-semibold text-text-main mb-3">Hàng trả / đổi</h2>
-                            <table className="w-full text-md">
-                                <thead>
-                                    <tr className="text-left text-gray-500 border-b border-gray-200">
-                                        <th className="py-2 pr-2 font-medium">Sản phẩm</th>
-                                        <th className="py-2 px-2 font-medium">Số lượng</th>
-                                        <th className="py-2 px-2 font-medium">Đơn giá</th>
-                                        <th className="py-2 px-2 font-medium">Thành tiền</th>
-                                        <th className="py-2 px-2 font-medium">Lý do</th>
-                                        <th className="py-2 px-2 font-medium">Tình trạng</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {returnItems.map(it => (
-                                        <tr key={it.id} className="border-b border-gray-100">
-                                            <td className="py-1.5 pr-2">{it.productId ? lookupName(productMap, it.productId) : '—'}</td>
-                                            <td className="py-1.5 px-2">{formatNumber(it.quantity)}</td>
-                                            <td className="py-1.5 px-2">{formatNumber(it.unitPrice)} đ</td>
-                                            <td className="py-1.5 px-2">{formatNumber(it.amount)} đ</td>
-                                            <td className="py-1.5 px-2">{it.reason ? REASON_LABELS[it.reason] : '—'}</td>
-                                            <td className="py-1.5 px-2">{it.conditionNote ?? '—'}</td>
+                            <ScrollFrame visibleRows={6}>
+                                <table className="w-full text-md">
+                                    <thead>
+                                        <tr className="text-left text-gray-500">
+                                            {['Sản phẩm', 'Số lượng', 'Đơn giá', 'Thành tiền', 'Lý do', 'Tình trạng'].map((h, i) => (
+                                                <th key={h} className={`py-2 font-medium ${i === 0 ? 'pr-2' : 'px-2'}`}>{h}</th>
+                                            ))}
                                         </tr>
-                                    ))}
-                                    {returnItems.length === 0 && <tr><td colSpan={6} className="py-3 text-center text-gray-400">Chưa có dòng hàng nào</td></tr>}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {returnItems.map(it => (
+                                            <tr key={it.id} className="border-b border-gray-100">
+                                                <td className="py-1.5 pr-2">{it.productId ? lookupName(productMap, it.productId) : '—'}</td>
+                                                <td className="py-1.5 px-2">{formatNumber(it.quantity)}</td>
+                                                <td className="py-1.5 px-2">{formatNumber(it.unitPrice)} đ</td>
+                                                <td className="py-1.5 px-2">{formatNumber(it.amount)} đ</td>
+                                                <td className="py-1.5 px-2">{it.reason ? REASON_LABELS[it.reason] : '—'}</td>
+                                                <td className="py-1.5 px-2">{it.conditionNote ?? '—'}</td>
+                                            </tr>
+                                        ))}
+                                        {returnItems.length === 0 && <tr><td colSpan={6} className="py-3 text-center text-gray-400">Chưa có dòng hàng nào</td></tr>}
+                                    </tbody>
+                                </table>
+                            </ScrollFrame>
                         </div>
                     )}
 

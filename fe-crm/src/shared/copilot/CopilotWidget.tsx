@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { FiMessageSquare, FiSend, FiX } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { FiBarChart2, FiMessageSquare, FiSend, FiX } from 'react-icons/fi';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAskCopilot } from './useAskCopilot';
 import { renderAnswer } from './answerRenderer';
-import type { ChatMessage } from './copilotTypes';
+import type { ChatMessage, CopilotAction } from './copilotTypes';
 
 /**
  * Trợ lý AI Copilot — bong bóng chat nổi góc phải-dưới, hiện trên mọi trang.
@@ -14,6 +15,7 @@ export const CopilotWidget = () => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState('');
     const { mutate, isPending } = useAskCopilot();
+    const navigate = useNavigate();
     const scrollRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
@@ -49,13 +51,26 @@ export const CopilotWidget = () => {
         setMessages((prev) => [...prev, { role: 'user', text: question }]);
         setInput('');
         mutate(question, {
-            onSuccess: (res) => setMessages((prev) => [...prev, { role: 'assistant', text: res.answer }]),
+            onSuccess: (res) => {
+                setMessages((prev) => [...prev, { role: 'assistant', text: res.answer, action: res.action }]);
+                // Lệnh điều hướng ("mở trang...") → tự nhảy trang ngay và đóng hộp thoại.
+                if (res.action?.type === 'navigate') {
+                    setOpen(false);
+                    navigate(res.action.route);
+                }
+            },
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Không gọi được trợ lý AI. Vui lòng thử lại sau.';
                 setMessages((prev) => [...prev, { role: 'assistant', text: `⚠️ ${msg}` }]);
             },
         });
+    };
+
+    /** Bấm nút link trong bong bóng (vd "Xem biểu đồ so sánh") → điều hướng + đóng hộp. */
+    const handleActionClick = (action: CopilotAction) => {
+        setOpen(false);
+        navigate(action.route);
     };
 
     /** Enter để gửi, Shift+Enter để xuống dòng. */
@@ -107,6 +122,17 @@ export const CopilotWidget = () => {
                                     }
                                 >
                                     {m.role === 'assistant' ? renderAnswer(m.text) : m.text}
+                                    {m.role === 'assistant' && m.action?.type === 'link' && (
+                                        <button
+                                            onClick={() => handleActionClick(m.action!)}
+                                            className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-btn
+                                                       bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20
+                                                       transition-colors"
+                                        >
+                                            <FiBarChart2 size={14} />
+                                            {m.action.label ?? 'Xem chi tiết'}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}

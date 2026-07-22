@@ -7,14 +7,13 @@ import vn.com.be_crm.application.opportunity.mapper.OpportunityCommandMapper;
 import vn.com.be_crm.application.shared.usecase.IUseCase;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
 import vn.com.be_crm.domain.opportunity.entity.OpportunityStage;
-import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityStageRepository;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
 
 /**
  * Use case đổi giai đoạn pipeline của một cơ hội — hành động của bảng Kanban (kéo thẻ sang cột khác).
- * Trạng thái vẫn suy ra tự động qua {@link OpportunityStatus#fromStage} (không nhân bản quy tắc);
+ * Trạng thái và xác suất thắng vẫn suy ra tự động từ giai đoạn (không nhân bản quy tắc);
  * khác {@code UpdateOpportunityUseCase} ở chỗ giai đoạn không tồn tại thì ném 404 thay vì âm thầm về {@code open}.
  */
 public class ChangeOpportunityStageUseCase implements IUseCase<ChangeOpportunityStageCommand, OpportunityResult> {
@@ -48,7 +47,8 @@ public class ChangeOpportunityStageUseCase implements IUseCase<ChangeOpportunity
                 .winLossReason(cmd.getWinLossReason())
                 .build();
         // Mapper null-coalescing: mọi field không truyền đều giữ nguyên giá trị cũ.
+        // Mapper tự suy trạng thái + xác suất từ `stage` nên kéo thẻ Kanban cập nhật luôn cả hai.
         return OpportunityCommandMapper.toResult(
-                repo.save(OpportunityCommandMapper.toEntity(update, existing, OpportunityStatus.fromStage(stage))));
+                repo.save(OpportunityCommandMapper.toEntity(update, existing, stage)));
     }
 }

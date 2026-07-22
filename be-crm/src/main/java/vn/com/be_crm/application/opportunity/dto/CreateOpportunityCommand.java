@@ -1,7 +1,5 @@
 package vn.com.be_crm.application.opportunity.dto;
 
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -29,7 +27,7 @@ public class CreateOpportunityCommand {
     private Long pricePolicyId;
     private BigDecimal amount;
     @PositiveOrZero(message = "Doanh thu kỳ vọng không được âm") private BigDecimal expectedRevenue;
-    @DecimalMin(value = "0", message = "Xác suất phải từ 0 đến 100") @DecimalMax(value = "100", message = "Xác suất phải từ 0 đến 100") private BigDecimal probability;
+    // probability: KHÔNG nhận từ FE — suy ra từ opportunity_stages.probability của giai đoạn được chọn.
     private LocalDate expectedCloseDate;
     @Size(max = 30) private String source;
     private Long campaignId;

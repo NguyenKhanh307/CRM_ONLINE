@@ -55,7 +55,7 @@ const OpportunityDetailPage = () => {
     };
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
+        <div className="p-6 bg-bg-main">
             <DetailHeader
                 backTo="/co-hoi"
                 title={opportunity.name}

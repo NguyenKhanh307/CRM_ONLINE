@@ -17,6 +17,8 @@ public class UpdateQuotationCommand {
     private Long customerId;
     private Long contactId;
     private Long opportunityId;
+    /** Chiến dịch nguồn — dùng cho attribution/ROI. */
+    private Long campaignId;
     private Long pricePolicyId;
     private Long ownerId;
     private LocalDate quoteDate;

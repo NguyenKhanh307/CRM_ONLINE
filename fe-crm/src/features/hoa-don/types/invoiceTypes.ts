@@ -3,6 +3,7 @@ export interface UpdateInvoicePayload {
     contactId: number | null;
     quotationId?: number | null;
     opportunityId?: number | null;
+    campaignId?: number | null;
     ownerId: number | null;
     invoiceDate: string | null;
     dueDate?: string | null;
@@ -37,6 +38,7 @@ export interface CreateInvoicePayload {
     contactId: number | null;
     quotationId: number | null;
     opportunityId: number | null;
+    campaignId: number | null;
     ownerId: number | null;
     invoiceDate: string | null;
     dueDate: string | null;
@@ -100,6 +102,7 @@ export interface InvoiceResult {
     contactId: number | null;
     quotationId: number | null;
     opportunityId: number | null;
+    campaignId: number | null;
     ownerId: number | null;
     invoiceDate: string | null;
     dueDate: string | null;
@@ -122,6 +125,7 @@ export interface InvoiceResult {
     contactName: string | null;
     quotationCode: string | null;
     opportunityName: string | null;
+    campaignName: string | null;
     ownerName: string | null;
     // Audit: BE tự đóng dấu (AuditInterceptor).
     createdBy: number | null;

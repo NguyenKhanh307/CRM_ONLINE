@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { FiTrash2, FiPlus } from 'react-icons/fi';
 import { formatISODate } from '@/shared/utils/date';
+import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
 import { useCampaignMembers, useCreateCampaignMember, useDeleteCampaignMember } from '../hooks/useCampaignMembers';
 
 interface Props {
@@ -18,7 +19,7 @@ const MEMBER_STATUS_COLORS: Record<string, string> = {
     unsubscribed: 'bg-gray-200 text-gray-500',
 };
 
-/** Bảng thành viên chiến dịch — thêm nhanh (tên/email/sđt) + xóa. */
+/** Bảng khách hàng của chiến dịch (bảng `campaign_members`) — thêm nhanh (tên/email/sđt) + xóa. */
 export function CampaignMembersTable({ campaignId }: Props) {
     const { data: members = [], isLoading } = useCampaignMembers(campaignId);
     const { mutate: createMember, isPending: isCreating } = useCreateCampaignMember(campaignId);
@@ -46,14 +47,14 @@ export function CampaignMembersTable({ campaignId }: Props) {
                 <input className={inp} placeholder="Số điện thoại" value={phone} onChange={e => setPhone(e.target.value)} />
                 <button type="submit" disabled={isCreating}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">
-                    <FiPlus size={14} /> Thêm thành viên
+                    <FiPlus size={14} /> Thêm khách hàng
                 </button>
             </form>
 
-            <div className="border border-gray-200 rounded-section overflow-auto">
+            <ScrollFrame visibleRows={10} headBg="gray" className="border border-gray-200 rounded-section">
                 <table className="w-full text-table">
                     <thead>
-                        <tr className="bg-gray-100 border-b-2 border-gray-300 text-title font-semibold text-left">
+                        <tr className="text-title font-semibold text-left">
                             <th className="px-3 py-2">Tên</th>
                             <th className="px-3 py-2">Email</th>
                             <th className="px-3 py-2">SĐT</th>
@@ -65,7 +66,7 @@ export function CampaignMembersTable({ campaignId }: Props) {
                     <tbody>
                         {isLoading && <tr><td colSpan={6} className="px-3 py-4 text-center text-gray-400">Đang tải...</td></tr>}
                         {!isLoading && members.length === 0 && (
-                            <tr><td colSpan={6} className="px-3 py-4 text-center text-gray-400">Chưa có thành viên nào</td></tr>
+                            <tr><td colSpan={6} className="px-3 py-4 text-center text-gray-400">Chưa có khách hàng nào</td></tr>
                         )}
                         {members.map((m, i) => (
                             <tr key={m.id} className={`border-b border-gray-200 ${i % 2 ? 'bg-gray-50' : 'bg-white'}`}>
@@ -88,7 +89,7 @@ export function CampaignMembersTable({ campaignId }: Props) {
                         ))}
                     </tbody>
                 </table>
-            </div>
+            </ScrollFrame>
         </div>
     );
 }

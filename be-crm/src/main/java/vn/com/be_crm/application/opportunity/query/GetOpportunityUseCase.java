@@ -35,6 +35,7 @@ public class GetOpportunityUseCase implements IUseCase<Long, OpportunityResult> 
         NameEnricher.apply(one, OpportunityResult::getContactId, names::contacts, OpportunityResult::setContactName);
         NameEnricher.apply(one, OpportunityResult::getOwnerId, names::users, OpportunityResult::setOwnerName);
         NameEnricher.apply(one, OpportunityResult::getStageId, names::stages, OpportunityResult::setStageName);
+        NameEnricher.apply(one, OpportunityResult::getCampaignId, names::campaigns, OpportunityResult::setCampaignName);
         NameEnricher.apply(one, OpportunityResult::getCreatedBy, names::users, OpportunityResult::setCreatedByName);
         NameEnricher.apply(one, OpportunityResult::getUpdatedBy, names::users, OpportunityResult::setUpdatedByName);
         return result;

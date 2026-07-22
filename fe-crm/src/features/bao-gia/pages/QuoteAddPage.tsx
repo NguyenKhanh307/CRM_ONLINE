@@ -7,6 +7,8 @@ import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
+import { PrefillHint } from '@/shared/components/form/PrefillHint';
+import { fillEmpty, hasFilled, primaryContactOf } from '@/shared/utils/prefill';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { DateInput } from '@/shared/components/form/DateInput';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
@@ -22,18 +24,19 @@ import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useContactList } from '@/features/lien-he/hooks/useContactList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { useCreateQuotation } from '../hooks/useCreateQuotation';
 import type { CreateQuotationPayload } from '../types/quotationTypes';
 
 interface HeaderState {
-    code: string; customerId: string; contactId: string; ownerId: string;
+    code: string; customerId: string; contactId: string; campaignId: string; ownerId: string;
     quoteDate: string; validUntil: string; currency: string; exchangeRate: string;
     note: string;
 }
 
 /** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
 const initialState = (ownerId: string): HeaderState => ({
-    code: '', customerId: '', contactId: '', ownerId, quoteDate: '', validUntil: '',
+    code: '', customerId: '', contactId: '', campaignId: '', ownerId, quoteDate: '', validUntil: '',
     currency: 'VND', exchangeRate: '1', note: '',
 });
 
@@ -52,17 +55,36 @@ const QuoteAddPage = () => {
     const { data: customers = [] } = useCustomerList();
     const { data: contacts = [] } = useContactList();
     const { data: products = [] } = useProductList();
+    const { data: campaigns = [] } = useCampaignList();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
     const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
+    const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
     const productOptions = useMemo<ProductOption[]>(
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
         [products],
     );
 
     const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
-    const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); };
+    const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); setPrefillFrom(null); };
+
+    /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
+    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
+
+    /** Chọn khách hàng → tự điền liên hệ chính và người phụ trách (chỉ ô còn trống). */
+    const onPickCustomer = (v: string) => {
+        set({ customerId: v });
+        setPrefillFrom(null);
+        const customer = customers.find((c) => String(c.id) === v);
+        if (!customer) return;
+        const contact = primaryContactOf(contacts, customer.id);
+        const patch = fillEmpty(form, {
+            contactId: contact ? String(contact.id) : '',
+            ownerId: customer.ownerId ? String(customer.ownerId) : '',
+        });
+        if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
+    };
 
     const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã báo giá không được để trống'); return; }
@@ -76,6 +98,7 @@ const QuoteAddPage = () => {
             customerId: form.customerId ? Number(form.customerId) : null,
             contactId: form.contactId ? Number(form.contactId) : null,
             opportunityId: null,
+            campaignId: form.campaignId ? Number(form.campaignId) : null,
             ownerId: form.ownerId ? Number(form.ownerId) : null,
             quoteDate: form.quoteDate || null,
             validUntil: form.validUntil || null,
@@ -118,7 +141,8 @@ const QuoteAddPage = () => {
                                 <input type="text" value={form.code} onChange={(e) => set({ code: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Khách hàng">
-                                <SearchableSelect value={form.customerId} onChange={(v) => set({ customerId: v })} options={customerOptions} />
+                                <SearchableSelect value={form.customerId} onChange={onPickCustomer} options={customerOptions} />
+                                <PrefillHint source={prefillFrom} />
                             </FieldRow>
                             <FieldRow label="Liên hệ">
                                 <SearchableSelect value={form.contactId} onChange={(v) => set({ contactId: v })} options={contactOptions} />
@@ -136,6 +160,9 @@ const QuoteAddPage = () => {
                             </FieldRow>
                             <FieldRow label="Tiền tệ">
                                 <input type="text" value={form.currency} onChange={(e) => set({ currency: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Chiến dịch">
+                                <SearchableSelect value={form.campaignId} onChange={(v) => set({ campaignId: v })} options={campaignOptions} />
                             </FieldRow>
                         </div>
                     </div>

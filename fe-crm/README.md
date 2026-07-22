@@ -288,6 +288,44 @@ Trước đây mọi thứ là edit-modal nên không có màn hình nào xem đ
 - **Component shared mới**: `shared/components/detail/StatCards.tsx` (thẻ thống kê, tone `neutral/success/warning`), `InfoCard.tsx` (thẻ thông tin cột trái). Dùng lại `DetailHeader/Tabs/RelatedTable/Timeline/InfoRow/relatedColumns`.
 - **Vào trang**: nhấp đúp dòng ở danh sách → mở chi tiết; nút "Chỉnh sửa" (mở EditModal) nằm trong menu chuột phải. `moduleRoutes.HAS_DETAIL_PAGE` thêm `contact/quotation/order/invoice` → link chéo mở thẳng trang chi tiết.
 
+### Xác suất cơ hội — read-only theo giai đoạn (CẬP NHẬT 2026-07-22)
+
+Ô "Xác suất (%)" ở form Thêm/Sửa Cơ hội trước đây nhập tay, trong khi con số này đã được định nghĩa ở giai đoạn pipeline (`opportunity_stages.probability`, quản lý tại `/co-hoi/pipeline`) → hai nguồn cho cùng một số.
+
+- Nay **BE suy ra** xác suất từ giai đoạn, đi cùng đường với `status` (`OpportunityCommandMapper` nhận thẳng `OpportunityStage`). `POST`/`PUT /api/opportunities` **không** còn nhận `probability`.
+- FE: `OpportunityAddPage` + `OpportunityEditModal` hiện số **read-only** kèm chú thích "(tự động theo giai đoạn)", lấy từ `useOpportunityStages()` đã nạp sẵn — đổi Giai đoạn thì số đổi ngay trước cả khi lưu. Kéo thẻ Kanban sang cột khác cũng cập nhật xác suất.
+- Các chỗ **chỉ đọc** giữ nguyên: cột "Xác suất" ở bảng danh sách, file xuất, `OpportunityInfoPanel`, thẻ Kanban.
+- Luồng **Nhập file Excel/CSV giữ nguyên** cột "Xác suất (%)" (theo yêu cầu) — cơ hội nhập từ file không gắn giai đoạn nên vẫn nhận giá trị từ file.
+- Không cần backfill: seed vốn đã sinh `probability` khớp giai đoạn tương ứng.
+
+### Trang chi tiết Chiến dịch — `/chien-dich/:id` (CẬP NHẬT 2026-07-22)
+
+- Tab **"Thành viên" đổi tên thành "Khách hàng"** cho đúng nghĩa (dữ liệu vẫn là bảng `campaign_members`, API/DTO không đổi).
+- Thêm 4 tab **bản ghi quy về chiến dịch**: Tiềm năng / Cơ hội / Đơn hàng / Hóa đơn — dữ liệu từ `GET /api/campaigns/{id}/related` qua hook `useCampaignRelated`, render bằng `RelatedTable` sẵn có. Đây là chiều đọc ngược của attribution (`campaign_id`).
+- Trang đã chuyển sang dùng toolkit chung `shared/components/detail/*` (`DetailHeader`, `Tabs`, `InfoRow`, `StatCards`) thay cho tab + thẻ tự chế trong file.
+- `RelatedModule` thêm `'lead'`; `moduleRoutes` thêm `lead: '/tiem-nang'` và `'lead'` vào `HAS_DETAIL_PAGE`; `relatedColumns` thêm `LEAD_COLUMNS`.
+- **Ô "Chiến dịch"** nay có ở form thêm mới + edit modal của **Cơ hội / Báo giá / Hóa đơn** (Tiềm năng và Đơn hàng đã có từ trước) — kèm cột `campaignName` ở bảng danh sách, dòng "Chiến dịch" ở `*InfoPanel` và cột trong file xuất. Trước đây tạo trực tiếp thì không quy về được chiến dịch nên báo cáo ROI đếm thiếu.
+
+### Cuộn theo khối trên trang chi tiết — `ScrollFrame` (MỚI 2026-07-22)
+
+Trước đây danh sách con đổ thẳng ra trang (mỗi nhóm `/related` tới **50 dòng**) nên phải cuộn thanh cuộn chính, header và tab trôi mất.
+
+- **`shared/components/table/ScrollFrame.tsx`** — khung cuộn dùng chung: prop `visibleRows` (mặc định 10, quy đổi qua `tableScrollMaxHeight`) hoặc `maxHeight` (px, cho danh sách dòng cao không đều), `headBg` (`white` | `gray`).
+- Header bảng bên trong **tự dính** nhờ arbitrary variant `[&_thead_th]:sticky …` — nơi dùng không phải sửa từng thẻ `<th>`. ⚠️ Class phải viết **literal**, không nội suy chuỗi, vì Tailwind quét class tĩnh trong mã nguồn.
+- ⚠️ Header dính dùng `shadow-[inset_0_-1px_0_0_…]` thay `border-b`: `border-collapse` vẽ viền theo bảng nên viền sẽ trôi khi cuộn (bẫy đã gặp ở `RecordItemsPanel`).
+- Áp dụng: `RelatedTable` (prop `visibleRows`), `Timeline` (prop `maxHeight`, mặc định 420px), `InfoCard` (thân thẻ tự cuộn), `CampaignMembersTable`, bảng hàng trả/đổi ở `TicketDetailPage`, `TicketTimeline`, 3 tab của `ChinhSachGiaDetailPage`.
+- **Root 10 trang chi tiết bỏ `min-h-screen`** (chỉ còn `p-6 bg-bg-main`): `MainLayout` đã `h-screen overflow-hidden` và `<main>` mới là vùng cuộn — cùng lý do đã áp cho trang danh sách.
+
+### Tự điền form thêm mới — `fillEmpty` (MỚI 2026-07-22)
+
+Chọn một bản ghi ở ô khóa ngoại sẵn có → các ô liên quan **đang trống** tự điền. Không thêm nút/modal mới.
+
+- **`shared/utils/prefill.ts`**: `fillEmpty(current, patch)` chỉ giữ khóa mà ô hiện tại còn trống (`''`/`null`/`undefined`) → **không bao giờ đè** thứ người dùng đã gõ, kể cả khi họ đổi lựa chọn; `hasFilled(patch)`; `primaryContactOf(contacts, customerId)` (ưu tiên liên hệ chính).
+- **`shared/components/form/PrefillHint.tsx`**: dòng chữ nhạt "Đã tự điền các ô còn trống từ …" dưới ô nguồn. Cố ý **không** dùng `showAlert` — đó là modal chặn thao tác.
+- Áp dụng ở **7 form thêm mới**: Cơ hội, Báo giá, Đơn hàng, Hóa đơn (chọn Khách hàng → liên hệ chính / người phụ trách / MST / địa chỉ xuất HĐ), Chăm sóc (→ liên hệ), Tiềm năng (→ công ty, MST, website, ngành, SĐT, email, liên hệ), Liên hệ (chọn Tổ chức → địa chỉ, SĐT cơ quan, nguồn gốc).
+- Dữ liệu nguồn lấy từ `useCustomerList` / `useContactList` mà các trang này **đã nạp sẵn** (size 500) — không thêm request.
+- **Chỉ áp cho trang thêm mới**, không áp cho `*EditModal` (tự điền khi sửa bản ghi cũ dễ gây bất ngờ).
+
 ### Bảng Kanban Cơ hội — `/co-hoi/kanban` (MỚI 2026-07-12)
 
 `OpportunityBoardPage` — cột = giai đoạn pipeline, thẻ = cơ hội. Kéo thẻ sang cột khác = **đổi giai đoạn**; `status` (open/won/lost) vẫn do BE **suy ra tự động** từ giai đoạn, FE không bao giờ gửi `status`.
@@ -419,9 +457,16 @@ Files: `features/thung-rac/` — types/thungRacTypes.ts, services/trashService.t
 
 ### Trợ lý AI Copilot — bong bóng chat nổi (MỚI)
 - **Widget nổi góc phải-dưới**, hiện trên **mọi trang** (mount trong `shared/components/layout/MainLayout.tsx`). Không phải route, không có mục sidebar.
-- Đặt tại `src/shared/copilot/` (theo tiền lệ `shared/notifications` — widget cross-cutting có service/hook riêng trong `shared/`, để `MainLayout` không import `features/`): `copilotTypes.ts`, `copilotService.ts` (`POST /api/copilot/ask`, timeout 60s), `useAskCopilot.ts` (`useMutation`, unwrap `.data.data`), `CopilotWidget.tsx`.
+- Đặt tại `src/shared/copilot/` (theo tiền lệ `shared/notifications` — widget cross-cutting có service/hook riêng trong `shared/`, để `MainLayout` không import `features/`): `copilotTypes.ts`, `copilotService.ts` (`POST /api/copilot/ask`, timeout 60s), `useAskCopilot.ts` (`useMutation`, unwrap `.data.data`), `CopilotWidget.tsx`, `answerRenderer.tsx` (bullet + bold + màu tăng/giảm).
 - Hỏi tiếng Việt về dữ liệu CRM — số liệu tổng hợp ("Doanh thu quý này so quý trước? Tỷ lệ thắng?") hoặc tình hình khách hàng cụ thể ("Khách ABC đang thế nào?"). BE giới hạn dữ liệu theo quyền của người đăng nhập.
+- **Hành động (`action` trong response)**: `type="navigate"` → widget **tự điều hướng** (`useNavigate`) + đóng panel — dùng cho lệnh "mở trang khách hàng", "tạo báo giá mới", "mở khách hàng ABC" (BE tìm bản ghi theo quyền → `/khach-hang/:id`); `type="link"` → hiện **nút** trong bong bóng (vd "Xem biểu đồ so sánh"), bấm mới điều hướng.
 - Cần backend cấu hình `APP_AI_API_KEY` (Gemini). FE không đổi biến môi trường nào.
+
+### Phân tích so sánh — `/phan-tich` (MỚI)
+- Trang đích của link "Xem biểu đồ so sánh" từ Copilot (`/phan-tich?period=month|quarter|year`); **không có mục sidebar** (vào qua bot hoặc gõ URL).
+- Feature `src/features/phan-tich/`: `pages/PhanTichPage.tsx` + `hooks/useRevenueByCampaign.ts` (gọi `dashboardService.getRevenueByCampaign` — method mới trong service dashboard).
+- **Tái dùng toàn bộ chart Dashboard** (`@/features/dashboard/components/*`: KpiTile, DashCard, RevenueCostProfitChart, DonutChart, FunnelChart, RankedList, Selectors) và hooks `useManagerDashboard`/`useSaleDashboard` → số liệu đồng nhất Dashboard.
+- Nội dung: KPI doanh thu/chi phí/lợi nhuận **kỳ này vs kỳ trước** (kèm dòng "Kỳ trước: ..."), xu hướng 12 tháng, tỷ lệ thắng, phễu, **so sánh theo nhân viên** (chỉ ADMIN/SALES_MANAGER) + **theo chiến dịch**. Nhân viên chỉ thấy số liệu mình phụ trách (BE scope sẵn).
 
 ### Shared component
 - `shared/components/ConfirmModal.tsx` — modal xác nhận dùng chung, thay thế `window.confirm()`
@@ -608,7 +653,7 @@ Cả **13 trang danh sách** không còn khối tiêu đề riêng trong thân t
 
 - `Header.tsx` có `<div id="page-header-slot">` ở khoảng giữa hamburger và nhóm icon.
 - Trang bọc tiêu đề + nhóm nút bằng **`<PageHeaderSlot>`** (`shared/components/layout/PageHeaderSlot.tsx`) — dùng `createPortal` để bơm vào slot đó. Chọn portal thay vì Context vì nhóm nút phụ thuộc state của page (`selectedRows`, handler mở modal…), portal giữ nguyên JSX + state tại chỗ.
-- **Root của trang danh sách không dùng `min-h-screen`** — `MainLayout` đã là `h-screen overflow-hidden` và `<main>` là vùng cuộn duy nhất; `min-h-screen` bên trong ép chiều cao thừa nên trang phải cuộn dọc. (Trang chi tiết và trang ngoài layout vẫn giữ `min-h-screen`.)
+- **Root của trang danh sách không dùng `min-h-screen`** — `MainLayout` đã là `h-screen overflow-hidden` và `<main>` là vùng cuộn duy nhất; `min-h-screen` bên trong ép chiều cao thừa nên trang phải cuộn dọc. Từ 2026-07-22 quy tắc này áp cho **cả trang chi tiết**; chỉ trang ngoài layout (`LoginPage`, `ActivatePage`…) mới giữ `min-h-screen`.
 
 ### Sắp xếp mặc định: bản ghi mới nhất lên đầu (2026-07-09)
 

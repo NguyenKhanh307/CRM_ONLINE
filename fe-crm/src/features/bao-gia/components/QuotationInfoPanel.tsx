@@ -14,6 +14,7 @@ export const QuotationInfoPanel = ({ quotation: q }: Props) => (
         <InfoRow label="Khách hàng" value={q.customerName} />
         <InfoRow label="Liên hệ" value={q.contactName} />
         <InfoRow label="Cơ hội" value={q.opportunityName} />
+        <InfoRow label="Chiến dịch" value={q.campaignName} />
         <InfoRow label="Người phụ trách" value={q.ownerName} />
         <InfoRow label="Ngày báo giá" value={q.quoteDate ? formatISODate(q.quoteDate) : null} />
         <InfoRow label="Hiệu lực đến" value={q.validUntil ? formatISODate(q.validUntil) : null} />

@@ -49,7 +49,7 @@ const OrderDetailPage = () => {
     ];
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
+        <div className="p-6 bg-bg-main">
             <DetailHeader
                 backTo="/don-hang"
                 title={order.code}

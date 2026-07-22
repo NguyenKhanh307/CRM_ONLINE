@@ -6,6 +6,8 @@ import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
+import { PrefillHint } from '@/shared/components/form/PrefillHint';
+import { fillEmpty, hasFilled, primaryContactOf } from '@/shared/utils/prefill';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
@@ -51,7 +53,21 @@ const TicketAddPage = () => {
 
     const isReturn = form.type === 'return' || form.type === 'exchange';
     const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
-    const reset = () => { setForm(initialState(defaultUserId)); setReturnRows([emptyReturnRow()]); };
+    const reset = () => { setForm(initialState(defaultUserId)); setReturnRows([emptyReturnRow()]); setPrefillFrom(null); };
+
+    /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
+    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
+
+    /** Chọn khách hàng → tự điền liên hệ chính (chỉ khi ô liên hệ còn trống). */
+    const onPickCustomer = (v: string) => {
+        set({ customerId: v });
+        setPrefillFrom(null);
+        const customer = customers.find((c) => String(c.id) === v);
+        if (!customer) return;
+        const contact = primaryContactOf(contacts, customer.id);
+        const patch = fillEmpty(form, { contactId: contact ? String(contact.id) : '' });
+        if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
+    };
 
     const submit = async (andNew: boolean) => {
         if (!form.code.trim()) { showAlert('Mã phiếu không được để trống'); return; }
@@ -114,7 +130,8 @@ const TicketAddPage = () => {
                         </div>
                         <div className="space-y-4">
                             <FieldRow label="Khách hàng">
-                                <SearchableSelect value={form.customerId} onChange={(v) => set({ customerId: v })} options={customerOptions} />
+                                <SearchableSelect value={form.customerId} onChange={onPickCustomer} options={customerOptions} />
+                                <PrefillHint source={prefillFrom} />
                             </FieldRow>
                             <FieldRow label="Liên hệ">
                                 <SearchableSelect value={form.contactId} onChange={(v) => set({ contactId: v })} options={contactOptions} />

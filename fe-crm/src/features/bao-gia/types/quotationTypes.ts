@@ -2,6 +2,7 @@ export interface UpdateQuotationPayload {
     customerId: number | null;
     contactId: number | null;
     opportunityId?: number | null;
+    campaignId?: number | null;
     ownerId: number | null;
     quoteDate: string | null;
     validUntil: string | null;
@@ -53,6 +54,7 @@ export interface CreateQuotationPayload {
     customerId: number | null;
     contactId: number | null;
     opportunityId: number | null;
+    campaignId: number | null;
     ownerId: number | null;
     quoteDate: string | null;
     validUntil: string | null;
@@ -87,6 +89,7 @@ export interface QuotationResult {
     customerId: number | null;
     contactId: number | null;
     opportunityId: number | null;
+    campaignId: number | null;
     pricePolicyId: number | null;
     isPrimary: boolean;
     isLocked: boolean;
@@ -112,6 +115,7 @@ export interface QuotationResult {
     customerName: string | null;
     contactName: string | null;
     opportunityName: string | null;
+    campaignName: string | null;
     ownerName: string | null;
     // Audit: BE tự đóng dấu (AuditInterceptor).
     createdBy: number | null;
