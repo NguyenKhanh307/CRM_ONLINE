@@ -59,12 +59,12 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/google", "/api/auth/activate", "/api/tracking/**", "/api/public/**").permitAll()
-                        // Vùng quản trị: chỉ ADMIN được đăng ký NV + thao tác mutating trên users/roles/permissions/org-units.
+                        // Vùng quản trị: chỉ ADMIN được đăng ký NV + thao tác mutating trên users/roles/permissions.
                         // GET vẫn mở cho mọi user đã đăng nhập (FE dùng làm lookup: HandoverModal, form thêm mới...).
                         .requestMatchers("/api/auth/register-employee").hasAuthority("ADMIN")
                         .requestMatchers("/api/handover/all").hasAnyAuthority("ADMIN", "SALES_MANAGER")
-                        .requestMatchers(HttpMethod.GET, "/api/users/**", "/api/org-units/**", "/api/roles/**", "/api/permissions/**").authenticated()
-                        .requestMatchers("/api/users/**", "/api/org-units/**", "/api/roles/**", "/api/permissions/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/**", "/api/roles/**", "/api/permissions/**").authenticated()
+                        .requestMatchers("/api/users/**", "/api/roles/**", "/api/permissions/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

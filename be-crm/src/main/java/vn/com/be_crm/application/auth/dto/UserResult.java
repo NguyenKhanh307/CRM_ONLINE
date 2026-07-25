@@ -21,7 +21,6 @@ public class UserResult {
     private String fullName;
     private String phone;
     private String avatarUrl;
-    private Long unitId;
     private UserStatus status;
     private LocalDateTime lastLoginAt;
     private LocalDateTime createdAt;

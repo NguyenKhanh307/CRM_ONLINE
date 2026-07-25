@@ -71,7 +71,7 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 
 **Lọc theo người phụ trách (record-level visibility, 2026-07-12):** Nhân viên (không phải ADMIN/SALES_MANAGER) chỉ nhận bản ghi có `owner_id` (hoặc `assigned_user_id` với contact/activity/ticket) = userId của mình — suy tự động từ JWT, không phải query param. Product/notification không lọc owner.
 
-**Phân quyền (2026-07-12):** JWT chứa claim `permissions` (`module.action`); endpoint side-effect được guard bằng `@PreAuthorize` (xóa/khôi phục/xóa vĩnh viễn → `<module>.delete`; import-bulk → `<module>.create`; duyệt báo giá/gửi email → `quotation.approve`; phát hành/hủy hóa đơn → `invoice.approve`; workflow ticket → `ticket.process`/`ticket.approve_return`; sản phẩm/danh mục → ADMIN/SALES_MANAGER). `/api/auth/register-employee` + mutating `/api/users|roles|permissions|org-units/**` chỉ ADMIN; `/api/handover/all` ADMIN/SALES_MANAGER. Thiếu quyền → **403** `{"message":"Bạn không có quyền thực hiện thao tác này","status":403}`.
+**Phân quyền (2026-07-12):** JWT chứa claim `permissions` (`module.action`); endpoint side-effect được guard bằng `@PreAuthorize` (xóa/khôi phục/xóa vĩnh viễn → `<module>.delete`; import-bulk → `<module>.create`; duyệt báo giá/gửi email → `quotation.approve`; phát hành/hủy hóa đơn → `invoice.approve`; workflow ticket → `ticket.process`/`ticket.approve_return`; sản phẩm/danh mục → ADMIN/SALES_MANAGER). `/api/auth/register-employee` + mutating `/api/users|roles|permissions/**` chỉ ADMIN; `/api/handover/all` ADMIN/SALES_MANAGER. Thiếu quyền → **403** `{"message":"Bạn không có quyền thực hiện thao tác này","status":403}`.
 
 ---
 
@@ -125,15 +125,7 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 
 Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer <token>`
 
-#### Đơn vị tổ chức — `/api/org-units`
-
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `POST` | `/api/org-units` | Tạo đơn vị tổ chức |
-| `GET` | `/api/org-units` | Danh sách đơn vị (phân trang) |
-| `GET` | `/api/org-units/{id}` | Lấy đơn vị theo ID |
-| `PUT` | `/api/org-units/{id}` | Cập nhật đơn vị |
-| `DELETE` | `/api/org-units/{id}` | Xóa đơn vị |
+> **Phân hệ Đơn vị tổ chức (`/api/org-units`) đã GỠ HẲN 2026-07-24** — CRM phục vụ công ty nhỏ, không cần cây tổ chức. Quản lý nhận thông báo nay xác định theo **vai trò** (`SALES_MANAGER`), xem `ManagerResolverImpl`.
 
 #### Người dùng — `/api/users`
 
@@ -365,7 +357,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` · `GET` · `GET .../{id}` · `PUT .../{id}` · `DELETE .../{id}` | `/api/orders` | CRUD (nhận `items[]`, field quotationId/opportunityId/campaignId/orderDate/deliveryDate) |
+| `POST` · `GET` · `GET .../{id}` · `PUT .../{id}` · `DELETE .../{id}` | `/api/orders` | CRUD (nhận `items[]`, field quotationId/opportunityId/campaignId/orderDate/deliveryDate). ⚠️ `GET ?q=` chỉ tìm theo **mã đơn** (`likeClause(q, "code")`) — tên khách hàng không nằm trên bảng `orders` nên không tìm được; frontend dùng tham số này cho ô chọn đơn ở form hóa đơn |
 | `GET` | `/api/orders/deleted` · `POST .../{id}/restore` · `DELETE .../{id}/purge` | Thùng rác |
 | `POST` | `/api/orders/{id}/confirm\|process\|complete\|cancel` | Chuyển trạng thái (có guard) |
 | `POST` | `/api/orders/{id}/create-invoice` | Xuất hóa đơn 1-1 (khóa đơn + đơn→completed) |
@@ -382,7 +374,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/invoices` | Tạo hóa đơn — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; field: quotationId, opportunityId, invoiceDate, dueDate, currency, exchangeRate, billingAddress, taxCode |
+| `POST` | `/api/invoices` | Tạo hóa đơn — nhận `items[]` lưu kèm dòng hàng trong 1 transaction; field: quotationId, opportunityId, **orderId**, campaignId, invoiceDate, dueDate, currency, exchangeRate, billingAddress, taxCode |
 | `GET` | `/api/invoices` | Danh sách hóa đơn (phân trang) |
 | `GET` | `/api/invoices/{id}` | Lấy hóa đơn theo ID (kèm tên khóa ngoại) |
 | `GET` | `/api/invoices/{id}/related` | **MỚI** — bản ghi liên quan cho trang chi tiết: phiếu chăm sóc + hoạt động. Kiểm quyền một lần trên hóa đơn (`ownerId`) → 403 |
@@ -395,6 +387,12 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/invoices/{id}/cancel` | Hủy hóa đơn (→ cancelled) |
 | `POST` | `/api/invoices/import-bulk` | Nhập hàng loạt từ file Excel/CSV |
 | `POST` | `/api/invoices/handover-bulk` | Bàn giao nhiều hóa đơn — body: `{ ids, toUserId, reason? }` |
+
+> **Tham số `customerId` cho `GET /api/contacts` (2026-07-22)**: thu hẹp danh sách liên hệ theo khách hàng. Sinh ra vì ô chọn Liên hệ trong form không thể nạp sẵn cả bảng (hàng chục nghìn dòng) — nay lọc theo khách đang chọn, và phần tự điền "liên hệ chính" cũng hỏi qua đường này. `PageRequest.customerId` hiện **chỉ `/api/contacts` dùng**.
+> `INameResolver` có thêm `orderCodes` + `invoiceCodes`; `TicketResult` trả kèm `invoiceCode` để form Chăm sóc hiện đúng mã hóa đơn đang gắn.
+
+- **`orderId` — hóa đơn này thu tiền cho đơn hàng nào** (cột `invoices.order_id`). Được gán tự động khi đi luồng chuẩn `POST /api/orders/{id}/create-invoice`, và **nay nhận được cả khi tạo/sửa trực tiếp** (`POST`/`PUT /api/invoices/{id}`). `InvoiceResult` trả kèm **`orderCode`** (enrich qua `INameResolver.orderCodes` ở cả `ListInvoiceUseCase` lẫn `GetInvoiceUseCase`) để frontend hiện mã đơn ở danh sách + trang chi tiết.
+> ⚠️ Bẫy đã tái diễn **lần thứ hai**: `InvoiceController.update` dựng lại `UpdateInvoiceCommand` bằng builder, trước đây bỏ sót `campaignId` (vá 2026-07-22) rồi lại bỏ sót `orderId`. Mapper null-guard nên dữ liệu cũ không mất, nhưng field **không bao giờ set được** qua `PUT`. Thêm field vào `Update*Command` thì phải kiểm luôn chuỗi builder trong controller.
 
 #### Dòng hàng — `/api/invoices/{invoiceId}/items`
 
@@ -609,7 +607,8 @@ Phục vụ trang landing demo: tạo tiềm năng ẩn danh, ghi sự kiện & 
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/tracking/visit` | Lượt truy cập — body `{ code? }`; trả lead theo mã hoặc tạo lead ẩn danh mới (mã `TNW…`, score=0) |
+| `GET` | `/api/tracking/campaigns` | **MỚI** — chiến dịch đang chạy (`running`/`scheduled`) cho landing page chọn nguồn. Chỉ trả **id + mã + tên** (không ngân sách/chi phí/người phụ trách) vì phục vụ khách ẩn danh |
+| `POST` | `/api/tracking/visit` | Lượt truy cập — body `{ code?, campaignId? }`; trả lead theo mã hoặc tạo lead ẩn danh mới (mã `TNW…`, score=0). `campaignId` gắn theo **first-touch**: chỉ điền khi lead chưa có chiến dịch, khách quay lại qua link khác không ghi đè nguồn ban đầu |
 | `POST` | `/api/tracking/score` | Ghi sự kiện (`lead_tracking_events`) + cộng điểm — body `{ code, action, label?, points? }` |
 | `POST` | `/api/tracking/submit` | Nộp form liên hệ + cộng điểm — body `{ code, name, companyName?, email?, phone?, note?, points? }` |
 
@@ -627,13 +626,20 @@ Phục vụ trang landing demo: tạo tiềm năng ẩn danh, ghi sự kiện & 
 | `GET` | `/api/notifications/unread-count` | Đếm số thông báo chưa đọc |
 | `POST` | `/api/notifications/{id}/read` | Đánh dấu một thông báo đã đọc |
 | `POST` | `/api/notifications/read-all` | Đánh dấu tất cả đã đọc |
+| `POST` | `/api/notifications/delete-bulk` | Xóa mềm các thông báo được chọn — body `{ ids: [...] }`, trả số dòng đã xóa |
+| `POST` | `/api/notifications/delete-all` | Xóa mềm toàn bộ thông báo của tôi (dọn sạch hộp thông báo) |
 
 Mỗi thông báo trả về `{ id, type, title, content, leadId, targetId, isRead, createdAt }`.
 
-- **`type`**: tiền tố trước dấu `_` trùng module key — `lead_hot`; `quotation_pending|approved|rejected|accepted|customer_response`; `ticket_assigned|resolved`.
+- **`type`**: tiền tố trước dấu `_` trùng module key — `lead_hot`; `quotation_pending|approved|rejected|accepted|customer_response`; `ticket_assigned|resolved`; `lead|customer|opportunity|quotation|order` + `_assigned` (được giao/bàn giao bản ghi); `handover_all` (nhận bàn giao toàn bộ công việc, không gắn bản ghi cụ thể).
 - **`targetId`** (cột `notifications.target_id`): ID bản ghi đích (lead/quotation/ticket) mà thông báo trỏ tới. Frontend dùng để điều hướng tới danh sách module + focus đúng dòng. Set tại `CreateNotificationUseCase.execute(recipients, type, title, content, leadId, targetId)`.
+- **Xóa mềm** (cột `notifications.deleted_at`, 2026-07-22): mỗi thông báo là **một dòng riêng của một người nhận**, nên xóa chỉ ảnh hưởng hộp thông báo của chính người đó — người nhận khác của cùng sự kiện vẫn giữ nguyên tin. Dòng đã xóa bị loại khỏi `findByRecipient`, `countUnread` và cả hai query đánh dấu đã đọc. **Không** có luồng khôi phục và **không** có tab trong Thùng rác (thông báo không phải bản ghi nghiệp vụ); dữ liệu giữ lại trong DB chỉ để tra cứu. Query xóa luôn kèm `recipientUserId` nên không xóa được thông báo của người khác.
 
-> DB đang chạy cần bổ sung cột: `ALTER TABLE notifications ADD COLUMN target_id INT UNSIGNED NULL;` (TiDB: mỗi lệnh ALTER chỉ thêm một cột).
+> DB đang chạy cần bổ sung cột (TiDB: mỗi lệnh ALTER chỉ thêm một cột):
+> ```sql
+> ALTER TABLE notifications ADD COLUMN target_id INT UNSIGNED NULL;
+> ALTER TABLE notifications ADD COLUMN deleted_at DATETIME NULL;
+> ```
 
 #### Phạm vi người nhận (thu hẹp 2026-07-12)
 
@@ -645,15 +651,19 @@ Trước đây `lead_hot` broadcast cho **mọi** user có role ADMIN + SALES_MA
 | `quotation_pending` | **Chỉ quản lý trực tiếp** của người phụ trách báo giá |
 | `quotation_approved/rejected/accepted/customer_response`, `ticket_*` | Không đổi (vốn đã chỉ gửi owner/người xử lý) |
 
-"Quản lý trực tiếp" = `users.unit_id` → **`org_units.manager_id`** (cột **MỚI**), leo dần lên `parent_id` nếu đơn vị chưa gán trưởng; không tìm được ai thì fallback về toàn bộ role `SALES_MANAGER`. Port `application/shared/notify/IManagerResolver` + impl `infrastructure/shared/notify/ManagerResolverImpl`.
+**Bổ sung 2026-07-22 — báo cho người được giao việc.** Bản ghi **chưa có người phụ trách** (vd tiềm năng do web tracking tạo, `owner_id` NULL) chỉ quản lý nhận thông báo, và nhân viên cũng không xem được bản ghi vì list API lọc `owner_id`. Khi quản lý **gán hoặc bàn giao** người phụ trách thì chính người nhận việc được báo:
 
-> DB đang chạy cần bổ sung cột (FK vòng nên phải chạy sau khi bảng `users` tồn tại):
-> ```sql
-> ALTER TABLE org_units ADD COLUMN manager_id INT UNSIGNED NULL;
-> ALTER TABLE org_units ADD CONSTRAINT fk_org_units_manager FOREIGN KEY (manager_id) REFERENCES users (id) ON DELETE SET NULL;
-> UPDATE org_units SET manager_id = 2 WHERE id IN (1,2,3,4,5);   -- seed: quanly là trưởng cả 5 đơn vị
-> ```
-> Chưa có UI gán trưởng đơn vị (FE không có trang quản lý đơn vị) — đặt qua SQL hoặc `POST/PUT /api/org-units` (body có `managerId`).
+| Nơi phát | Thông báo |
+|----------|-----------|
+| `Update{Lead,Customer,Opportunity,Quotation,Order}UseCase` khi `ownerId` đổi | `<module>_assigned` — "Bạn được giao \<noun\> \<mã\>", `targetId` = ID bản ghi |
+| `HandoverBulk{Lead,Customer,Opportunity,Quotation,Order}UseCase` | `<module>_assigned` gộp một dòng — "Bạn được bàn giao N \<noun\>" (số lấy từ `ids` gửi lên) |
+| `HandoverAllUseCase` | `handover_all` — một dòng duy nhất, không gắn bản ghi |
+
+Dùng chung `application/shared/notify/NotifyAssignmentUseCase`; **bỏ qua** khi không có người nhận hoặc người thao tác tự giao việc cho chính mình — biết "ai đang thao tác" qua port `application/shared/security/ICurrentUser` ↔ `infrastructure/shared/security/CurrentUserImpl` (đọc `CurrentUserHolder`, dùng chung ThreadLocal của cơ chế đóng dấu `created_by`/`updated_by`).
+
+"Quản lý trực tiếp" = toàn bộ user mang vai trò **`SALES_MANAGER`** (loại chính người thao tác). Port `application/shared/notify/IManagerResolver` + impl `infrastructure/shared/notify/ManagerResolverImpl`.
+
+> **Đổi 2026-07-24**: bản đầu suy quản lý từ cây đơn vị (`users.unit_id` → `org_units.manager_id`, leo `parent_id`), không tìm được thì mới fallback về role. Phân hệ Đơn vị đã gỡ hẳn (công ty nhỏ không cần cây tổ chức) → nhánh fallback trở thành đường duy nhất, bỏ được `MAX_DEPTH` + 2 native query + khóa ngoại vòng `users.unit_id ↔ org_units.manager_id`.
 
 ### 2.13c Audit — Ghi "ai tạo / ai sửa cuối" tự động (MỚI 2026-07-12)
 
@@ -705,6 +715,13 @@ Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động
 | `POST` | `/api/quotations/{id}/convert-to-order` | Chuyển Báo giá → Đơn hàng (khóa báo giá + cơ hội won); báo giá lưu `campaign_id` (attribution) chảy sang đơn hàng |
 | `GET`  | `/api/pricing/resolve?pricePolicyId&productId&quantity` | Tra đơn giá/chiết khấu theo chính sách giá (pricebook) |
 
+- **`/api/pricing/resolve`** trả `{ productId, unitPrice, discount, found, minQty }`. `discount` là **số tiền trên một đơn vị** (đã quy đổi từ `percent`/`amount`); `found = true` chỉ khi sản phẩm có trong chính sách **và** số lượng đã đạt `min_qty`. Ngưỡng `min_qty` được xét **sau** khi tìm ra dòng chính sách (không lọc trong stream) nên **`minQty`** phân biệt được hai trường hợp trượt: `minQty != null` = chưa đủ số lượng, `minQty == null` = sản phẩm ngoài chính sách — frontend dựa vào đó để giải thích cho người dùng thay vì im lặng trả về giá gốc.
+
+> **Seed 2026-07-22**: khối `INSERT INTO products` trong `data.sql` trước đây để `base_price = 0` cho toàn bộ sản phẩm (giá thật nằm ở `cost_price`), khiến chọn hàng hóa trong form luôn ra đơn giá 0. Đã sửa thành `round(cost_price × 1.3)`. DB đang chạy không cần seed lại, chỉ chạy:
+> ```sql
+> UPDATE products SET base_price = ROUND(cost_price * 1.3, 0) WHERE base_price = 0;
+> ```
+
 - **Cơ hội**: status suy ra từ `stageId`; `amount` **roll-up** từ dòng hàng (cập nhật khi sửa dòng hàng hoặc khi sync từ báo giá primary).
 - **Báo giá đồng bộ (primary)**: sửa dòng hàng báo giá primary tự **sync** về dòng cơ hội + roll-up lại amount.
 - **Hóa đơn — paymentStatus/status**: suy ra tự động từ tổng `paidAmount` các `/payment-schedules` (không nhận tay).
@@ -739,7 +756,46 @@ Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động
 - Prompt **cho phép AI so sánh/xếp hạng/cộng trừ trên số đã cấp** (trước đây cấm tính toán nên hay trả "không có thông tin"), nhưng vẫn cấm bịa số không có trong DỮ LIỆU.
 - **Phân quyền dữ liệu**: ADMIN/SALES_MANAGER xem toàn bộ (`ownerId=null`); nhân viên chỉ xem bản ghi `owner_id = userId` (kỳ + phễu đều lọc theo owner).
 - **Nhà cung cấp**: Google Gemini qua `GeminiAiServiceImpl` (adapter của port `IAiService`) — dùng `RestClient` của spring-web, **không thêm dependency**. Đổi nhà cung cấp chỉ cần thay implementation.
-- **Cấu hình** (externalize như JWT/mail): `app.ai.api-key` (env `APP_AI_API_KEY` — bắt buộc, không commit), `app.ai.model` (mặc định `gemini-flash-latest` — model chạy được trên free tier; `gemini-2.0-flash` bị giới hạn quota 0 nên **không dùng free tier**), `app.ai.base-url`. Dev đặt key trong `application-local.properties`.
+
+#### Nhánh NGỮ NGHĨA — vector RAG (MỚI 2026-07-24)
+
+Sáu khối trên là nhánh **SỐ LIỆU** (SQL), chính xác tuyệt đối với con số nhưng mù với câu hỏi
+định tính. Nay bổ sung nhánh **NGỮ NGHĨA** chạy song song; `AskCopilotUseCase` ghép cả hai vào prompt:
+
+```
+DỮ LIỆU:                 <- SQL, nguồn DUY NHẤT của mọi con số
+TRÍCH ĐOẠN LIÊN QUAN:    <- vector, nội dung mô tả / lý do thắng-thua / nội dung phiếu chăm sóc
+CÂU HỎI:
+```
+
+- **Bảng `copilot_chunks`** (`VECTOR(768)`, TiDB Cloud native) — mỗi bản ghi của 11 phân hệ được
+  tóm tắt thành một "thẻ" tiếng Việt rồi nhúng. Kiểu `VECTOR` không có trong `MySQLDialect` nên
+  bảng này **chỉ truy cập bằng native query**, không tạo Hibernate entity.
+- **Ghi chỉ mục KHÔNG phải việc của backend**: `tools/indexer/` (Python, **chạy tay trên máy dev**)
+  đọc TiDB → dựng thẻ → gọi Gemini `embedContent` → ghi `copilot_chunks`. Nhờ vậy Render không
+  cần `@Scheduled`, không endpoint rebuild, không thêm RAM. Xem `tools/indexer/README.md`.
+- **Backend chỉ thêm 2 class**: `GeminiEmbeddingServiceImpl` (nhúng CÂU HỎI, `taskType=RETRIEVAL_QUERY`)
+  và `TiDbVectorStoreImpl` (`ORDER BY VEC_COSINE_DISTANCE(embedding, :q) LIMIT :k`), cộng
+  `SemanticRetriever` + port `IEmbeddingService` / `IVectorStore` / `VectorHit`.
+- 🚨 **Vì sao vẫn phải nhúng câu hỏi**: vector DB lưu *tọa độ*, không lưu chữ. Muốn xếp hạng
+  "chunk nào gần câu hỏi nhất" thì phải có tọa độ của câu hỏi, mà cách duy nhất biến chữ thành
+  tọa độ là chạy model. Đúng với **mọi** vector DB (Qdrant/Pinecone/pgvector), không riêng TiDB.
+  Chi phí chỉ **1 request/câu hỏi** (~vài chục/ngày) nên không bao giờ chạm trần hạn mức.
+- 🚨 **Ba thứ phải trùng khít với indexer**: `app.ai.embed.model` ↔ `EMBED_MODEL`,
+  `app.ai.embed.dimensions` ↔ `EMBED_DIMENSIONS`, và **cách chuẩn hóa L2** (`gemini-embedding-001`
+  chỉ tự chuẩn hóa ở 3072 chiều, dùng số chiều nhỏ hơn thì client phải tự normalize). Lệch một
+  trong ba → khoảng cách cosine vô nghĩa, chatbot trả bản ghi ngẫu nhiên **mà không báo lỗi gì**.
+  Đổi model ⇒ `TRUNCATE copilot_chunks` rồi build lại từ đầu.
+- **Phân quyền**: `WHERE (:ownerId IS NULL OR owner_id IS NULL OR owner_id = :ownerId)`. Khác
+  `/related` (nới owner có chủ đích trên bản ghi con), ở đây người dùng hỏi được bất cứ điều gì
+  nên **bắt buộc** lọc owner.
+- **Degrade an toàn**: `APP_AI_EMBED_ENABLED=false`, chưa chạy migration, chưa build chỉ mục, hết
+  hạn mức hay lỗi mạng → `SemanticRetriever` trả chuỗi rỗng và Copilot chạy y như trước khi có
+  vector. Không bao giờ ném exception làm chết endpoint đang hoạt động tốt.
+- **Chuẩn bị DB**: bảng đã nằm trong `diagrams/crm.sql` (mục 15). DB đang chạy thì chạy
+  `diagrams/vector_migration.sql`. Index HNSW là **tùy chọn** — lỗi thì bỏ qua, vài nghìn dòng
+  brute-force vẫn dưới 50ms.
+- **Cấu hình** (externalize như JWT/mail): `app.ai.api-key` (env `APP_AI_API_KEY` — bắt buộc, không commit), `app.ai.model` (mặc định `gemini-flash-latest` — model chạy được trên free tier; `gemini-2.0-flash` bị giới hạn quota 0 nên **không dùng free tier**), `app.ai.base-url`. Nhúng câu hỏi thêm `app.ai.embed.enabled|model|dimensions|top-k|max-distance` (env `APP_AI_EMBED_*`, đều có default). Dev đặt key trong `application-local.properties`.
 
 ---
 
@@ -779,21 +835,17 @@ be-crm/src/main/java/vn/com/be_crm/
 
 | File / Folder | Tầng | Công dụng |
 |---------------|------|-----------|
-| `domain/auth/entity/OrgUnit.java` | Domain | Entity đơn vị tổ chức (phòng ban, chi nhánh) |
 | `domain/auth/entity/User.java` | Domain | Entity người dùng hệ thống (soft delete) |
 | `domain/auth/entity/Role.java` | Domain | Entity vai trò |
 | `domain/auth/entity/Permission.java` | Domain | Entity quyền hạn |
 | `domain/auth/entity/UserRole.java` | Domain | Bảng nối user ↔ role |
 | `domain/auth/entity/RolePermission.java` | Domain | Bảng nối role ↔ permission |
 | `domain/auth/enums/UserStatus.java` | Domain | Enum trạng thái user (ACTIVE, INACTIVE) |
-| `domain/auth/repository/IOrgUnitRepository.java` | Domain | Interface thao tác DB cho OrgUnit |
 | `domain/auth/repository/IUserRepository.java` | Domain | Interface thao tác DB cho User |
 | `domain/auth/repository/IRoleRepository.java` | Domain | Interface thao tác DB cho Role |
 | `domain/auth/repository/IPermissionRepository.java` | Domain | Interface thao tác DB cho Permission |
 | `domain/auth/repository/IUserRoleRepository.java` | Domain | Interface thao tác DB cho UserRole |
 | `domain/auth/repository/IRolePermissionRepository.java` | Domain | Interface thao tác DB cho RolePermission |
-| `application/auth/command/Create|Update|DeleteOrgUnitUseCase.java` | Application | Use case CRUD cho OrgUnit |
-| `application/auth/query/Get|ListOrgUnitUseCase.java` | Application | Use case truy vấn OrgUnit |
 | `application/auth/command/Create|Update|DeleteUserUseCase.java` | Application | Use case CRUD cho User |
 | `application/auth/query/Get|ListUserUseCase.java` | Application | Use case truy vấn User |
 | `application/auth/command/Create|Update|DeleteRoleUseCase.java` | Application | Use case CRUD cho Role |
@@ -804,11 +856,10 @@ be-crm/src/main/java/vn/com/be_crm/
 | `application/auth/command/RevokeUserRoleUseCase.java` | Application | Thu hồi role khỏi user |
 | `application/auth/command/AssignRolePermissionUseCase.java` | Application | Gán permission cho role |
 | `application/auth/command/RevokeRolePermissionUseCase.java` | Application | Thu hồi permission khỏi role |
-| `application/auth/dto/*Result.java` | Application | Output DTO cho OrgUnit/User/Role/Permission |
+| `application/auth/dto/*Result.java` | Application | Output DTO cho User/Role/Permission |
 | `application/auth/dto/Create|Update*Command.java` | Application | Input DTO cho command |
 | `application/auth/dto/Assign*Command.java` | Application | Input DTO cho assign/revoke |
 | `application/auth/mapper/*CommandMapper.java` | Application | Chuyển đổi domain entity ↔ DTO |
-| `presentation/auth/OrgUnitController.java` | Presentation | REST endpoint `/api/org-units` |
 | `presentation/auth/UserController.java` | Presentation | REST endpoint `/api/users` |
 | `presentation/auth/RoleController.java` | Presentation | REST endpoint `/api/roles` |
 | `presentation/auth/PermissionController.java` | Presentation | REST endpoint `/api/permissions` |
@@ -1085,12 +1136,13 @@ Backend deploy lên **Render** bằng **Docker** (`be-crm/Dockerfile`, multi-sta
 | `SPRING_DATASOURCE_URL` / `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` | Kết nối TiDB |
 | `APP_JWT_SECRET` | Khóa ký JWT (>= 32 ký tự) |
 | `SPRING_MAIL_USERNAME` / `SPRING_MAIL_PASSWORD` | Gmail SMTP + App Password |
-| `APP_FRONTEND_BASE_URL` | URL frontend Netlify (link kích hoạt + phản hồi báo giá trong email) |
-| `APP_CORS_ALLOWED_ORIGINS` | URL frontend Netlify (cho CORS) |
-| `APP_AI_API_KEY` | Khóa API Google Gemini (AI Studio) cho trợ lý Copilot. `APP_AI_MODEL`/`APP_AI_BASE_URL` tùy chọn (có default) |
+| `APP_FRONTEND_BASE_URL` | URL frontend Render (link kích hoạt + phản hồi báo giá trong email) |
+| `APP_CORS_ALLOWED_ORIGINS` | URL frontend Render (cho CORS) |
+| `APP_AI_API_KEY` | Khóa API Google Gemini (AI Studio) — dùng chung cho Copilot lẫn nhúng câu hỏi. `APP_AI_MODEL`/`APP_AI_BASE_URL`/`APP_AI_EMBED_*` tùy chọn (có default) |
 
 ### Các bước
-1. Render → **New → Web Service**, connect repo, **Root Directory = `be-crm`**, Runtime = **Docker**.
-2. Nhập các env var ở bảng trên (URL Netlify điền sau khi có domain frontend).
+1. Render → **Blueprints → New Blueprint Instance**, chọn repo → Render đọc **`render.yaml` ở gốc repo** và tạo cả `crm-backend` (Docker, Root Directory = `be-crm`) lẫn `crm-frontend` (Static Site). Không cần tạo tay từng service nữa.
+2. Nhập các env var ở bảng trên (URL frontend điền **sau** khi `crm-frontend` deploy xong — xem thứ tự đầy đủ ở `fe-crm/README.md`).
+2b. Chạy `diagrams/vector_migration.sql` lên TiDB để có bảng `copilot_chunks`, rồi build chỉ mục bằng `tools/indexer/` (chạy trên máy dev, xem `tools/indexer/README.md`).
 3. Deploy → lấy domain `https://<ten-service>.onrender.com`.
 > Free tier: service sleep sau ~15 phút không request (cold start ~30–60s). Vì secret cũ đã commit lên git, nên **rotate** mật khẩu TiDB / JWT secret / Gmail App Password rồi nhập giá trị mới vào Render.

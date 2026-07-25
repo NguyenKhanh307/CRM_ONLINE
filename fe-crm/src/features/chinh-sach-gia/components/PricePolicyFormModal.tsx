@@ -1,9 +1,14 @@
-import { useState, type FormEvent, useEffect } from 'react';
+import { useState, useRef, type FormEvent, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import type { PricePolicyResult, CreatePricePolicyPayload, UpdatePricePolicyPayload, PricePolicyStatus } from '../types/pricingTypes';
 import { useCreatePricePolicy } from '../hooks/useCreatePricePolicy';
 import { useUpdatePricePolicy } from '../hooks/useUpdatePricePolicy';
 import { DateInput } from '@/shared/components/form/DateInput';
+import { FormField } from '@/shared/components/form/FormField';
+import { ModalFooter } from '@/shared/components/ModalFooter';
+import { useConfirm } from '@/shared/confirm/useConfirm';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
+import { collectErrors, dateRangeError, nonNegativeError } from '@/shared/utils/validators';
 
 interface Props {
     item: PricePolicyResult | null;
@@ -22,9 +27,21 @@ export function PricePolicyFormModal({ item, open, onClose }: Props) {
     const isPending = isCreating || isUpdating;
 
     const [form, setForm] = useState<CreatePricePolicyPayload>(EMPTY);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const { confirmCreate, confirmSave } = useConfirm();
+
+    const formRef = useRef<HTMLFormElement>(null);
+    // enabled: open — modal render rỗng khi đóng, thiếu cờ này thì listener không bao giờ gắn.
+    useFormKeyboardNav(formRef, {
+        onSubmit: () => formRef.current?.requestSubmit(),
+        onCancel: onClose,
+        enabled: open,
+    });
 
     useEffect(() => {
         if (!open) return;
+        setErrors({});
         if (item) {
             setForm({
                 code: item.code,
@@ -42,8 +59,24 @@ export function PricePolicyFormModal({ item, open, onClose }: Props) {
 
     if (!open) return null;
 
-    const handleSubmit = (e: FormEvent) => {
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+
+        const found = collectErrors({
+            code: !item && !form.code.trim() ? 'Vui lòng nhập mã chính sách' : null,
+            name: !form.name.trim() ? 'Vui lòng nhập tên chính sách' : null,
+            priority: nonNegativeError(form.priority, 'Độ ưu tiên'),
+            endDate: dateRangeError(form.startDate, form.endDate),
+        });
+        setErrors(found);
+        if (Object.keys(found).length > 0) return;
+
+        const ok = item ? await confirmSave('chính sách giá') : await confirmCreate('chính sách giá');
+        if (!ok) return;
+
         if (item) {
             const payload: UpdatePricePolicyPayload = {
                 name: form.name, type: form.type, priority: form.priority,
@@ -56,7 +89,6 @@ export function PricePolicyFormModal({ item, open, onClose }: Props) {
     };
 
     const inp = 'w-full border border-gray-300 rounded-btn px-3 py-1.5 text-md text-text-main focus:outline-none focus:border-primary';
-    const lbl = 'block text-sm font-medium text-gray-700 mb-1';
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40" onClick={onClose}>
@@ -67,60 +99,56 @@ export function PricePolicyFormModal({ item, open, onClose }: Props) {
                     </h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
-                    <div>
-                        <label className={lbl}>Mã chính sách <span className="text-danger">*</span></label>
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
+                    <FormField label="Mã chính sách" required error={errors.code}>
                         <input
-                            className={inp} required maxLength={20}
+                            className={inp} maxLength={20}
                             value={form.code}
-                            onChange={e => setForm(f => ({ ...f, code: e.target.value }))}
+                            onChange={e => { setForm(f => ({ ...f, code: e.target.value })); clearError('code'); }}
                             disabled={!!item}
                         />
-                    </div>
-                    <div>
-                        <label className={lbl}>Tên chính sách <span className="text-danger">*</span></label>
+                    </FormField>
+                    <FormField label="Tên chính sách" required error={errors.name}>
                         <input
-                            className={inp} required maxLength={40}
+                            className={inp} maxLength={40}
                             value={form.name}
-                            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                            onChange={e => { setForm(f => ({ ...f, name: e.target.value })); clearError('name'); }}
                         />
-                    </div>
+                    </FormField>
                     <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>Loại</label>
+                        <FormField label="Loại">
                             <input
                                 className={inp} maxLength={20}
                                 value={form.type ?? ''}
                                 onChange={e => setForm(f => ({ ...f, type: e.target.value || null }))}
                             />
-                        </div>
-                        <div>
-                            <label className={lbl}>Độ ưu tiên</label>
+                        </FormField>
+                        <FormField label="Độ ưu tiên" error={errors.priority}>
                             <input
                                 className={inp} type="number" min={0}
                                 value={form.priority ?? ''}
-                                onChange={e => setForm(f => ({ ...f, priority: e.target.value ? Number(e.target.value) : null }))}
+                                onChange={e => {
+                                    setForm(f => ({ ...f, priority: e.target.value ? Number(e.target.value) : null }));
+                                    clearError('priority');
+                                }}
                             />
-                        </div>
+                        </FormField>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>Ngày bắt đầu</label>
+                        <FormField label="Ngày bắt đầu">
                             <DateInput
                                 value={form.startDate ?? ''}
-                                onChange={v => setForm(f => ({ ...f, startDate: v || null }))}
+                                onChange={v => { setForm(f => ({ ...f, startDate: v || null })); clearError('endDate'); }}
                             />
-                        </div>
-                        <div>
-                            <label className={lbl}>Ngày kết thúc</label>
+                        </FormField>
+                        <FormField label="Ngày kết thúc" error={errors.endDate}>
                             <DateInput
                                 value={form.endDate ?? ''}
-                                onChange={v => setForm(f => ({ ...f, endDate: v || null }))}
+                                onChange={v => { setForm(f => ({ ...f, endDate: v || null })); clearError('endDate'); }}
                             />
-                        </div>
+                        </FormField>
                     </div>
-                    <div>
-                        <label className={lbl}>Trạng thái</label>
+                    <FormField label="Trạng thái">
                         <select
                             className={inp}
                             value={form.status}
@@ -130,13 +158,8 @@ export function PricePolicyFormModal({ item, open, onClose }: Props) {
                             <option value="inactive">Ngừng áp dụng</option>
                             <option value="expired">Hết hạn</option>
                         </select>
-                    </div>
-                    <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-                        <button type="button" onClick={onClose} className="px-4 py-1.5 rounded-btn border border-gray-300 text-md text-text-main hover:bg-gray-50">Hủy</button>
-                        <button type="submit" disabled={isPending} className="px-4 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">
-                            {isPending ? 'Đang lưu...' : 'Lưu'}
-                        </button>
-                    </div>
+                    </FormField>
+                    <ModalFooter onCancel={onClose} saving={isPending} />
                 </form>
             </div>
         </div>

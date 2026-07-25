@@ -42,6 +42,13 @@ public class PageRequest {
     /** Chỉ trả bản ghi thuộc owner này (record-level visibility) — null nghĩa là không lọc (admin/manager). */
     private Long ownerId;
 
+    /**
+     * Chỉ trả bản ghi thuộc khách hàng này — null nghĩa là không lọc.
+     * Hiện dùng cho danh sách liên hệ: ô chọn Liên hệ trong form phải thu hẹp theo khách hàng đang chọn,
+     * không thể để người dùng dò trong hàng chục nghìn liên hệ.
+     */
+    private Long customerId;
+
     /** @return offset = page * size */
     public int getOffset() {
         return page * size;

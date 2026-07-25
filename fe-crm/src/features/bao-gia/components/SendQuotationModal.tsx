@@ -1,9 +1,20 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { FiX } from 'react-icons/fi';
 import { useAlert } from '@/shared/alert/useAlert';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import { RichTextEditor } from '@/shared/components/RichTextEditor';
+import { ModalFooter } from '@/shared/components/ModalFooter';
+import { FormField } from '@/shared/components/form/FormField';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
+import { collectErrors, emailError } from '@/shared/utils/validators';
 import { useQuotationEmailDraft } from '../hooks/useQuotationEmailDraft';
 import { useQuotationWorkflow } from '../hooks/useQuotationWorkflow';
+
+/** Kiểm danh sách email cách nhau bởi dấu phẩy (CC/BCC). */
+const emailListError = (v: string, label: string): string | null => {
+    const list = v.split(',').map(s => s.trim()).filter(Boolean);
+    return list.some(e => emailError(e)) ? `${label} có địa chỉ không hợp lệ` : null;
+};
 
 interface Props {
     /** ID báo giá cần gửi (null = đóng). */
@@ -19,6 +30,7 @@ interface Props {
 export function SendQuotationModal({ quotationId, onClose }: Props) {
     const open = quotationId !== null;
     const { showAlert } = useAlert();
+    const { confirm } = useConfirm();
     const { data: draft, isLoading } = useQuotationEmailDraft(quotationId, open);
     const { mutate: workflowFn, isPending } = useQuotationWorkflow();
     const [to, setTo] = useState('');
@@ -26,6 +38,15 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
     const [bcc, setBcc] = useState('');
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const formRef = useRef<HTMLFormElement>(null);
+    // enabled: open — modal render rỗng khi đóng. Hook tự né Enter/mũi tên trong TinyMCE (.tox).
+    useFormKeyboardNav(formRef, {
+        onSubmit: () => formRef.current?.requestSubmit(),
+        onCancel: onClose,
+        enabled: open,
+    });
 
     // Nạp nội dung mặc định vào ô soạn khi draft tải xong (người dùng vẫn sửa được người nhận).
     useEffect(() => {
@@ -38,10 +59,29 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
 
     if (!open) return null;
 
-    const handleSubmit = (e: FormEvent) => {
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        if (!to.trim()) { showAlert('Vui lòng nhập email người nhận'); return; }
-        if (!subject.trim() || !body.trim()) { showAlert('Vui lòng nhập tiêu đề và nội dung email'); return; }
+
+        const found = collectErrors({
+            to: !to.trim() ? 'Vui lòng nhập email người nhận' : emailError(to),
+            cc: emailListError(cc, 'CC'),
+            bcc: emailListError(bcc, 'BCC'),
+            subject: !subject.trim() ? 'Vui lòng nhập tiêu đề email' : null,
+            body: !body.trim() ? 'Vui lòng nhập nội dung email' : null,
+        });
+        setErrors(found);
+        if (Object.keys(found).length > 0) return;
+
+        // Gửi ra ngoài cho khách hàng — không rút lại được, phải xác nhận.
+        const ok = await confirm({
+            message: `Gửi báo giá tới ${to.trim()}? Email đã gửi không thu hồi được.`,
+            confirmLabel: 'Gửi email',
+        });
+        if (!ok) return;
+
         workflowFn(
             {
                 id: quotationId,
@@ -70,7 +110,6 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
     };
 
     const inp = 'w-full border border-gray-300 rounded-btn px-3 py-1.5 text-md text-text-main focus:outline-none focus:border-primary';
-    const lbl = 'block text-sm font-medium text-gray-700 mb-1';
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40" onClick={onClose}>
@@ -79,46 +118,47 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Soạn email báo giá</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
-                    <div>
-                        <label className={lbl}>Người nhận</label>
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
+                    <FormField
+                        label="Người nhận"
+                        required
+                        error={errors.to}
+                        hint={draft && !draft.toEmail && !to
+                            ? 'Báo giá chưa có email khách hàng/liên hệ — hãy nhập địa chỉ người nhận.'
+                            : undefined}
+                    >
                         <input
                             className={inp}
                             value={to}
-                            onChange={e => setTo(e.target.value)}
+                            onChange={e => { setTo(e.target.value); clearError('to'); }}
                             placeholder={isLoading ? 'Đang tải...' : 'email@congty.com'}
                         />
-                        {draft && !draft.toEmail && !to && (
-                            <p className="text-sm text-danger mt-1">Báo giá chưa có email khách hàng/liên hệ — hãy nhập địa chỉ người nhận.</p>
-                        )}
-                    </div>
+                    </FormField>
                     <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>CC</label>
-                            <input className={inp} value={cc} onChange={e => setCc(e.target.value)}
+                        <FormField label="CC" error={errors.cc}>
+                            <input className={inp} value={cc}
+                                onChange={e => { setCc(e.target.value); clearError('cc'); }}
                                 placeholder="Nhiều email cách nhau bởi dấu phẩy" />
-                        </div>
-                        <div>
-                            <label className={lbl}>BCC</label>
-                            <input className={inp} value={bcc} onChange={e => setBcc(e.target.value)}
+                        </FormField>
+                        <FormField label="BCC" error={errors.bcc}>
+                            <input className={inp} value={bcc}
+                                onChange={e => { setBcc(e.target.value); clearError('bcc'); }}
                                 placeholder="Nhiều email cách nhau bởi dấu phẩy" />
-                        </div>
+                        </FormField>
                     </div>
-                    <div>
-                        <label className={lbl}>Tiêu đề</label>
-                        <input className={inp} value={subject} onChange={e => setSubject(e.target.value)} />
-                    </div>
-                    <div>
-                        <label className={lbl}>Nội dung</label>
-                        <RichTextEditor value={body} onChange={setBody} height={320} />
-                        <p className="text-sm text-gray-500 mt-1">3 nút phản hồi (Đồng ý / Điều chỉnh / Không đồng ý) và file PDF báo giá sẽ được tự động thêm vào email khi gửi.</p>
-                    </div>
-                    <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-                        <button type="button" onClick={onClose} className="px-4 py-1.5 rounded-btn border border-gray-300 text-md text-text-main hover:bg-gray-50">Hủy</button>
-                        <button type="submit" disabled={isPending || isLoading} className="px-4 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">
-                            {isPending ? 'Đang gửi...' : 'Gửi email'}
-                        </button>
-                    </div>
+                    <FormField label="Tiêu đề" required error={errors.subject}>
+                        <input className={inp} value={subject}
+                            onChange={e => { setSubject(e.target.value); clearError('subject'); }} />
+                    </FormField>
+                    <FormField
+                        label="Nội dung"
+                        required
+                        error={errors.body}
+                        hint="3 nút phản hồi (Đồng ý / Điều chỉnh / Không đồng ý) và file PDF báo giá sẽ được tự động thêm vào email khi gửi."
+                    >
+                        <RichTextEditor value={body} onChange={(v) => { setBody(v); clearError('body'); }} height={320} />
+                    </FormField>
+                    <ModalFooter onCancel={onClose} saving={isPending || isLoading} saveLabel="Gửi email" />
                 </form>
             </div>
         </div>

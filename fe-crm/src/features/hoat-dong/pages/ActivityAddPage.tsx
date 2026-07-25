@@ -1,9 +1,12 @@
 import { useRef, useState } from 'react';
 import { useConfirm } from '@/shared/confirm/useConfirm';
+import { collectErrors } from '@/shared/utils/validators';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { useMemo } from 'react';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
+import type { RecordModule } from '@/shared/lookup/useRecordSearch';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
@@ -68,10 +71,30 @@ const ActivityAddPage = () => {
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
 
-    const set = (patch: Partial<FormState>) => setForm((p) => ({ ...p, ...patch }));
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    const set = (patch: Partial<FormState>) => {
+        setForm((p) => ({ ...p, ...patch }));
+        setErrors((e) => {
+            const next = { ...e };
+            Object.keys(patch).forEach((k) => delete next[k]);
+            return next;
+        });
+    };
+
+    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    const validate = (): Record<string, string> =>
+        collectErrors({
+            subject: !form.subject.trim() ? 'Tiêu đề không được để trống' : null,
+        });
 
     const submit = async (andNew: boolean) => {
-        if (!form.subject.trim()) { showAlert('Tiêu đề không được để trống'); return; }
+        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        const errs = validate();
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         const payload: CreateActivityPayload = {
             type: form.type,
             subject: form.subject.trim(),
@@ -117,7 +140,7 @@ const ActivityAddPage = () => {
                             <FieldRow label="Loại hoạt động" required>
                                 <SearchableSelect value={form.type} onChange={(v) => set({ type: v })} options={TYPE_OPTIONS} />
                             </FieldRow>
-                            <FieldRow label="Tiêu đề" required>
+                            <FieldRow label="Tiêu đề" required error={errors.subject}>
                                 <input type="text" value={form.subject} onChange={(e) => set({ subject: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Mức ưu tiên">
@@ -141,18 +164,23 @@ const ActivityAddPage = () => {
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
                             <FieldRow label="Loại đối tượng">
-                                <SearchableSelect value={form.targetType} onChange={(v) => set({ targetType: v })} options={TARGET_TYPE_OPTIONS} />
+                                {/* Đổi loại thì xóa id cũ — id của phân hệ khác gắn lại là dữ liệu rác */}
+                                <SearchableSelect value={form.targetType}
+                                    onChange={(v) => set({ targetType: v, targetId: '' })} options={TARGET_TYPE_OPTIONS} />
                             </FieldRow>
-                            <FieldRow label="ID đối tượng">
-                                <input type="number" value={form.targetId} onChange={(e) => set({ targetId: e.target.value })} className={inputCls} />
+                            <FieldRow label="Đối tượng">
+                                <RecordPicker module={form.targetType as RecordModule | ''} value={form.targetId}
+                                    onChange={(v) => set({ targetId: v })} />
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
                             <FieldRow label="Loại liên quan">
-                                <SearchableSelect value={form.relatedType} onChange={(v) => set({ relatedType: v })} options={TARGET_TYPE_OPTIONS} />
+                                <SearchableSelect value={form.relatedType}
+                                    onChange={(v) => set({ relatedType: v, relatedId: '' })} options={TARGET_TYPE_OPTIONS} />
                             </FieldRow>
-                            <FieldRow label="ID liên quan">
-                                <input type="number" value={form.relatedId} onChange={(e) => set({ relatedId: e.target.value })} className={inputCls} />
+                            <FieldRow label="Bản ghi liên quan">
+                                <RecordPicker module={form.relatedType as RecordModule | ''} value={form.relatedId}
+                                    onChange={(v) => set({ relatedId: v })} />
                             </FieldRow>
                         </div>
                     </div>

@@ -24,19 +24,29 @@ public class TrackVisitUseCase {
 
     /**
      * Trả về tiềm năng theo mã nếu tồn tại, ngược lại tạo mới tiềm năng ẩn danh.
-     * @param code mã TNW... từ cookie/localStorage máy khách (có thể null/rỗng)
+     *
+     * <p><b>Attribution first-touch</b>: chiến dịch chỉ được gắn khi tiềm năng chưa có chiến dịch nào.
+     * Khách quay lại qua link của chiến dịch khác thì nguồn ban đầu vẫn giữ — nếu ghi đè, công
+     * sinh ra tiềm năng sẽ bị tính nhầm cho chiến dịch chạm sau cùng.</p>
+     *
+     * @param code       mã TNW... từ cookie/localStorage máy khách (có thể null/rỗng)
+     * @param campaignId chiến dịch nguồn từ tham số `utm_campaign` của landing page (có thể null)
      * @return LeadResult của tiềm năng tương ứng
      */
-    public LeadResult execute(String code) {
+    public LeadResult execute(String code, Long campaignId) {
         if (code != null && !code.isBlank()) {
-            LeadResult existing = repo.findByCode(code.trim())
-                    .map(LeadCommandMapper::toResult).orElse(null);
-            if (existing != null) return existing;
+            Lead existing = repo.findByCode(code.trim()).orElse(null);
+            if (existing != null) {
+                if (campaignId != null && existing.getCampaignId() == null) {
+                    return LeadCommandMapper.toResult(repo.save(existing.toBuilder().campaignId(campaignId).build()));
+                }
+                return LeadCommandMapper.toResult(existing);
+            }
         }
         String newCode = generateCode();
         Lead lead = Lead.builder()
                 .code(newCode).name("Khách web " + newCode)
-                .source("web").status(LeadStatus.new_).score(0)
+                .source("web").campaignId(campaignId).status(LeadStatus.new_).score(0)
                 .doNotCall(false).doNotEmail(false).build();
         return LeadCommandMapper.toResult(repo.save(lead));
     }

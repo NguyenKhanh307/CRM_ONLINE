@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
+import { collectErrors, emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
@@ -10,13 +10,14 @@ import { useDuplicateCheck } from '@/shared/hooks/useDuplicateCheck';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { PrefillHint } from '@/shared/components/form/PrefillHint';
-import { fillEmpty, hasFilled, primaryContactOf } from '@/shared/utils/prefill';
+import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
+import { fetchPrimaryContactId } from '@/shared/lookup/recordPrefill';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useContactList } from '@/features/lien-he/hooks/useContactList';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { useCreateLead } from '../hooks/useCreateLead';
 import type { CreateLeadPayload } from '../types/leadTypes';
@@ -102,28 +103,37 @@ const LeadAddPage = () => {
 
     const { data: users = [] } = useActiveUsers();
     const { data: customers = [] } = useCustomerList();
-    const { data: contacts = [] } = useContactList();
     const { data: campaigns = [] } = useCampaignList();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
-    const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
     const campaignOptions = useMemo(() => (campaigns ?? []).map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
 
-    const set = (patch: Partial<FormState>) => setForm((p) => ({ ...p, ...patch }));
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    const set = (patch: Partial<FormState>) => {
+        setForm((p) => ({ ...p, ...patch }));
+        setErrors((e) => {
+            const next = { ...e };
+            Object.keys(patch).forEach((k) => delete next[k]);
+            return next;
+        });
+    };
 
     /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
     /** Chọn khách hàng → tự điền thông tin công ty + liên hệ chính (chỉ ô còn trống). */
-    const onPickCustomer = (v: string) => {
-        set({ customerId: v });
+    const onPickCustomer = async (v: string) => {
+        // Đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai.
+        const base = { ...form, customerId: v, contactId: '' };
+        set({ customerId: v, contactId: '' });
         setPrefillFrom(null);
         const customer = customers.find((c) => String(c.id) === v);
         if (!customer) return;
-        const contact = primaryContactOf(contacts, customer.id);
-        const patch = fillEmpty(form, {
-            contactId: contact ? String(contact.id) : '',
+        const patch = fillEmpty(base, {
+            contactId: await fetchPrimaryContactId(customer.id),
             companyName: customer.name,
             taxCode: customer.taxCode ?? '',
             website: customer.website ?? '',
@@ -134,14 +144,25 @@ const LeadAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
     };
 
+    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    const validate = (): Record<string, string> =>
+        collectErrors({
+            code: !form.code.trim() ? 'Mã tiềm năng không được để trống' : null,
+            name: !form.name.trim() ? 'Tên tiềm năng không được để trống' : null,
+            email: emailError(form.email),
+            phone: phoneError(form.phone),
+            taxCode: taxCodeError(form.taxCode),
+            estimatedValue: nonNegativeError(form.estimatedValue, 'Giá trị ước tính'),
+        });
+
     const submit = async (andNew: boolean) => {
-        if (!form.code.trim()) { showAlert('Mã tiềm năng không được để trống'); return; }
-        if (!form.name.trim()) { showAlert('Tên tiềm năng không được để trống'); return; }
+        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        const errs = validate();
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmCreate('tiềm năng'))) return;
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = emailError(form.email) ?? phoneError(form.phone) ?? taxCodeError(form.taxCode)
-            ?? nonNegativeError(form.estimatedValue, 'Giá trị ước tính');
-        if (vErr) { showAlert(vErr); return; }
+
         mutate(toPayload(form), {
             onSuccess: () => {
                 if (andNew) { setForm(initialState(defaultOwnerId)); setPrefillFrom(null); showAlert('Đã lưu tiềm năng thành công'); }
@@ -177,10 +198,10 @@ const LeadAddPage = () => {
                 <FormSection title="Thông tin chung">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
-                            <FieldRow label="Mã tiềm năng" required>
+                            <FieldRow label="Mã tiềm năng" required error={errors.code}>
                                 <input type="text" value={form.code} onChange={(e) => set({ code: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Tên tiềm năng" required>
+                            <FieldRow label="Tên tiềm năng" required error={errors.name}>
                                 <input type="text" value={form.name} onChange={(e) => set({ name: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Chức danh">
@@ -200,7 +221,7 @@ const LeadAddPage = () => {
                             <FieldRow label="Phòng ban">
                                 <input type="text" value={form.department} onChange={(e) => set({ department: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Email">
+                            <FieldRow label="Email" error={errors.email}>
                                 <input type="text" value={form.email} onChange={(e) => set({ email: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
@@ -218,7 +239,7 @@ const LeadAddPage = () => {
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
-                            <FieldRow label="Mã số thuế">
+                            <FieldRow label="Mã số thuế" error={errors.taxCode}>
                                 <input type="text" value={form.taxCode} onChange={(e) => set({ taxCode: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Ngành nghề">
@@ -241,9 +262,10 @@ const LeadAddPage = () => {
                         </div>
                         <div className="space-y-4">
                             <FieldRow label="Liên hệ">
-                                <SearchableSelect value={form.contactId} onChange={(v) => set({ contactId: v })} options={contactOptions} />
+                                <RecordPicker module="contact" value={form.contactId} onChange={(v) => set({ contactId: v })}
+                                    customerId={form.customerId ? Number(form.customerId) : undefined} />
                             </FieldRow>
-                            <FieldRow label="Giá trị ước tính">
+                            <FieldRow label="Giá trị ước tính" error={errors.estimatedValue}>
                                 <input type="number" value={form.estimatedValue} onChange={(e) => set({ estimatedValue: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Chiến dịch nguồn">

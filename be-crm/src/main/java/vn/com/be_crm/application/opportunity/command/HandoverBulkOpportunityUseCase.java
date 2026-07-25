@@ -1,6 +1,7 @@
 package vn.com.be_crm.application.opportunity.command;
 
 import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
+import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 
 /**
@@ -9,10 +10,12 @@ import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 public class HandoverBulkOpportunityUseCase {
 
     private final IOpportunityRepository repository;
+    private final NotifyAssignmentUseCase notifyUC;
 
-    /** @param repository port lưu trữ Opportunity */
-    public HandoverBulkOpportunityUseCase(IOpportunityRepository repository) {
+    /** @param repository port lưu trữ Opportunity @param notifyUC báo cho người nhận bàn giao */
+    public HandoverBulkOpportunityUseCase(IOpportunityRepository repository, NotifyAssignmentUseCase notifyUC) {
         this.repository = repository;
+        this.notifyUC = notifyUC;
     }
 
     /**
@@ -22,5 +25,7 @@ public class HandoverBulkOpportunityUseCase {
      */
     public void execute(HandoverBulkCommand cmd) {
         repository.handoverBulk(cmd.getIds(), cmd.getToUserId(), cmd.getCurrentUserId(), cmd.isAdminOrManager());
+        notifyUC.notifyHandover("opportunity", "cơ hội", cmd.getToUserId(),
+                cmd.getIds() == null ? 0 : cmd.getIds().size());
     }
 }

@@ -53,15 +53,10 @@ export const AdminDashboardView = ({ data, periodLabel, onRefresh }: Props) => (
             </DashCard>
         </div>
 
-        {/* Cơ cấu vai trò / đơn vị */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <DashCard title="Cơ cấu theo vai trò" onRefresh={onRefresh}>
-                <DonutChart centerLabel="Tài khoản" segments={data.usersByRole} />
-            </DashCard>
-            <DashCard title="Cơ cấu theo đơn vị" onRefresh={onRefresh}>
-                <DonutChart centerLabel="Tài khoản" segments={data.usersByUnit} />
-            </DashCard>
-        </div>
+        {/* Cơ cấu vai trò */}
+        <DashCard title="Cơ cấu theo vai trò" onRefresh={onRefresh}>
+            <DonutChart centerLabel="Tài khoản" segments={data.usersByRole} />
+        </DashCard>
 
         {/* Tổng quan bản ghi toàn hệ thống */}
         <DashCard title="Tổng quan dữ liệu toàn hệ thống" onRefresh={onRefresh}>

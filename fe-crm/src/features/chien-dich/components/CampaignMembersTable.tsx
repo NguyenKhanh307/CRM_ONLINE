@@ -1,7 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { FiTrash2, FiPlus } from 'react-icons/fi';
 import { formatISODate } from '@/shared/utils/date';
 import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { useConfirm } from '@/shared/confirm/useConfirm';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
+import { collectErrors, emailError, phoneError } from '@/shared/utils/validators';
 import { useCampaignMembers, useCreateCampaignMember, useDeleteCampaignMember } from '../hooks/useCampaignMembers';
 
 interface Props {
@@ -27,28 +31,67 @@ export function CampaignMembersTable({ campaignId }: Props) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
-    const handleAdd = (e: FormEvent) => {
+    const { confirmCreate, confirmDelete } = useConfirm();
+
+    const formRef = useRef<HTMLFormElement>(null);
+    useFormKeyboardNav(formRef, {
+        onSubmit: () => formRef.current?.requestSubmit(),
+        autoFocus: false, // form phụ trên trang chi tiết — không cướp focus khi mở tab
+    });
+
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
+    const handleAdd = async (e: FormEvent) => {
         e.preventDefault();
-        if (!name.trim() && !email.trim()) return;
+
+        const found = collectErrors({
+            name: !name.trim() && !email.trim() ? 'Nhập tên hoặc email' : null,
+            email: emailError(email),
+            phone: phoneError(phone),
+        });
+        setErrors(found);
+        if (Object.keys(found).length > 0) return;
+
+        if (!(await confirmCreate('khách hàng vào chiến dịch'))) return;
+
         createMember(
             { leadId: null, contactId: null, name: name.trim() || null, email: email.trim() || null, phone: phone.trim() || null },
             { onSuccess: () => { setName(''); setEmail(''); setPhone(''); } },
         );
     };
 
+    const handleDelete = async (id: number, label: string) => {
+        if (!(await confirmDelete(`"${label}" khỏi chiến dịch`))) return;
+        deleteMember(id);
+    };
+
     const inp = 'border border-gray-300 rounded-btn px-3 py-1.5 text-md focus:outline-none focus:border-primary';
+    const errCls = (key: string) => (errors[key] ? 'border-danger' : '');
 
     return (
         <div className="space-y-4">
-            <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-2">
-                <input className={inp} placeholder="Tên" value={name} onChange={e => setName(e.target.value)} />
-                <input className={inp} placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-                <input className={inp} placeholder="Số điện thoại" value={phone} onChange={e => setPhone(e.target.value)} />
-                <button type="submit" disabled={isCreating}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">
-                    <FiPlus size={14} /> Thêm khách hàng
-                </button>
+            <form ref={formRef} onSubmit={handleAdd} noValidate className="flex flex-wrap items-start gap-2">
+                <div>
+                    <input className={`${inp} ${errCls('name')}`} placeholder="Tên" value={name}
+                        onChange={e => { setName(e.target.value); clearError('name'); }} />
+                    {errors.name && <p className="text-xs text-danger mt-1">{errors.name}</p>}
+                </div>
+                <div>
+                    <input className={`${inp} ${errCls('email')}`} placeholder="Email" value={email}
+                        onChange={e => { setEmail(e.target.value); clearError('email'); clearError('name'); }} />
+                    {errors.email && <p className="text-xs text-danger mt-1">{errors.email}</p>}
+                </div>
+                <div>
+                    <input className={`${inp} ${errCls('phone')}`} placeholder="Số điện thoại" value={phone}
+                        onChange={e => { setPhone(e.target.value); clearError('phone'); }} />
+                    {errors.phone && <p className="text-xs text-danger mt-1">{errors.phone}</p>}
+                </div>
+                <ActionButton variant="primary" type="submit" icon={FiPlus} disabled={isCreating}>
+                    Thêm khách hàng
+                </ActionButton>
             </form>
 
             <ScrollFrame visibleRows={10} headBg="gray" className="border border-gray-200 rounded-section">
@@ -81,7 +124,7 @@ export function CampaignMembersTable({ campaignId }: Props) {
                                 <td className="px-3 py-2">{m.sentAt ? formatISODate(m.sentAt) : '—'}</td>
                                 <td className="px-3 py-2">
                                     <button className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
-                                        title="Xóa" onClick={() => deleteMember(m.id)}>
+                                        title="Xóa" onClick={() => handleDelete(m.id, m.name ?? m.email ?? 'khách hàng này')}>
                                         <FiTrash2 size={14} />
                                     </button>
                                 </td>

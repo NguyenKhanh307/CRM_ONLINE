@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { dateRangeError, pastDateError } from '@/shared/utils/validators';
+import { collectErrors, dateRangeError, pastDateError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -8,7 +8,10 @@ import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { PrefillHint } from '@/shared/components/form/PrefillHint';
-import { fillEmpty, hasFilled, primaryContactOf } from '@/shared/utils/prefill';
+import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
+import { fetchPrimaryContactId } from '@/shared/lookup/recordPrefill';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
+import { opportunityService } from '@/features/co-hoi/services/opportunityService';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { DateInput } from '@/shared/components/form/DateInput';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
@@ -22,21 +25,22 @@ import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useContactList } from '@/features/lien-he/hooks/useContactList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
+import { usePricePolicyList } from '@/features/chinh-sach-gia/hooks/usePricePolicyList';
 import { useCreateQuotation } from '../hooks/useCreateQuotation';
 import type { CreateQuotationPayload } from '../types/quotationTypes';
 
 interface HeaderState {
-    code: string; customerId: string; contactId: string; campaignId: string; ownerId: string;
+    code: string; customerId: string; contactId: string; campaignId: string; pricePolicyId: string; ownerId: string;
+    opportunityId: string;
     quoteDate: string; validUntil: string; currency: string; exchangeRate: string;
     note: string;
 }
 
 /** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
 const initialState = (ownerId: string): HeaderState => ({
-    code: '', customerId: '', contactId: '', campaignId: '', ownerId, quoteDate: '', validUntil: '',
+    code: '', customerId: '', contactId: '', campaignId: '', pricePolicyId: '', opportunityId: '', ownerId, quoteDate: '', validUntil: '',
     currency: 'VND', exchangeRate: '1', note: '',
 });
 
@@ -53,52 +57,90 @@ const QuoteAddPage = () => {
 
     const { data: users = [] } = useActiveUsers();
     const { data: customers = [] } = useCustomerList();
-    const { data: contacts = [] } = useContactList();
     const { data: products = [] } = useProductList();
     const { data: campaigns = [] } = useCampaignList();
+    const { data: pricePolicies = [] } = usePricePolicyList();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
-    const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
     const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
+    const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
     const productOptions = useMemo<ProductOption[]>(
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
         [products],
     );
 
-    const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    const set = (patch: Partial<HeaderState>) => {
+        setForm((p) => ({ ...p, ...patch }));
+        setErrors((e) => {
+            const next = { ...e };
+            Object.keys(patch).forEach((k) => delete next[k]);
+            return next;
+        });
+    };
     const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); setPrefillFrom(null); };
 
     /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
     /** Chọn khách hàng → tự điền liên hệ chính và người phụ trách (chỉ ô còn trống). */
-    const onPickCustomer = (v: string) => {
-        set({ customerId: v });
+    const onPickCustomer = async (v: string) => {
+        // Đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai.
+        const base = { ...form, customerId: v, contactId: '' };
+        set({ customerId: v, contactId: '' });
         setPrefillFrom(null);
         const customer = customers.find((c) => String(c.id) === v);
         if (!customer) return;
-        const contact = primaryContactOf(contacts, customer.id);
-        const patch = fillEmpty(form, {
-            contactId: contact ? String(contact.id) : '',
+        const patch = fillEmpty(base, {
+            contactId: await fetchPrimaryContactId(customer.id),
             ownerId: customer.ownerId ? String(customer.ownerId) : '',
         });
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
     };
 
+    /** Chọn cơ hội nguồn → tự điền bên mua, chiến dịch, chính sách giá (KHÔNG chép dòng hàng, xem README). */
+    const onPickOpportunity = async (v: string) => {
+        set({ opportunityId: v });
+        setPrefillFrom(null);
+        if (!v) return;
+        const o = (await opportunityService.getById(Number(v))).data.data;
+        const patch = fillEmpty({ ...form, opportunityId: v }, {
+            customerId: o.customerId ? String(o.customerId) : '',
+            contactId: o.contactId ? String(o.contactId) : '',
+            campaignId: o.campaignId ? String(o.campaignId) : '',
+            pricePolicyId: o.pricePolicyId ? String(o.pricePolicyId) : '',
+            ownerId: o.ownerId ? String(o.ownerId) : '',
+        });
+        if (hasFilled(patch)) { set(patch); setPrefillFrom(`cơ hội «${o.code}»`); }
+    };
+
+    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    const validate = (): Record<string, string> =>
+        collectErrors({
+            code: !form.code.trim() ? 'Mã báo giá không được để trống' : null,
+            quoteDate: pastDateError(form.quoteDate, 'Ngày báo giá'),
+            validUntil: pastDateError(form.validUntil, 'Ngày hiệu lực')
+                ?? dateRangeError(form.quoteDate, form.validUntil, 'ngày báo giá', 'Ngày hiệu lực'),
+            items: validateLineItems(rows),
+        });
+
     const submit = async (andNew: boolean) => {
-        if (!form.code.trim()) { showAlert('Mã báo giá không được để trống'); return; }
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = pastDateError(form.quoteDate, 'Ngày báo giá') ?? pastDateError(form.validUntil, 'Ngày hiệu lực')
-            ?? dateRangeError(form.quoteDate, form.validUntil, 'ngày báo giá', 'Ngày hiệu lực') ?? validateLineItems(rows);
-        if (vErr) { showAlert(vErr); return; }
+        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        const errs = validate();
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         const totals = computeTotals(rows);
         const payload: CreateQuotationPayload = {
             code: form.code.trim(),
             customerId: form.customerId ? Number(form.customerId) : null,
             contactId: form.contactId ? Number(form.contactId) : null,
-            opportunityId: null,
+            opportunityId: form.opportunityId ? Number(form.opportunityId) : null,
             campaignId: form.campaignId ? Number(form.campaignId) : null,
+            pricePolicyId: form.pricePolicyId ? Number(form.pricePolicyId) : null,
             ownerId: form.ownerId ? Number(form.ownerId) : null,
             quoteDate: form.quoteDate || null,
             validUntil: form.validUntil || null,
@@ -137,7 +179,7 @@ const QuoteAddPage = () => {
                 <FormSection title="Thông tin chi tiết">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
-                            <FieldRow label="Số báo giá" required>
+                            <FieldRow label="Số báo giá" required error={errors.code}>
                                 <input type="text" value={form.code} onChange={(e) => set({ code: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Khách hàng">
@@ -145,17 +187,18 @@ const QuoteAddPage = () => {
                                 <PrefillHint source={prefillFrom} />
                             </FieldRow>
                             <FieldRow label="Liên hệ">
-                                <SearchableSelect value={form.contactId} onChange={(v) => set({ contactId: v })} options={contactOptions} />
+                                <RecordPicker module="contact" value={form.contactId} onChange={(v) => set({ contactId: v })}
+                                    customerId={form.customerId ? Number(form.customerId) : undefined} />
                             </FieldRow>
                             <FieldRow label="Người phụ trách">
                                 <SearchableSelect value={form.ownerId} onChange={(v) => set({ ownerId: v })} options={userOptions} />
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
-                            <FieldRow label="Ngày báo giá">
+                            <FieldRow label="Ngày báo giá" error={errors.quoteDate}>
                                 <DateInput value={form.quoteDate} onChange={(v) => set({ quoteDate: v })} />
                             </FieldRow>
-                            <FieldRow label="Hiệu lực đến">
+                            <FieldRow label="Hiệu lực đến" error={errors.validUntil}>
                                 <DateInput value={form.validUntil} onChange={(v) => set({ validUntil: v })} />
                             </FieldRow>
                             <FieldRow label="Tiền tệ">
@@ -164,12 +207,20 @@ const QuoteAddPage = () => {
                             <FieldRow label="Chiến dịch">
                                 <SearchableSelect value={form.campaignId} onChange={(v) => set({ campaignId: v })} options={campaignOptions} />
                             </FieldRow>
+                            <FieldRow label="Chính sách giá">
+                                <SearchableSelect value={form.pricePolicyId} onChange={(v) => set({ pricePolicyId: v })} options={pricePolicyOptions} />
+                            </FieldRow>
+                            <FieldRow label="Cơ hội">
+                                <RecordPicker module="opportunity" value={form.opportunityId} onChange={onPickOpportunity} />
+                            </FieldRow>
                         </div>
                     </div>
                 </FormSection>
 
                 <FormSection title="Hàng hóa">
-                    <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />
+                    <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax
+                        pricePolicyId={form.pricePolicyId ? Number(form.pricePolicyId) : null} />
+                    {errors.items && <p className="text-xs text-danger mt-1">{errors.items}</p>}
                 </FormSection>
 
                 <FormSection title="Thông tin mô tả">

@@ -14,6 +14,8 @@ public class NotificationHibernateMapper {
         h.setId(d.getId()); h.setRecipientUserId(d.getRecipientUserId());
         h.setType(d.getType()); h.setTitle(d.getTitle()); h.setContent(d.getContent());
         h.setLeadId(d.getLeadId()); h.setTargetId(d.getTargetId()); h.setRead(d.isRead());
+        // Bắt buộc set: save() dùng merge() nên bỏ sót sẽ ghi NULL đè lên deleted_at của bản ghi đã xóa mềm
+        h.setDeletedAt(d.getDeletedAt());
         return h;
     }
 
@@ -22,6 +24,7 @@ public class NotificationHibernateMapper {
         return Notification.builder()
                 .id(h.getId()).recipientUserId(h.getRecipientUserId())
                 .type(h.getType()).title(h.getTitle()).content(h.getContent())
-                .leadId(h.getLeadId()).targetId(h.getTargetId()).isRead(h.isRead()).createdAt(h.getCreatedAt()).build();
+                .leadId(h.getLeadId()).targetId(h.getTargetId()).isRead(h.isRead())
+                .createdAt(h.getCreatedAt()).deletedAt(h.getDeletedAt()).build();
     }
 }

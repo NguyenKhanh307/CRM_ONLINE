@@ -5,15 +5,17 @@ import type { ContactFormState } from './contactFormTypes';
 interface Props {
     value: ContactFormState;
     onChange: (patch: Partial<ContactFormState>) => void;
+    /** Map field→lỗi; ô có lỗi sẽ viền đỏ kèm dòng chữ đỏ bên dưới. */
+    errors?: Record<string, string>;
 }
 
 /**
  * Section "Thông tin liên lạc" của form thêm liên hệ.
  */
-export const ContactContactSection = ({ value, onChange }: Props) => (
+export const ContactContactSection = ({ value, onChange, errors = {} }: Props) => (
     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
         <div className="space-y-4">
-            <FieldRow label="ĐT di động">
+            <FieldRow label="ĐT di động" error={errors.mobilePhone}>
                 <input
                     type="text"
                     value={value.mobilePhone}
@@ -21,7 +23,7 @@ export const ContactContactSection = ({ value, onChange }: Props) => (
                     className={inputCls}
                 />
             </FieldRow>
-            <FieldRow label="Email">
+            <FieldRow label="Email" error={errors.email}>
                 <input
                     type="text"
                     value={value.email}
@@ -29,7 +31,7 @@ export const ContactContactSection = ({ value, onChange }: Props) => (
                     className={inputCls}
                 />
             </FieldRow>
-            <FieldRow label="Email cá nhân">
+            <FieldRow label="Email cá nhân" error={errors.personalEmail}>
                 <input
                     type="text"
                     value={value.personalEmail}
@@ -57,7 +59,7 @@ export const ContactContactSection = ({ value, onChange }: Props) => (
         </div>
 
         <div className="space-y-4">
-            <FieldRow label="ĐT cơ quan">
+            <FieldRow label="ĐT cơ quan" error={errors.officePhone}>
                 <input
                     type="text"
                     value={value.officePhone}
@@ -65,7 +67,7 @@ export const ContactContactSection = ({ value, onChange }: Props) => (
                     className={inputCls}
                 />
             </FieldRow>
-            <FieldRow label="Email cơ quan">
+            <FieldRow label="Email cơ quan" error={errors.workEmail}>
                 <input
                     type="text"
                     value={value.workEmail}

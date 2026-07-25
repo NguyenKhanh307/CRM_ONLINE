@@ -3,6 +3,8 @@ export interface UpdateQuotationPayload {
     contactId: number | null;
     opportunityId?: number | null;
     campaignId?: number | null;
+    /** Chính sách giá áp dụng — nguồn đơn giá tự điền cho dòng hàng. */
+    pricePolicyId?: number | null;
     ownerId: number | null;
     quoteDate: string | null;
     validUntil: string | null;
@@ -55,6 +57,8 @@ export interface CreateQuotationPayload {
     contactId: number | null;
     opportunityId: number | null;
     campaignId: number | null;
+    /** Chính sách giá áp dụng — nguồn đơn giá tự điền cho dòng hàng. */
+    pricePolicyId: number | null;
     ownerId: number | null;
     quoteDate: string | null;
     validUntil: string | null;

@@ -6,7 +6,6 @@ export interface UserResult {
     fullName: string;
     phone: string | null;
     avatarUrl: string | null;
-    unitId: number | null;
     status: UserStatusType;
     lastLoginAt: string | null;
     createdAt: string;
@@ -17,7 +16,6 @@ export interface RegisterEmployeePayload {
     email: string;
     fullName: string;
     phone?: string;
-    unitId?: number;
     roleId?: number;
 }
 

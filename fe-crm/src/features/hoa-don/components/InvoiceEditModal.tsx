@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
-import { useAlert } from '@/shared/alert/useAlert';
-import { dateRangeError } from '@/shared/utils/validators';
+import { collectErrors, dateRangeError } from '@/shared/utils/validators';
+import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -11,6 +11,7 @@ import { invoiceService } from '../services/invoiceService';
 import { PaymentSchedulesTable } from './PaymentSchedulesTable';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import { DateInput } from '@/shared/components/form/DateInput';
@@ -41,12 +42,11 @@ const PAYMENT_STATUS_COLORS: Record<string, string> = {
 };
 
 export function InvoiceEditModal({ item, onClose }: Props) {
-    const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateInvoice();
     const { data: products = [] } = useProductList();
     const { data: campaigns = [] } = useCampaignList();
     const [form, setForm] = useState<UpdateInvoicePayload>({
-        customerId: null, contactId: null, campaignId: null, ownerId: null,
+        customerId: null, contactId: null, campaignId: null, orderId: null, ownerId: null,
         invoiceDate: null, dueDate: null,
         currency: 'VND', exchangeRate: 1, billingAddress: null, taxCode: null,
         subtotal: null, discount: null, tax: null, total: null, note: null,
@@ -65,7 +65,7 @@ export function InvoiceEditModal({ item, onClose }: Props) {
         if (!item) return;
         setForm({
             customerId: item.customerId, contactId: item.contactId, quotationId: item.quotationId,
-            opportunityId: item.opportunityId, campaignId: item.campaignId, ownerId: item.ownerId,
+            opportunityId: item.opportunityId, campaignId: item.campaignId, orderId: item.orderId, ownerId: item.ownerId,
             invoiceDate: item.invoiceDate, dueDate: item.dueDate,
             currency: item.currency, exchangeRate: item.exchangeRate,
             billingAddress: item.billingAddress, taxCode: item.taxCode,
@@ -77,6 +77,11 @@ export function InvoiceEditModal({ item, onClose }: Props) {
             setOriginalRows(loaded);
         });
     }, [item]);
+
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
@@ -90,9 +95,14 @@ export function InvoiceEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = dateRangeError(form.invoiceDate, form.dueDate, 'ngày hóa đơn', 'Hạn thanh toán') ?? validateLineItems(rows);
-        if (vErr) { showAlert(vErr); return; }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = collectErrors({
+            dueDate: dateRangeError(form.invoiceDate, form.dueDate, 'ngày hóa đơn', 'Hạn thanh toán'),
+            items: validateLineItems(rows),
+        });
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmSave('hóa đơn'))) return;
         setSaving(true);
         try {
@@ -124,7 +134,7 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa Hóa đơn</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Trạng thái (đổi qua hành động)</label>
@@ -146,7 +156,9 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Hạn thanh toán</label>
-                            <DateInput value={form.dueDate ?? ''} onChange={v => setForm(f => ({ ...f, dueDate: v || null }))} />
+                            <FieldError error={errors.dueDate}>
+                                <DateInput value={form.dueDate ?? ''} onChange={v => { setForm(f => ({ ...f, dueDate: v || null })); clearError('dueDate'); }} />
+                            </FieldError>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -159,17 +171,40 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                             <input className={inp} value={form.billingAddress ?? ''} onChange={e => setForm(f => ({ ...f, billingAddress: e.target.value || null }))} />
                         </div>
                         <div>
+                            <label className={lbl}>Đơn hàng</label>
+                            <RecordPicker module="order"
+                                value={form.orderId != null ? String(form.orderId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, orderId: v ? Number(v) : null }))}
+                                fallbackLabel={item.orderCode} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Báo giá nguồn</label>
+                            <RecordPicker module="quotation"
+                                value={form.quotationId != null ? String(form.quotationId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, quotationId: v ? Number(v) : null }))}
+                                fallbackLabel={item.quotationCode} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Cơ hội</label>
+                            <RecordPicker module="opportunity"
+                                value={form.opportunityId != null ? String(form.opportunityId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, opportunityId: v ? Number(v) : null }))}
+                                fallbackLabel={item.opportunityName} />
+                        </div>
+                        <div>
                             <label className={lbl}>Chiến dịch</label>
                             <SearchableSelect
                                 value={form.campaignId != null ? String(form.campaignId) : ''}
                                 onChange={(v) => setForm(f => ({ ...f, campaignId: v ? Number(v) : null }))}
                                 options={campaignOptions}
+                                fallbackLabel={item.campaignName}
                             />
                         </div>
                     </div>
                     <div>
                         <label className={lbl}>Hàng hóa</label>
                         <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />
+                        {errors.items && <p className="text-xs text-danger mt-1">{errors.items}</p>}
                     </div>
                     <div>
                         <label className={lbl}>Đợt thanh toán</label>

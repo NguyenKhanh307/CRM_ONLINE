@@ -3,7 +3,10 @@ import { ModalFooter } from '@/shared/components/ModalFooter';
 import { FiX } from 'react-icons/fi';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { useConfirm } from '@/shared/confirm/useConfirm';
+import { collectErrors } from '@/shared/utils/validators';
+import { FieldError } from '@/shared/components/form/FormField';
 import { SearchableSelect, type SelectOption } from '@/shared/components/SearchableSelect';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
@@ -16,7 +19,6 @@ import type {
 interface Props {
     ticket: TicketResult | null;
     customerOptions: SelectOption[];
-    contactOptions: SelectOption[];
     userOptions: SelectOption[];
     productOptions: SelectOption[];
     onClose: () => void;
@@ -35,8 +37,13 @@ const toState = (t: TicketResult): FormState => ({
 });
 
 /** Modal chỉnh sửa thông tin phiếu (KHÔNG đổi trạng thái — trạng thái đổi qua nút hành động). */
-export function TicketEditModal({ ticket, customerOptions, contactOptions, userOptions, productOptions, onClose }: Props) {
+export function TicketEditModal({ ticket, customerOptions, userOptions, productOptions, onClose }: Props) {
     const { showAlert } = useAlert();
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
     const { confirmSave } = useConfirm();
     const { mutate, isPending } = useUpdateTicket();
     const [form, setForm] = useState<FormState | null>(null);
@@ -55,7 +62,13 @@ export function TicketEditModal({ ticket, customerOptions, contactOptions, userO
 
     const submit = async (e: FormEvent) => {
         e.preventDefault();
-        if (!form.subject.trim()) { showAlert('Tiêu đề không được để trống'); return; }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = collectErrors({
+            subject: !form.subject.trim() ? 'Tiêu đề không được để trống' : null,
+        });
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmSave('phiếu hỗ trợ'))) return;
         const payload: UpdateTicketPayload = {
             type: form.type as TicketType,
@@ -78,14 +91,16 @@ export function TicketEditModal({ ticket, customerOptions, contactOptions, userO
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40" onClick={onClose}>
-            <form ref={formRef} onSubmit={submit} className="bg-white rounded-card shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <form ref={formRef} onSubmit={submit} noValidate className="bg-white rounded-card shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-semibold text-text-main">Sửa phiếu {ticket.code}</h2>
                     <button type="button" onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
                 <div className="px-5 py-4 space-y-4">
                     <FieldRow label="Tiêu đề" required>
-                        <input type="text" value={form.subject} onChange={(e) => set({ subject: e.target.value })} className={inputCls} />
+                        <FieldError error={errors.subject}>
+                            <input type="text" value={form.subject} onChange={(e) => { set({ subject: e.target.value }); clearError('subject'); }} className={inputCls} />
+                        </FieldError>
                     </FieldRow>
                     <FieldRow label="Loại">
                         <SearchableSelect value={form.type} onChange={(v) => set({ type: v })} options={TYPE_OPTIONS} />
@@ -100,19 +115,21 @@ export function TicketEditModal({ ticket, customerOptions, contactOptions, userO
                         <SearchableSelect value={form.reason} onChange={(v) => set({ reason: v })} options={REASON_OPTIONS} />
                     </FieldRow>
                     <FieldRow label="Khách hàng">
-                        <SearchableSelect value={form.customerId} onChange={(v) => set({ customerId: v })} options={customerOptions} />
+                        <SearchableSelect value={form.customerId} onChange={(v) => set({ customerId: v })} options={customerOptions} fallbackLabel={ticket?.customerName} />
                     </FieldRow>
                     <FieldRow label="Liên hệ">
-                        <SearchableSelect value={form.contactId} onChange={(v) => set({ contactId: v })} options={contactOptions} />
+                        <RecordPicker module="contact" value={form.contactId} onChange={(v) => set({ contactId: v })}
+                            customerId={form.customerId ? Number(form.customerId) : undefined} fallbackLabel={ticket?.contactName} />
                     </FieldRow>
                     <FieldRow label="Sản phẩm">
                         <SearchableSelect value={form.productId} onChange={(v) => set({ productId: v })} options={productOptions} />
                     </FieldRow>
                     <FieldRow label="Người xử lý">
-                        <SearchableSelect value={form.assignedUserId} onChange={(v) => set({ assignedUserId: v })} options={userOptions} />
+                        <SearchableSelect value={form.assignedUserId} onChange={(v) => set({ assignedUserId: v })} options={userOptions} fallbackLabel={ticket?.assignedUserName} />
                     </FieldRow>
-                    <FieldRow label="Hóa đơn (ID)">
-                        <input type="number" value={form.invoiceId} onChange={(e) => set({ invoiceId: e.target.value })} className={inputCls} />
+                    <FieldRow label="Hóa đơn">
+                        <RecordPicker module="invoice" value={form.invoiceId} onChange={(v) => set({ invoiceId: v })}
+                            fallbackLabel={ticket?.invoiceCode} />
                     </FieldRow>
                     <FieldRow label="Mô tả" alignTop>
                         <textarea rows={3} value={form.description} onChange={(e) => set({ description: e.target.value })} className={`${inputCls} resize-none`} />

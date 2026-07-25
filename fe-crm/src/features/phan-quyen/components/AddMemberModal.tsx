@@ -1,5 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { FiX, FiSearch } from 'react-icons/fi';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { useConfirm } from '@/shared/confirm/useConfirm';
+import { useDialogKeyboardNav } from '@/shared/keyboard/useDialogKeyboardNav';
+import { SHORTCUTS } from '@/shared/keyboard/shortcuts';
 import type { GroupMember } from '../types/phanQuyenTypes';
 
 interface Props {
@@ -16,9 +20,17 @@ const STATUS_LABEL: Record<string, string> = {
     locked: 'Đã khóa',
 };
 
-/** Modal chọn thành viên để thêm vào nhóm. */
+/**
+ * Modal chọn thành viên để thêm vào nhóm.
+ * Ô tìm kiếm là form tra cứu — không nằm trong `<form>` nên Enter vô hại, không có popup lỗi.
+ * Nút "Thêm" mới là hành động ghi nên phải qua popup xác nhận.
+ */
 const AddMemberModal = ({ allUsers, existingMemberIds, onClose, onAdd, isLoading }: Props) => {
     const [search, setSearch] = useState('');
+    const { confirmCreate } = useConfirm();
+
+    const ref = useRef<HTMLDivElement>(null);
+    useDialogKeyboardNav(ref, { onCancel: onClose, autoFocus: 'none' });
 
     const candidates = useMemo(() =>
         allUsers.filter(u =>
@@ -29,8 +41,13 @@ const AddMemberModal = ({ allUsers, existingMemberIds, onClose, onAdd, isLoading
         [allUsers, existingMemberIds, search]
     );
 
+    const handleAdd = async (user: GroupMember) => {
+        if (!(await confirmCreate(`thành viên "${user.fullName}" vào nhóm`))) return;
+        onAdd(user.id);
+    };
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div ref={ref} className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
             <div className="bg-white rounded-card shadow-xl w-full max-w-lg p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
@@ -70,25 +87,22 @@ const AddMemberModal = ({ allUsers, existingMemberIds, onClose, onAdd, isLoading
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className="text-sm text-gray-400">{STATUS_LABEL[user.status] ?? user.status}</span>
-                                <button
-                                    onClick={() => onAdd(user.id)}
+                                <ActionButton
+                                    variant="primary"
+                                    onClick={() => handleAdd(user)}
                                     disabled={isLoading}
-                                    className="px-3 py-1 text-sm bg-primary text-white rounded-btn hover:opacity-90 disabled:opacity-50 transition-colors"
                                 >
                                     Thêm
-                                </button>
+                                </ActionButton>
                             </div>
                         </div>
                     ))}
                 </div>
 
                 <div className="flex justify-end mt-4">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-1.5 text-md text-gray-600 border border-gray-300 rounded-btn hover:bg-gray-50 transition-colors"
-                    >
+                    <ActionButton variant="secondary" dialogButton shortcut={SHORTCUTS.CANCEL.keys} onClick={onClose}>
                         Đóng
-                    </button>
+                    </ActionButton>
                 </div>
             </div>
         </div>

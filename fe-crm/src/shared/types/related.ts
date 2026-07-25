@@ -2,6 +2,7 @@
 export type RelatedModule =
     | 'lead'
     | 'contact'
+    | 'customer'
     | 'opportunity'
     | 'quotation'
     | 'order'

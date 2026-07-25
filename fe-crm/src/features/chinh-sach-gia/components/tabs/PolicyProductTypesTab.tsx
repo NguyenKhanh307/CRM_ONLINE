@@ -64,6 +64,7 @@ export function PolicyProductTypesTab({ policyId }: Props) {
             {showAdd && (
                 <AddEntityModal
                     title="Thêm loại sản phẩm"
+                    confirmNoun="loại sản phẩm vào chính sách giá"
                     options={options}
                     existingIds={existingIds}
                     onAdd={handleAdd}

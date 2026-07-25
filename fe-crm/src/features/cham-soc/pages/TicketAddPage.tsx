@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useConfirm } from '@/shared/confirm/useConfirm';
+import { collectErrors } from '@/shared/utils/validators';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
@@ -7,13 +8,15 @@ import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { PrefillHint } from '@/shared/components/form/PrefillHint';
-import { fillEmpty, hasFilled, primaryContactOf } from '@/shared/utils/prefill';
+import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
+import { fetchPrimaryContactId } from '@/shared/lookup/recordPrefill';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
+import { invoiceService } from '@/features/hoa-don/services/invoiceService';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useContactList } from '@/features/lien-he/hooks/useContactList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useCreateTicket } from '../hooks/useCreateTicket';
 import { ReturnItemsTable, type ReturnRow, emptyReturnRow, toReturnItemPayloads } from '../components/ReturnItemsTable';
@@ -43,35 +46,67 @@ const TicketAddPage = () => {
 
     const { data: users = [] } = useActiveUsers();
     const { data: customers = [] } = useCustomerList();
-    const { data: contacts = [] } = useContactList();
     const { data: products = [] } = useProductList();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
-    const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
     const productOptions = useMemo(() => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}` })), [products]);
 
     const isReturn = form.type === 'return' || form.type === 'exchange';
-    const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    const set = (patch: Partial<HeaderState>) => {
+        setForm((p) => ({ ...p, ...patch }));
+        setErrors((e) => {
+            const next = { ...e };
+            Object.keys(patch).forEach((k) => delete next[k]);
+            return next;
+        });
+    };
     const reset = () => { setForm(initialState(defaultUserId)); setReturnRows([emptyReturnRow()]); setPrefillFrom(null); };
 
     /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
     /** Chọn khách hàng → tự điền liên hệ chính (chỉ khi ô liên hệ còn trống). */
-    const onPickCustomer = (v: string) => {
-        set({ customerId: v });
+    const onPickCustomer = async (v: string) => {
+        // Đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai.
+        const base = { ...form, customerId: v, contactId: '' };
+        set({ customerId: v, contactId: '' });
         setPrefillFrom(null);
         const customer = customers.find((c) => String(c.id) === v);
         if (!customer) return;
-        const contact = primaryContactOf(contacts, customer.id);
-        const patch = fillEmpty(form, { contactId: contact ? String(contact.id) : '' });
+        const patch = fillEmpty(base, { contactId: await fetchPrimaryContactId(customer.id) });
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
     };
 
+    /** Chọn hóa đơn → tự điền khách hàng + liên hệ của hóa đơn đó (chỉ ô còn trống). */
+    const onPickInvoice = async (v: string) => {
+        set({ invoiceId: v });
+        setPrefillFrom(null);
+        if (!v) return;
+        const inv = (await invoiceService.getById(Number(v))).data.data;
+        const patch = fillEmpty({ ...form, invoiceId: v }, {
+            customerId: inv.customerId ? String(inv.customerId) : '',
+            contactId: inv.contactId ? String(inv.contactId) : '',
+        });
+        if (hasFilled(patch)) { set(patch); setPrefillFrom(`hóa đơn «${inv.code}»`); }
+    };
+
+    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    const validate = (): Record<string, string> =>
+        collectErrors({
+            code: !form.code.trim() ? 'Mã phiếu không được để trống' : null,
+            subject: !form.subject.trim() ? 'Tiêu đề không được để trống' : null,
+        });
+
     const submit = async (andNew: boolean) => {
-        if (!form.code.trim()) { showAlert('Mã phiếu không được để trống'); return; }
-        if (!form.subject.trim()) { showAlert('Tiêu đề không được để trống'); return; }
+        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        const errs = validate();
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         const payload: CreateTicketPayload = {
             code: form.code.trim(),
             type: form.type as TicketType,
@@ -109,10 +144,10 @@ const TicketAddPage = () => {
                 <FormSection title="Thông tin phiếu">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
-                            <FieldRow label="Mã phiếu" required>
+                            <FieldRow label="Mã phiếu" required error={errors.code}>
                                 <input type="text" value={form.code} onChange={(e) => set({ code: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Tiêu đề" required>
+                            <FieldRow label="Tiêu đề" required error={errors.subject}>
                                 <input type="text" value={form.subject} onChange={(e) => set({ subject: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Loại yêu cầu">
@@ -134,13 +169,14 @@ const TicketAddPage = () => {
                                 <PrefillHint source={prefillFrom} />
                             </FieldRow>
                             <FieldRow label="Liên hệ">
-                                <SearchableSelect value={form.contactId} onChange={(v) => set({ contactId: v })} options={contactOptions} />
+                                <RecordPicker module="contact" value={form.contactId} onChange={(v) => set({ contactId: v })}
+                                    customerId={form.customerId ? Number(form.customerId) : undefined} />
                             </FieldRow>
                             <FieldRow label="Sản phẩm">
                                 <SearchableSelect value={form.productId} onChange={(v) => set({ productId: v })} options={productOptions} />
                             </FieldRow>
-                            <FieldRow label="Hóa đơn (ID)">
-                                <input type="number" value={form.invoiceId} onChange={(e) => set({ invoiceId: e.target.value })} className={inputCls} />
+                            <FieldRow label="Hóa đơn">
+                                <RecordPicker module="invoice" value={form.invoiceId} onChange={onPickInvoice} />
                             </FieldRow>
                             <FieldRow label="Người xử lý">
                                 <SearchableSelect value={form.assignedUserId} onChange={(v) => set({ assignedUserId: v })} options={userOptions} />

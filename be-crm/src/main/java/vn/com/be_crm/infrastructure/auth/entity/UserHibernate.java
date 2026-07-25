@@ -39,9 +39,6 @@ public class UserHibernate {
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
 
-    @Column(name = "unit_id")
-    private Long unitId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private UserStatus status;

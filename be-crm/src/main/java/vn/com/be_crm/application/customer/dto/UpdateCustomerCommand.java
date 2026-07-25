@@ -37,5 +37,4 @@ public class UpdateCustomerCommand {
     @Size(max = 30) private String employeeSize;
     private Boolean isDistributor;
     private Long ownerId;
-    private Long unitId;
 }

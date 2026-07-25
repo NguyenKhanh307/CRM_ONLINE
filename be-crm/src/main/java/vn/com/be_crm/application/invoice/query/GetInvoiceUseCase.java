@@ -29,6 +29,7 @@ public class GetInvoiceUseCase implements IUseCase<Long, InvoiceResult> {
         NameEnricher.apply(one, InvoiceResult::getCustomerId, names::customers, InvoiceResult::setCustomerName);
         NameEnricher.apply(one, InvoiceResult::getContactId, names::contacts, InvoiceResult::setContactName);
         NameEnricher.apply(one, InvoiceResult::getQuotationId, names::quotationCodes, InvoiceResult::setQuotationCode);
+        NameEnricher.apply(one, InvoiceResult::getOrderId, names::orderCodes, InvoiceResult::setOrderCode);
         NameEnricher.apply(one, InvoiceResult::getOpportunityId, names::opportunities, InvoiceResult::setOpportunityName);
         NameEnricher.apply(one, InvoiceResult::getCampaignId, names::campaigns, InvoiceResult::setCampaignName);
         NameEnricher.apply(one, InvoiceResult::getOwnerId, names::users, InvoiceResult::setOwnerName);

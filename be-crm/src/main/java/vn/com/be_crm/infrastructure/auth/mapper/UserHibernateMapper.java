@@ -25,7 +25,6 @@ public class UserHibernateMapper {
         h.setFullName(domain.getFullName());
         h.setPhone(domain.getPhone());
         h.setAvatarUrl(domain.getAvatarUrl());
-        h.setUnitId(domain.getUnitId());
         h.setStatus(domain.getStatus() != null ? domain.getStatus() : UserStatus.active);
         h.setLastLoginAt(domain.getLastLoginAt());
         h.setDeletedAt(domain.getDeletedAt());
@@ -49,7 +48,6 @@ public class UserHibernateMapper {
                 .fullName(h.getFullName())
                 .phone(h.getPhone())
                 .avatarUrl(h.getAvatarUrl())
-                .unitId(h.getUnitId())
                 .status(h.getStatus())
                 .lastLoginAt(h.getLastLoginAt())
                 .createdAt(h.getCreatedAt())

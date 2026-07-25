@@ -38,4 +38,16 @@ public interface INotificationRepository {
      * @param recipientUserId ID người nhận
      */
     void markAllRead(Long recipientUserId);
+
+    /**
+     * Xóa mềm các thông báo được chọn (chỉ khi đúng người nhận).
+     * @param ids danh sách ID thông báo @param recipientUserId ID người nhận @return số dòng đã xóa mềm
+     */
+    int softDeleteByIds(List<Long> ids, Long recipientUserId);
+
+    /**
+     * Xóa mềm toàn bộ thông báo còn lại của người nhận.
+     * @param recipientUserId ID người nhận @return số dòng đã xóa mềm
+     */
+    int softDeleteAll(Long recipientUserId);
 }

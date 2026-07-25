@@ -14,23 +14,33 @@ import vn.com.be_crm.domain.shared.exception.DomainException;
 import java.util.Optional;
 
 /**
- * Trợ lý AI Copilot (RAG): dò lệnh điều hướng trước, nếu không phải lệnh thì gom ngữ cảnh CRM thật
- * từ DB rồi để mô hình diễn giải. Con số luôn do SQL tính; AI chỉ so sánh/diễn giải trên số đã cho.
+ * Trợ lý AI Copilot (RAG lai): dò lệnh điều hướng trước; nếu là câu hỏi thật thì gom ngữ cảnh
+ * từ <b>hai nhánh truy hồi</b> rồi để mô hình diễn giải.
+ * <ul>
+ *   <li><b>SỐ LIỆU</b> ({@link ICopilotContextRepository}) — native SQL tính doanh thu, phễu,
+ *       xếp hạng. Chính xác tuyệt đối, là nguồn DUY NHẤT của mọi con số.</li>
+ *   <li><b>NGỮ NGHĨA</b> ({@link SemanticRetriever}) — tìm vector trong {@code copilot_chunks}
+ *       để trả lời câu hỏi mô tả/định tính ("khách nào hay phàn nàn giao hàng trễ").</li>
+ * </ul>
  * Nội dung chỉ dẫn nằm ở {@link CopilotPrompts}.
  */
 public class AskCopilotUseCase implements IUseCase<AskCopilotQuery, CopilotAnswer> {
 
     private final IAiService aiService;
     private final ICopilotContextRepository contextRepo;
+    private final SemanticRetriever semanticRetriever;
     private final CopilotIntentDetector intentDetector = new CopilotIntentDetector();
 
     /**
-     * @param aiService   port gọi mô hình AI
-     * @param contextRepo port gom ngữ cảnh dữ liệu CRM
+     * @param aiService         port gọi mô hình AI
+     * @param contextRepo       port gom ngữ cảnh số liệu CRM (SQL)
+     * @param semanticRetriever nhánh truy hồi ngữ nghĩa (vector)
      */
-    public AskCopilotUseCase(IAiService aiService, ICopilotContextRepository contextRepo) {
+    public AskCopilotUseCase(IAiService aiService, ICopilotContextRepository contextRepo,
+                             SemanticRetriever semanticRetriever) {
         this.aiService = aiService;
         this.contextRepo = contextRepo;
+        this.semanticRetriever = semanticRetriever;
     }
 
     /**
@@ -58,7 +68,10 @@ public class AskCopilotUseCase implements IUseCase<AskCopilotQuery, CopilotAnswe
                 break;
         }
         String context = contextRepo.assemble(input.question(), input.ownerId(), input.isPrivileged());
-        String userPrompt = "DỮ LIỆU:\n" + context + "\nCÂU HỎI: " + input.question().trim();
+        String semantic = semanticRetriever.retrieve(input.question(), input.ownerId(), input.isPrivileged());
+        String userPrompt = "DỮ LIỆU:\n" + context
+                + (semantic.isEmpty() ? "" : "\nTRÍCH ĐOẠN LIÊN QUAN:\n" + semantic)
+                + "\nCÂU HỎI: " + input.question().trim();
         String answer = aiService.generate(CopilotPrompts.buildSystemPrompt(input.isPrivileged()), userPrompt);
         // Không gắn nút biểu đồ khi câu trả lời chính là câu từ chối ngoài phạm vi.
         boolean refused = answer != null && answer.trim().startsWith(CopilotPrompts.OUT_OF_SCOPE);

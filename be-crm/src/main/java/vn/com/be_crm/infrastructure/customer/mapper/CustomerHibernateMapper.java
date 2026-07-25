@@ -28,7 +28,7 @@ public class CustomerHibernateMapper {
         h.setBankAccount(d.getBankAccount()); h.setBankName(d.getBankName());
         h.setRating(d.getRating()); h.setAnnualRevenue(d.getAnnualRevenue());
         h.setEmployeeSize(d.getEmployeeSize()); h.setDistributor(d.isDistributor());
-        h.setOwnerId(d.getOwnerId()); h.setUnitId(d.getUnitId());
+        h.setOwnerId(d.getOwnerId());
         h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
         // Đóng dấu người tạo/người sửa (xem AuditStamper: cần cho body response của PUT)
@@ -50,7 +50,7 @@ public class CustomerHibernateMapper {
                 .bankAccount(h.getBankAccount()).bankName(h.getBankName())
                 .rating(h.getRating()).annualRevenue(h.getAnnualRevenue())
                 .employeeSize(h.getEmployeeSize()).isDistributor(h.isDistributor())
-                .ownerId(h.getOwnerId()).unitId(h.getUnitId())
+                .ownerId(h.getOwnerId())
                 .createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();

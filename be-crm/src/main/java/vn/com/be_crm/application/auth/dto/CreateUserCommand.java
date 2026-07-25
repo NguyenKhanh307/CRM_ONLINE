@@ -34,6 +34,5 @@ public class CreateUserCommand {
     private String phone;
 
     private String avatarUrl;
-    private Long unitId;
     private UserStatus status;
 }

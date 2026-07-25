@@ -14,6 +14,8 @@ interface ConfirmContextValue {
     confirmCreate: (noun: string) => Promise<boolean>;
     /** Xác nhận trước khi lưu thay đổi một bản ghi. */
     confirmSave: (noun: string) => Promise<boolean>;
+    /** Xác nhận trước khi xóa một bản ghi — nút xác nhận màu đỏ, focus sẵn nút Hủy. */
+    confirmDelete: (noun: string) => Promise<boolean>;
 }
 
 export const ConfirmContext = createContext<ConfirmContextValue | null>(null);
@@ -35,6 +37,9 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
         (noun: string) => confirm({ message: `Xác nhận thêm mới ${noun}?` }), [confirm]);
     const confirmSave = useCallback(
         (noun: string) => confirm({ message: `Xác nhận lưu thay đổi ${noun}?` }), [confirm]);
+    const confirmDelete = useCallback(
+        (noun: string) => confirm({ message: `Xác nhận xóa ${noun}?`, confirmLabel: 'Xóa', confirmDanger: true }),
+        [confirm]);
 
     /** Đóng popup và trả kết quả cho lời gọi confirm() đang chờ. */
     const settle = useCallback((accepted: boolean) => {
@@ -44,7 +49,7 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     return (
-        <ConfirmContext.Provider value={{ confirm, confirmCreate, confirmSave }}>
+        <ConfirmContext.Provider value={{ confirm, confirmCreate, confirmSave, confirmDelete }}>
             {children}
             {options !== null && (
                 <ConfirmModal

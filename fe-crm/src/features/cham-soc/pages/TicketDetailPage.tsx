@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiEdit2, FiStar } from 'react-icons/fi';
 import { useAlert } from '@/shared/alert/useAlert';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import { ReasonModal } from '@/shared/components/ReasonModal';
 import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
 import { formatISODate } from '@/shared/utils/date';
@@ -9,7 +10,6 @@ import { formatNumber } from '@/shared/utils/number';
 import { toIdNameMap, lookupName } from '@/shared/utils/lookup';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useContactList } from '@/features/lien-he/hooks/useContactList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useTicket } from '../hooks/useTicket';
 import { useTicketReturnItems } from '../hooks/useTicketReturnItems';
@@ -41,22 +41,20 @@ const TicketDetailPage = () => {
     const { id } = useParams();
     const ticketId = id ? Number(id) : undefined;
     const { showAlert } = useAlert();
+    const { confirmSave } = useConfirm();
 
     const { data: ticket, isLoading } = useTicket(ticketId);
     const { data: returnItems = [] } = useTicketReturnItems(ticketId);
     const { mutate: runWorkflow } = useTicketWorkflow();
     const { data: users = [] } = useActiveUsers();
     const { data: customers = [] } = useCustomerList();
-    const { data: contacts = [] } = useContactList();
     const { data: products = [] } = useProductList();
 
     const userMap = useMemo(() => toIdNameMap(users, 'id', 'fullName'), [users]);
     const customerMap = useMemo(() => toIdNameMap(customers, 'id', 'name'), [customers]);
-    const contactMap = useMemo(() => toIdNameMap(contacts, 'id', 'fullName'), [contacts]);
     const productMap = useMemo(() => toIdNameMap(products, 'id', 'name'), [products]);
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
-    const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
     const productOptions = useMemo(() => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}` })), [products]);
 
     const [editOpen, setEditOpen] = useState(false);
@@ -117,7 +115,7 @@ const TicketDetailPage = () => {
                     <div className="bg-white rounded-card shadow-sm p-5 space-y-2">
                         <h2 className="text-md font-semibold text-text-main mb-3">Thông tin</h2>
                         <Info label="Khách hàng" value={ticket.customerId ? lookupName(customerMap, ticket.customerId) : '—'} />
-                        <Info label="Liên hệ" value={ticket.contactId ? lookupName(contactMap, ticket.contactId) : '—'} />
+                        <Info label="Liên hệ" value={ticket.contactName ?? '—'} />
                         <Info label="Người xử lý" value={ticket.assignedUserId ? lookupName(userMap, ticket.assignedUserId) : '—'} />
                         <Info label="Sản phẩm" value={ticket.productId ? lookupName(productMap, ticket.productId) : '—'} />
                         <Info label="Hóa đơn" value={ticket.invoiceId
@@ -198,8 +196,11 @@ const TicketDetailPage = () => {
                                 <textarea rows={2} value={csatComment} onChange={(e) => setCsatComment(e.target.value)} placeholder="Nhận xét..."
                                     className="w-full border border-gray-300 rounded-btn px-3 py-1.5 text-md focus:outline-none focus:border-primary resize-none" />
                                 <button type="button" disabled={csatScore === 0}
-                                    onClick={() => runWorkflow({ id: ticket.id, action: 'csat', score: csatScore, comment: csatComment.trim() },
-                                        { onSuccess: () => showAlert('Đã ghi nhận đánh giá'), onError })}
+                                    onClick={async () => {
+                                        if (!(await confirmSave('đánh giá'))) return;
+                                        runWorkflow({ id: ticket.id, action: 'csat', score: csatScore, comment: csatComment.trim() },
+                                            { onSuccess: () => showAlert('Đã ghi nhận đánh giá'), onError });
+                                    }}
                                     className="px-3 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">Gửi đánh giá</button>
                             </div>
                         ) : (
@@ -210,7 +211,7 @@ const TicketDetailPage = () => {
             </div>
 
             {editOpen && (
-                <TicketEditModal ticket={ticket} customerOptions={customerOptions} contactOptions={contactOptions}
+                <TicketEditModal ticket={ticket} customerOptions={customerOptions}
                     userOptions={userOptions} productOptions={productOptions} onClose={() => setEditOpen(false)} />
             )}
             {assignOpen && (

@@ -65,8 +65,6 @@ public class CustomerHibernate implements IAuditable {
     private boolean isDistributor;
     @Column(name = "owner_id")
     private Long ownerId;
-    @Column(name = "unit_id")
-    private Long unitId;
     // updatable = false: created_by không bao giờ nằm trong câu UPDATE → merge() không thể NULL đè lên
     @Column(name = "created_by", updatable = false) private Long createdBy;
     @Column(name = "updated_by") private Long updatedBy;

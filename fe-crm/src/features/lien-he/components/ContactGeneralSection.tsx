@@ -15,12 +15,14 @@ import {
 interface Props {
     value: ContactFormState;
     onChange: (patch: Partial<ContactFormState>) => void;
+    /** Map field→lỗi; ô có lỗi sẽ viền đỏ kèm dòng chữ đỏ bên dưới. */
+    errors?: Record<string, string>;
 }
 
 /**
  * Section "Thông tin chung" của form thêm liên hệ.
  */
-export const ContactGeneralSection = ({ value, onChange }: Props) => {
+export const ContactGeneralSection = ({ value, onChange, errors = {} }: Props) => {
     const { data: customers = [] } = useCustomerList();
     const { data: users = [] } = useActiveUsers();
 
@@ -103,7 +105,7 @@ export const ContactGeneralSection = ({ value, onChange }: Props) => {
                         options={SALUTATION_OPTIONS}
                     />
                 </FieldRow>
-                <FieldRow label="Tên" required>
+                <FieldRow label="Tên" required error={errors.ten}>
                     <input
                         type="text"
                         value={value.ten}

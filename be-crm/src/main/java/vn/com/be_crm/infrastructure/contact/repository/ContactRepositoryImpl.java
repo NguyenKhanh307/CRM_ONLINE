@@ -153,7 +153,9 @@ public class ContactRepositoryImpl implements IContactRepository {
             String searchFilter = ListQueryUtils.likeClause(r.getQ(), "fullName", "email", "workEmail");
             Boolean statusVal = r.getStatus() == null || r.getStatus().isBlank() ? null : Boolean.valueOf(r.getStatus());
             String statusFilter = statusVal != null ? " AND isPrimary = :status" : "";
-            String where = " WHERE deletedAt IS NULL" + yearFilter + ownerFilter + searchFilter + statusFilter;
+            // Thu hẹp theo khách hàng — ô chọn Liên hệ trong form dùng để chỉ hiện liên hệ của khách đang chọn
+            String customerFilter = r.getCustomerId() != null ? " AND customerId = :customerId" : "";
+            String where = " WHERE deletedAt IS NULL" + yearFilter + ownerFilter + searchFilter + statusFilter + customerFilter;
             String orderBy = " ORDER BY " + ListQueryUtils.safeSortBy(r.getSortBy(), "createdAt") + " " + ListQueryUtils.safeSortDir(r.getSortDir());
             var q = s.createQuery("FROM ContactHibernate" + where + orderBy, ContactHibernate.class)
                     .setFirstResult(r.getOffset()).setMaxResults(r.getSize());
@@ -163,6 +165,7 @@ public class ContactRepositoryImpl implements IContactRepository {
                 if (r.getOwnerId() != null) query.setParameter("ownerId", r.getOwnerId());
                 if (!searchFilter.isEmpty()) query.setParameter("q", ListQueryUtils.likeParam(r.getQ()));
                 if (statusVal != null) query.setParameter("status", statusVal);
+                if (r.getCustomerId() != null) query.setParameter("customerId", r.getCustomerId());
             }
             List<Contact> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
             long total = cq.uniqueResult();

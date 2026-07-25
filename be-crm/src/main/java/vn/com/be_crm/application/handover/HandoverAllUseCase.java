@@ -1,6 +1,7 @@
 package vn.com.be_crm.application.handover;
 
 import vn.com.be_crm.application.shared.dto.HandoverAllCommand;
+import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
@@ -17,6 +18,7 @@ public class HandoverAllUseCase {
     private final IOpportunityRepository opportunityRepo;
     private final IQuotationRepository quotationRepo;
     private final IInvoiceRepository invoiceRepo;
+    private final NotifyAssignmentUseCase notifyUC;
 
     /**
      * @param leadRepo         port lưu trữ Lead
@@ -24,15 +26,17 @@ public class HandoverAllUseCase {
      * @param opportunityRepo  port lưu trữ Opportunity
      * @param quotationRepo    port lưu trữ Quotation
      * @param invoiceRepo      port lưu trữ Invoice
+     * @param notifyUC         báo cho người nhận bàn giao
      */
     public HandoverAllUseCase(ILeadRepository leadRepo, ICustomerRepository customerRepo,
                                IOpportunityRepository opportunityRepo, IQuotationRepository quotationRepo,
-                               IInvoiceRepository invoiceRepo) {
+                               IInvoiceRepository invoiceRepo, NotifyAssignmentUseCase notifyUC) {
         this.leadRepo = leadRepo;
         this.customerRepo = customerRepo;
         this.opportunityRepo = opportunityRepo;
         this.quotationRepo = quotationRepo;
         this.invoiceRepo = invoiceRepo;
+        this.notifyUC = notifyUC;
     }
 
     /**
@@ -45,6 +49,7 @@ public class HandoverAllUseCase {
         Long from = cmd.getFromUserId();
         Long to   = cmd.getToUserId();
         handoverAll(from, to);
+        notifyUC.notifyHandoverAll(to);
     }
 
     /** Cập nhật owner_id toàn bộ bản ghi của fromUserId sang toUserId trên cả 5 bảng. */

@@ -47,6 +47,7 @@ export interface TicketResult {
     // Tên khóa ngoại do BE resolve sẵn (INameResolver).
     customerName: string | null;
     contactName: string | null;
+    invoiceCode: string | null;
     assignedUserName: string | null;
     // Audit: BE tự đóng dấu (AuditInterceptor).
     createdBy: number | null;

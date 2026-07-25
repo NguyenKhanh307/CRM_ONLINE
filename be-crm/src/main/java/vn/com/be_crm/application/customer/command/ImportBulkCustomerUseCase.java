@@ -69,7 +69,7 @@ public class ImportBulkCustomerUseCase {
                             .bankAccount(e.getBankAccount()).bankName(e.getBankName())
                             .rating(e.getRating()).annualRevenue(e.getAnnualRevenue())
                             .employeeSize(e.getEmployeeSize()).isDistributor(e.isDistributor())
-                            .ownerId(ownerId != null ? ownerId : e.getOwnerId()).unitId(e.getUnitId())
+                            .ownerId(ownerId != null ? ownerId : e.getOwnerId())
                             .createdAt(e.getCreatedAt()).build());
                     success++;
                 // Chưa có và được phép tạo mới → thêm mới

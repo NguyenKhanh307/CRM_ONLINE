@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { emailError } from '@/shared/utils/validators';
+import { collectErrors, emailError, phoneError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -57,20 +57,38 @@ const ContactAddPage = () => {
     // Người phụ trách mặc định là user đang đăng nhập.
     const initialForm: ContactFormState = { ...INITIAL_CONTACT_FORM, assignedUserId: user ? String(user.id) : '' };
     const [form, setForm] = useState<ContactFormState>(initialForm);
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const { mutate, isPending } = useCreateContact();
 
-    const onChange = (patch: Partial<ContactFormState>) =>
+    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    const onChange = (patch: Partial<ContactFormState>) => {
         setForm((prev) => ({ ...prev, ...patch }));
+        setErrors((e) => {
+            const next = { ...e };
+            Object.keys(patch).forEach((k) => delete next[k]);
+            return next;
+        });
+    };
+
+    /** Kiểm tra bắt buộc + biên (khớp ràng buộc backend) — trả map field→lỗi. */
+    const validate = (): Record<string, string> =>
+        collectErrors({
+            ten: !form.ten.trim() ? 'Tên không được để trống' : null,
+            email: emailError(form.email),
+            workEmail: emailError(form.workEmail),
+            personalEmail: emailError(form.personalEmail),
+            mobilePhone: phoneError(form.mobilePhone),
+            officePhone: phoneError(form.officePhone),
+        });
 
     const submit = async (andNew: boolean) => {
-        if (!form.ten.trim()) {
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = emailError(form.email) ?? emailError(form.workEmail) ?? emailError(form.personalEmail);
-        if (vErr) { showAlert(vErr); return; }
-            showAlert('Tên không được để trống');
-            return;
-        }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = validate();
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmCreate('liên hệ'))) return;
+
         mutate(toPayload(form), {
             onSuccess: () => {
                 if (andNew) {
@@ -109,11 +127,11 @@ const ContactAddPage = () => {
 
             <div className="bg-white rounded-card shadow-sm p-6 space-y-8">
                 <FormSection title="Thông tin chung">
-                    <ContactGeneralSection value={form} onChange={onChange} />
+                    <ContactGeneralSection value={form} onChange={onChange} errors={errors} />
                 </FormSection>
 
                 <FormSection title="Thông tin liên lạc">
-                    <ContactContactSection value={form} onChange={onChange} />
+                    <ContactContactSection value={form} onChange={onChange} errors={errors} />
                 </FormSection>
 
                 <FormSection title="Thông tin khác">

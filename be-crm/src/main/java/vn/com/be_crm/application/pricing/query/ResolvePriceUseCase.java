@@ -20,17 +20,28 @@ public class ResolvePriceUseCase {
 
     /**
      * Tra cứu giá cho (chính sách giá, sản phẩm, số lượng).
+     *
+     * <p>Ngưỡng {@code min_qty} được xét <b>sau</b> khi đã tìm ra dòng chính sách, không lọc ngay trong
+     * stream — nhờ vậy phân biệt được "sản phẩm ngoài chính sách" (minQty null) với "chưa đủ số lượng"
+     * (minQty có giá trị), để frontend giải thích được cho người dùng.
+     *
      * @param pricePolicyId ID chính sách giá @param productId ID sản phẩm @param quantity số lượng
-     * @return kết quả giá (found=false nếu không có trong chính sách)
+     * @return kết quả giá (found=false nếu ngoài chính sách hoặc chưa đạt số lượng tối thiểu)
      */
     public ResolvePriceResult execute(Long pricePolicyId, Long productId, BigDecimal quantity) {
         BigDecimal qty = quantity != null ? quantity : BigDecimal.ONE;
+        // Bảng có UNIQUE (price_policy_id, product_id) nên tối đa một dòng cho mỗi sản phẩm
         PricePolicyProduct entry = repo.findAllByPricePolicyId(pricePolicyId).stream()
                 .filter(p -> p.getProductId() != null && p.getProductId().equals(productId))
-                .filter(p -> p.getMinQty() == null || qty.compareTo(p.getMinQty()) >= 0)
                 .findFirst()
                 .orElse(null);
-        if (entry == null) return new ResolvePriceResult(productId, null, BigDecimal.ZERO, false);
+        if (entry == null) return new ResolvePriceResult(productId, null, BigDecimal.ZERO, false, null);
+
+        // Chưa đủ số lượng tối thiểu → không được hưởng giá ưu đãi, nhưng vẫn trả ngưỡng để giải thích
+        BigDecimal minQty = entry.getMinQty();
+        if (minQty != null && qty.compareTo(minQty) < 0) {
+            return new ResolvePriceResult(productId, null, BigDecimal.ZERO, false, minQty);
+        }
 
         BigDecimal unitPrice = entry.getPrice() != null ? entry.getPrice() : BigDecimal.ZERO;
         BigDecimal discount = BigDecimal.ZERO;
@@ -42,6 +53,6 @@ public class ResolvePriceUseCase {
                 discount = entry.getDiscountValue();
             }
         }
-        return new ResolvePriceResult(productId, unitPrice, discount, true);
+        return new ResolvePriceResult(productId, unitPrice, discount, true, minQty);
     }
 }

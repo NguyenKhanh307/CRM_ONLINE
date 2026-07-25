@@ -5,6 +5,7 @@ import { productService } from '../services/productService';
 export function useProductList() {
     return useQuery({
         queryKey: ['products'],
-        queryFn: () => productService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items),
+        // size 1000: bảng sản phẩm đã vượt 500 dòng — nạp thiếu là dropdown dòng hàng âm thầm mất sản phẩm
+        queryFn: () => productService.getList({ page: 0, size: 1000, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items),
     });
 }

@@ -67,6 +67,7 @@ export function PolicyCustomersTab({ policyId }: Props) {
             {showAdd && (
                 <AddEntityModal
                     title="Thêm khách hàng"
+                    confirmNoun="khách hàng vào chính sách giá"
                     options={options}
                     existingIds={existingIds}
                     onAdd={handleAdd}

@@ -2,6 +2,7 @@ package vn.com.be_crm.infrastructure.shared.config.beans;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.application.order.command.*;
 import vn.com.be_crm.application.order.query.*;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
@@ -20,7 +21,7 @@ public class OrderBeanConfig {
     /** @return CreateOrderUseCase */
     @Bean public CreateOrderUseCase createOrderUseCase(IOrderRepository r) { return new CreateOrderUseCase(r); }
     /** @return UpdateOrderUseCase */
-    @Bean public UpdateOrderUseCase updateOrderUseCase(IOrderRepository r, RecomputeOrderTotalsUseCase rc) { return new UpdateOrderUseCase(r, rc); }
+    @Bean public UpdateOrderUseCase updateOrderUseCase(IOrderRepository r, RecomputeOrderTotalsUseCase rc, NotifyAssignmentUseCase n) { return new UpdateOrderUseCase(r, rc, n); }
     /** @return DeleteOrderUseCase */
     @Bean public DeleteOrderUseCase deleteOrderUseCase(IOrderRepository r) { return new DeleteOrderUseCase(r); }
     /** @return GetOrderUseCase */
@@ -58,7 +59,7 @@ public class OrderBeanConfig {
     // ===== Handover & Import =====
 
     /** @return HandoverBulkOrderUseCase */
-    @Bean public HandoverBulkOrderUseCase handoverBulkOrderUseCase(IOrderRepository r) { return new HandoverBulkOrderUseCase(r); }
+    @Bean public HandoverBulkOrderUseCase handoverBulkOrderUseCase(IOrderRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkOrderUseCase(r, n); }
     /** @return ImportBulkOrderUseCase */
     @Bean public ImportBulkOrderUseCase importBulkOrderUseCase(IOrderRepository r) { return new ImportBulkOrderUseCase(r); }
 

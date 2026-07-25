@@ -1,11 +1,18 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FormField } from '@/shared/components/form/FormField';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
+import { collectErrors } from '@/shared/utils/validators';
 import { useActivateAccount } from '../hooks/useActivateAccount';
+
+const inputCls =
+    'w-full pl-9 pr-10 py-2 border border-gray-300 rounded-btn text-md text-text-main placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors';
 
 /**
  * Trang kích hoạt tài khoản — standalone, không dùng MainLayout.
  * Nhân viên nhấn link từ email, đặt mật khẩu lần đầu.
+ * Lỗi nhập liệu hiện đỏ dưới đúng ô; không dùng popup.
  */
 const ActivatePage = () => {
     const [searchParams] = useSearchParams();
@@ -15,26 +22,29 @@ const ActivatePage = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
-    const [validationError, setValidationError] = useState<string | null>(null);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const mutation = useActivateAccount();
 
+    const formRef = useRef<HTMLFormElement>(null);
+    useFormKeyboardNav(formRef, { onSubmit: () => formRef.current?.requestSubmit() });
+
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setValidationError(null);
 
-        if (!token) {
-            setValidationError('Link kích hoạt không hợp lệ. Vui lòng kiểm tra lại email.');
-            return;
-        }
-        if (password.length < 8) {
-            setValidationError('Mật khẩu phải có ít nhất 8 ký tự.');
-            return;
-        }
-        if (password !== confirmPassword) {
-            setValidationError('Mật khẩu xác nhận không khớp.');
-            return;
-        }
+        const found = collectErrors({
+            password: !password
+                ? 'Vui lòng nhập mật khẩu mới'
+                : password.length < 8 ? 'Mật khẩu phải có ít nhất 8 ký tự' : null,
+            confirmPassword: !confirmPassword
+                ? 'Vui lòng nhập lại mật khẩu'
+                : password !== confirmPassword ? 'Mật khẩu xác nhận không khớp' : null,
+        });
+        setErrors(found);
+        if (Object.keys(found).length > 0) return;
 
         mutation.mutate({ token, newPassword: password });
     };
@@ -43,11 +53,6 @@ const ActivatePage = () => {
         ? (mutation.error as { response?: { data?: { message?: string } } })
               ?.response?.data?.message ?? 'Đã xảy ra lỗi, vui lòng thử lại.'
         : null;
-
-    const errorMessage = validationError ?? apiError;
-
-    const inputCls =
-        'w-full pl-9 pr-10 py-2 border border-gray-300 rounded-btn text-md text-text-main placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors';
 
     return (
         <div className="min-h-screen bg-blue-200 flex items-center justify-center px-4">
@@ -68,68 +73,50 @@ const ActivatePage = () => {
                     </p>
                 )}
 
-                <form onSubmit={handleSubmit} noValidate>
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="space-y-4">
 
-                    {/* Mật khẩu mới */}
-                    <div className="mb-4">
-                        <label className="block text-md font-medium text-text-main mb-1">
-                            Mật khẩu mới
-                        </label>
-                        <div className="relative">
-                            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-                                <FiLock size={16} />
-                            </span>
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Ít nhất 8 ký tự"
-                                autoComplete="new-password"
-                                className={inputCls}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword((p) => !p)}
-                                className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                                tabIndex={-1}
-                            >
-                                {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                            </button>
-                        </div>
-                    </div>
+                    <FormField label="Mật khẩu mới" icon={FiLock} error={errors.password}>
+                        <input
+                            type={showPassword ? 'text' : 'password'}
+                            value={password}
+                            onChange={(e) => { setPassword(e.target.value); clearError('password'); }}
+                            placeholder="Ít nhất 8 ký tự"
+                            autoComplete="new-password"
+                            className={inputCls}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword((p) => !p)}
+                            className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                            tabIndex={-1}
+                        >
+                            {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                        </button>
+                    </FormField>
 
-                    {/* Xác nhận mật khẩu */}
-                    <div className="mb-6">
-                        <label className="block text-md font-medium text-text-main mb-1">
-                            Xác nhận mật khẩu
-                        </label>
-                        <div className="relative">
-                            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-                                <FiLock size={16} />
-                            </span>
-                            <input
-                                type={showConfirm ? 'text' : 'password'}
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="Nhập lại mật khẩu"
-                                autoComplete="new-password"
-                                className={inputCls}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowConfirm((p) => !p)}
-                                className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                                tabIndex={-1}
-                            >
-                                {showConfirm ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                            </button>
-                        </div>
-                    </div>
+                    <FormField label="Xác nhận mật khẩu" icon={FiLock} error={errors.confirmPassword}>
+                        <input
+                            type={showConfirm ? 'text' : 'password'}
+                            value={confirmPassword}
+                            onChange={(e) => { setConfirmPassword(e.target.value); clearError('confirmPassword'); }}
+                            placeholder="Nhập lại mật khẩu"
+                            autoComplete="new-password"
+                            className={inputCls}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirm((p) => !p)}
+                            className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                            tabIndex={-1}
+                        >
+                            {showConfirm ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                        </button>
+                    </FormField>
 
-                    {/* Error */}
-                    {errorMessage && (
-                        <p className="text-sm text-danger mb-4 bg-red-50 border border-red-200 rounded-btn px-3 py-2">
-                            {errorMessage}
+                    {/* Lỗi cấp form từ API */}
+                    {apiError && (
+                        <p className="text-sm text-danger bg-red-50 border border-red-200 rounded-btn px-3 py-2">
+                            {apiError}
                         </p>
                     )}
 

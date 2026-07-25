@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect } from 'react';
-import { useAlert } from '@/shared/alert/useAlert';
-import { dateRangeError } from '@/shared/utils/validators';
+import { collectErrors, dateRangeError } from '@/shared/utils/validators';
+import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -20,7 +20,6 @@ interface Props {
 const TYPE_OPTIONS = Object.entries(CAMPAIGN_TYPE_LABELS).map(([value, label]) => ({ value, label }));
 
 export function CampaignEditModal({ item, onClose }: Props) {
-    const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateCampaign();
     const { data: users = [] } = useActiveUsers();
     const [form, setForm] = useState<UpdateCampaignPayload>({
@@ -38,6 +37,11 @@ export function CampaignEditModal({ item, onClose }: Props) {
         });
     }, [item]);
 
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -53,9 +57,13 @@ export function CampaignEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = dateRangeError(form.startDate, form.endDate, 'ngày bắt đầu', 'Ngày kết thúc');
-        if (vErr) { showAlert(vErr); return; }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = collectErrors({
+            endDate: dateRangeError(form.startDate, form.endDate, 'ngày bắt đầu', 'Ngày kết thúc'),
+        });
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmSave('chiến dịch'))) return;
         await mutateAsync({ id: item.id, payload: form });
         onClose();
@@ -71,7 +79,7 @@ export function CampaignEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa Chiến dịch</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <div>
                         <label className={lbl}>Trạng thái (đổi qua hành động)</label>
                         <span className="inline-block px-2 py-1.5 rounded text-sm font-medium bg-gray-100 text-gray-600">
@@ -93,7 +101,7 @@ export function CampaignEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Người phụ trách</label>
-                            <SearchableSelect value={form.ownerId ? String(form.ownerId) : ''} onChange={v => setForm(f => ({ ...f, ownerId: v ? Number(v) : null }))} options={userOptions} />
+                            <SearchableSelect value={form.ownerId ? String(form.ownerId) : ''} onChange={v => setForm(f => ({ ...f, ownerId: v ? Number(v) : null }))} options={userOptions} fallbackLabel={item.ownerName} />
                         </div>
                         <div>
                             <label className={lbl}>Ngày bắt đầu</label>
@@ -101,7 +109,9 @@ export function CampaignEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Ngày kết thúc</label>
-                            <DateInput value={form.endDate ?? ''} onChange={v => setForm(f => ({ ...f, endDate: v || null }))} />
+                            <FieldError error={errors.endDate}>
+                                <DateInput value={form.endDate ?? ''} onChange={v => { setForm(f => ({ ...f, endDate: v || null })); clearError('endDate'); }} />
+                            </FieldError>
                         </div>
                         <div>
                             <label className={lbl}>Ngân sách</label>

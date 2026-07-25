@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect } from 'react';
-import { useAlert } from '@/shared/alert/useAlert';
-import { emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
+import { collectErrors, emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
+import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -21,11 +21,10 @@ const CUSTOMER_STATUS_COLORS: Record<string, string> = {
 };
 
 export function CustomerEditModal({ item, onClose }: Props) {
-    const { showAlert } = useAlert();
     const { mutate, isPending } = useUpdateCustomer();
     const [form, setForm] = useState<UpdateCustomerPayload>({
         name: '', type: 'individual', taxCode: null, phone: null,
-        email: null, address: null, source: null, ownerId: null, unitId: null,
+        email: null, address: null, source: null, ownerId: null,
         shortName: null, website: null, industry: null, creditDays: null, creditLimit: null,
         bankAccount: null, bankName: null, rating: null, annualRevenue: null,
         employeeSize: null, isDistributor: false,
@@ -36,13 +35,18 @@ export function CustomerEditModal({ item, onClose }: Props) {
         setForm({
             name: item.name, type: item.type, taxCode: item.taxCode, phone: item.phone,
             email: item.email, address: item.address, source: item.source,
-            ownerId: item.ownerId, unitId: item.unitId,
+            ownerId: item.ownerId,
             shortName: item.shortName, website: item.website, industry: item.industry,
             creditDays: item.creditDays, creditLimit: item.creditLimit, bankAccount: item.bankAccount,
             bankName: item.bankName, rating: item.rating, annualRevenue: item.annualRevenue,
             employeeSize: item.employeeSize, isDistributor: item.isDistributor,
         });
     }, [item]);
+
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
@@ -56,10 +60,18 @@ export function CustomerEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = emailError(form.email) ?? phoneError(form.phone) ?? taxCodeError(form.taxCode)
-            ?? nonNegativeError(form.creditLimit, 'Hạn mức tín dụng') ?? nonNegativeError(form.annualRevenue, 'Doanh thu năm');
-        if (vErr) { showAlert(vErr); return; }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = collectErrors({
+            name: !form.name?.trim() ? 'Tên khách hàng không được để trống' : null,
+            email: emailError(form.email),
+            phone: phoneError(form.phone),
+            taxCode: taxCodeError(form.taxCode),
+            creditLimit: nonNegativeError(form.creditLimit, 'Hạn mức tín dụng'),
+            annualRevenue: nonNegativeError(form.annualRevenue, 'Doanh thu năm'),
+        });
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmSave('khách hàng'))) return;
         mutate({ id: item.id, payload: form }, { onSuccess: onClose });
     };
@@ -74,10 +86,12 @@ export function CustomerEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa khách hàng</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <div>
                         <label className={lbl}>Tên khách hàng <span className="text-danger">*</span></label>
-                        <input className={inp} required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                        <FieldError error={errors.name}>
+                            <input className={inp} required value={form.name} onChange={e => { setForm(f => ({ ...f, name: e.target.value })); clearError('name'); }} />
+                        </FieldError>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
@@ -96,16 +110,22 @@ export function CustomerEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Điện thoại</label>
-                            <input className={inp} value={form.phone ?? ''} onChange={e => setForm(f => ({ ...f, phone: e.target.value || null }))} />
+                            <FieldError error={errors.phone}>
+                                <input className={inp} value={form.phone ?? ''} onChange={e => { setForm(f => ({ ...f, phone: e.target.value || null })); clearError('phone'); }} />
+                            </FieldError>
                         </div>
                         <div>
                             <label className={lbl}>Email</label>
-                            <input type="email" className={inp} value={form.email ?? ''} onChange={e => setForm(f => ({ ...f, email: e.target.value || null }))} />
+                            <FieldError error={errors.email}>
+                                <input type="email" className={inp} value={form.email ?? ''} onChange={e => { setForm(f => ({ ...f, email: e.target.value || null })); clearError('email'); }} />
+                            </FieldError>
                         </div>
                     </div>
                     <div>
                         <label className={lbl}>Mã số thuế</label>
-                        <input className={inp} value={form.taxCode ?? ''} onChange={e => setForm(f => ({ ...f, taxCode: e.target.value || null }))} />
+                        <FieldError error={errors.taxCode}>
+                            <input className={inp} value={form.taxCode ?? ''} onChange={e => { setForm(f => ({ ...f, taxCode: e.target.value || null })); clearError('taxCode'); }} />
+                        </FieldError>
                     </div>
                     <div>
                         <label className={lbl}>Địa chỉ</label>
@@ -138,7 +158,9 @@ export function CustomerEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Hạn mức nợ</label>
-                            <input type="number" className={inp} value={form.creditLimit ?? ''} onChange={e => setForm(f => ({ ...f, creditLimit: e.target.value ? +e.target.value : null }))} />
+                            <FieldError error={errors.creditLimit}>
+                                <input type="number" className={inp} value={form.creditLimit ?? ''} onChange={e => { setForm(f => ({ ...f, creditLimit: e.target.value ? +e.target.value : null })); clearError('creditLimit'); }} />
+                            </FieldError>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -158,7 +180,9 @@ export function CustomerEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Doanh thu năm</label>
-                            <input type="number" className={inp} value={form.annualRevenue ?? ''} onChange={e => setForm(f => ({ ...f, annualRevenue: e.target.value ? +e.target.value : null }))} />
+                            <FieldError error={errors.annualRevenue}>
+                                <input type="number" className={inp} value={form.annualRevenue ?? ''} onChange={e => { setForm(f => ({ ...f, annualRevenue: e.target.value ? +e.target.value : null })); clearError('annualRevenue'); }} />
+                            </FieldError>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">

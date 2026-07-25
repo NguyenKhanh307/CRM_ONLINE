@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { dateRangeError, pastDateError } from '@/shared/utils/validators';
+import { collectErrors, dateRangeError, pastDateError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -8,7 +8,11 @@ import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { PrefillHint } from '@/shared/components/form/PrefillHint';
-import { fillEmpty, hasFilled, primaryContactOf } from '@/shared/utils/prefill';
+import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
+import { fetchPrimaryContactId } from '@/shared/lookup/recordPrefill';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
+import { quotationService } from '@/features/bao-gia/services/quotationService';
+import { opportunityService } from '@/features/co-hoi/services/opportunityService';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { DateInput } from '@/shared/components/form/DateInput';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
@@ -22,7 +26,6 @@ import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useContactList } from '@/features/lien-he/hooks/useContactList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { useCreateOrder } from '../hooks/useCreateOrder';
@@ -31,6 +34,7 @@ import type { CreateOrderPayload } from '../types/orderTypes';
 interface HeaderState {
     code: string; orderDate: string; deliveryDate: string;
     customerId: string; contactId: string; campaignId: string; ownerId: string;
+    quotationId: string; opportunityId: string;
     currency: string; exchangeRate: string;
     billingAddress: string; taxCode: string; note: string;
 }
@@ -38,6 +42,7 @@ interface HeaderState {
 /** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
 const initialState = (ownerId: string): HeaderState => ({
     code: '', orderDate: '', deliveryDate: '', customerId: '', contactId: '', campaignId: '',
+    quotationId: '', opportunityId: '',
     ownerId, currency: 'VND', exchangeRate: '1',
     billingAddress: '', taxCode: '', note: '',
 });
@@ -55,34 +60,43 @@ const OrderAddPage = () => {
 
     const { data: users = [] } = useActiveUsers();
     const { data: customers = [] } = useCustomerList();
-    const { data: contacts = [] } = useContactList();
     const { data: products = [] } = useProductList();
     const { data: campaigns = [] } = useCampaignList();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
-    const contactOptions = useMemo(() => contacts.map((c) => ({ value: String(c.id), label: c.fullName })), [contacts]);
     const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
     const productOptions = useMemo<ProductOption[]>(
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
         [products],
     );
 
-    const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    const set = (patch: Partial<HeaderState>) => {
+        setForm((p) => ({ ...p, ...patch }));
+        setErrors((e) => {
+            const next = { ...e };
+            Object.keys(patch).forEach((k) => delete next[k]);
+            return next;
+        });
+    };
     const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); setPrefillFrom(null); };
 
     /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
     /** Chọn khách hàng → tự điền liên hệ chính, MST, địa chỉ xuất HĐ, người phụ trách (chỉ ô còn trống). */
-    const onPickCustomer = (v: string) => {
-        set({ customerId: v });
+    const onPickCustomer = async (v: string) => {
+        // Đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai.
+        const base = { ...form, customerId: v, contactId: '' };
+        set({ customerId: v, contactId: '' });
         setPrefillFrom(null);
         const customer = customers.find((c) => String(c.id) === v);
         if (!customer) return;
-        const contact = primaryContactOf(contacts, customer.id);
-        const patch = fillEmpty(form, {
-            contactId: contact ? String(contact.id) : '',
+        const patch = fillEmpty(base, {
+            contactId: await fetchPrimaryContactId(customer.id),
             ownerId: customer.ownerId ? String(customer.ownerId) : '',
             taxCode: customer.taxCode ?? '',
             billingAddress: customer.address ?? '',
@@ -90,19 +104,60 @@ const OrderAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
     };
 
+    /** Chọn báo giá nguồn → tự điền bên mua + cơ hội + chiến dịch (KHÔNG chép dòng hàng, xem README). */
+    const onPickQuotation = async (v: string) => {
+        set({ quotationId: v });
+        setPrefillFrom(null);
+        if (!v) return;
+        const q = (await quotationService.getById(Number(v))).data.data;
+        const patch = fillEmpty({ ...form, quotationId: v }, {
+            customerId: q.customerId ? String(q.customerId) : '',
+            contactId: q.contactId ? String(q.contactId) : '',
+            opportunityId: q.opportunityId ? String(q.opportunityId) : '',
+            campaignId: q.campaignId ? String(q.campaignId) : '',
+            ownerId: q.ownerId ? String(q.ownerId) : '',
+        });
+        if (hasFilled(patch)) { set(patch); setPrefillFrom(`báo giá «${q.code}»`); }
+    };
+
+    /** Chọn cơ hội → tự điền bên mua + chiến dịch. */
+    const onPickOpportunity = async (v: string) => {
+        set({ opportunityId: v });
+        setPrefillFrom(null);
+        if (!v) return;
+        const o = (await opportunityService.getById(Number(v))).data.data;
+        const patch = fillEmpty({ ...form, opportunityId: v }, {
+            customerId: o.customerId ? String(o.customerId) : '',
+            contactId: o.contactId ? String(o.contactId) : '',
+            campaignId: o.campaignId ? String(o.campaignId) : '',
+            ownerId: o.ownerId ? String(o.ownerId) : '',
+        });
+        if (hasFilled(patch)) { set(patch); setPrefillFrom(`cơ hội «${o.code}»`); }
+    };
+
+    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    const validate = (): Record<string, string> =>
+        collectErrors({
+            code: !form.code.trim() ? 'Mã Đơn hàng không được để trống' : null,
+            orderDate: pastDateError(form.orderDate, 'Ngày đặt hàng'),
+            deliveryDate: pastDateError(form.deliveryDate, 'Ngày giao hàng')
+                ?? dateRangeError(form.orderDate, form.deliveryDate, 'ngày đặt hàng', 'Ngày giao hàng'),
+            items: validateLineItems(rows),
+        });
+
     const submit = async (andNew: boolean) => {
-        if (!form.code.trim()) { showAlert('Mã Đơn hàng không được để trống'); return; }
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = pastDateError(form.orderDate, 'Ngày đặt hàng') ?? pastDateError(form.deliveryDate, 'Ngày giao hàng')
-            ?? dateRangeError(form.orderDate, form.deliveryDate, 'ngày đặt hàng', 'Ngày giao hàng') ?? validateLineItems(rows);
-        if (vErr) { showAlert(vErr); return; }
+        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        const errs = validate();
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         const totals = computeTotals(rows);
         const payload: CreateOrderPayload = {
             code: form.code.trim(),
             customerId: form.customerId ? Number(form.customerId) : null,
             contactId: form.contactId ? Number(form.contactId) : null,
-            quotationId: null,
-            opportunityId: null,
+            quotationId: form.quotationId ? Number(form.quotationId) : null,
+            opportunityId: form.opportunityId ? Number(form.opportunityId) : null,
             campaignId: form.campaignId ? Number(form.campaignId) : null,
             ownerId: form.ownerId ? Number(form.ownerId) : null,
             orderDate: form.orderDate || null,
@@ -144,13 +199,13 @@ const OrderAddPage = () => {
                 <FormSection title="Thông tin chung">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
-                            <FieldRow label="Mã Đơn hàng" required>
+                            <FieldRow label="Mã Đơn hàng" required error={errors.code}>
                                 <input type="text" value={form.code} onChange={(e) => set({ code: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Ngày đơn hàng">
+                            <FieldRow label="Ngày đơn hàng" error={errors.orderDate}>
                                 <DateInput value={form.orderDate} onChange={(v) => set({ orderDate: v })} />
                             </FieldRow>
-                            <FieldRow label="Ngày giao dự kiến">
+                            <FieldRow label="Ngày giao dự kiến" error={errors.deliveryDate}>
                                 <DateInput value={form.deliveryDate} onChange={(v) => set({ deliveryDate: v })} />
                             </FieldRow>
                             <FieldRow label="Khách hàng">
@@ -158,7 +213,8 @@ const OrderAddPage = () => {
                                 <PrefillHint source={prefillFrom} />
                             </FieldRow>
                             <FieldRow label="Liên hệ">
-                                <SearchableSelect value={form.contactId} onChange={(v) => set({ contactId: v })} options={contactOptions} />
+                                <RecordPicker module="contact" value={form.contactId} onChange={(v) => set({ contactId: v })}
+                                    customerId={form.customerId ? Number(form.customerId) : undefined} />
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
@@ -167,6 +223,12 @@ const OrderAddPage = () => {
                             </FieldRow>
                             <FieldRow label="Chiến dịch">
                                 <SearchableSelect value={form.campaignId} onChange={(v) => set({ campaignId: v })} options={campaignOptions} />
+                            </FieldRow>
+                            <FieldRow label="Báo giá nguồn">
+                                <RecordPicker module="quotation" value={form.quotationId} onChange={onPickQuotation} />
+                            </FieldRow>
+                            <FieldRow label="Cơ hội">
+                                <RecordPicker module="opportunity" value={form.opportunityId} onChange={onPickOpportunity} />
                             </FieldRow>
                             <FieldRow label="Tiền tệ">
                                 <input type="text" value={form.currency} onChange={(e) => set({ currency: e.target.value })} className={inputCls} />
@@ -183,6 +245,7 @@ const OrderAddPage = () => {
 
                 <FormSection title="Hàng hóa">
                     <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />
+                    {errors.items && <p className="text-xs text-danger mt-1">{errors.items}</p>}
                 </FormSection>
 
                 <FormSection title="Thông tin mô tả">

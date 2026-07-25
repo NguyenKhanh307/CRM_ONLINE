@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect } from 'react';
-import { useAlert } from '@/shared/alert/useAlert';
-import { emailError } from '@/shared/utils/validators';
+import { collectErrors, emailError } from '@/shared/utils/validators';
+import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -27,7 +27,6 @@ interface PhoneRow {
 const PHONE_TYPE_LABELS: Record<PhoneType, string> = { mobile: 'Di động', office: 'Cơ quan', home: 'Nhà', other: 'Khác' };
 
 export function ContactEditModal({ item, onClose }: Props) {
-    const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateContact();
     const [form, setForm] = useState<UpdateContactPayload>({
         customerId: null, assignedUserId: null, fullName: '', position: null,
@@ -58,6 +57,11 @@ export function ContactEditModal({ item, onClose }: Props) {
         });
     }, [item]);
 
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -74,9 +78,15 @@ export function ContactEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = emailError(form.email) ?? emailError(form.workEmail) ?? emailError(form.personalEmail);
-        if (vErr) { showAlert(vErr); return; }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = collectErrors({
+            email: emailError(form.email),
+            workEmail: emailError(form.workEmail),
+            personalEmail: emailError(form.personalEmail),
+        });
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmSave('liên hệ'))) return;
         setSaving(true);
         try {
@@ -108,7 +118,7 @@ export function ContactEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa liên hệ</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Họ tên <span className="text-danger">*</span></label>
@@ -136,15 +146,21 @@ export function ContactEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-3 gap-3">
                         <div>
                             <label className={lbl}>Email</label>
-                            <input type="email" className={inp} value={form.email ?? ''} onChange={e => setForm(f => ({ ...f, email: e.target.value || null }))} />
+                            <FieldError error={errors.email}>
+                                <input type="email" className={inp} value={form.email ?? ''} onChange={e => { setForm(f => ({ ...f, email: e.target.value || null })); clearError('email'); }} />
+                            </FieldError>
                         </div>
                         <div>
                             <label className={lbl}>Email cơ quan</label>
-                            <input type="email" className={inp} value={form.workEmail ?? ''} onChange={e => setForm(f => ({ ...f, workEmail: e.target.value || null }))} />
+                            <FieldError error={errors.workEmail}>
+                                <input type="email" className={inp} value={form.workEmail ?? ''} onChange={e => { setForm(f => ({ ...f, workEmail: e.target.value || null })); clearError('workEmail'); }} />
+                            </FieldError>
                         </div>
                         <div>
                             <label className={lbl}>Email cá nhân</label>
-                            <input type="email" className={inp} value={form.personalEmail ?? ''} onChange={e => setForm(f => ({ ...f, personalEmail: e.target.value || null }))} />
+                            <FieldError error={errors.personalEmail}>
+                                <input type="email" className={inp} value={form.personalEmail ?? ''} onChange={e => { setForm(f => ({ ...f, personalEmail: e.target.value || null })); clearError('personalEmail'); }} />
+                            </FieldError>
                         </div>
                     </div>
                     <div className="grid grid-cols-3 gap-3">

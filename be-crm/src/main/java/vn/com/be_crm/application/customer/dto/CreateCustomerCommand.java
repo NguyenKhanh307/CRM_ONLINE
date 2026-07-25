@@ -63,5 +63,4 @@ public class CreateCustomerCommand {
     private String employeeSize;
     private Boolean isDistributor;
     private Long ownerId;
-    private Long unitId;
 }

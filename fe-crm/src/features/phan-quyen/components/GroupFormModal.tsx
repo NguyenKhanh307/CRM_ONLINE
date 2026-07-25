@@ -1,5 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FiX } from 'react-icons/fi';
+import { ModalFooter } from '@/shared/components/ModalFooter';
+import { FormField } from '@/shared/components/form/FormField';
+import { useConfirm } from '@/shared/confirm/useConfirm';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
+import { collectErrors } from '@/shared/utils/validators';
 import type { RoleGroup } from '../types/phanQuyenTypes';
 
 interface Props {
@@ -15,6 +20,15 @@ const GroupFormModal = ({ mode, group, onClose, onSubmit, isLoading }: Props) =>
     const [code, setCode] = useState('');
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const { confirmCreate, confirmSave } = useConfirm();
+
+    const formRef = useRef<HTMLFormElement>(null);
+    useFormKeyboardNav(formRef, {
+        onSubmit: () => formRef.current?.requestSubmit(),
+        onCancel: onClose,
+    });
 
     useEffect(() => {
         if (mode === 'edit' && group) {
@@ -23,15 +37,32 @@ const GroupFormModal = ({ mode, group, onClose, onSubmit, isLoading }: Props) =>
         }
     }, [mode, group]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name.trim()) return;
+
+        const found = collectErrors({
+            code: mode === 'create' && !code.trim() ? 'Vui lòng nhập mã nhóm' : null,
+            name: !name.trim() ? 'Vui lòng nhập tên nhóm' : null,
+        });
+        setErrors(found);
+        if (Object.keys(found).length > 0) return;
+
+        const ok = mode === 'create'
+            ? await confirmCreate('nhóm quyền')
+            : await confirmSave('nhóm quyền');
+        if (!ok) return;
+
         onSubmit({
             ...(mode === 'create' ? { code: code.trim().toUpperCase() } : {}),
             name: name.trim(),
             description: description.trim() || undefined,
         });
     };
+
+    const inp = 'w-full border border-gray-300 rounded-btn px-3 py-2 text-md focus:outline-none focus:border-primary';
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
@@ -46,68 +77,43 @@ const GroupFormModal = ({ mode, group, onClose, onSubmit, isLoading }: Props) =>
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="space-y-4">
                     {mode === 'create' && (
-                        <div>
-                            <label className="block text-md text-text-main font-medium mb-1">
-                                Mã nhóm <span className="text-danger">*</span>
-                            </label>
+                        <FormField label="Mã nhóm" required error={errors.code}>
                             <input
                                 type="text"
                                 value={code}
-                                onChange={e => setCode(e.target.value)}
+                                onChange={e => { setCode(e.target.value); clearError('code'); }}
                                 placeholder="VD: SALES_STAFF"
-                                className="w-full border border-gray-300 rounded-btn px-3 py-2 text-md focus:outline-none focus:border-primary"
-                                required
+                                className={inp}
                                 maxLength={20}
                             />
-                        </div>
+                        </FormField>
                     )}
 
-                    <div>
-                        <label className="block text-md text-text-main font-medium mb-1">
-                            Tên nhóm <span className="text-danger">*</span>
-                        </label>
+                    <FormField label="Tên nhóm" required error={errors.name}>
                         <input
                             type="text"
                             value={name}
-                            onChange={e => setName(e.target.value)}
+                            onChange={e => { setName(e.target.value); clearError('name'); }}
                             placeholder="VD: Nhân viên kinh doanh"
-                            className="w-full border border-gray-300 rounded-btn px-3 py-2 text-md focus:outline-none focus:border-primary"
-                            required
+                            className={inp}
                             maxLength={40}
                         />
-                    </div>
+                    </FormField>
 
-                    <div>
-                        <label className="block text-md text-text-main font-medium mb-1">Mô tả</label>
+                    <FormField label="Mô tả">
                         <textarea
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                             placeholder="Mô tả ngắn về nhóm này..."
                             rows={2}
                             maxLength={50}
-                            className="w-full border border-gray-300 rounded-btn px-3 py-2 text-md focus:outline-none focus:border-primary resize-none"
+                            className={`${inp} resize-none`}
                         />
-                    </div>
+                    </FormField>
 
-                    {/* Actions */}
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-1.5 text-md text-gray-600 border border-gray-300 rounded-btn hover:bg-gray-50 transition-colors"
-                        >
-                            Hủy
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isLoading || !name.trim()}
-                            className="px-4 py-1.5 text-md bg-primary text-white rounded-btn hover:opacity-90 disabled:opacity-50 transition-colors"
-                        >
-                            {isLoading ? 'Đang lưu...' : 'Lưu'}
-                        </button>
-                    </div>
+                    <ModalFooter onCancel={onClose} saving={isLoading} />
                 </form>
             </div>
         </div>

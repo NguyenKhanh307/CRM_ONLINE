@@ -8,8 +8,10 @@ export interface ResolvePriceResult {
     unitPrice: number | null;
     /** Chiết khấu trên một đơn vị (số tiền). */
     discount: number | null;
-    /** true nếu sản phẩm có trong chính sách giá. */
+    /** true nếu sản phẩm có trong chính sách giá **và** số lượng đã đạt ngưỡng. */
     found: boolean;
+    /** Số lượng tối thiểu của dòng chính sách; null khi sản phẩm không có trong chính sách. */
+    minQty: number | null;
 }
 
 export interface PricePolicyResult {
@@ -114,13 +116,10 @@ export interface PricePolicyEmployeeResult {
     id: number;
     pricePolicyId: number;
     userId: number | null;
-    unitId: number | null;
     userName?: string;
-    unitName?: string;
 }
 
 export interface CreatePricePolicyEmployeePayload {
     pricePolicyId: number;
     userId: number | null;
-    unitId: number | null;
 }

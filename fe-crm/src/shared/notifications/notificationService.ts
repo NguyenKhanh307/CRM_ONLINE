@@ -23,4 +23,10 @@ export const notificationService = {
         axiosInstance.post(`/api/notifications/${id}/read`),
     markAllRead: () =>
         axiosInstance.post('/api/notifications/read-all'),
+    /** Xóa mềm các thông báo được chọn — chỉ ẩn khỏi hộp thông báo của chính người dùng. */
+    deleteBulk: (ids: number[]) =>
+        axiosInstance.post('/api/notifications/delete-bulk', { ids }),
+    /** Xóa mềm toàn bộ thông báo của người dùng hiện tại. */
+    deleteAll: () =>
+        axiosInstance.post('/api/notifications/delete-all'),
 };

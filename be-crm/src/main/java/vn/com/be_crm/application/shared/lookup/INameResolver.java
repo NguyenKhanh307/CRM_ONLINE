@@ -34,8 +34,11 @@ public interface INameResolver {
     /** Tra mã báo giá (quotations.code). @param ids tập ID @return map id→mã */
     Map<Long, String> quotationCodes(Collection<Long> ids);
 
-    /** Tra tên đơn vị tổ chức (org_units.name). @param ids tập ID @return map id→tên */
-    Map<Long, String> orgUnits(Collection<Long> ids);
+    /** Tra mã đơn hàng (orders.code). @param ids tập ID @return map id→mã */
+    Map<Long, String> orderCodes(Collection<Long> ids);
+
+    /** Tra mã hóa đơn (invoices.code). @param ids tập ID @return map id→mã */
+    Map<Long, String> invoiceCodes(Collection<Long> ids);
 
     /** Tra tên giai đoạn cơ hội (opportunity_stages.name). @param ids tập ID @return map id→tên */
     Map<Long, String> stages(Collection<Long> ids);

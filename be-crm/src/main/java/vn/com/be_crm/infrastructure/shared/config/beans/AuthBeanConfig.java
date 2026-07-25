@@ -60,38 +60,6 @@ public class AuthBeanConfig {
         return new ChangePasswordUseCase(userRepo, passwordEncoder);
     }
 
-    // ===== OrgUnit =====
-
-    /** @return CreateOrgUnitUseCase được inject IOrgUnitRepository */
-    @Bean
-    public CreateOrgUnitUseCase createOrgUnitUseCase(IOrgUnitRepository repo) {
-        return new CreateOrgUnitUseCase(repo);
-    }
-
-    /** @return UpdateOrgUnitUseCase được inject IOrgUnitRepository */
-    @Bean
-    public UpdateOrgUnitUseCase updateOrgUnitUseCase(IOrgUnitRepository repo) {
-        return new UpdateOrgUnitUseCase(repo);
-    }
-
-    /** @return DeleteOrgUnitUseCase được inject IOrgUnitRepository */
-    @Bean
-    public DeleteOrgUnitUseCase deleteOrgUnitUseCase(IOrgUnitRepository repo) {
-        return new DeleteOrgUnitUseCase(repo);
-    }
-
-    /** @return GetOrgUnitUseCase được inject IOrgUnitRepository */
-    @Bean
-    public GetOrgUnitUseCase getOrgUnitUseCase(IOrgUnitRepository repo) {
-        return new GetOrgUnitUseCase(repo);
-    }
-
-    /** @return ListOrgUnitUseCase được inject IOrgUnitRepository */
-    @Bean
-    public ListOrgUnitUseCase listOrgUnitUseCase(IOrgUnitRepository repo) {
-        return new ListOrgUnitUseCase(repo);
-    }
-
     // ===== User =====
 
     /** @return CreateUserUseCase được inject IUserRepository */

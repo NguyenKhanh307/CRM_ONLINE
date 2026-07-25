@@ -1,6 +1,7 @@
 import { FiPhone, FiUsers, FiMail, FiCheckSquare, FiFileText } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import type { RelatedGroup } from '../../types/related';
+import { ScrollFrame } from '../table/ScrollFrame';
 import { formatISODate } from '../../utils/date';
 
 /** Icon + nhãn theo loại hoạt động (cột `code` của RelatedRecord). */
@@ -47,7 +48,8 @@ export const Timeline = ({ group, emptyText = 'Chưa có hoạt động nào.', 
 
     return (
         // Khung cuộn riêng: dòng thời gian dài không kéo dài trang
-        <ul className="space-y-3 overflow-auto pr-1" style={{ maxHeight }}>
+        <ScrollFrame maxHeight={maxHeight} className="pr-1">
+        <ul className="space-y-3">
             {items.map(a => {
                 const meta = TYPE_META[a.code ?? ''] ?? { icon: FiFileText, label: a.code ?? '' };
                 const Icon = meta.icon;
@@ -75,5 +77,6 @@ export const Timeline = ({ group, emptyText = 'Chưa có hoạt động nào.', 
                 );
             })}
         </ul>
+        </ScrollFrame>
     );
 };

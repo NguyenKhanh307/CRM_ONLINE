@@ -9,7 +9,9 @@ import { useReactivateUser } from '../hooks/useReactivateUser';
 import { useUpdateDataAccess } from '../hooks/useUpdateDataAccess';
 import AddMemberModal from './AddMemberModal';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
+import { ActionButton } from '@/shared/components/ActionButton';
 import { useAlert } from '@/shared/alert/useAlert';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 
 interface Props {
     roleId: number;
@@ -58,7 +60,9 @@ const MembersTab = ({ roleId }: Props) => {
     const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
     const [editingYearId, setEditingYearId] = useState<number | null>(null);
     const [yearInput, setYearInput] = useState('');
+    const [yearError, setYearError] = useState<string | null>(null);
     const { showAlert } = useAlert();
+    const { confirmSave } = useConfirm();
 
     const { data: members = [], isLoading: loadingMembers } = useRoleMembers(roleId);
     const { data: allUsers = [] } = useAllUsers();
@@ -101,16 +105,27 @@ const MembersTab = ({ roleId }: Props) => {
     const startEditYear = (userId: number, currentYear: number | null) => {
         setEditingYearId(userId);
         setYearInput(currentYear ? String(currentYear) : '');
+        setYearError(null);
     };
 
-    const confirmEditYear = (userId: number) => {
+    const cancelEditYear = () => {
+        setEditingYearId(null);
+        setYearError(null);
+    };
+
+    const confirmEditYear = async (userId: number) => {
         const year = yearInput ? parseInt(yearInput, 10) : null;
+        // Lỗi nhập liệu hiện đỏ ngay dưới ô, không dùng popup.
         if (yearInput && (isNaN(year!) || year! < 2000 || year! > 2100)) {
-            showAlert('Năm không hợp lệ (2000–2100).');
+            setYearError('Năm phải từ 2000 đến 2100');
             return;
         }
+        setYearError(null);
+
+        if (!(await confirmSave('năm xem dữ liệu'))) return;
+
         updateYearMutation.mutate({ userId, year }, {
-            onSuccess: () => setEditingYearId(null),
+            onSuccess: () => cancelEditYear(),
             onError: () => showAlert('Cập nhật năm thất bại. Vui lòng thử lại.'),
         });
     };
@@ -120,13 +135,9 @@ const MembersTab = ({ roleId }: Props) => {
             {/* Toolbar */}
             <div className="flex justify-between items-center mb-3">
                 <p className="text-md text-gray-500">{members.length} thành viên</p>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-md bg-primary text-white rounded-btn hover:opacity-90 transition-colors"
-                >
-                    <FiUserPlus size={14} />
+                <ActionButton variant="primary" icon={FiUserPlus} onClick={() => setShowModal(true)}>
                     Thêm thành viên
-                </button>
+                </ActionButton>
             </div>
 
             {/* Table */}
@@ -169,32 +180,37 @@ const MembersTab = ({ roleId }: Props) => {
                                 </td>
                                 <td className="px-4 py-2.5 text-center border-b border-gray-100">
                                     {editingYearId === member.id ? (
-                                        <div className="flex items-center justify-center gap-1">
-                                            <input
-                                                type="number"
-                                                value={yearInput}
-                                                onChange={e => setYearInput(e.target.value)}
-                                                placeholder="YYYY"
-                                                className="w-20 text-center border border-gray-300 rounded px-1 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                                                onKeyDown={e => {
-                                                    if (e.key === 'Enter') confirmEditYear(member.id);
-                                                    if (e.key === 'Escape') setEditingYearId(null);
-                                                }}
-                                                autoFocus
-                                            />
-                                            <button
-                                                onClick={() => confirmEditYear(member.id)}
-                                                disabled={updateYearMutation.isPending}
-                                                className="text-green-600 hover:text-green-700"
-                                            >
-                                                <FiCheck size={13} />
-                                            </button>
-                                            <button
-                                                onClick={() => setEditingYearId(null)}
-                                                className="text-gray-400 hover:text-gray-600"
-                                            >
-                                                <FiX size={13} />
-                                            </button>
+                                        <div>
+                                            <div className="flex items-center justify-center gap-1">
+                                                <input
+                                                    type="number"
+                                                    value={yearInput}
+                                                    onChange={e => { setYearInput(e.target.value); setYearError(null); }}
+                                                    placeholder="YYYY"
+                                                    className={`w-20 text-center border rounded px-1 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary ${
+                                                        yearError ? 'border-danger' : 'border-gray-300'
+                                                    }`}
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter') confirmEditYear(member.id);
+                                                        if (e.key === 'Escape') cancelEditYear();
+                                                    }}
+                                                    autoFocus
+                                                />
+                                                <button
+                                                    onClick={() => confirmEditYear(member.id)}
+                                                    disabled={updateYearMutation.isPending}
+                                                    className="text-green-600 hover:text-green-700"
+                                                >
+                                                    <FiCheck size={13} />
+                                                </button>
+                                                <button
+                                                    onClick={cancelEditYear}
+                                                    className="text-gray-400 hover:text-gray-600"
+                                                >
+                                                    <FiX size={13} />
+                                                </button>
+                                            </div>
+                                            {yearError && <p className="text-xs text-danger mt-1">{yearError}</p>}
                                         </div>
                                     ) : (
                                         <div className="flex items-center justify-center gap-1.5">

@@ -47,6 +47,7 @@ public class InvoiceResult {
     private String customerName;
     private String contactName;
     private String quotationCode;
+    private String orderCode;
     private String opportunityName;
     private String campaignName;
     private String ownerName;

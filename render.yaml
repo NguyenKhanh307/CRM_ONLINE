@@ -1,0 +1,53 @@
+# =====================================================================
+#  Render Blueprint — khai bao CA HAI service cua CRM trong mot file.
+#  Tao lan dau: Render Dashboard -> Blueprints -> New Blueprint Instance -> chon repo nay.
+#
+#  Moi bien co `sync: false` KHONG duoc commit gia tri — tu dien tay tren Render Dashboard
+#  (Environment). Xem thu tu dien dung o be-crm/README.md muc "Trien khai production".
+# =====================================================================
+services:
+  # ----- Backend: Spring Boot chay bang Docker -----
+  - type: web
+    name: crm-backend
+    runtime: docker
+    rootDir: be-crm
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - { key: SPRING_DATASOURCE_URL, sync: false }
+      - { key: SPRING_DATASOURCE_USERNAME, sync: false }
+      - { key: SPRING_DATASOURCE_PASSWORD, sync: false }
+      - { key: APP_JWT_SECRET, sync: false }
+      - { key: SPRING_MAIL_USERNAME, sync: false }
+      - { key: SPRING_MAIL_PASSWORD, sync: false }
+      - { key: APP_AI_API_KEY, sync: false }
+      - { key: APP_GOOGLE_CLIENT_ID, sync: false }
+      # Hai bien duoi = URL cua crm-frontend (dien SAU khi frontend deploy xong)
+      - { key: APP_FRONTEND_BASE_URL, sync: false }
+      - { key: APP_CORS_ALLOWED_ORIGINS, sync: false }
+
+  # ----- Frontend: Vite build ra static, phuc vu qua CDN cua Render -----
+  - type: web
+    runtime: static
+    name: crm-frontend
+    rootDir: fe-crm
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      # Vite 7 yeu cau Node >= 20.19 / 22.12
+      - key: NODE_VERSION
+        value: "22"
+      # Vite NHUNG cac bien VITE_* luc BUILD -> doi gia tri phai build lai site
+      - { key: VITE_API_BASE_URL, sync: false }        # URL crm-backend, KHONG co dau / cuoi
+      - { key: VITE_GOOGLE_CLIENT_ID, sync: false }
+      - { key: VITE_CLOUDINARY_CLOUD_NAME, sync: false }
+      - { key: VITE_CLOUDINARY_UPLOAD_PRESET, sync: false }
+    routes:
+      # BAT BUOC: react-router dung createBrowserRouter -> F5 tai route con se 404 neu thieu.
+      # Thay the cho khoi [[redirects]] cua netlify.toml truoc day.
+      - type: rewrite
+        source: /*
+        destination: /index.html

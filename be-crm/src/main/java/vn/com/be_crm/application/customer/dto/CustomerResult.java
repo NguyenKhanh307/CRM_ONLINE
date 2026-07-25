@@ -36,7 +36,6 @@ public class CustomerResult {
     private String employeeSize;
     private Boolean isDistributor;
     private Long ownerId;
-    private Long unitId;
     // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
     private Long createdBy;
     private Long updatedBy;
@@ -44,7 +43,6 @@ public class CustomerResult {
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver).
     private String ownerName;
-    private String unitName;
     private String createdByName;
     private String updatedByName;
 }

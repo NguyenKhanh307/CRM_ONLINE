@@ -18,7 +18,8 @@ export const AlertModal = ({ message, onClose }: AlertModalProps) => {
     useDialogKeyboardNav(ref, { onCancel: onClose });
 
     return (
-        <div ref={ref} className="fixed inset-0 z-[9999] flex items-center justify-center">
+        // data-modal-layer: dấu để popup nổi khác (vd chuông thông báo) không tự đóng khi bấm vào modal này
+        <div ref={ref} data-modal-layer className="fixed inset-0 z-[9999] flex items-center justify-center">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/20"

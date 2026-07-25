@@ -19,6 +19,9 @@ export function useInvoicePayments(invoiceId: number | null) {
     const invalidate = () => {
         qc.invalidateQueries({ queryKey: ['invoice-payments', invoiceId] });
         qc.invalidateQueries({ queryKey: ['invoices'] });
+        // Key SỐ ÍT của trang chi tiết (useInvoiceDetail) — thiếu dòng này thì badge trạng thái /
+        // thanh toán trên header đứng yên dù BE đã suy lại status sau mỗi thay đổi đợt thanh toán.
+        qc.invalidateQueries({ queryKey: ['invoice', invoiceId] });
     };
 
     const add = useMutation({

@@ -50,6 +50,7 @@ public class TicketResult {
     // Tên khóa ngoại — do BE resolve (INameResolver).
     private String customerName;
     private String contactName;
+    private String invoiceCode;
     private String assignedUserName;
     // Tên người tạo/người sửa — do BE resolve (INameResolver).
     private String createdByName;

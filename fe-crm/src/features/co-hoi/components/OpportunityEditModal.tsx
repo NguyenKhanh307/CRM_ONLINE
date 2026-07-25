@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
-import { useAlert } from '@/shared/alert/useAlert';
-import { nonNegativeError } from '@/shared/utils/validators';
+import { collectErrors, nonNegativeError } from '@/shared/utils/validators';
+import { FieldError } from '@/shared/components/form/FormField';
 import { formatNumber } from '@/shared/utils/number';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
@@ -10,6 +10,7 @@ import type { OpportunityResult, UpdateOpportunityPayload } from '../types/oppor
 import { useUpdateOpportunity } from '../hooks/useUpdateOpportunity';
 import { useOpportunityStages } from '../hooks/useOpportunityStages';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
+import { usePricePolicyList } from '@/features/chinh-sach-gia/hooks/usePricePolicyList';
 import { opportunityService } from '../services/opportunityService';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
@@ -34,11 +35,11 @@ const OPP_STATUS_COLORS: Record<string, string> = {
 };
 
 export function OpportunityEditModal({ item, onClose }: Props) {
-    const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateOpportunity();
     const { data: products = [] } = useProductList();
     const { data: stages = [] } = useOpportunityStages();
     const { data: campaigns = [] } = useCampaignList();
+    const { data: pricePolicies = [] } = usePricePolicyList();
     const [form, setForm] = useState<UpdateOpportunityPayload>({
         name: '', opportunityType: null, customerId: null, contactId: null, ownerId: null,
         stageId: null, campaignId: null, pricePolicyId: null, amount: null, expectedRevenue: null, expectedCloseDate: null,
@@ -54,6 +55,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
     );
     const stageOptions = useMemo(() => stages.map((s) => ({ value: String(s.id), label: s.name })), [stages]);
     const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
+    const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
     /** Giai đoạn đang chọn — nguồn của xác suất thắng; đổi giai đoạn thì số đổi ngay trước cả khi lưu. */
     const selectedStage = useMemo(() => stages.find((s) => s.id === form.stageId), [stages, form.stageId]);
 
@@ -74,6 +76,11 @@ export function OpportunityEditModal({ item, onClose }: Props) {
         });
     }, [item]);
 
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -86,9 +93,13 @@ export function OpportunityEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = nonNegativeError(form.expectedRevenue, 'Doanh thu kỳ vọng');
-        if (vErr) { showAlert(vErr); return; }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = collectErrors({
+            expectedRevenue: nonNegativeError(form.expectedRevenue, 'Doanh thu kỳ vọng'),
+        });
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmSave('cơ hội'))) return;
         setSaving(true);
         try {
@@ -116,7 +127,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa cơ hội</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Tên cơ hội <span className="text-danger">*</span></label>
@@ -134,6 +145,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                                 value={form.stageId != null ? String(form.stageId) : ''}
                                 onChange={(v) => setForm(f => ({ ...f, stageId: v ? Number(v) : null }))}
                                 options={stageOptions}
+                                fallbackLabel={item.stageName}
                             />
                         </div>
                         <div>
@@ -157,6 +169,15 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                                 value={form.campaignId != null ? String(form.campaignId) : ''}
                                 onChange={(v) => setForm(f => ({ ...f, campaignId: v ? Number(v) : null }))}
                                 options={campaignOptions}
+                                fallbackLabel={item.campaignName}
+                            />
+                        </div>
+                        <div>
+                            <label className={lbl}>Chính sách giá</label>
+                            <SearchableSelect
+                                value={form.pricePolicyId != null ? String(form.pricePolicyId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, pricePolicyId: v ? Number(v) : null }))}
+                                options={pricePolicyOptions}
                             />
                         </div>
                     </div>
@@ -167,7 +188,9 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Doanh số kỳ vọng</label>
-                            <input type="number" className={inp} value={form.expectedRevenue ?? ''} onChange={e => setForm(f => ({ ...f, expectedRevenue: e.target.value ? +e.target.value : null }))} />
+                            <FieldError error={errors.expectedRevenue}>
+                                <input type="number" className={inp} value={form.expectedRevenue ?? ''} onChange={e => { setForm(f => ({ ...f, expectedRevenue: e.target.value ? +e.target.value : null })); clearError('expectedRevenue'); }} />
+                            </FieldError>
                         </div>
                         <div>
                             <label className={lbl}>Ngày đóng dự kiến</label>

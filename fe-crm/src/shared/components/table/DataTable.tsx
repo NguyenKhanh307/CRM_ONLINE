@@ -113,6 +113,16 @@ export const DataTable = <T extends object>({
     const togglePanel = (panel: OpenPanel) =>
         setOpenPanel((cur) => (cur === panel ? null : panel));
 
+    // Esc đóng panel đang mở (lọc / sắp xếp / tô màu / ẩn hiện cột) — một chỗ cho cả 4 panel.
+    useEffect(() => {
+        if (openPanel === null) return;
+        const onEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setOpenPanel(null);
+        };
+        document.addEventListener('keydown', onEsc);
+        return () => document.removeEventListener('keydown', onEsc);
+    }, [openPanel]);
+
     /** Cột checkbox chọn dòng — luôn đứng đầu bảng. */
     const selectionColumn = useMemo<ColumnDef<T>>(
         () => ({

@@ -4,21 +4,27 @@ import vn.com.be_crm.application.shared.util.CrossFieldRules;
 import vn.com.be_crm.application.quotation.dto.QuotationResult;
 import vn.com.be_crm.application.quotation.dto.UpdateQuotationCommand;
 import vn.com.be_crm.application.quotation.mapper.QuotationCommandMapper;
+import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.application.shared.usecase.IUseCase;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 import vn.com.be_crm.domain.shared.exception.DomainException;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
 
+import java.util.Objects;
+
 /** Use case cập nhật báo giá. */
 public class UpdateQuotationUseCase implements IUseCase<UpdateQuotationCommand, QuotationResult> {
     private final IQuotationRepository repo;
     private final RecomputeQuotationTotalsUseCase recomputeUC;
+    private final NotifyAssignmentUseCase notifyUC;
 
-    /** @param repo port lưu trữ @param recomputeUC tính lại tổng tiền từ dòng hàng */
-    public UpdateQuotationUseCase(IQuotationRepository repo, RecomputeQuotationTotalsUseCase recomputeUC) {
+    /** @param repo port lưu trữ @param recomputeUC tính lại tổng tiền từ dòng hàng @param notifyUC báo cho người phụ trách mới */
+    public UpdateQuotationUseCase(IQuotationRepository repo, RecomputeQuotationTotalsUseCase recomputeUC,
+                                  NotifyAssignmentUseCase notifyUC) {
         this.repo = repo;
         this.recomputeUC = recomputeUC;
+        this.notifyUC = notifyUC;
     }
 
     /**
@@ -33,7 +39,12 @@ public class UpdateQuotationUseCase implements IUseCase<UpdateQuotationCommand, 
         if (e.isLocked()) throw new DomainException("Báo giá đã khóa (đã chuyển thành hóa đơn), không thể chỉnh sửa");
         repo.save(QuotationCommandMapper.toEntity(cmd, e));
         recomputeUC.execute(cmd.getId());
-        return QuotationCommandMapper.toResult(
-                repo.findById(cmd.getId()).orElseThrow(() -> new NotFoundException("Quotation not found: " + cmd.getId())));
+        Quotation saved = repo.findById(cmd.getId())
+                .orElseThrow(() -> new NotFoundException("Quotation not found: " + cmd.getId()));
+        // Đổi người phụ trách → báo cho người nhận việc
+        if (!Objects.equals(e.getOwnerId(), saved.getOwnerId())) {
+            notifyUC.notifyAssigned("quotation", "báo giá", saved.getOwnerId(), saved.getId(), saved.getCode());
+        }
+        return QuotationCommandMapper.toResult(saved);
     }
 }

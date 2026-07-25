@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { dateRangeError, pastDateError } from '@/shared/utils/validators';
+import { collectErrors, dateRangeError, pastDateError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -42,17 +42,36 @@ const CampaignAddPage = () => {
     const { data: users = [] } = useActiveUsers();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
-    const set = (patch: Partial<HeaderState>) => setForm((p) => ({ ...p, ...patch }));
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    const set = (patch: Partial<HeaderState>) => {
+        setForm((p) => ({ ...p, ...patch }));
+        setErrors((e) => {
+            const next = { ...e };
+            Object.keys(patch).forEach((k) => delete next[k]);
+            return next;
+        });
+    };
     const reset = () => setForm(initialState(defaultOwnerId));
     const num = (v: string): number | null => (v === '' ? null : Number(v));
 
+    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    const validate = (): Record<string, string> =>
+        collectErrors({
+            code: !form.code.trim() ? 'Mã Chiến dịch không được để trống' : null,
+            name: !form.name.trim() ? 'Tên Chiến dịch không được để trống' : null,
+            startDate: pastDateError(form.startDate, 'Ngày bắt đầu'),
+            endDate: pastDateError(form.endDate, 'Ngày kết thúc')
+                ?? dateRangeError(form.startDate, form.endDate, 'ngày bắt đầu', 'Ngày kết thúc'),
+        });
+
     const submit = async (andNew: boolean) => {
-        if (!form.code.trim()) { showAlert('Mã Chiến dịch không được để trống'); return; }
-        if (!form.name.trim()) { showAlert('Tên Chiến dịch không được để trống'); return; }
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = pastDateError(form.startDate, 'Ngày bắt đầu') ?? pastDateError(form.endDate, 'Ngày kết thúc')
-            ?? dateRangeError(form.startDate, form.endDate, 'ngày bắt đầu', 'Ngày kết thúc');
-        if (vErr) { showAlert(vErr); return; }
+        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        const errs = validate();
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         const payload: CreateCampaignPayload = {
             code: form.code.trim(),
             name: form.name.trim(),
@@ -93,10 +112,10 @@ const CampaignAddPage = () => {
                 <FormSection title="Thông tin chung">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
-                            <FieldRow label="Mã chiến dịch" required>
+                            <FieldRow label="Mã chiến dịch" required error={errors.code}>
                                 <input type="text" value={form.code} onChange={(e) => set({ code: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Tên chiến dịch" required>
+                            <FieldRow label="Tên chiến dịch" required error={errors.name}>
                                 <input type="text" value={form.name} onChange={(e) => set({ name: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Loại">
@@ -110,10 +129,10 @@ const CampaignAddPage = () => {
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
-                            <FieldRow label="Ngày bắt đầu">
+                            <FieldRow label="Ngày bắt đầu" error={errors.startDate}>
                                 <DateInput value={form.startDate} onChange={(v) => set({ startDate: v })} />
                             </FieldRow>
-                            <FieldRow label="Ngày kết thúc">
+                            <FieldRow label="Ngày kết thúc" error={errors.endDate}>
                                 <DateInput value={form.endDate} onChange={(v) => set({ endDate: v })} />
                             </FieldRow>
                             <FieldRow label="Ngân sách">

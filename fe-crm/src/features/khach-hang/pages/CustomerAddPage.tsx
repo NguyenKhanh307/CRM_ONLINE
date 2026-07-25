@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
+import { collectErrors, emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -13,7 +13,6 @@ import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { useOrgUnits } from '@/features/users/hooks/useOrgUnits';
 import { useCreateCustomer } from '../hooks/useCreateCustomer';
 import type { CreateCustomerPayload } from '../types/customerTypes';
 
@@ -42,7 +41,7 @@ interface FormState {
     phone: string; email: string; website: string; address: string;
     creditDays: string; creditLimit: string; bankAccount: string; bankName: string;
     rating: string; annualRevenue: string; employeeSize: string; isDistributor: boolean;
-    ownerId: string; unitId: string;
+    ownerId: string;
 }
 
 /** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
@@ -50,7 +49,7 @@ const initialState = (ownerId: string): FormState => ({
     code: '', name: '', shortName: '', type: 'company', taxCode: '', industry: '', source: '',
     phone: '', email: '', website: '', address: '', creditDays: '', creditLimit: '',
     bankAccount: '', bankName: '', rating: '', annualRevenue: '', employeeSize: '', isDistributor: false,
-    ownerId, unitId: '',
+    ownerId,
 });
 
 const num = (s: string): number | null => (s.trim() ? Number(s) : null);
@@ -76,7 +75,6 @@ const toPayload = (f: FormState): CreateCustomerPayload => ({
     employeeSize: f.employeeSize || null,
     isDistributor: f.isDistributor,
     ownerId: f.ownerId ? Number(f.ownerId) : null,
-    unitId: f.unitId ? Number(f.unitId) : null,
 });
 
 /** Trang thêm khách hàng mới — form full-page nhiều section (layout AMIS). */
@@ -87,23 +85,42 @@ const CustomerAddPage = () => {
     const { user } = useAuth();
     const defaultOwnerId = user ? String(user.id) : '';
     const [form, setForm] = useState<FormState>(() => initialState(defaultOwnerId));
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const { mutate, isPending } = useCreateCustomer();
     const { data: users = [] } = useActiveUsers();
-    const { data: units = [] } = useOrgUnits();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
-    const unitOptions = useMemo(() => units.map((u) => ({ value: String(u.id), label: u.name })), [units]);
 
-    const set = (patch: Partial<FormState>) => setForm((p) => ({ ...p, ...patch }));
+    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    const set = (patch: Partial<FormState>) => {
+        setForm((p) => ({ ...p, ...patch }));
+        setErrors((e) => {
+            const next = { ...e };
+            Object.keys(patch).forEach((k) => delete next[k]);
+            return next;
+        });
+    };
+
+    /** Kiểm tra bắt buộc + biên (khớp ràng buộc backend) — trả map field→lỗi. */
+    const validate = (): Record<string, string> =>
+        collectErrors({
+            code: !form.code.trim() ? 'Mã khách hàng không được để trống' : null,
+            name: !form.name.trim() ? 'Tên khách hàng không được để trống' : null,
+            email: emailError(form.email),
+            phone: phoneError(form.phone),
+            taxCode: taxCodeError(form.taxCode),
+            creditLimit: nonNegativeError(form.creditLimit, 'Hạn mức tín dụng'),
+            annualRevenue: nonNegativeError(form.annualRevenue, 'Doanh thu năm'),
+        });
 
     const submit = async (andNew: boolean) => {
-        if (!form.code.trim()) { showAlert('Mã khách hàng không được để trống'); return; }
-        if (!form.name.trim()) { showAlert('Tên khách hàng không được để trống'); return; }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = validate();
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmCreate('khách hàng'))) return;
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = emailError(form.email) ?? phoneError(form.phone) ?? taxCodeError(form.taxCode)
-            ?? nonNegativeError(form.creditLimit, 'Hạn mức tín dụng') ?? nonNegativeError(form.annualRevenue, 'Doanh thu năm');
-        if (vErr) { showAlert(vErr); return; }
+
         mutate(toPayload(form), {
             onSuccess: () => {
                 if (andNew) { setForm(initialState(defaultOwnerId)); showAlert('Đã lưu khách hàng thành công'); }
@@ -134,16 +151,16 @@ const CustomerAddPage = () => {
                 <FormSection title="Thông tin chung">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
-                            <FieldRow label="Mã khách hàng" required>
+                            <FieldRow label="Mã khách hàng" required error={errors.code}>
                                 <input type="text" value={form.code} onChange={(e) => set({ code: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Tên khách hàng" required>
+                            <FieldRow label="Tên khách hàng" required error={errors.name}>
                                 <input type="text" value={form.name} onChange={(e) => set({ name: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Tên viết tắt">
                                 <input type="text" value={form.shortName} onChange={(e) => set({ shortName: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Mã số thuế">
+                            <FieldRow label="Mã số thuế" error={errors.taxCode}>
                                 <input type="text" value={form.taxCode} onChange={(e) => set({ taxCode: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
@@ -164,10 +181,10 @@ const CustomerAddPage = () => {
                 <FormSection title="Thông tin liên lạc">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
-                            <FieldRow label="Điện thoại">
+                            <FieldRow label="Điện thoại" error={errors.phone}>
                                 <input type="text" value={form.phone} onChange={(e) => set({ phone: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Email">
+                            <FieldRow label="Email" error={errors.email}>
                                 <input type="text" value={form.email} onChange={(e) => set({ email: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
@@ -193,7 +210,7 @@ const CustomerAddPage = () => {
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
-                            <FieldRow label="Hạn mức nợ">
+                            <FieldRow label="Hạn mức nợ" error={errors.creditLimit}>
                                 <input type="number" value={form.creditLimit} onChange={(e) => set({ creditLimit: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Ngân hàng">
@@ -209,7 +226,7 @@ const CustomerAddPage = () => {
                             <FieldRow label="Xếp hạng">
                                 <SearchableSelect value={form.rating} onChange={(v) => set({ rating: v })} options={RATING_OPTIONS} />
                             </FieldRow>
-                            <FieldRow label="Doanh thu hàng năm">
+                            <FieldRow label="Doanh thu hàng năm" error={errors.annualRevenue}>
                                 <input type="number" value={form.annualRevenue} onChange={(e) => set({ annualRevenue: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
@@ -229,9 +246,6 @@ const CustomerAddPage = () => {
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <FieldRow label="Nhân viên phụ trách">
                             <SearchableSelect value={form.ownerId} onChange={(v) => set({ ownerId: v })} options={userOptions} />
-                        </FieldRow>
-                        <FieldRow label="Đơn vị">
-                            <SearchableSelect value={form.unitId} onChange={(v) => set({ unitId: v })} options={unitOptions} />
                         </FieldRow>
                     </div>
                 </FormSection>

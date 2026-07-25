@@ -47,9 +47,6 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
             List<DonutSegment> byRole = donut(rows(s,
                     "SELECT r.name, COUNT(ur.id) FROM user_roles ur JOIN roles r ON r.id = ur.role_id " +
                             "JOIN users u ON u.id = ur.user_id WHERE u.deleted_at IS NULL GROUP BY r.id, r.name ORDER BY r.name", Map.of()));
-            List<DonutSegment> byUnit = donut(rows(s,
-                    "SELECT COALESCE(ou.name, 'Chưa gán'), COUNT(*) FROM users u LEFT JOIN org_units ou ON ou.id = u.unit_id " +
-                            "WHERE u.deleted_at IS NULL GROUP BY ou.id, ou.name", Map.of()));
             List<TimeSeriesPoint> usersByMonth = fillMonths(seriesFrom, rows(s,
                     "SELECT DATE_FORMAT(created_at, '%Y-%m') p, COUNT(*) v FROM users " +
                             "WHERE deleted_at IS NULL AND created_at >= :f GROUP BY p ORDER BY p", Map.of("f", seriesFrom)));
@@ -67,7 +64,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
                     KpiMetric.of(BigDecimal.valueOf(totalNow), BigDecimal.valueOf(totalNow - newCur)),
                     byStatus,
                     KpiMetric.of(BigDecimal.valueOf(newCur), BigDecimal.valueOf(newPrev)),
-                    usersByMonth, roleCount, permCount, byRole, byUnit, recordTotals);
+                    usersByMonth, roleCount, permCount, byRole, recordTotals);
         });
     }
 

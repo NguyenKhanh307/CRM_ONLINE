@@ -21,4 +21,6 @@ export interface PageParams {
     q?: string;
     /** Giá trị tag lọc nhanh của module (BE map sang cột status/type/isActive... tương ứng). */
     status?: string;
+    /** Thu hẹp theo khách hàng — hiện chỉ `/api/contacts` hỗ trợ (ô chọn Liên hệ theo khách đang chọn). */
+    customerId?: number;
 }

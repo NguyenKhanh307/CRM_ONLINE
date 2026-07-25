@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
-import { useAlert } from '@/shared/alert/useAlert';
-import { dateRangeError } from '@/shared/utils/validators';
+import { collectErrors, dateRangeError } from '@/shared/utils/validators';
+import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -10,6 +10,7 @@ import { useUpdateOrder } from '../hooks/useUpdateOrder';
 import { orderService } from '../services/orderService';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { DateInput } from '@/shared/components/form/DateInput';
 import {
     type LineItemRow,
@@ -34,7 +35,6 @@ const ORDER_STATUS_COLORS: Record<string, string> = {
 };
 
 export function OrderEditModal({ item, onClose }: Props) {
-    const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateOrder();
     const { data: products = [] } = useProductList();
     const [form, setForm] = useState<UpdateOrderPayload>({
@@ -69,6 +69,11 @@ export function OrderEditModal({ item, onClose }: Props) {
         });
     }, [item]);
 
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -81,9 +86,14 @@ export function OrderEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = dateRangeError(form.orderDate, form.deliveryDate, 'ngày đặt hàng', 'Ngày giao hàng') ?? validateLineItems(rows);
-        if (vErr) { showAlert(vErr); return; }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = collectErrors({
+            deliveryDate: dateRangeError(form.orderDate, form.deliveryDate, 'ngày đặt hàng', 'Ngày giao hàng'),
+            items: validateLineItems(rows),
+        });
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmSave('đơn hàng'))) return;
         setSaving(true);
         try {
@@ -115,7 +125,7 @@ export function OrderEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa Đơn hàng</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <div>
                         <label className={lbl}>Trạng thái (đổi qua hành động)</label>
                         <span className={`inline-block px-2 py-1.5 rounded text-sm font-medium ${ORDER_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'}`}>
@@ -129,7 +139,25 @@ export function OrderEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Ngày giao dự kiến</label>
-                            <DateInput value={form.deliveryDate ?? ''} onChange={v => setForm(f => ({ ...f, deliveryDate: v || null }))} />
+                            <FieldError error={errors.deliveryDate}>
+                                <DateInput value={form.deliveryDate ?? ''} onChange={v => { setForm(f => ({ ...f, deliveryDate: v || null })); clearError('deliveryDate'); }} />
+                            </FieldError>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Báo giá nguồn</label>
+                            <RecordPicker module="quotation"
+                                value={form.quotationId != null ? String(form.quotationId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, quotationId: v ? Number(v) : null }))}
+                                fallbackLabel={item.quotationCode} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Cơ hội</label>
+                            <RecordPicker module="opportunity"
+                                value={form.opportunityId != null ? String(form.opportunityId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, opportunityId: v ? Number(v) : null }))}
+                                fallbackLabel={item.opportunityName} />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -145,6 +173,7 @@ export function OrderEditModal({ item, onClose }: Props) {
                     <div>
                         <label className={lbl}>Hàng hóa</label>
                         <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />
+                        {errors.items && <p className="text-xs text-danger mt-1">{errors.items}</p>}
                     </div>
                     <div>
                         <label className={lbl}>Ghi chú</label>

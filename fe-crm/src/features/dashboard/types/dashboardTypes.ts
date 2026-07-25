@@ -58,7 +58,6 @@ export interface AdminDashboard {
     roleCount: number;
     permissionCount: number;
     usersByRole: DonutSegment[];
-    usersByUnit: DonutSegment[];
     recordTotals: DonutSegment[];
 }
 

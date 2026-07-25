@@ -38,11 +38,11 @@ public class PricePolicySubEntityCommandMapper {
 
     /** Tạo PricePolicyEmployee. @param cmd @return domain entity */
     public static PricePolicyEmployee toEmployeeEntity(CreatePricePolicyEmployeeCommand cmd) {
-        return PricePolicyEmployee.builder().pricePolicyId(cmd.getPricePolicyId()).userId(cmd.getUserId()).unitId(cmd.getUnitId()).build();
+        return PricePolicyEmployee.builder().pricePolicyId(cmd.getPricePolicyId()).userId(cmd.getUserId()).build();
     }
     /** Chuyển PricePolicyEmployee sang result. @param e @return result */
     public static PricePolicyEmployeeResult toEmployeeResult(PricePolicyEmployee e) {
-        return PricePolicyEmployeeResult.builder().id(e.getId()).pricePolicyId(e.getPricePolicyId()).userId(e.getUserId()).unitId(e.getUnitId()).build();
+        return PricePolicyEmployeeResult.builder().id(e.getId()).pricePolicyId(e.getPricePolicyId()).userId(e.getUserId()).build();
     }
 
     private PricePolicySubEntityCommandMapper() {}

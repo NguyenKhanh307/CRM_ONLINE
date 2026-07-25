@@ -93,6 +93,14 @@ export const TableToolbar = ({
                         data-table-search
                         value={globalFilter}
                         onChange={(e) => onGlobalFilterChange(e.target.value)}
+                        // Ô tra cứu: Esc xóa nội dung và rời ô. Ô không nằm trong <form>
+                        // nên Enter vốn vô hại — cố ý không gắn hành động nào cho Enter.
+                        onKeyDown={(e) => {
+                            if (e.key !== 'Escape') return;
+                            e.stopPropagation();
+                            onGlobalFilterChange('');
+                            e.currentTarget.blur();
+                        }}
                         placeholder="Tìm kiếm... (Alt+F)"
                         className="text-table border border-gray-300 rounded-btn pl-8 pr-3 py-1.5 w-52 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     />

@@ -97,7 +97,7 @@ public class CustomerController {
                         .bankAccount(cmd.getBankAccount()).bankName(cmd.getBankName())
                         .rating(cmd.getRating()).annualRevenue(cmd.getAnnualRevenue())
                         .employeeSize(cmd.getEmployeeSize()).isDistributor(cmd.getIsDistributor())
-                        .ownerId(cmd.getOwnerId()).unitId(cmd.getUnitId()).build())));
+                        .ownerId(cmd.getOwnerId()).build())));
     }
 
     /** Xóa mềm khách hàng. @param id ID @param req HTTP request @return 204 */

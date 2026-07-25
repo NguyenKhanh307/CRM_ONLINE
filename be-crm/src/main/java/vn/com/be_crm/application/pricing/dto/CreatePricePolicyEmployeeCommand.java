@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class CreatePricePolicyEmployeeCommand {
     private Long pricePolicyId;
     private Long userId;
-    private Long unitId;
 }

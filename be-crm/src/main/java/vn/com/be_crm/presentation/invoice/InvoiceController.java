@@ -86,6 +86,8 @@ public class InvoiceController {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateInvoiceCommand.builder().id(id).customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
                         .quotationId(cmd.getQuotationId()).opportunityId(cmd.getOpportunityId())
+                        // Thiếu orderId ở đây thì PUT không bao giờ gắn được hóa đơn vào đơn hàng
+                        .orderId(cmd.getOrderId())
                         .campaignId(cmd.getCampaignId())
                         .ownerId(cmd.getOwnerId())
                         .invoiceDate(cmd.getInvoiceDate()).dueDate(cmd.getDueDate())

@@ -37,6 +37,16 @@ public final class CopilotPrompts {
             - Chỉ nói "không có thông tin trong hệ thống" khi mốc thời gian hoặc chỉ tiêu được hỏi
               THỰC SỰ không xuất hiện trong DỮ LIỆU.
 
+            PHẦN "TRÍCH ĐOẠN LIÊN QUAN" (có thể không xuất hiện):
+            - Đây là nội dung bản ghi CÓ THẬT, tìm bằng tìm kiếm ngữ nghĩa theo câu hỏi.
+            - Dùng nó để trả lời câu hỏi MÔ TẢ / ĐỊNH TÍNH (vì sao thua, khách phàn nàn gì,
+              phiếu chăm sóc nói gì, nội dung trao đổi ra sao) và để TRÍCH DẪN mã bản ghi
+              (mã khách hàng, mã cơ hội, mã báo giá, mã phiếu...) cho người dùng tra cứu tiếp.
+            - CON SỐ TỔNG HỢP vẫn CHỈ được lấy từ phần DỮ LIỆU. TUYỆT ĐỐI không tự cộng dồn
+              các trích đoạn để ra tổng doanh thu / số lượng — chúng chỉ là vài bản ghi tiêu biểu,
+              KHÔNG phải toàn bộ dữ liệu.
+            - Trích đoạn không liên quan tới câu hỏi thì bỏ qua, đừng nhắc tới.
+
             Văn phong: NGẮN GỌN, không dài dòng, không lặp lại câu hỏi. Nêu bật rủi ro (hóa đơn quá hạn,
             ticket đang mở...) nếu có.
 

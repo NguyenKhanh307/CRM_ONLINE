@@ -25,6 +25,7 @@ public class ListInvoiceUseCase implements IUseCase<PageRequest, PageResult<Invo
         NameEnricher.apply(items, InvoiceResult::getCustomerId, names::customers, InvoiceResult::setCustomerName);
         NameEnricher.apply(items, InvoiceResult::getContactId, names::contacts, InvoiceResult::setContactName);
         NameEnricher.apply(items, InvoiceResult::getQuotationId, names::quotationCodes, InvoiceResult::setQuotationCode);
+        NameEnricher.apply(items, InvoiceResult::getOrderId, names::orderCodes, InvoiceResult::setOrderCode);
         NameEnricher.apply(items, InvoiceResult::getOpportunityId, names::opportunities, InvoiceResult::setOpportunityName);
         NameEnricher.apply(items, InvoiceResult::getCampaignId, names::campaigns, InvoiceResult::setCampaignName);
         NameEnricher.apply(items, InvoiceResult::getOwnerId, names::users, InvoiceResult::setOwnerName);

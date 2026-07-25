@@ -62,7 +62,6 @@ public class RegisterEmployeeUseCase implements IUseCase<RegisterEmployeeCommand
                 .passwordHash("")
                 .fullName(command.getFullName())
                 .phone(command.getPhone())
-                .unitId(command.getUnitId())
                 .status(UserStatus.inactive)
                 .activationToken(token)
                 .activationExpiresAt(expiresAt)

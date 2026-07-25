@@ -3,6 +3,8 @@ export interface UpdateInvoicePayload {
     contactId: number | null;
     quotationId?: number | null;
     opportunityId?: number | null;
+    /** Đơn hàng mà hóa đơn này thu tiền cho. */
+    orderId?: number | null;
     campaignId?: number | null;
     ownerId: number | null;
     invoiceDate: string | null;
@@ -38,6 +40,8 @@ export interface CreateInvoicePayload {
     contactId: number | null;
     quotationId: number | null;
     opportunityId: number | null;
+    /** Đơn hàng mà hóa đơn này thu tiền cho. */
+    orderId: number | null;
     campaignId: number | null;
     ownerId: number | null;
     invoiceDate: string | null;
@@ -102,6 +106,8 @@ export interface InvoiceResult {
     contactId: number | null;
     quotationId: number | null;
     opportunityId: number | null;
+    /** Đơn hàng mà hóa đơn này thu tiền cho. */
+    orderId: number | null;
     campaignId: number | null;
     ownerId: number | null;
     invoiceDate: string | null;
@@ -124,6 +130,7 @@ export interface InvoiceResult {
     customerName: string | null;
     contactName: string | null;
     quotationCode: string | null;
+    orderCode: string | null;
     opportunityName: string | null;
     campaignName: string | null;
     ownerName: string | null;

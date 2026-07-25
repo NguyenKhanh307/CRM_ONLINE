@@ -60,7 +60,7 @@ public class UserController {
         CreateUserCommand cmd = CreateUserCommand.builder()
                 .email(request.getEmail()).passwordHash(request.getPasswordHash())
                 .fullName(request.getFullName()).phone(request.getPhone())
-                .avatarUrl(request.getAvatarUrl()).unitId(request.getUnitId())
+                .avatarUrl(request.getAvatarUrl())
                 .status(request.getStatus()).build();
         return ResponseEntity.status(201).body(ApiResponse.created(createUseCase.execute(cmd)));
     }
@@ -109,7 +109,7 @@ public class UserController {
                                                            @Valid @RequestBody UpdateUserRequest request) {
         UpdateUserCommand cmd = UpdateUserCommand.builder()
                 .id(id).fullName(request.getFullName()).phone(request.getPhone())
-                .avatarUrl(request.getAvatarUrl()).unitId(request.getUnitId())
+                .avatarUrl(request.getAvatarUrl())
                 .status(request.getStatus()).dataAccessFromYear(request.getDataAccessFromYear()).build();
         return ResponseEntity.ok(ApiResponse.ok(updateUseCase.execute(cmd)));
     }

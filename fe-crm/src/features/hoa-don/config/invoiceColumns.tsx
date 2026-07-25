@@ -31,6 +31,7 @@ export const getInvoiceColumns = (): ColumnDef<InvoiceResult>[] => [
     { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },
     { accessorKey: 'contactName', header: 'Liên hệ', size: 160, cell: textCell },
     { accessorKey: 'quotationCode', header: 'Báo giá', size: 140, cell: textCell },
+    { accessorKey: 'orderCode', header: 'Đơn hàng', size: 140, cell: textCell },
     { accessorKey: 'opportunityName', header: 'Cơ hội', size: 160, cell: textCell },
     { accessorKey: 'campaignName', header: 'Chiến dịch', size: 160, cell: textCell },
     { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },

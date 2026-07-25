@@ -14,6 +14,7 @@ import { useInvoiceDetail } from '../hooks/useInvoiceDetail';
 import { useInvoiceRelated } from '../hooks/useInvoiceRelated';
 import { InvoiceInfoPanel } from '../components/InvoiceInfoPanel';
 import { InvoiceEditModal } from '../components/InvoiceEditModal';
+import { PaymentSchedulesTable } from '../components/PaymentSchedulesTable';
 
 const STATUS_LABELS: Record<string, string> = {
     draft: 'Nháp', sent: 'Đã gửi', partially_paid: 'Thanh toán một phần', paid: 'Đã thanh toán', cancelled: 'Đã hủy',
@@ -26,7 +27,7 @@ const PAYMENT_LABELS: Record<string, string> = {
     unpaid: 'Chưa thanh toán', partial: 'Thanh toán một phần', paid: 'Đã thanh toán', overdue: 'Quá hạn',
 };
 
-type TabKey = 'tickets' | 'activities';
+type TabKey = 'payments' | 'tickets' | 'activities';
 
 /** Trang chi tiết Hóa đơn — 2 cột: thông tin + phiếu chăm sóc + hoạt động. */
 const InvoiceDetailPage = () => {
@@ -34,13 +35,16 @@ const InvoiceDetailPage = () => {
     const invoiceId = Number(id);
     const { data: invoice, isLoading } = useInvoiceDetail(invoiceId);
     const { data: related } = useInvoiceRelated(invoiceId);
-    const [activeTab, setActiveTab] = useState<TabKey>('tickets');
+    const [activeTab, setActiveTab] = useState<TabKey>('payments');
     const [editOpen, setEditOpen] = useState(false);
 
     if (isLoading) return <div className="p-6 text-gray-400">Đang tải...</div>;
     if (!invoice) return <div className="p-6 text-gray-500">Không tìm thấy hóa đơn.</div>;
 
     const tabs: TabDef<TabKey>[] = [
+        // Đợt thanh toán để ở đây (không phải trong modal sửa) vì phát hành xong hóa đơn bị khóa,
+        // mà status sent → partially_paid → paid chỉ suy ra được từ các đợt thanh toán.
+        { key: 'payments', label: 'Đợt thanh toán' },
         { key: 'tickets', label: 'Chăm sóc', count: related?.tickets.total },
         { key: 'activities', label: 'Hoạt động', count: related?.activities.total },
     ];
@@ -82,6 +86,7 @@ const InvoiceDetailPage = () => {
                     <div className="bg-white rounded-card shadow-sm">
                         <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
                         <div className="p-4">
+                            {activeTab === 'payments' && <PaymentSchedulesTable invoiceId={invoiceId} />}
                             {activeTab === 'tickets' && (
                                 <RelatedTable group={related?.tickets} columns={TICKET_COLUMNS} module="ticket"
                                     emptyText="Hóa đơn chưa có phiếu chăm sóc nào." />

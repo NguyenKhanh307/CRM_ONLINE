@@ -16,5 +16,4 @@ public class PricePolicyEmployeeHibernate {
     private Long id;
     @Column(name = "price_policy_id", nullable = false) private Long pricePolicyId;
     @Column(name = "user_id") private Long userId;
-    @Column(name = "unit_id") private Long unitId;
 }

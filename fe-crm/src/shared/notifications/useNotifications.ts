@@ -33,3 +33,18 @@ export function useMarkNotifications() {
     });
     return { markOne, markAll };
 }
+
+/** Xóa mềm thông báo (các dòng được chọn hoặc tất cả) và làm mới danh sách + badge. */
+export function useDeleteNotifications() {
+    const qc = useQueryClient();
+    const invalidate = () => qc.invalidateQueries({ queryKey: ['notifications'] });
+    const deleteBulk = useMutation({
+        mutationFn: (ids: number[]) => notificationService.deleteBulk(ids),
+        onSuccess: invalidate,
+    });
+    const deleteAll = useMutation({
+        mutationFn: () => notificationService.deleteAll(),
+        onSuccess: invalidate,
+    });
+    return { deleteBulk, deleteAll };
+}

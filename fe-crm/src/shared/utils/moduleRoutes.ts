@@ -4,6 +4,7 @@ import type { RelatedModule } from '../types/related';
 export const MODULE_ROUTES: Record<RelatedModule, string> = {
     lead:        '/tiem-nang',
     contact:     '/lien-he',
+    customer:    '/khach-hang',
     opportunity: '/co-hoi',
     quotation:   '/bao-gia',
     order:       '/don-hang',
@@ -13,7 +14,7 @@ export const MODULE_ROUTES: Record<RelatedModule, string> = {
 };
 
 /** Phân hệ có trang chi tiết riêng — bấm vào dòng sẽ mở trang đó thay vì nhảy về danh sách. */
-const HAS_DETAIL_PAGE: RelatedModule[] = ['lead', 'opportunity', 'ticket', 'contact', 'quotation', 'order', 'invoice'];
+const HAS_DETAIL_PAGE: RelatedModule[] = ['lead', 'opportunity', 'ticket', 'contact', 'customer', 'quotation', 'order', 'invoice'];
 
 /**
  * Đường dẫn tới một bản ghi cụ thể.

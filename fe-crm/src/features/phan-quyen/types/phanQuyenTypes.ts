@@ -28,7 +28,6 @@ export interface GroupMember {
     status: string;
     phone: string | null;
     avatarUrl: string | null;
-    unitId: number | null;
     dataAccessFromYear: number | null;
 }
 

@@ -56,7 +56,6 @@ public class ActivateAccountUseCase implements IUseCase<ActivateAccountCommand, 
                 .fullName(user.getFullName())
                 .phone(user.getPhone())
                 .avatarUrl(user.getAvatarUrl())
-                .unitId(user.getUnitId())
                 .status(UserStatus.active)
                 .lastLoginAt(user.getLastLoginAt())
                 .createdAt(user.getCreatedAt())

@@ -17,6 +17,7 @@ export const InvoiceInfoPanel = ({ invoice: i }: Props) => (
         <InfoRow label="Mã" value={i.code} />
         <InfoRow label="Khách hàng" value={i.customerName} />
         <InfoRow label="Liên hệ" value={i.contactName} />
+        <InfoRow label="Đơn hàng" value={i.orderCode} />
         <InfoRow label="Báo giá nguồn" value={i.quotationCode} />
         <InfoRow label="Cơ hội" value={i.opportunityName} />
         <InfoRow label="Chiến dịch" value={i.campaignName} />

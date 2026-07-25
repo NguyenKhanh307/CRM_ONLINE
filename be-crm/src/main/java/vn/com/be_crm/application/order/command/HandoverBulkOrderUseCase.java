@@ -1,6 +1,7 @@
 package vn.com.be_crm.application.order.command;
 
 import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
+import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.domain.order.repository.IOrderRepository;
 
 /**
@@ -9,10 +10,12 @@ import vn.com.be_crm.domain.order.repository.IOrderRepository;
 public class HandoverBulkOrderUseCase {
 
     private final IOrderRepository repository;
+    private final NotifyAssignmentUseCase notifyUC;
 
-    /** @param repository port lưu trữ Order */
-    public HandoverBulkOrderUseCase(IOrderRepository repository) {
+    /** @param repository port lưu trữ Order @param notifyUC báo cho người nhận bàn giao */
+    public HandoverBulkOrderUseCase(IOrderRepository repository, NotifyAssignmentUseCase notifyUC) {
         this.repository = repository;
+        this.notifyUC = notifyUC;
     }
 
     /**
@@ -21,5 +24,7 @@ public class HandoverBulkOrderUseCase {
      */
     public void execute(HandoverBulkCommand cmd) {
         repository.handoverBulk(cmd.getIds(), cmd.getToUserId(), cmd.getCurrentUserId(), cmd.isAdminOrManager());
+        notifyUC.notifyHandover("order", "đơn hàng", cmd.getToUserId(),
+                cmd.getIds() == null ? 0 : cmd.getIds().size());
     }
 }

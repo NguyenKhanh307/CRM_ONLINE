@@ -1,8 +1,14 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiEdit2, FiTrash2, FiArrowLeft, FiX } from 'react-icons/fi';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { ModalFooter } from '@/shared/components/ModalFooter';
+import { FormField } from '@/shared/components/form/FormField';
 import { useAlert } from '@/shared/alert/useAlert';
+import { useConfirm } from '@/shared/confirm/useConfirm';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
+import { collectErrors, nonNegativeError, percentError } from '@/shared/utils/validators';
 import { useOpportunityStages } from '../hooks/useOpportunityStages';
 import { useCreateStage, useUpdateStage, useDeleteStage } from '../hooks/useOpportunityStageMutations';
 import type { OpportunityStageResult, OpportunityStagePayload } from '../services/opportunityStageService';
@@ -39,14 +45,39 @@ const OpportunityPipelinePage = () => {
     const [editId, setEditId] = useState<number | null>(null);
     const [form, setForm] = useState<FormState>(EMPTY);
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
-    const openCreate = () => { setEditId(null); setForm(EMPTY); setModalOpen(true); };
-    const openEdit = (s: OpportunityStageResult) => { setEditId(s.id); setForm(toForm(s)); setModalOpen(true); };
+    const { confirmCreate, confirmSave } = useConfirm();
 
-    const submit = (e: FormEvent) => {
+    const formRef = useRef<HTMLFormElement>(null);
+    // enabled: modalOpen — form chỉ tồn tại khi modal mở.
+    useFormKeyboardNav(formRef, {
+        onSubmit: () => formRef.current?.requestSubmit(),
+        onCancel: () => setModalOpen(false),
+        enabled: modalOpen,
+    });
+
+    const openCreate = () => { setEditId(null); setForm(EMPTY); setErrors({}); setModalOpen(true); };
+    const openEdit = (s: OpportunityStageResult) => { setEditId(s.id); setForm(toForm(s)); setErrors({}); setModalOpen(true); };
+
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
+    const submit = async (e: FormEvent) => {
         e.preventDefault();
-        if (!form.name.trim()) { showAlert('Tên giai đoạn không được để trống'); return; }
-        if (form.isWon && form.isLost) { showAlert('Giai đoạn không thể vừa Thắng vừa Thua'); return; }
+
+        const found = collectErrors({
+            name: !form.name.trim() ? 'Vui lòng nhập tên giai đoạn' : null,
+            sortOrder: nonNegativeError(form.sortOrder, 'Thứ tự'),
+            probability: percentError(form.probability, 'Xác suất'),
+            flags: form.isWon && form.isLost ? 'Giai đoạn không thể vừa Thắng vừa Thua' : null,
+        });
+        setErrors(found);
+        if (Object.keys(found).length > 0) return;
+
+        const ok = editId == null ? await confirmCreate('giai đoạn') : await confirmSave('giai đoạn');
+        if (!ok) return;
+
         const body: OpportunityStagePayload = {
             name: form.name.trim(),
             sortOrder: Number(form.sortOrder) || 0,
@@ -62,10 +93,10 @@ const OpportunityPipelinePage = () => {
 
     const saving = createFn.isPending || updateFn.isPending;
     const inp = 'w-full border border-gray-300 rounded-btn px-3 py-1.5 text-md text-text-main focus:outline-none focus:border-primary';
-    const lbl = 'block text-sm font-medium text-gray-700 mb-1';
 
     return (
-        <div className="p-6 bg-bg-main min-h-screen">
+        // Không min-h-screen: MainLayout đã h-screen overflow-hidden, <main> là vùng cuộn duy nhất.
+        <div className="p-6 bg-bg-main">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                     <button onClick={() => navigate('/co-hoi')} className="p-1.5 rounded hover:bg-gray-100 text-gray-500" title="Quay lại">
@@ -73,9 +104,9 @@ const OpportunityPipelinePage = () => {
                     </button>
                     <h1 className="text-xl font-semibold text-text-main">Quản lý giai đoạn pipeline</h1>
                 </div>
-                <button onClick={openCreate} className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90">
-                    <FiPlus size={14} /> Thêm giai đoạn
-                </button>
+                <ActionButton variant="primary" icon={FiPlus} onClick={openCreate}>
+                    Thêm giai đoạn
+                </ActionButton>
             </div>
 
             <p className="text-sm text-gray-500 mb-4">
@@ -134,37 +165,37 @@ const OpportunityPipelinePage = () => {
                             <h2 className="text-lg font-semibold text-text-main">{editId == null ? 'Thêm giai đoạn' : 'Sửa giai đoạn'}</h2>
                             <button onClick={() => setModalOpen(false)} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                         </div>
-                        <form onSubmit={submit} className="px-5 py-4 space-y-3">
-                            <div>
-                                <label className={lbl}>Tên giai đoạn <span className="text-danger">*</span></label>
-                                <input className={inp} value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} />
-                            </div>
+                        <form ref={formRef} onSubmit={submit} noValidate className="px-5 py-4 space-y-3">
+                            <FormField label="Tên giai đoạn" required error={errors.name}>
+                                <input className={inp} value={form.name}
+                                    onChange={(e) => { setForm(f => ({ ...f, name: e.target.value })); clearError('name'); }} />
+                            </FormField>
                             <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className={lbl}>Thứ tự</label>
-                                    <input type="number" className={inp} value={form.sortOrder} onChange={(e) => setForm(f => ({ ...f, sortOrder: e.target.value }))} />
+                                <FormField label="Thứ tự" error={errors.sortOrder}>
+                                    <input type="number" className={inp} value={form.sortOrder}
+                                        onChange={(e) => { setForm(f => ({ ...f, sortOrder: e.target.value })); clearError('sortOrder'); }} />
+                                </FormField>
+                                <FormField label="Xác suất (%)" error={errors.probability}>
+                                    <input type="number" min="0" max="100" className={inp} value={form.probability}
+                                        onChange={(e) => { setForm(f => ({ ...f, probability: e.target.value })); clearError('probability'); }} />
+                                </FormField>
+                            </div>
+                            <div>
+                                <div className="flex gap-6 pt-1">
+                                    <label className="flex items-center gap-2 text-md text-text-main">
+                                        <input type="checkbox" checked={form.isWon}
+                                            onChange={(e) => { setForm(f => ({ ...f, isWon: e.target.checked, isLost: e.target.checked ? false : f.isLost })); clearError('flags'); }} />
+                                        Giai đoạn Thắng
+                                    </label>
+                                    <label className="flex items-center gap-2 text-md text-text-main">
+                                        <input type="checkbox" checked={form.isLost}
+                                            onChange={(e) => { setForm(f => ({ ...f, isLost: e.target.checked, isWon: e.target.checked ? false : f.isWon })); clearError('flags'); }} />
+                                        Giai đoạn Thua
+                                    </label>
                                 </div>
-                                <div>
-                                    <label className={lbl}>Xác suất (%)</label>
-                                    <input type="number" min="0" max="100" className={inp} value={form.probability} onChange={(e) => setForm(f => ({ ...f, probability: e.target.value }))} />
-                                </div>
+                                {errors.flags && <p className="text-xs text-danger mt-1">{errors.flags}</p>}
                             </div>
-                            <div className="flex gap-6 pt-1">
-                                <label className="flex items-center gap-2 text-md text-text-main">
-                                    <input type="checkbox" checked={form.isWon} onChange={(e) => setForm(f => ({ ...f, isWon: e.target.checked, isLost: e.target.checked ? false : f.isLost }))} />
-                                    Giai đoạn Thắng
-                                </label>
-                                <label className="flex items-center gap-2 text-md text-text-main">
-                                    <input type="checkbox" checked={form.isLost} onChange={(e) => setForm(f => ({ ...f, isLost: e.target.checked, isWon: e.target.checked ? false : f.isWon }))} />
-                                    Giai đoạn Thua
-                                </label>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-                                <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-1.5 rounded-btn border border-gray-300 text-md text-text-main hover:bg-gray-50">Hủy</button>
-                                <button type="submit" disabled={saving} className="px-4 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">
-                                    {saving ? 'Đang lưu...' : 'Lưu'}
-                                </button>
-                            </div>
+                            <ModalFooter onCancel={() => setModalOpen(false)} saving={saving} />
                         </form>
                     </div>
                 </div>

@@ -11,5 +11,4 @@ public class PricePolicyEmployeeResult {
     private Long id;
     private Long pricePolicyId;
     private Long userId;
-    private Long unitId;
 }

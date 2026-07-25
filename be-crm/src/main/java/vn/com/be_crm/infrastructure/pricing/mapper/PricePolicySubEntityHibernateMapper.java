@@ -65,11 +65,11 @@ public class PricePolicySubEntityHibernateMapper {
     /** Chuyển PricePolicyEmployee domain entity sang Hibernate entity. @param d @return hibernate entity */
     public PricePolicyEmployeeHibernate toEmployeeHibernate(PricePolicyEmployee d) {
         PricePolicyEmployeeHibernate h = new PricePolicyEmployeeHibernate();
-        h.setId(d.getId()); h.setPricePolicyId(d.getPricePolicyId()); h.setUserId(d.getUserId()); h.setUnitId(d.getUnitId());
+        h.setId(d.getId()); h.setPricePolicyId(d.getPricePolicyId()); h.setUserId(d.getUserId());
         return h;
     }
     /** Chuyển PricePolicyEmployeeHibernate sang domain entity. @param h @return domain entity */
     public PricePolicyEmployee toEmployeeDomain(PricePolicyEmployeeHibernate h) {
-        return PricePolicyEmployee.builder().id(h.getId()).pricePolicyId(h.getPricePolicyId()).userId(h.getUserId()).unitId(h.getUnitId()).build();
+        return PricePolicyEmployee.builder().id(h.getId()).pricePolicyId(h.getPricePolicyId()).userId(h.getUserId()).build();
     }
 }

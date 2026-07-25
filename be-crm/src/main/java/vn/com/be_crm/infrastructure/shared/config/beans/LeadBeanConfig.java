@@ -2,6 +2,7 @@ package vn.com.be_crm.infrastructure.shared.config.beans;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.application.lead.command.*;
 import vn.com.be_crm.application.lead.query.*;
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
@@ -24,7 +25,7 @@ public class LeadBeanConfig {
     /** @return CreateLeadUseCase */
     @Bean public CreateLeadUseCase createLeadUseCase(ILeadRepository r) { return new CreateLeadUseCase(r); }
     /** @return UpdateLeadUseCase */
-    @Bean public UpdateLeadUseCase updateLeadUseCase(ILeadRepository r) { return new UpdateLeadUseCase(r); }
+    @Bean public UpdateLeadUseCase updateLeadUseCase(ILeadRepository r, NotifyAssignmentUseCase n) { return new UpdateLeadUseCase(r, n); }
     /** @return DeleteLeadUseCase */
     @Bean public DeleteLeadUseCase deleteLeadUseCase(ILeadRepository r) { return new DeleteLeadUseCase(r); }
     /** @return GetLeadUseCase */
@@ -82,7 +83,7 @@ public class LeadBeanConfig {
     // ===== Handover & Import =====
 
     /** @return HandoverBulkLeadUseCase */
-    @Bean public HandoverBulkLeadUseCase handoverBulkLeadUseCase(ILeadRepository r) { return new HandoverBulkLeadUseCase(r); }
+    @Bean public HandoverBulkLeadUseCase handoverBulkLeadUseCase(ILeadRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkLeadUseCase(r, n); }
     /** @return ImportBulkLeadUseCase */
     @Bean public ImportBulkLeadUseCase importBulkLeadUseCase(ILeadRepository r) { return new ImportBulkLeadUseCase(r); }
 }

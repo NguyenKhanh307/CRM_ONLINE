@@ -2,6 +2,7 @@ package vn.com.be_crm.infrastructure.shared.config.beans;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.application.customer.command.*;
 import vn.com.be_crm.application.customer.query.*;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
@@ -18,7 +19,7 @@ public class CustomerBeanConfig {
     /** @return CreateCustomerUseCase */
     @Bean public CreateCustomerUseCase createCustomerUseCase(ICustomerRepository r) { return new CreateCustomerUseCase(r); }
     /** @return UpdateCustomerUseCase */
-    @Bean public UpdateCustomerUseCase updateCustomerUseCase(ICustomerRepository r) { return new UpdateCustomerUseCase(r); }
+    @Bean public UpdateCustomerUseCase updateCustomerUseCase(ICustomerRepository r, NotifyAssignmentUseCase n) { return new UpdateCustomerUseCase(r, n); }
     /** @return DeleteCustomerUseCase */
     @Bean public DeleteCustomerUseCase deleteCustomerUseCase(ICustomerRepository r) { return new DeleteCustomerUseCase(r); }
     /** @return GetCustomerUseCase */
@@ -49,7 +50,7 @@ public class CustomerBeanConfig {
     // ===== Handover & Import =====
 
     /** @return HandoverBulkCustomerUseCase */
-    @Bean public HandoverBulkCustomerUseCase handoverBulkCustomerUseCase(ICustomerRepository r) { return new HandoverBulkCustomerUseCase(r); }
+    @Bean public HandoverBulkCustomerUseCase handoverBulkCustomerUseCase(ICustomerRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkCustomerUseCase(r, n); }
     /** @return ImportBulkCustomerUseCase */
     @Bean public ImportBulkCustomerUseCase importBulkCustomerUseCase(ICustomerRepository r) { return new ImportBulkCustomerUseCase(r); }
 }

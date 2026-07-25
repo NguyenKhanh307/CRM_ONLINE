@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import type { ImportField, ImportOptions, ImportBulkResult, ParsedFileData, ColumnMapping } from './importTypes';
 import { StepUploadFile } from './StepUploadFile';
 import { StepMapColumns, buildInitialMappings } from './StepMapColumns';
@@ -45,6 +46,7 @@ function buildRows(
 
 export const ImportWizard = ({ title, fields, onImport, backPath }: Props) => {
     const navigate = useNavigate();
+    const { confirm } = useConfirm();
     const [step, setStep] = useState(1);
     const [fileData, setFileData] = useState<ParsedFileData | null>(null);
     const [mappings, setMappings] = useState<ColumnMapping[]>([]);
@@ -60,6 +62,14 @@ export const ImportWizard = ({ title, fields, onImport, backPath }: Props) => {
 
     const handleImport = async () => {
         if (!fileData) return;
+
+        // Nhập file ghi hàng loạt bản ghi — phải xác nhận, nêu rõ số dòng và phân hệ.
+        const ok = await confirm({
+            message: `Nhập ${fileData.rows.length} dòng vào phân hệ ${title}?`,
+            confirmLabel: 'Bắt đầu nhập',
+        });
+        if (!ok) return;
+
         setIsImporting(true);
         setImportError(null);
         try {

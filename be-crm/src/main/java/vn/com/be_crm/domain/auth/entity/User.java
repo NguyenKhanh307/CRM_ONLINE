@@ -35,9 +35,6 @@ public class User {
     /** URL avatar. */
     private String avatarUrl;
 
-    /** ID đơn vị trực thuộc. */
-    private Long unitId;
-
     /** Trạng thái tài khoản. */
     private UserStatus status;
 

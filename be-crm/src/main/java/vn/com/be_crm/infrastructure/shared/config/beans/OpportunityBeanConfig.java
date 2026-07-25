@@ -2,6 +2,7 @@ package vn.com.be_crm.infrastructure.shared.config.beans;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.application.opportunity.command.*;
 import vn.com.be_crm.application.opportunity.query.*;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityItemRepository;
@@ -32,7 +33,7 @@ public class OpportunityBeanConfig {
     /** @return CreateOpportunityUseCase */
     @Bean public CreateOpportunityUseCase createOpportunityUseCase(IOpportunityRepository r, IOpportunityStageRepository sr) { return new CreateOpportunityUseCase(r, sr); }
     /** @return UpdateOpportunityUseCase */
-    @Bean public UpdateOpportunityUseCase updateOpportunityUseCase(IOpportunityRepository r, IOpportunityStageRepository sr) { return new UpdateOpportunityUseCase(r, sr); }
+    @Bean public UpdateOpportunityUseCase updateOpportunityUseCase(IOpportunityRepository r, IOpportunityStageRepository sr, NotifyAssignmentUseCase n) { return new UpdateOpportunityUseCase(r, sr, n); }
     /** @return DeleteOpportunityUseCase */
     @Bean public DeleteOpportunityUseCase deleteOpportunityUseCase(IOpportunityRepository r) { return new DeleteOpportunityUseCase(r); }
     /** @return GetOpportunityUseCase */
@@ -74,7 +75,7 @@ public class OpportunityBeanConfig {
     // ===== Handover & Import =====
 
     /** @return HandoverBulkOpportunityUseCase */
-    @Bean public HandoverBulkOpportunityUseCase handoverBulkOpportunityUseCase(IOpportunityRepository r) { return new HandoverBulkOpportunityUseCase(r); }
+    @Bean public HandoverBulkOpportunityUseCase handoverBulkOpportunityUseCase(IOpportunityRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkOpportunityUseCase(r, n); }
     /** @return ImportBulkOpportunityUseCase */
     @Bean public ImportBulkOpportunityUseCase importBulkOpportunityUseCase(IOpportunityRepository r) { return new ImportBulkOpportunityUseCase(r); }
 }

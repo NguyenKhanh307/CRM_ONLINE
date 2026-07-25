@@ -69,7 +69,7 @@ export function ActivityEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa hoạt động</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <div>
                         <label className={lbl}>Tiêu đề <span className="text-danger">*</span></label>
                         <input className={inp} required value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))} />

@@ -88,7 +88,7 @@ public class AuthController {
      * Admin đăng ký tài khoản nhân viên mới — gửi activation email.
      * Yêu cầu JWT hợp lệ (Bearer token).
      *
-     * @param request body chứa email, fullName, phone, unitId, roleId
+     * @param request body chứa email, fullName, phone, roleId
      * @return 201 Created với UserResult nhân viên vừa tạo
      */
     @PostMapping("/register-employee")
@@ -98,7 +98,6 @@ public class AuthController {
                 .email(request.getEmail())
                 .fullName(request.getFullName())
                 .phone(request.getPhone())
-                .unitId(request.getUnitId())
                 .roleId(request.getRoleId())
                 .frontendBaseUrl(frontendBaseUrl)
                 .build();

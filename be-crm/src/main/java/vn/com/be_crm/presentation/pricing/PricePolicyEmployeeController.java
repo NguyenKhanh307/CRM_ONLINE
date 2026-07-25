@@ -33,7 +33,7 @@ public class PricePolicyEmployeeController {
     public ResponseEntity<ApiResponse<PricePolicyEmployeeResult>> create(@PathVariable Long policyId,
                                                                           @Valid @RequestBody CreatePricePolicyEmployeeCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(
-                CreatePricePolicyEmployeeCommand.builder().pricePolicyId(policyId).userId(cmd.getUserId()).unitId(cmd.getUnitId()).build())));
+                CreatePricePolicyEmployeeCommand.builder().pricePolicyId(policyId).userId(cmd.getUserId()).build())));
     }
 
     /** Lấy danh sách nhân viên. @param policyId ID chính sách @return 200 */

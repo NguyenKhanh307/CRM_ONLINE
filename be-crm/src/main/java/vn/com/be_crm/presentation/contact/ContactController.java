@@ -60,14 +60,15 @@ public class ContactController {
             HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "desc") String sortDir,
-            @RequestParam(required = false) String q, @RequestParam(required = false) String status) {
+            @RequestParam(required = false) String q, @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long customerId) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
         // Record-level visibility: admin/manager xem tat ca, nhan vien chi xem ban ghi minh phu trach
         Long userId = (Long) req.getAttribute("userId");
         boolean privileged = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
         Long ownerId = privileged ? null : userId;
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listUC.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).ownerId(ownerId).build()))));
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).ownerId(ownerId).customerId(customerId).build()))));
     }
 
     /** Lấy liên hệ theo ID. @param id ID @return 200 */

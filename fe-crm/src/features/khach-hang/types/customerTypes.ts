@@ -19,7 +19,6 @@ export interface UpdateCustomerPayload {
     employeeSize?: string | null;
     isDistributor?: boolean;
     ownerId: number | null;
-    unitId: number | null;
 }
 
 /** Payload tạo mới khách hàng — POST /api/customers. */
@@ -45,7 +44,6 @@ export interface CreateCustomerPayload {
     employeeSize: string | null;
     isDistributor: boolean;
     ownerId: number | null;
-    unitId: number | null;
 }
 
 export interface CustomerResult {
@@ -71,7 +69,6 @@ export interface CustomerResult {
     employeeSize: string | null;
     isDistributor: boolean;
     ownerId: number | null;
-    unitId: number | null;
     // Audit: BE tự đóng dấu, client không gửi lên.
     createdBy: number | null;
     updatedBy: number | null;
@@ -79,7 +76,6 @@ export interface CustomerResult {
     updatedAt: string;
     // Tên khóa ngoại do BE resolve sẵn (INameResolver).
     ownerName: string | null;
-    unitName: string | null;
     createdByName: string | null;
     updatedByName: string | null;
 }

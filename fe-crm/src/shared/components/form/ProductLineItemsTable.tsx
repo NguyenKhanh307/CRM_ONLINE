@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, type Dispatch, type SetStateAction } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { formatNumber } from '@/shared/utils/number';
-import { pricingService } from '@/features/chinh-sach-gia/services/pricingService';
+import { usePolicyPricing } from './usePolicyPricing';
 import {
     type LineItemRow,
     type ProductOption,
@@ -15,7 +15,11 @@ import {
 
 interface Props {
     rows: LineItemRow[];
-    onChange: (rows: LineItemRow[]) => void;
+    /**
+     * Setter của danh sách dòng hàng — dạng `useState` setter để patch bất đồng bộ (tra giá theo
+     * chính sách) luôn đọc được trạng thái mới nhất, không ghi đè mất thao tác vừa làm.
+     */
+    onChange: Dispatch<SetStateAction<LineItemRow[]>>;
     productOptions: ProductOption[];
     /** Hiện cột Đơn vị tính (báo giá/đơn hàng). */
     showUnit?: boolean;
@@ -46,39 +50,32 @@ export const ProductLineItemsTable = ({
 }: Props) => {
     const totals = useMemo(() => computeTotals(rows), [rows]);
 
+    const { priceRow, priceRowDebounced, hints } = usePolicyPricing(pricePolicyId, rows, productOptions, onChange);
+
     const changeRow = (id: string, patch: Partial<LineItemRow>) =>
-        onChange(rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+        onChange((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
 
     const selectProduct = (id: string, productId: string) => {
         const opt = productOptions.find((o) => o.value === productId);
+        // Điền ngay từ sản phẩm để giao diện phản hồi tức thì...
         changeRow(id, {
             productId,
             unit: opt?.unit ?? '',
             unitPrice: opt?.price ?? 0,
             taxRate: opt?.vatRate ?? 0,
         });
-        // Có chính sách giá → tra đơn giá/CK theo pricebook, ghi đè giá cơ bản của sản phẩm
-        if (pricePolicyId && productId) {
-            const row = rows.find((r) => r.id === id);
-            const qty = row?.quantity ?? 1;
-            pricingService.resolve(pricePolicyId, Number(productId), qty || 1)
-                .then((res) => {
-                    const r = res.data.data;
-                    if (!r?.found) return;
-                    const patch: Partial<LineItemRow> = {};
-                    if (r.unitPrice != null) patch.unitPrice = Number(r.unitPrice);
-                    // Chiết khấu trả về là số tiền/đơn vị → quy đổi sang % theo đơn giá
-                    if (r.discount != null && r.unitPrice != null && Number(r.unitPrice) > 0) {
-                        patch.discountPct = +((Number(r.discount) / Number(r.unitPrice)) * 100).toFixed(2);
-                    }
-                    if (Object.keys(patch).length) changeRow(id, patch);
-                })
-                .catch(() => { /* fallback giữ giá cơ bản của sản phẩm */ });
-        }
+        // ...rồi để chính sách giá ghi đè đơn giá/CK nếu sản phẩm nằm trong chính sách
+        priceRow(id, productId, rows.find((r) => r.id === id)?.quantity ?? 1);
     };
 
-    const addRow = () => onChange([...rows, emptyLineItem()]);
-    const removeRow = (id: string) => onChange(rows.filter((r) => r.id !== id));
+    /** Đổi số lượng có thể vượt/tụt qua ngưỡng min_qty của chính sách → tra lại giá. */
+    const changeQuantity = (row: LineItemRow, quantity: number) => {
+        changeRow(row.id, { quantity });
+        if (row.productId) priceRowDebounced(row.id, row.productId, quantity);
+    };
+
+    const addRow = () => onChange((prev) => [...prev, emptyLineItem()]);
+    const removeRow = (id: string) => onChange((prev) => prev.filter((r) => r.id !== id));
 
     return (
         <div className="space-y-3">
@@ -109,6 +106,10 @@ export const ProductLineItemsTable = ({
                                         options={productOptions}
                                         placeholder="Chọn hàng hóa"
                                     />
+                                    {/* Vì sao giá chính sách chưa áp — gợi ý nhẹ, không dùng modal chặn thao tác */}
+                                    {hints[row.id] && (
+                                        <p className="text-[11px] text-amber-600 mt-0.5">{hints[row.id]}</p>
+                                    )}
                                 </td>
                                 {showUnit && (
                                     <td className={tdBase}>
@@ -116,7 +117,7 @@ export const ProductLineItemsTable = ({
                                     </td>
                                 )}
                                 <td className={tdBase}>
-                                    <input type="number" min={0} value={row.quantity} onChange={(e) => changeRow(row.id, { quantity: parseFloat(e.target.value) || 0 })} className={numIn} />
+                                    <input type="number" min={0} value={row.quantity} onChange={(e) => changeQuantity(row, parseFloat(e.target.value) || 0)} className={numIn} />
                                 </td>
                                 <td className={tdBase}>
                                     <input type="number" min={0} value={row.unitPrice} onChange={(e) => changeRow(row.id, { unitPrice: parseFloat(e.target.value) || 0 })} className={numIn} />

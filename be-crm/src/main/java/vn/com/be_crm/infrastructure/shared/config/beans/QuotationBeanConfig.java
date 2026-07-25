@@ -3,6 +3,7 @@ package vn.com.be_crm.infrastructure.shared.config.beans;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
 import vn.com.be_crm.application.quotation.command.*;
 import vn.com.be_crm.application.quotation.query.*;
@@ -31,7 +32,7 @@ public class QuotationBeanConfig {
     /** @return CreateQuotationUseCase */
     @Bean public CreateQuotationUseCase createQuotationUseCase(IQuotationRepository r) { return new CreateQuotationUseCase(r); }
     /** @return UpdateQuotationUseCase */
-    @Bean public UpdateQuotationUseCase updateQuotationUseCase(IQuotationRepository r, RecomputeQuotationTotalsUseCase rc) { return new UpdateQuotationUseCase(r, rc); }
+    @Bean public UpdateQuotationUseCase updateQuotationUseCase(IQuotationRepository r, RecomputeQuotationTotalsUseCase rc, NotifyAssignmentUseCase n) { return new UpdateQuotationUseCase(r, rc, n); }
     /** @return DeleteQuotationUseCase */
     @Bean public DeleteQuotationUseCase deleteQuotationUseCase(IQuotationRepository r) { return new DeleteQuotationUseCase(r); }
     /** @return GetQuotationUseCase */
@@ -140,7 +141,7 @@ public class QuotationBeanConfig {
     // ===== Handover & Import =====
 
     /** @return HandoverBulkQuotationUseCase */
-    @Bean public HandoverBulkQuotationUseCase handoverBulkQuotationUseCase(IQuotationRepository r) { return new HandoverBulkQuotationUseCase(r); }
+    @Bean public HandoverBulkQuotationUseCase handoverBulkQuotationUseCase(IQuotationRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkQuotationUseCase(r, n); }
     /** @return ImportBulkQuotationUseCase */
     @Bean public ImportBulkQuotationUseCase importBulkQuotationUseCase(IQuotationRepository r) { return new ImportBulkQuotationUseCase(r); }
 

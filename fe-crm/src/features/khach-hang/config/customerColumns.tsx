@@ -39,7 +39,6 @@ export const getCustomerColumns = (): ColumnDef<CustomerResult>[] => [
     { accessorKey: 'employeeSize', header: 'Quy mô NV', size: 120, cell: textCell },
     { accessorKey: 'isDistributor', header: 'Nhà phân phối', size: 120, cell: yesNoCell },
     { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
-    { accessorKey: 'unitName', header: 'Đơn vị', size: 150, cell: textCell },
     { accessorKey: 'createdByName', header: 'Người tạo', size: 160, cell: textCell },
     { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
     { accessorKey: 'updatedByName', header: 'Người sửa cuối', size: 160, cell: textCell },

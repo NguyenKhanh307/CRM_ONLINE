@@ -14,6 +14,27 @@ interface SearchableSelectProps {
     placeholder?: string;
     searchPlaceholder?: string;
     className?: string;
+    /**
+     * Nhãn hiển thị khi `value` có giá trị nhưng không nằm trong `options`.
+     *
+     * Danh sách lookup của form lấy qua list API — vốn bị lọc `owner_id` cho nhân viên, lọc
+     * `dataAccessFromYear` và giới hạn 500 dòng — nên bản ghi trỏ tới khóa ngoại ngoài phạm vi đó
+     * sẽ không có option tương ứng. Không có nhãn dự phòng thì ô hiện y hệt như **chưa chọn**,
+     * người dùng tưởng dữ liệu bị mất. Truyền tên khóa ngoại backend đã trả sẵn (`*Name`) vào đây.
+     */
+    fallbackLabel?: string | null;
+    /**
+     * Bật chế độ **tìm kiếm phía server**: nhận từ khóa đã debounce để nơi dùng tự gọi API.
+     *
+     * Có prop này nghĩa là `options` đã được server lọc sẵn → component **không lọc lại lần nữa**
+     * (lọc thêm sẽ cắt mất kết quả trả về). Dùng khi bảng nguồn quá lớn để nạp sẵn — ví dụ đơn hàng
+     * và liên hệ đều 10.000 bản ghi, nạp 500 dòng thì gõ mã nào cũng "Không tìm thấy".
+     * Ở chế độ này **phải** truyền kèm `fallbackLabel` để bản ghi đang chọn vẫn hiện đúng tên
+     * khi nó không nằm trong trang kết quả hiện tại.
+     */
+    onSearchChange?: (q: string) => void;
+    /** Đang chờ kết quả tìm kiếm (chỉ dùng cùng `onSearchChange`). */
+    loading?: boolean;
 }
 
 /** Toạ độ + bề rộng để đặt panel dropdown theo nút trigger (position: fixed). */
@@ -35,6 +56,9 @@ export const SearchableSelect = ({
     placeholder = '— Không chọn —',
     searchPlaceholder = 'Tìm kiếm',
     className = '',
+    fallbackLabel,
+    onSearchChange,
+    loading = false,
 }: SearchableSelectProps) => {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
@@ -79,11 +103,23 @@ export const SearchableSelect = ({
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    const filtered = options.filter((o) =>
-        o.label.toLowerCase().includes(search.toLowerCase()),
-    );
+    // Server đã lọc rồi thì dùng thẳng options — lọc lại lần nữa sẽ cắt mất kết quả trả về.
+    const filtered = onSearchChange
+        ? options
+        : options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()));
 
-    const selectedLabel = options.find((o) => o.value === value)?.label ?? '';
+    // Chế độ tìm kiếm phía server: báo từ khóa ra ngoài sau khi ngừng gõ (cùng nhịp 350ms với DataTable).
+    const searchCbRef = useRef(onSearchChange);
+    searchCbRef.current = onSearchChange;
+    useEffect(() => {
+        if (!searchCbRef.current) return;
+        const t = setTimeout(() => searchCbRef.current?.(search), 350);
+        return () => clearTimeout(t);
+    }, [search]);
+
+    // Không tìm thấy option mà value vẫn có giá trị → dùng nhãn dự phòng, đừng để trông như chưa chọn
+    const selectedLabel = options.find((o) => o.value === value)?.label
+        ?? (value ? (fallbackLabel ?? '') : '');
 
     const handleSelect = (optValue: string) => {
         onChange(optValue);
@@ -152,7 +188,9 @@ export const SearchableSelect = ({
                     {/* Options */}
                     <ul className="max-h-52 overflow-y-auto py-1">
                         {filtered.length === 0 ? (
-                            <li className="px-3 py-2 text-sm text-gray-400">Không tìm thấy</li>
+                            <li className="px-3 py-2 text-sm text-gray-400">
+                                {loading ? 'Đang tìm…' : 'Không tìm thấy'}
+                            </li>
                         ) : (
                             filtered.map((opt) => {
                                 const isSelected = opt.value === value;

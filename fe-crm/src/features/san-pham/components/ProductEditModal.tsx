@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect } from 'react';
-import { useAlert } from '@/shared/alert/useAlert';
-import { nonNegativeError, percentError, sellPriceError } from '@/shared/utils/validators';
+import { collectErrors, nonNegativeError, percentError, sellPriceError } from '@/shared/utils/validators';
+import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -20,7 +20,6 @@ const PRODUCT_TYPE_OPTIONS: { value: string; label: string }[] = [
 ];
 
 export function ProductEditModal({ item, onClose }: Props) {
-    const { showAlert } = useAlert();
     const { mutate, isPending } = useUpdateProduct();
     const [form, setForm] = useState<UpdateProductPayload>({
         name: '',
@@ -51,6 +50,11 @@ export function ProductEditModal({ item, onClose }: Props) {
         });
     }, [item]);
 
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -63,10 +67,15 @@ export function ProductEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = nonNegativeError(form.basePrice, 'Giá bán') ?? nonNegativeError(form.costPrice, 'Giá vốn')
-            ?? percentError(form.vatRate, 'Thuế VAT') ?? sellPriceError(form.basePrice, form.costPrice);
-        if (vErr) { showAlert(vErr); return; }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = collectErrors({
+            basePrice: nonNegativeError(form.basePrice, 'Giá bán') ?? sellPriceError(form.basePrice, form.costPrice),
+            costPrice: nonNegativeError(form.costPrice, 'Giá vốn'),
+            vatRate: percentError(form.vatRate, 'Thuế VAT'),
+        });
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmSave('hàng hóa'))) return;
         mutate({ id: item.id, payload: form }, { onSuccess: onClose });
     };
@@ -81,7 +90,7 @@ export function ProductEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa sản phẩm</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <div>
                         <label className={lbl}>Tên sản phẩm <span className="text-danger">*</span></label>
                         <input className={inp} required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
@@ -103,17 +112,23 @@ export function ProductEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Giá bán</label>
-                            <input type="number" className={inp} value={form.basePrice ?? ''} onChange={e => setForm(f => ({ ...f, basePrice: e.target.value ? +e.target.value : null }))} />
+                            <FieldError error={errors.basePrice}>
+                                <input type="number" className={inp} value={form.basePrice ?? ''} onChange={e => { setForm(f => ({ ...f, basePrice: e.target.value ? +e.target.value : null })); clearError('basePrice'); }} />
+                            </FieldError>
                         </div>
                         <div>
                             <label className={lbl}>Giá vốn</label>
-                            <input type="number" className={inp} value={form.costPrice ?? ''} onChange={e => setForm(f => ({ ...f, costPrice: e.target.value ? +e.target.value : null }))} />
+                            <FieldError error={errors.costPrice}>
+                                <input type="number" className={inp} value={form.costPrice ?? ''} onChange={e => { setForm(f => ({ ...f, costPrice: e.target.value ? +e.target.value : null })); clearError('costPrice'); }} />
+                            </FieldError>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Thuế VAT (%)</label>
-                            <input type="number" className={inp} value={form.vatRate ?? ''} onChange={e => setForm(f => ({ ...f, vatRate: e.target.value ? +e.target.value : null }))} />
+                            <FieldError error={errors.vatRate}>
+                                <input type="number" className={inp} value={form.vatRate ?? ''} onChange={e => { setForm(f => ({ ...f, vatRate: e.target.value ? +e.target.value : null })); clearError('vatRate'); }} />
+                            </FieldError>
                         </div>
                     </div>
                     <div>

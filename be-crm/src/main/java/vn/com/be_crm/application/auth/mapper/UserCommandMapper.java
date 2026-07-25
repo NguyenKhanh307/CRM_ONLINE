@@ -24,7 +24,6 @@ public class UserCommandMapper {
                 .fullName(cmd.getFullName())
                 .phone(cmd.getPhone())
                 .avatarUrl(cmd.getAvatarUrl())
-                .unitId(cmd.getUnitId())
                 .status(cmd.getStatus() != null ? cmd.getStatus() : UserStatus.active)
                 .build();
     }
@@ -44,7 +43,6 @@ public class UserCommandMapper {
                 .fullName(cmd.getFullName() != null ? cmd.getFullName() : existing.getFullName())
                 .phone(cmd.getPhone() != null ? cmd.getPhone() : existing.getPhone())
                 .avatarUrl(cmd.getAvatarUrl() != null ? cmd.getAvatarUrl() : existing.getAvatarUrl())
-                .unitId(cmd.getUnitId() != null ? cmd.getUnitId() : existing.getUnitId())
                 .status(cmd.getStatus() != null ? cmd.getStatus() : existing.getStatus())
                 .lastLoginAt(existing.getLastLoginAt())
                 .createdAt(existing.getCreatedAt())
@@ -65,7 +63,6 @@ public class UserCommandMapper {
                 .fullName(entity.getFullName())
                 .phone(entity.getPhone())
                 .avatarUrl(entity.getAvatarUrl())
-                .unitId(entity.getUnitId())
                 .status(entity.getStatus())
                 .lastLoginAt(entity.getLastLoginAt())
                 .createdAt(entity.getCreatedAt())

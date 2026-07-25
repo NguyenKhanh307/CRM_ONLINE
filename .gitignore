@@ -46,15 +46,27 @@ be-crm/**/*.war
 be-crm/**/*.class
 
 # ============================================================
-# Semantic search server — Python
+# Indexer (embed) — Python (tools/indexer). Chi giu code + README + .env.example
+# (.env da bi chan boi muc "Environment files" ben duoi)
 # ============================================================
-semantic-search-server/__pycache__/
-semantic-search-server/**/__pycache__/
-semantic-search-server/.venv/
-semantic-search-server/venv/
-semantic-search-server/**/*.pyc
-semantic-search-server/**/*.pyo
-semantic-search-server/.env
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+tools/indexer/*.log
+
+# ============================================================
+# Anh & file nhap tam (tai lieu/scratch o goc repo).
+# Frontend chi dung SVG (fe-crm/public/vite.svg) nen khong anh huong.
+# Neu sau nay frontend can .png/.jpg thi them ngoai le, vd: !fe-crm/src/assets/logo.png
+# ============================================================
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+/_wtest
 
 # ============================================================
 # Environment files (giữ lại .example)

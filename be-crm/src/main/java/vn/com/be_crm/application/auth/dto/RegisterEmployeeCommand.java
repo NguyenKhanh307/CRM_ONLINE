@@ -24,9 +24,6 @@ public class RegisterEmployeeCommand {
     /** Số điện thoại (tùy chọn). */
     private String phone;
 
-    /** ID đơn vị trực thuộc (tùy chọn). */
-    private Long unitId;
-
     /** ID vai trò gán ngay khi đăng ký. */
     private Long roleId;
 

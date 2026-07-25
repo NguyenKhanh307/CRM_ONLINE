@@ -33,4 +33,6 @@ public class Notification {
     private boolean isRead;
     /** Thời điểm tạo. */
     private LocalDateTime createdAt;
+    /** Thời điểm người nhận xóa mềm thông báo — null nghĩa là còn trong hộp thông báo. */
+    private LocalDateTime deletedAt;
 }

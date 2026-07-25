@@ -62,8 +62,6 @@ public class Customer {
     private boolean isDistributor;
     /** ID nhân viên phụ trách. */
     private Long ownerId;
-    /** ID đơn vị. */
-    private Long unitId;
     /** ID người tạo bản ghi (BE tự đóng dấu, client không gửi lên). */
     private Long createdBy;
     /** ID người sửa bản ghi gần nhất (BE tự đóng dấu). */

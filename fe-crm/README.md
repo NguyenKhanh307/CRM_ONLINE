@@ -43,7 +43,7 @@ VITE_API_BASE_URL=http://localhost:8080
 
 # Đăng nhập Google (nút "Đăng nhập bằng Google" ở trang Login)
 # OAuth Client ID (Web) tạo ở Google Cloud Console → APIs & Services → Credentials.
-# Authorized JavaScript origins: http://localhost:5173 (dev) + domain Netlify (prod).
+# Authorized JavaScript origins: http://localhost:5173 (dev) + domain Render (prod).
 VITE_GOOGLE_CLIENT_ID=<client-id>.apps.googleusercontent.com
 
 # Ảnh đại diện (trang Thiết lập tài khoản) — upload qua Cloudinary unsigned preset.
@@ -75,16 +75,20 @@ npx vite build
 
 > File `.env` **không commit** (đã thêm vào `.gitignore`). Tham khảo `.env-example`. Vite nhúng `VITE_API_BASE_URL` **lúc build**, nên đổi giá trị phải build lại.
 
-### Triển khai production — Netlify
+### Triển khai production — Render Static Site
 
-Frontend deploy lên **Netlify**. Cấu hình nằm trong `fe-crm/netlify.toml`:
-- `command = "npm run build"`, `publish = "dist"`, `NODE_VERSION = "22"` (Vite 7 cần Node ≥ 20.19).
-- **SPA fallback** `/* → /index.html 200` — bắt buộc vì router dùng `createBrowserRouter` (deep-link như `/co-hoi/pipeline` sẽ 404 nếu thiếu).
+Frontend deploy lên **Render** (trước đây là Netlify — đã gỡ, cả hai phía giờ cùng một nhà cung cấp).
+Cấu hình nằm trong **`render.yaml` ở gốc repo**, khai báo chung cả backend lẫn frontend:
+- `buildCommand = "npm ci && npm run build"`, `staticPublishPath = "./dist"`, `NODE_VERSION = "22"` (Vite 7 cần Node ≥ 20.19).
+- **SPA rewrite** `/* → /index.html` — bắt buộc vì router dùng `createBrowserRouter` (deep-link như `/co-hoi/pipeline` sẽ 404 nếu thiếu).
+- Static Site **miễn phí vĩnh viễn, có CDN và KHÔNG ngủ** (khác Web Service free bị sleep sau 15 phút).
 
-Các bước:
-1. Netlify → **New site from Git**, chọn repo, **Base directory = `fe-crm`** (tự đọc `netlify.toml`).
-2. **Site settings → Environment variables**: đặt `VITE_API_BASE_URL = https://<ten-service>.onrender.com` (URL backend Render, **không** dấu `/` cuối); thêm `VITE_GOOGLE_CLIENT_ID`, `VITE_CLOUDINARY_CLOUD_NAME`, `VITE_CLOUDINARY_UPLOAD_PRESET` (nhớ thêm domain Netlify vào Authorized JavaScript origins của OAuth Client). Đổi các biến `VITE_*` phải build lại vì Vite nhúng lúc build.
-3. Deploy → lấy URL `https://<ten-site>.netlify.app`. Điền URL này vào biến `APP_CORS_ALLOWED_ORIGINS` và `APP_FRONTEND_BASE_URL` bên Render, rồi build lại Netlify sau khi có domain backend.
+Các bước (**đúng thứ tự** — CORS phụ thuộc domain nên không đảo được):
+1. Render → **Blueprints → New Blueprint Instance**, chọn repo này → Render đọc `render.yaml` và tạo cả `crm-backend` lẫn `crm-frontend`.
+2. `crm-frontend` → **Environment**: đặt `VITE_API_BASE_URL = https://<ten-backend>.onrender.com` (**không** dấu `/` cuối), `VITE_GOOGLE_CLIENT_ID`, `VITE_CLOUDINARY_CLOUD_NAME`, `VITE_CLOUDINARY_UPLOAD_PRESET`. Deploy → lấy URL `https://<ten-site>.onrender.com`.
+3. `crm-backend` → **Environment**: điền `APP_CORS_ALLOWED_ORIGINS` và `APP_FRONTEND_BASE_URL` = URL frontend vừa có.
+4. Google Cloud Console → OAuth Client → **Authorized JavaScript origins**: thêm domain Render mới (bỏ domain Netlify cũ). **Thiếu bước này thì nút đăng nhập Google im lặng không hoạt động.**
+5. Build lại frontend — Vite nhúng các biến `VITE_*` **lúc build**, đổi giá trị bắt buộc build lại.
 
 ### Tài khoản test
 
@@ -313,7 +317,8 @@ Trước đây danh sách con đổ thẳng ra trang (mỗi nhóm `/related` t�
 - **`shared/components/table/ScrollFrame.tsx`** — khung cuộn dùng chung: prop `visibleRows` (mặc định 10, quy đổi qua `tableScrollMaxHeight`) hoặc `maxHeight` (px, cho danh sách dòng cao không đều), `headBg` (`white` | `gray`).
 - Header bảng bên trong **tự dính** nhờ arbitrary variant `[&_thead_th]:sticky …` — nơi dùng không phải sửa từng thẻ `<th>`. ⚠️ Class phải viết **literal**, không nội suy chuỗi, vì Tailwind quét class tĩnh trong mã nguồn.
 - ⚠️ Header dính dùng `shadow-[inset_0_-1px_0_0_…]` thay `border-b`: `border-collapse` vẽ viền theo bảng nên viền sẽ trôi khi cuộn (bẫy đã gặp ở `RecordItemsPanel`).
-- Áp dụng: `RelatedTable` (prop `visibleRows`), `Timeline` (prop `maxHeight`, mặc định 420px), `InfoCard` (thân thẻ tự cuộn), `CampaignMembersTable`, bảng hàng trả/đổi ở `TicketDetailPage`, `TicketTimeline`, 3 tab của `ChinhSachGiaDetailPage`.
+- Áp dụng: `RelatedTable` (prop `visibleRows`), `Timeline` (prop `maxHeight`, mặc định 420px), `InfoCard` (thân thẻ tự cuộn), `CampaignMembersTable`, bảng hàng trả/đổi ở `TicketDetailPage`, `TicketTimeline`, 3 tab của `ChinhSachGiaDetailPage`, **`UrgentList` của Dashboard** (widget "Việc cần xử lý gấp" — BE trả tới 18 mục nên thẻ từng cao ~950px).
+- Chọn prop: `visibleRows` cho **bảng** (dòng đều 37px), `maxHeight` cho **danh sách dòng cao không đều**.
 - **Root 10 trang chi tiết bỏ `min-h-screen`** (chỉ còn `p-6 bg-bg-main`): `MainLayout` đã `h-screen overflow-hidden` và `<main>` mới là vùng cuộn — cùng lý do đã áp cho trang danh sách.
 
 ### Tự điền form thêm mới — `fillEmpty` (MỚI 2026-07-22)
@@ -323,8 +328,32 @@ Chọn một bản ghi ở ô khóa ngoại sẵn có → các ô liên quan **�
 - **`shared/utils/prefill.ts`**: `fillEmpty(current, patch)` chỉ giữ khóa mà ô hiện tại còn trống (`''`/`null`/`undefined`) → **không bao giờ đè** thứ người dùng đã gõ, kể cả khi họ đổi lựa chọn; `hasFilled(patch)`; `primaryContactOf(contacts, customerId)` (ưu tiên liên hệ chính).
 - **`shared/components/form/PrefillHint.tsx`**: dòng chữ nhạt "Đã tự điền các ô còn trống từ …" dưới ô nguồn. Cố ý **không** dùng `showAlert` — đó là modal chặn thao tác.
 - Áp dụng ở **7 form thêm mới**: Cơ hội, Báo giá, Đơn hàng, Hóa đơn (chọn Khách hàng → liên hệ chính / người phụ trách / MST / địa chỉ xuất HĐ), Chăm sóc (→ liên hệ), Tiềm năng (→ công ty, MST, website, ngành, SĐT, email, liên hệ), Liên hệ (chọn Tổ chức → địa chỉ, SĐT cơ quan, nguồn gốc).
-- Dữ liệu nguồn lấy từ `useCustomerList` / `useContactList` mà các trang này **đã nạp sẵn** (size 500) — không thêm request.
+- Dữ liệu nguồn lấy từ `useCustomerList` / `useContactList` / `useOrderList` mà các trang này **đã nạp sẵn** (size 500) — không thêm request.
 - **Chỉ áp cho trang thêm mới**, không áp cho `*EditModal` (tự điền khi sửa bản ghi cũ dễ gây bất ngờ).
+
+**Hóa đơn — ô "Đơn hàng" (2026-07-22)**: trước đây form tạo hóa đơn không có chỗ nào cho biết hóa đơn thu tiền cho đơn nào (backend vốn đã có `invoices.order_id`, chỉ FE chưa dùng). Nay `InvoiceAddPage`/`InvoiceEditModal` có ô **Đơn hàng**; chọn đơn → tự điền khách hàng / liên hệ / người phụ trách / chiến dịch / MST / địa chỉ xuất HĐ (vẫn qua `fillEmpty` nên không đè ô đã gõ).
+
+- Dropdown **chỉ hiện đơn chưa bị khóa** (`!isLocked`) — đơn đã khóa nghĩa là đã xuất hóa đơn, giữ đúng quan hệ Đơn hàng ↔ Hóa đơn **1-1**. Riêng `InvoiceEditModal` giữ thêm chính đơn đang gắn vào options (đơn đó đã bị khóa bởi chính hóa đơn này) và truyền `fallbackLabel={item.orderCode}` để không hiện như chưa chọn.
+- **Không** chép `order_items` sang hóa đơn ở đây — đó là việc của nút "Xuất hóa đơn" bên Đơn hàng (`POST /api/orders/{id}/create-invoice`, có khóa đơn + chuyển đơn sang `completed`); làm ở form sẽ sinh hóa đơn trùng mà không khóa gì.
+- **Chọn đơn còn chép luôn dòng hàng** — nhưng **chỉ khi bảng Hàng hóa chưa chọn sản phẩm nào** (`rows.every(r => !r.productId)`), để không xóa thứ đang gõ dở; dòng gợi ý nói rõ đã chép hay đã bỏ qua. Chép qua `orderService.getItems` → `fromItemResult` và **xóa `backendId`** (đó là id dòng hàng của *đơn hàng*, mang sang hóa đơn mới là id lạ). Vẫn **không** khóa đơn — rào chắn 1-1 là bộ lọc `isLocked` ở dropdown.
+- Ô Đơn hàng dùng **tìm kiếm phía server** (`useOrderSearch`), xem prop `onSearchChange` của `SearchableSelect` — nạp sẵn 500 dòng là vô dụng với bảng 10.000 đơn.
+- Hiển thị: cột **Đơn hàng** (`orderCode`) ở danh sách + file xuất, và dòng "Đơn hàng" trong `InvoiceInfoPanel` — nhờ vậy hóa đơn sinh từ luồng chuẩn cũng thấy được đơn nguồn (trước nay dữ liệu có sẵn nhưng không hiện ở đâu).
+
+### Ô chọn bản ghi liên kết — `RecordPicker` (2026-07-22)
+
+Rà lại toàn bộ form thêm mới cho thấy ba lỗi: nhiều FK bị **hardcode `null`** (báo giá thiếu Cơ hội; đơn hàng & hóa đơn thiếu Báo giá + Cơ hội), vài ô bắt **gõ ID thô** (Hóa đơn ở Chăm sóc, "ID đối tượng" ở Hoạt động), và các dropdown trên bảng lớn **không tìm ra bản ghi** vì hook lookup chỉ nạp một trang 500 dòng (liên hệ/cơ hội/báo giá/đơn/hóa đơn đều ~10.000 dòng, sản phẩm đã vượt 500).
+
+- **`shared/lookup/useRecordSearch.ts`** — map `module → service.getList({ q, size: 20 })` cho `customer | contact | lead | opportunity | quotation | order | invoice`, kèm `searchHintOf()` nói rõ backend tìm theo cột nào (quotation/order/invoice **chỉ theo mã**).
+- **`shared/components/form/RecordPicker.tsx`** — bọc `SearchableSelect` ở chế độ server; props `module`, `value`, `onChange`, `fallbackLabel`, `customerId`. `module=''` (chưa chọn loại) → ô khóa lại, dùng cho ô đa hình ở Hoạt động.
+- **`shared/lookup/recordPrefill.ts#fetchPrimaryContactId`** — hỏi thẳng `GET /api/contacts?customerId=` thay cho `primaryContactOf` cũ (lục trong 500 dòng nạp sẵn nên thường không thấy liên hệ của khách vừa chọn).
+- **`useProductList` nạp `size: 1000`** — bảng sản phẩm đã 509 dòng, nạp 500 là âm thầm mất 9 sản phẩm cuối.
+
+**Ô liên kết theo từng form** (Add + Edit tương ứng): Báo giá → Cơ hội · Đơn hàng → Báo giá, Cơ hội · Hóa đơn → Đơn hàng, Báo giá, Cơ hội · Chăm sóc → Hóa đơn · Hoạt động → Đối tượng/Bản ghi liên quan theo loại đang chọn · tất cả form có Khách hàng → ô **Liên hệ lọc theo khách đó**.
+
+- Chọn một bản ghi liên kết thì **tự điền các ô còn trống** (`fillEmpty`): cơ hội → khách/liên hệ/chiến dịch/chính sách giá/người phụ trách; báo giá → thêm cơ hội; hóa đơn (ở Chăm sóc) → khách + liên hệ. Đổi khách hàng thì **xóa liên hệ cũ** rồi mới điền lại — liên hệ của khách khác gắn vào là dữ liệu sai.
+- Đổi "Loại đối tượng" ở Hoạt động cũng **xóa id cũ** (id của phân hệ khác là rác).
+- ⚠️ **Cố ý KHÔNG chép dòng hàng** khi chọn Báo giá/Cơ hội: hai luồng đó đã có endpoint chuyển đổi riêng (`from-opportunity`, `convert-to-order`) và **khóa bản ghi nguồn + đổi trạng thái**; chép ngầm ở form thêm sẽ cho phép sinh nhiều đơn từ một báo giá. Riêng Đơn hàng → Hóa đơn có chép (rào chắn là bộ lọc `isLocked`).
+- ⚠️ Ở `*EditModal` **bắt buộc truyền `fallbackLabel`** (`quotationCode`, `orderCode`, `opportunityName`, `contactName`, `invoiceCode`): kết quả tìm chỉ 20 dòng nên bản ghi đang gắn hầu như không nằm trong đó.
 
 ### Bảng Kanban Cơ hội — `/co-hoi/kanban` (MỚI 2026-07-12)
 
@@ -353,12 +382,19 @@ Trang tổng quan phân theo vai trò (`features/dashboard/`), phong cách AMIS.
 
 ### Tiềm năng — chấm điểm, web tracking & thông báo
 
-- Trang `/tracking-demo` (`features/tracking-demo`): landing page mô phỏng — gọi `POST /api/tracking/visit|score|submit` (public) để tạo lead ẩn danh & cộng điểm `score`.
+- Trang `/tracking-demo` (`features/tracking-demo`): landing page mô phỏng — gọi `GET /api/tracking/campaigns` + `POST /api/tracking/visit|score|submit` (đều public) để tạo lead ẩn danh, gắn chiến dịch nguồn & cộng điểm `score`.
+- **Nâng cấp 2026-07-22 — demo theo 4 bước đánh số**: (1) chọn **Chiến dịch nguồn** từ dropdown, kèm dòng URL quảng cáo minh họa tự điền `utm_campaign=<mã>` theo lựa chọn; (2) mở phiên → mã `TNW…`, điểm, **thanh tiến trình tới ngưỡng 50**, nút "Đặt lại phiên"; (3) hành vi (5 nút, tổng 80 điểm) + **nhật ký sự kiện** trong phiên; (4) form liên hệ. Cuối trang là bảng **"Điều gì đang xảy ra bên trong CRM"** nối từng thao tác với dữ liệu thật.
+- Mở trang bằng `?utm_campaign=<mã>` (giống khách bấm quảng cáo thật) thì chiến dịch được chọn sẵn và phiên **tự bắt đầu**.
+- Feature tách theo đúng `pages → hooks → services → API`: `services/trackingService.ts`, `hooks/useTrackingCampaigns.ts` + `hooks/useTrackingSession.ts`, 5 component trong `components/`, hằng số ở `config/trackingDemoConfig.ts` (trước đây page gọi thẳng `axiosInstance` — sai tầng).
 - Trang công khai `/bao-gia-phan-hoi/:token` (`features/bao-gia-phan-hoi`): khách xem báo giá (`GET /api/public/quotations/{token}`) + phản hồi Đồng ý/Điều chỉnh/Không đồng ý (`POST /api/public/quotations/{token}/respond`) — link gửi qua email báo giá (kèm PDF). Ngoài MainLayout, không cần đăng nhập.
 - **Soạn email báo giá trước khi gửi**: menu chuột phải báo giá `approved` → "Gửi email cho khách" mở `features/bao-gia/components/SendQuotationModal.tsx`. Modal nạp nội dung mặc định qua `useQuotationEmailDraft` (`GET /api/quotations/{id}/email-draft`), cho sửa tiêu đề + nội dung (soạn thảo WYSIWYG `shared/components/RichTextEditor.tsx` — TinyMCE self-host bản GPL, deps `tinymce` + `@tinymce/tinymce-react`), rồi gửi kèm `{ subject, body }` qua `POST /api/quotations/{id}/send`. 3 nút phản hồi + PDF do BE tự chèn.
-- Header có **chuông thông báo** (`shared/components/layout/header/NotificationPopup.tsx`) dùng `shared/notifications/{notificationService,useNotifications}.ts` → `GET /api/notifications`, `/unread-count`, `POST /{id}/read`, `/read-all`.
+- Header có **chuông thông báo** (`shared/components/layout/header/NotificationPopup.tsx`) dùng `shared/notifications/{notificationService,useNotifications}.ts` → `GET /api/notifications`, `/unread-count`, `POST /{id}/read`, `/read-all`, `/delete-bulk`, `/delete-all`.
 
-**Bấm thông báo → nhảy tới bản ghi**: `NotificationPopup` map tiền tố `type` → route (`lead→/tiem-nang`, `quotation→/bao-gia`, `ticket→/cham-soc`); bấm sẽ đánh dấu đã đọc rồi `navigate('{route}?focus={targetId}')`. Ba trang danh sách đó đọc `useSearchParams().get('focus')` và truyền vào prop **`focusId`** của `DataTable` — bảng tự nhảy đúng trang phân trang, highlight và cuộn tới dòng.
+**Bấm thông báo → nhảy tới bản ghi**: `NotificationPopup` suy phân hệ từ tiền tố `type` rồi dùng `recordPath()` của `shared/utils/moduleRoutes.ts` (nguồn sự thật duy nhất cho link chéo) — module có trang chi tiết mở thẳng `/{route}/{id}`, còn lại `navigate('{route}?focus={targetId}')`; các trang danh sách đọc `useSearchParams().get('focus')` và truyền vào prop **`focusId`** của `DataTable` để tự nhảy đúng trang phân trang, highlight và cuộn tới dòng. Tiền tố không khớp module nào (vd `handover_all`) thì chỉ đánh dấu đã đọc.
+
+**Dọn hộp thông báo (2026-07-22)**: header popup có 3 icon — `FiCheckSquare` đánh dấu đã đọc tất cả, `FiList` bật/tắt **chế độ chọn**, `FiTrash2` **xóa tất cả**. Chế độ chọn hiện checkbox từng dòng + ô "Chọn tất cả" + thanh "Đã chọn n / Hủy / Xóa"; lúc này bấm dòng là tick chứ không điều hướng. Cả hai luồng xóa đều hỏi qua `useConfirm()` và là **xóa mềm** — chỉ ẩn khỏi hộp thông báo của chính mình, người khác vẫn còn tin, không khôi phục được và không có tab trong Thùng rác.
+
+> ⚠️ Popup đóng theo listener "click ngoài `ref`", mà `ConfirmModal`/`AlertModal` render ở gốc app nên nằm ngoài `ref`. Hai modal đó mang attribute **`data-modal-layer`**, popup bỏ qua click có `closest('[data-modal-layer]')` — thiếu bước này thì vừa bấm "Xóa" là popup unmount và promise `confirm()` treo.
 
 **Chấm thông báo trên sidebar**: `Sidebar.tsx` chỉ xét thông báo **chưa đọc**, suy module từ tiền tố `type`. Chấm **đỏ** = tạo mới/cần hành động; **vàng** = cập nhật/thay đổi (`UPDATE_NOTIFICATION_TYPES`); có cả hai → đỏ; đã đọc hết → không chấm. Màu chấm không đổi theo việc mục có đang được chọn hay không.
 
@@ -523,9 +559,12 @@ Mỗi module data có trang thêm mới full-page (layout AMIS), truy cập qua 
 |------|---------|
 | `formStyles.ts` | `inputCls`, `btnBase` dùng chung |
 | `FormSection.tsx` | Section có tiêu đề (h2 + border-b) |
-| `FieldRow.tsx` | Hàng field label 148px + dấu `*` required, prop `alignTop` cho textarea |
+| `FieldRow.tsx` | Hàng field label 148px + dấu `*` required, prop `alignTop` cho textarea, prop `error` (viền đỏ + dòng lỗi) |
+| `FormField.tsx` | **Form một cột**: label trên / ô dưới, props `required`, `hint`, `error`, `icon`. Kèm export `FieldError` — chỉ bọc ô nhập để gắn phần báo lỗi cho form đã có `<label>` riêng (các `*EditModal`) |
+| `CenteredFormCard.tsx` | Khung trang form một cột: khối tiêu đề (icon + h1 + phụ đề + nút back tùy chọn) và thẻ trắng **cùng căn giữa** (`mx-auto max-w-xl`). Dùng ở `/dang-ky-nhan-vien`, `/tai-khoan` |
 | `FormPageHeader.tsx` | Header form: Hủy / Lưu và thêm / Lưu, prop `saving` |
-| `ProductLineItemsTable.tsx` | Bảng hàng hóa controlled cho báo giá/đơn hàng/cơ hội (props `showUnit`/`showTax`) |
+| `ProductLineItemsTable.tsx` | Bảng hàng hóa controlled cho báo giá/đơn hàng/cơ hội (props `showUnit`/`showTax`/`pricePolicyId`; `onChange` là setter dạng `useState`) |
+| `usePolicyPricing.ts` | Tra & tự điền đơn giá/CK theo chính sách giá cho từng dòng hàng (dùng trong `ProductLineItemsTable`) |
 | `productLineItem.ts` | Type `LineItemRow`/`ProductOption` + helper `computeTotals`, `toItemPayloads` |
 | `DateInput.tsx` | Ô nhập ngày **dd/mm/yyyy** + lịch popup, `value`/`onChange` dùng ISO `yyyy-mm-dd` (thay `<input type="date">`) |
 | `DateTimeInput.tsx` | Ngày dd/mm/yyyy + giờ HH:mm, `value`/`onChange` dùng ISO `yyyy-mm-ddTHH:mm` (thay `<input type="datetime-local">`) |
@@ -706,8 +745,17 @@ Các list hook FE vốn đã gửi `sortBy: 'createdAt', sortDir: 'desc'`. Nay *
 Đối chiếu `luongnghiep.md` với code và vá các lỗ hổng UI để luồng chảy mượt:
 
 - **Chiến dịch trong form Tiềm năng**: `LeadAddPage` + `LeadEditModal` có ô "Chiến dịch nguồn" (`useCampaignList`); cột "Chiến dịch" trong `leadColumns` (attribution bắt đầu từ đây).
-- **Tra giá theo chính sách (pricebook)**: `ProductLineItemsTable` nhận prop `pricePolicyId` — khi chọn dòng hàng gọi `pricingService.resolve` (`GET /api/pricing/resolve`) lấy đơn giá/CK, fallback về `basePrice`. Truyền từ form Cơ hội (`OpportunityAddPage`/`OpportunityEditModal`).
-- **Đợt thanh toán hóa đơn**: `PaymentSchedulesTable` + `useInvoicePayments` (`GET/POST/PUT/DELETE /api/invoices/{id}/payment-schedules`) nhúng trong `InvoiceEditModal` — thêm/sửa/xóa đợt; BE tự suy ra `paymentStatus` (`partially_paid`/`paid`).
+- **Tra giá theo chính sách (pricebook)**: `ProductLineItemsTable` nhận prop `pricePolicyId`, logic tra giá nằm ở hook `shared/components/form/usePolicyPricing.ts` (`pricingService.resolve` → `GET /api/pricing/resolve`). Ô "Chính sách giá" có ở **cả 4 form** Cơ hội + Báo giá (`OpportunityAddPage`/`OpportunityEditModal`/`QuoteAddPage`/`QuotationEditModal`); Đơn hàng/Hóa đơn **không có** vì hai bảng đó không có cột `price_policy_id` (giá đã chốt từ báo giá chuyển sang).
+
+  Quy tắc tự điền: chọn sản phẩm → điền ngay ĐVT/giá gốc/thuế từ `ProductOption`, rồi chính sách **ghi đè** đơn giá + CK% nếu sản phẩm nằm trong chính sách (`discount` backend trả về là **số tiền/đơn vị** → quy đổi sang %); **đổi chính sách** → tính lại mọi dòng đã chọn sản phẩm; **đổi số lượng** → tra lại (debounce 400ms) vì `price_policy_products.min_qty` là ngưỡng áp dụng; ngoài chính sách / dưới ngưỡng / bỏ chọn chính sách → **quay về giá gốc** của sản phẩm.
+
+  Khi giá ưu đãi **không** được áp, hook giữ một dòng chú thích cho từng dòng hàng (chữ hổ phách dưới ô hàng hóa): `"Cần tối thiểu N để hưởng giá chính sách"` (BE trả `minQty`) hoặc `"Sản phẩm ngoài chính sách giá"`. Không im lặng trả về giá gốc như trước — người dùng từng tưởng tính năng hỏng. Chú thích sống trong state của hook, **không** nhét vào `LineItemRow` để khỏi lẫn vào payload gửi backend.
+
+  ⚠️ Hai bẫy đã xử lý: (1) prop `onChange` của bảng là **`Dispatch<SetStateAction<LineItemRow[]>>`** — patch bất đồng bộ phải dùng hàm cập nhật, bản cũ `map` trên `rows` của render cũ nên kết quả tra giá về là **xóa mất sản phẩm vừa chọn**; (2) effect tính lại **lấy baseline ngay lúc mount** để mở modal sửa báo giá cũ không tự nhảy giá — modal phải nạp form (đặt `pricePolicyId`) **trước** khi dòng hàng về, đảo thứ tự sẽ làm giá tự đổi lúc vừa mở. Mỗi dòng có token chống phản hồi cũ đè lên thao tác mới.
+- **Đợt thanh toán hóa đơn**: `PaymentSchedulesTable` + `useInvoicePayments` (`GET/POST/PUT/DELETE /api/invoices/{id}/payment-schedules`) — thêm/sửa/xóa đợt; BE tự suy ra `paymentStatus` + `status` (`partially_paid`/`paid`).
+
+  **Chỗ đặt (sửa 2026-07-22)**: bảng này nay là **tab "Đợt thanh toán" ở trang chi tiết `/hoa-don/:id`**, không còn chỉ nằm trong `InvoiceEditModal`. Lý do: "Phát hành" (`POST /{id}/issue`) **khóa hóa đơn**, mà modal sửa chỉ mở khi `!isLocked` → phát hành xong là không nhập được thanh toán nữa, hóa đơn **kẹt vĩnh viễn ở `sent`** dù backend không hề chặn (`/payment-schedules` không kiểm `isLocked`). Modal sửa vẫn giữ bảng cho hóa đơn nháp.
+  ⚠️ `useInvoicePayments` phải invalidate **cả `['invoice', id]` (số ít)** ngoài `['invoice-payments', id]` + `['invoices']` — `useInvoiceDetail` dùng key số ít, thiếu nó thì thêm đợt xong badge trạng thái trên header trang chi tiết đứng yên.
 - **Nút Hoàn tất đơn hàng**: `DonHangPage` thêm hành động `complete` (khi `processing`).
 - **Tự điều hướng sau convert**: convert tiềm năng → `/co-hoi`; báo giá → đơn hàng → `/don-hang`; đơn hàng → hóa đơn → `/hoa-don` (kèm toast).
 - **Link chéo**: chi tiết phiếu Chăm sóc → click "Hóa đơn #id" mở `/hoa-don`.
@@ -751,6 +799,10 @@ Toàn bộ logic nằm ở `src/shared/keyboard/`. Trước đó `ShortcutsPopup
 
 `SearchableSelect` có `data-form-field` trên trigger nên tham gia chuỗi điều hướng; `Enter` mở panel, `Esc` đóng, chọn xong trả focus về trigger. (Chưa hỗ trợ ↑↓ chọn option trong danh sách.)
 
+⚠️ **Prop `onSearchChange` — tìm kiếm phía server (2026-07-22)**: các hook lookup nạp sẵn một trang 500 dòng, nhưng `orders` và `contacts` trong dữ liệu thật đều **10.000 bản ghi** → bản ghi cần tìm gần như chắc chắn nằm ngoài trang đó, mà `SearchableSelect` chỉ lọc trong số option **đã nạp** ⇒ gõ gì cũng "Không tìm thấy". Truyền `onSearchChange` để bật chế độ server: component debounce **350ms** rồi báo từ khóa ra ngoài, nơi dùng gọi API (`useOrderSearch` → `GET /api/orders?q=&size=20`), và component **bỏ lọc cục bộ** (lọc lại sẽ cắt mất kết quả server). Kèm `loading` để hiện "Đang tìm…" và **bắt buộc** `fallbackLabel` vì bản ghi đang chọn thường không nằm trong trang kết quả. ⚠️ Backend chỉ tìm theo **mã** (`likeClause(q, "code")`) — đặt `searchPlaceholder` nói rõ điều đó.
+
+⚠️ **Prop `fallbackLabel` — ô khóa ngoại đừng hiện như "chưa chọn" (2026-07-22)**: `SearchableSelect` vốn lấy nhãn bằng `options.find(o => o.value === value)?.label`, không thấy thì rơi về placeholder `— Không chọn —`. Mà mọi hook lookup của form (`useCampaignList`, `useActiveUsers`, `useCustomerList`…) gọi list API — **bị lọc `owner_id` cho nhân viên, lọc `dataAccessFromYear`, và giới hạn 500 dòng**. Nên bản ghi trỏ tới chiến dịch/người phụ trách ngoài phạm vi đó hiển thị **y hệt như trống**, người dùng tưởng dữ liệu bị mất (dữ liệu vẫn nguyên trong DB). Các `*EditModal` nay truyền tên khóa ngoại BE đã trả sẵn (`item.campaignName`, `stageName`, `customerName`, `contactName`, `assignedUserName`, `ownerName`) vào `fallbackLabel`; `LeadEditModal` dùng `<select>` gốc nên chèn thêm một `<option>` cho giá trị ngoài danh sách. **Còn thiếu**: Result chưa có `pricePolicyName`/`unitName`/`categoryName` nên vài ô vẫn có thể trống — muốn vá phải bổ sung nguồn tên ở `INameResolver` (BE).
+
 **Trong popup xác nhận** — `useDialogKeyboardNav(ref, { onCancel, autoFocus })`: 4 mũi tên trần đổi qua lại giữa các nút footer (đánh dấu `data-dialog-button`), đi vòng tròn. Hook **chỉ bắt phím khi focus đang ở một nút** — đang gõ trong `textarea`/`select` thì mũi tên vẫn thuộc về ô đó. `Enter` do trình duyệt tự kích hoạt nút đang focus; `Esc` gọi `onCancel`.
 
 `ConfirmModal` tự focus nút **Hủy** khi `confirmDanger` (lỡ tay Enter không xóa mất bản ghi), ngược lại focus nút xác nhận. `ReasonModal`/`HandoverModal`/`ExportModal`/`TransferWorkModal` dùng `autoFocus: 'none'` vì có ô nhập cần điền trước.
@@ -775,6 +827,41 @@ Ba component gói sẵn các tổ hợp lặp lại: `CreateButton.tsx` (nút "T
 Kích thước nút: `px-2.5 py-1`, chữ `text-table` (13px), icon 13, `gap-1`; khe giữa các nút `gap-1.5`. `btnBase` trong `formStyles.ts` đã bị **xóa** (không còn ai dùng).
 
 Nhãn rút về một chữ: **Nhập / Xuất / Thêm / Bàn giao / Xóa**, thứ tự thống nhất mọi trang. Nút popup hiện `Hủy │ Esc` và `Xác nhận │ Enter` — hai phím này không cần handler mới (`Esc` đã có trong hook, `Enter` là hành vi mặc định của nút đang focus).
+
+---
+
+## 5d. Chuẩn báo lỗi & xác nhận trên mọi form (2026-07-22)
+
+Trước đợt này, bộ khung bàn phím + popup xác nhận chỉ phủ 11 `*AddPage` và 11 `*EditModal`.
+Các form còn lại (đăng nhập, kích hoạt, đăng ký NV, thiết lập tài khoản, Phân quyền, Chính sách giá,
+Pipeline, gửi email, thành viên chiến dịch, đợt thanh toán) chưa có Enter nhảy ô, chưa có Esc,
+và ghi dữ liệu không hỏi lại. Nay áp một quy ước duy nhất cho **toàn dự án**:
+
+| Tình huống | Cách xử lý |
+|-----------|-----------|
+| Thiếu / sai dữ liệu nhập | **Chữ đỏ ngay dưới ô đó** + viền đỏ (`FieldRow`/`FormField`/`FieldError` prop `error`). **Không** popup |
+| Sắp **thêm / sửa / xóa** bản ghi | **Popup xác nhận** — `useConfirm()`: `confirmCreate` / `confirmSave` / `confirmDelete` / `confirm` thô |
+| Form tra cứu, lọc, tìm kiếm | Không popup, không confirm. `Esc` đóng panel / xóa ô tìm kiếm |
+| Đăng nhập, kích hoạt | Chỉ lỗi đỏ dưới ô. **Không** popup xác nhận (không phải thao tác ghi bản ghi) |
+
+**Thứ tự bắt buộc trong hàm submit**: `e.preventDefault()` → `validate()` + `setErrors` → return nếu có lỗi
+→ `await confirm*()` → `mutate()`. Popup xác nhận **không bao giờ** mở khi dữ liệu còn sai.
+
+- **Khuôn validate**: state `errors: Record<string,string>`, tính bằng `collectErrors` + các hàm trong
+  `shared/utils/validators.ts`; hàm `set(patch)` xóa lỗi của đúng những field vừa gõ. Mọi `<form>` để
+  `noValidate` để bong bóng mặc định của trình duyệt không tranh chỗ với thông báo tiếng Việt.
+- **`confirmDelete(noun)`** (mới, `shared/confirm/ConfirmContext.tsx`) — popup xóa nền đỏ, focus sẵn nút Hủy.
+- **Gửi email ra ngoài cũng phải xác nhận**: `SendQuotationModal` (gửi báo giá cho khách) và
+  `SendEmailModal` (gửi hàng loạt cho thành viên chiến dịch) — email đã gửi không thu hồi được.
+  `ImportWizard` xác nhận kèm số dòng sắp nhập.
+- **Tab Phân quyền chuyển sang gom thay đổi**: tick checkbox chỉ đổi bản nháp trong bộ nhớ; hiện thanh
+  "Đã thay đổi n quyền" với **Hoàn tác** / **Lưu** (`Ctrl+S`), bấm Lưu mới qua popup rồi gọi API.
+  `PermissionsTab` báo `onDirtyChange` lên `PhanQuyenPage` để chặn đổi nhóm/đổi tab làm mất thay đổi.
+- **Form tra cứu**: `DataTable` đóng panel lọc/sắp xếp/tô màu/ẩn cột bằng `Esc` (một effect chung cho cả
+  4 panel); ô tìm kiếm của `TableToolbar` — `Esc` xóa nội dung và rời ô, `Enter` cố ý không làm gì.
+- **Bug đã vá**: `ContactAddPage` có khối kiểm tra email lọt **vào trong** `if (!form.ten.trim())` nên
+  email/SĐT sai chỉ được kiểm khi bỏ trống tên; `CampaignMembersTable` xóa khách hàng khỏi chiến dịch
+  không hỏi gì.
 
 ---
 

@@ -1,5 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { FiX, FiSearch } from 'react-icons/fi';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { useConfirm } from '@/shared/confirm/useConfirm';
+import { useDialogKeyboardNav } from '@/shared/keyboard/useDialogKeyboardNav';
+import { SHORTCUTS } from '@/shared/keyboard/shortcuts';
 
 export interface PickerOption {
     id: number;
@@ -9,6 +13,8 @@ export interface PickerOption {
 
 interface Props {
     title: string;
+    /** Danh từ nêu trong popup xác nhận, ví dụ 'sản phẩm vào chính sách giá'. */
+    confirmNoun: string;
     options: PickerOption[];
     existingIds: Set<number>;
     onAdd: (id: number) => void;
@@ -16,9 +22,17 @@ interface Props {
     isLoading: boolean;
 }
 
-/** Modal chọn 1 thực thể để thêm vào chính sách giá (mô phỏng AddMemberModal phân quyền). */
-const AddEntityModal = ({ title, options, existingIds, onAdd, onClose, isLoading }: Props) => {
+/**
+ * Modal chọn 1 thực thể để thêm vào chính sách giá (mô phỏng AddMemberModal phân quyền).
+ * Ô tìm kiếm là form tra cứu — Enter vô hại, không popup lỗi. Nút "Thêm" là hành động ghi
+ * nên phải qua popup xác nhận.
+ */
+const AddEntityModal = ({ title, confirmNoun, options, existingIds, onAdd, onClose, isLoading }: Props) => {
     const [search, setSearch] = useState('');
+    const { confirmCreate } = useConfirm();
+
+    const ref = useRef<HTMLDivElement>(null);
+    useDialogKeyboardNav(ref, { onCancel: onClose, autoFocus: 'none' });
 
     const candidates = useMemo(() => {
         const q = search.toLowerCase();
@@ -28,8 +42,13 @@ const AddEntityModal = ({ title, options, existingIds, onAdd, onClose, isLoading
         );
     }, [options, existingIds, search]);
 
+    const handleAdd = async (opt: PickerOption) => {
+        if (!(await confirmCreate(`"${opt.label}" — ${confirmNoun}`))) return;
+        onAdd(opt.id);
+    };
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div ref={ref} className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
             <div className="bg-white rounded-card shadow-xl w-full max-w-lg p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
@@ -67,24 +86,17 @@ const AddEntityModal = ({ title, options, existingIds, onAdd, onClose, isLoading
                                 <p className="text-md font-medium text-text-main">{opt.label}</p>
                                 {opt.sub && <p className="text-sm text-gray-400">{opt.sub}</p>}
                             </div>
-                            <button
-                                onClick={() => onAdd(opt.id)}
-                                disabled={isLoading}
-                                className="px-3 py-1 text-sm bg-primary text-white rounded-btn hover:opacity-90 disabled:opacity-50 transition-colors"
-                            >
+                            <ActionButton variant="primary" onClick={() => handleAdd(opt)} disabled={isLoading}>
                                 Thêm
-                            </button>
+                            </ActionButton>
                         </div>
                     ))}
                 </div>
 
                 <div className="flex justify-end mt-4">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-1.5 text-md text-gray-600 border border-gray-300 rounded-btn hover:bg-gray-50 transition-colors"
-                    >
+                    <ActionButton variant="secondary" dialogButton shortcut={SHORTCUTS.CANCEL.keys} onClick={onClose}>
                         Đóng
-                    </button>
+                    </ActionButton>
                 </div>
             </div>
         </div>

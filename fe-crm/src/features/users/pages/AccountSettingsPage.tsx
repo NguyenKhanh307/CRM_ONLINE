@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { FiUser, FiUpload, FiArrowLeft } from 'react-icons/fi';
+import { FiUser, FiUpload } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/useAuth';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useConfirm } from '@/shared/confirm/useConfirm';
-import { phoneError } from '@/shared/utils/validators';
+import { CenteredFormCard } from '@/shared/components/form/CenteredFormCard';
+import { FormField } from '@/shared/components/form/FormField';
+import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { SHORTCUTS } from '@/shared/keyboard/shortcuts';
+import { collectErrors, phoneError } from '@/shared/utils/validators';
 import { uploadImage } from '@/shared/utils/cloudinary';
 import { UserAvatar } from '@/shared/components/UserAvatar';
 import { useMyProfile } from '../hooks/useMyProfile';
@@ -30,7 +35,19 @@ const AccountSettingsPage = () => {
     const [phone, setPhone] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [uploading, setUploading] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const formRef = useRef<HTMLFormElement>(null);
+    // Không truyền onCancel: Esc không được xóa dữ liệu đang nhập.
+    // enabled: !isLoading vì form chỉ render sau khi hồ sơ tải xong.
+    useFormKeyboardNav(formRef, {
+        onSubmit: () => formRef.current?.requestSubmit(),
+        enabled: !isLoading,
+    });
+
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
     // Nạp dữ liệu form khi hồ sơ tải xong.
     useEffect(() => {
@@ -59,15 +76,14 @@ const AccountSettingsPage = () => {
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!fullName.trim()) {
-            showAlert('Họ và tên không được để trống.');
-            return;
-        }
-        const vErr = phoneError(phone);
-        if (vErr) {
-            showAlert(vErr);
-            return;
-        }
+
+        const found = collectErrors({
+            fullName: !fullName.trim() ? 'Vui lòng nhập họ và tên' : null,
+            phone: phoneError(phone),
+        });
+        setErrors(found);
+        if (Object.keys(found).length > 0) return;
+
         if (!(await confirmSave('thông tin tài khoản'))) return;
         mutate(
             {
@@ -85,30 +101,16 @@ const AccountSettingsPage = () => {
     };
 
     return (
-        <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="p-2 rounded hover:bg-gray-100 text-gray-500"
-                    title="Quay lại"
-                >
-                    <FiArrowLeft size={18} />
-                </button>
-                <div className="flex items-center justify-center w-9 h-9 rounded-card bg-primary">
-                    <FiUser size={18} className="text-white" />
-                </div>
-                <div>
-                    <h1 className="text-lg font-semibold text-text-main">Thiết lập tài khoản</h1>
-                    <p className="text-sm text-gray-500">Chỉnh sửa thông tin hồ sơ cá nhân của bạn</p>
-                </div>
-            </div>
-
-            <div className="bg-white rounded-card shadow-sm p-6 max-w-xl">
-                {isLoading ? (
-                    <p className="text-gray-400">Đang tải hồ sơ…</p>
-                ) : (
-                    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        <CenteredFormCard
+            icon={FiUser}
+            title="Thiết lập tài khoản"
+            subtitle="Chỉnh sửa thông tin hồ sơ cá nhân của bạn"
+            onBack={() => navigate(-1)}
+        >
+            {isLoading ? (
+                <p className="text-gray-400">Đang tải hồ sơ…</p>
+            ) : (
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="space-y-5">
                         {/* Ảnh đại diện */}
                         <div className="flex items-center gap-4">
                             <UserAvatar fullName={fullName || user?.fullName} avatarUrl={avatarUrl} size={80} />
@@ -138,8 +140,7 @@ const AccountSettingsPage = () => {
                         </div>
 
                         {/* Email — chỉ đọc */}
-                        <div>
-                            <label className="block text-md font-medium text-text-main mb-1">Email</label>
+                        <FormField label="Email" hint="Email đăng nhập không thể thay đổi.">
                             <input
                                 type="email"
                                 value={profile?.email ?? ''}
@@ -147,62 +148,47 @@ const AccountSettingsPage = () => {
                                 tabIndex={-1}
                                 className={`${inputCls} bg-gray-50 cursor-default`}
                             />
-                            <p className="text-xs text-gray-400 mt-1">Email đăng nhập không thể thay đổi.</p>
-                        </div>
+                        </FormField>
 
-                        {/* Họ tên */}
-                        <div>
-                            <label className="block text-md font-medium text-text-main mb-1">
-                                Họ và tên <span className="text-danger">*</span>
-                            </label>
+                        <FormField label="Họ và tên" required error={errors.fullName}>
                             <input
                                 type="text"
                                 value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
+                                onChange={(e) => { setFullName(e.target.value); clearError('fullName'); }}
                                 placeholder="Nguyễn Văn A"
-                                required
                                 maxLength={30}
                                 className={inputCls}
                             />
-                        </div>
+                        </FormField>
 
-                        {/* Số điện thoại */}
-                        <div>
-                            <label className="block text-md font-medium text-text-main mb-1">Số điện thoại</label>
+                        <FormField label="Số điện thoại" error={errors.phone}>
                             <input
                                 type="tel"
                                 value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
+                                onChange={(e) => { setPhone(e.target.value); clearError('phone'); }}
                                 placeholder="0901234567"
                                 maxLength={11}
                                 className={inputCls}
                             />
-                        </div>
+                        </FormField>
 
                         {/* Nút lưu */}
-                        <div className="flex justify-end gap-2 pt-2">
-                            <button
-                                type="button"
-                                onClick={() => navigate(-1)}
-                                className="border border-gray-300 text-text-main py-2 px-4 rounded-btn text-md font-medium hover:bg-gray-50 transition-colors"
-                            >
+                        <div className="flex justify-end gap-1.5 pt-2">
+                            <ActionButton variant="secondary" onClick={() => navigate(-1)}>
                                 Hủy
-                            </button>
-                            <button
+                            </ActionButton>
+                            <ActionButton
+                                variant="primary"
                                 type="submit"
                                 disabled={isPending || uploading}
-                                className="bg-primary text-white py-2 px-5 rounded-btn text-md font-medium hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                                shortcut={SHORTCUTS.SAVE.keys}
                             >
-                                {isPending && (
-                                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                )}
-                                Lưu thay đổi
-                            </button>
+                                {isPending ? 'Đang lưu…' : 'Lưu thay đổi'}
+                            </ActionButton>
                         </div>
                     </form>
                 )}
-            </div>
-        </div>
+        </CenteredFormCard>
     );
 };
 

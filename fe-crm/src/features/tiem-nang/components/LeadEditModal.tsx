@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect } from 'react';
-import { useAlert } from '@/shared/alert/useAlert';
-import { emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
+import { collectErrors, emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
+import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -24,7 +24,6 @@ const LEAD_STATUS_COLORS: Record<string, string> = {
 const LEAD_SOURCES = ['website', 'referral', 'social', 'email', 'event', 'other'];
 
 export function LeadEditModal({ item, onClose }: Props) {
-    const { showAlert } = useAlert();
     const { mutate, isPending } = useUpdateLead();
     const { data: campaigns } = useCampaignList();
     const [form, setForm] = useState<UpdateLeadPayload>({
@@ -46,6 +45,11 @@ export function LeadEditModal({ item, onClose }: Props) {
         });
     }, [item]);
 
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -58,10 +62,16 @@ export function LeadEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = emailError(form.email) ?? phoneError(form.phone) ?? taxCodeError(form.taxCode)
-            ?? nonNegativeError(form.estimatedValue, 'Giá trị ước tính');
-        if (vErr) { showAlert(vErr); return; }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = collectErrors({
+            email: emailError(form.email),
+            phone: phoneError(form.phone),
+            taxCode: taxCodeError(form.taxCode),
+            estimatedValue: nonNegativeError(form.estimatedValue, 'Giá trị ước tính'),
+        });
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmSave('tiềm năng'))) return;
         mutate({ id: item.id, payload: form }, { onSuccess: onClose });
     };
@@ -76,7 +86,7 @@ export function LeadEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa tiềm năng</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <div>
                         <label className={lbl}>Tên <span className="text-danger">*</span></label>
                         <input className={inp} required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
@@ -84,11 +94,15 @@ export function LeadEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Điện thoại</label>
-                            <input className={inp} value={form.phone ?? ''} onChange={e => setForm(f => ({ ...f, phone: e.target.value || null }))} />
+                            <FieldError error={errors.phone}>
+                                <input className={inp} value={form.phone ?? ''} onChange={e => { setForm(f => ({ ...f, phone: e.target.value || null })); clearError('phone'); }} />
+                            </FieldError>
                         </div>
                         <div>
                             <label className={lbl}>Email</label>
-                            <input type="email" className={inp} value={form.email ?? ''} onChange={e => setForm(f => ({ ...f, email: e.target.value || null }))} />
+                            <FieldError error={errors.email}>
+                                <input type="email" className={inp} value={form.email ?? ''} onChange={e => { setForm(f => ({ ...f, email: e.target.value || null })); clearError('email'); }} />
+                            </FieldError>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -110,12 +124,19 @@ export function LeadEditModal({ item, onClose }: Props) {
                         <label className={lbl}>Chiến dịch nguồn</label>
                         <select className={inp} value={form.campaignId ?? ''} onChange={e => setForm(f => ({ ...f, campaignId: e.target.value ? +e.target.value : null }))}>
                             <option value="">-- Không gắn chiến dịch --</option>
+                            {/* Chiến dịch ngoài phạm vi lookup (lọc owner/năm/500 dòng) vẫn phải hiện,
+                                nếu không ô sẽ trông như chưa gắn chiến dịch dù DB có dữ liệu. */}
+                            {form.campaignId != null && !campaigns?.some(c => c.id === form.campaignId) && (
+                                <option value={form.campaignId}>{item.campaignName ?? `#${form.campaignId}`}</option>
+                            )}
                             {campaigns?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className={lbl}>Giá trị dự kiến</label>
-                        <input type="number" className={inp} value={form.estimatedValue ?? ''} onChange={e => setForm(f => ({ ...f, estimatedValue: e.target.value ? +e.target.value : null }))} />
+                        <FieldError error={errors.estimatedValue}>
+                            <input type="number" className={inp} value={form.estimatedValue ?? ''} onChange={e => { setForm(f => ({ ...f, estimatedValue: e.target.value ? +e.target.value : null })); clearError('estimatedValue'); }} />
+                        </FieldError>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
@@ -140,7 +161,9 @@ export function LeadEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Mã số thuế</label>
-                            <input className={inp} value={form.taxCode ?? ''} onChange={e => setForm(f => ({ ...f, taxCode: e.target.value || null }))} />
+                            <FieldError error={errors.taxCode}>
+                                <input className={inp} value={form.taxCode ?? ''} onChange={e => { setForm(f => ({ ...f, taxCode: e.target.value || null })); clearError('taxCode'); }} />
+                            </FieldError>
                         </div>
                         <div>
                             <label className={lbl}>Website</label>

@@ -1,5 +1,6 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
-import { dateRangeError } from '@/shared/utils/validators';
+import { collectErrors, dateRangeError } from '@/shared/utils/validators';
+import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -11,7 +12,9 @@ import { quotationService } from '../services/quotationService';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
+import { usePricePolicyList } from '@/features/chinh-sach-gia/hooks/usePricePolicyList';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import { DateInput } from '@/shared/components/form/DateInput';
 import {
@@ -41,9 +44,10 @@ export function QuotationEditModal({ item, onClose }: Props) {
     const { mutateAsync, isPending } = useUpdateQuotation();
     const { data: products = [] } = useProductList();
     const { data: campaigns = [] } = useCampaignList();
+    const { data: pricePolicies = [] } = usePricePolicyList();
     const [pulling, setPulling] = useState(false);
     const [form, setForm] = useState<UpdateQuotationPayload>({
-        customerId: null, contactId: null, campaignId: null, ownerId: null, quoteDate: null,
+        customerId: null, contactId: null, campaignId: null, pricePolicyId: null, ownerId: null, quoteDate: null,
         validUntil: null, currency: 'VND', exchangeRate: 1,
         subtotal: null, discount: null, tax: null, total: null, note: null,
     });
@@ -56,12 +60,13 @@ export function QuotationEditModal({ item, onClose }: Props) {
         [products],
     );
     const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
+    const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
 
     useEffect(() => {
         if (!item) return;
         setForm({
             customerId: item.customerId, contactId: item.contactId, opportunityId: item.opportunityId,
-            campaignId: item.campaignId,
+            campaignId: item.campaignId, pricePolicyId: item.pricePolicyId,
             ownerId: item.ownerId, quoteDate: item.quoteDate, validUntil: item.validUntil,
             currency: item.currency, exchangeRate: item.exchangeRate,
             subtotal: item.subtotal, discount: item.discount, tax: item.tax, total: item.total, note: item.note,
@@ -72,6 +77,11 @@ export function QuotationEditModal({ item, onClose }: Props) {
             setOriginalRows(loaded);
         });
     }, [item]);
+
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    const clearError = (key: string) =>
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
@@ -85,9 +95,14 @@ export function QuotationEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Kiểm tra biên (khớp ràng buộc backend) — chặn submit nếu dữ liệu không hợp lệ
-        const vErr = dateRangeError(form.quoteDate, form.validUntil, 'ngày báo giá', 'Ngày hiệu lực') ?? validateLineItems(rows);
-        if (vErr) { showAlert(vErr); return; }
+        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        const errs = collectErrors({
+            validUntil: dateRangeError(form.quoteDate, form.validUntil, 'ngày báo giá', 'Ngày hiệu lực'),
+            items: validateLineItems(rows),
+        });
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
         if (!(await confirmSave('báo giá'))) return;
         setSaving(true);
         try {
@@ -142,7 +157,7 @@ export function QuotationEditModal({ item, onClose }: Props) {
                     <h2 className="text-lg font-semibold text-text-main">Chỉnh sửa báo giá</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
                 </div>
-                <form ref={formRef} onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Ngày báo giá</label>
@@ -150,7 +165,9 @@ export function QuotationEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Hiệu lực đến</label>
-                            <DateInput value={form.validUntil ?? ''} onChange={v => setForm(f => ({ ...f, validUntil: v || null }))} />
+                            <FieldError error={errors.validUntil}>
+                                <DateInput value={form.validUntil ?? ''} onChange={v => { setForm(f => ({ ...f, validUntil: v || null })); clearError('validUntil'); }} />
+                            </FieldError>
                         </div>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
@@ -171,11 +188,27 @@ export function QuotationEditModal({ item, onClose }: Props) {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
+                            <label className={lbl}>Cơ hội</label>
+                            <RecordPicker module="opportunity"
+                                value={form.opportunityId != null ? String(form.opportunityId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, opportunityId: v ? Number(v) : null }))}
+                                fallbackLabel={item.opportunityName} />
+                        </div>
+                        <div>
                             <label className={lbl}>Chiến dịch</label>
                             <SearchableSelect
                                 value={form.campaignId != null ? String(form.campaignId) : ''}
                                 onChange={(v) => setForm(f => ({ ...f, campaignId: v ? Number(v) : null }))}
                                 options={campaignOptions}
+                                fallbackLabel={item.campaignName}
+                            />
+                        </div>
+                        <div>
+                            <label className={lbl}>Chính sách giá</label>
+                            <SearchableSelect
+                                value={form.pricePolicyId != null ? String(form.pricePolicyId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, pricePolicyId: v ? Number(v) : null }))}
+                                options={pricePolicyOptions}
                             />
                         </div>
                     </div>
@@ -195,7 +228,9 @@ export function QuotationEditModal({ item, onClose }: Props) {
                                 </button>
                             )}
                         </div>
-                        <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />
+                        <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax
+                            pricePolicyId={form.pricePolicyId} />
+                        {errors.items && <p className="text-xs text-danger mt-1">{errors.items}</p>}
                     </div>
                     {item.customerResponse && (
                         <div className="rounded-btn border border-gray-200 bg-gray-50 p-3">

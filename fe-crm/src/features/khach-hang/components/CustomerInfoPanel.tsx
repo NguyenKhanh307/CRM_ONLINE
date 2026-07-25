@@ -28,7 +28,6 @@ export const CustomerInfoPanel = ({ customer: c }: CustomerInfoPanelProps) => (
         </div>
         <div>
             <InfoRow label="Người phụ trách" value={c.ownerName} />
-            <InfoRow label="Đơn vị" value={c.unitName} />
             <InfoRow label="Xếp hạng" value={c.rating} />
             <InfoRow label="Số ngày được nợ" value={c.creditDays != null ? formatNumber(c.creditDays) : null} />
             <InfoRow label="Hạn mức nợ" value={c.creditLimit != null ? formatCurrency(c.creditLimit) : null} />

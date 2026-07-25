@@ -38,7 +38,9 @@ public class NameResolverImpl implements INameResolver {
     /** {@inheritDoc} */
     @Override public Map<Long, String> quotationCodes(Collection<Long> ids) { return resolve("quotations", "code", ids); }
     /** {@inheritDoc} */
-    @Override public Map<Long, String> orgUnits(Collection<Long> ids) { return resolve("org_units", "name", ids); }
+    @Override public Map<Long, String> orderCodes(Collection<Long> ids) { return resolve("orders", "code", ids); }
+    /** {@inheritDoc} */
+    @Override public Map<Long, String> invoiceCodes(Collection<Long> ids) { return resolve("invoices", "code", ids); }
     /** {@inheritDoc} */
     @Override public Map<Long, String> stages(Collection<Long> ids) { return resolve("opportunity_stages", "name", ids); }
     /** {@inheritDoc} */

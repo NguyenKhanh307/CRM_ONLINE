@@ -30,6 +30,5 @@ public class CreateUserRequest {
     private String phone;
 
     private String avatarUrl;
-    private Long unitId;
     private UserStatus status;
 }

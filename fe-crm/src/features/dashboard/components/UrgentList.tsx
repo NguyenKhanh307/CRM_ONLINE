@@ -1,9 +1,15 @@
 import { Link } from 'react-router-dom';
 import { FiLifeBuoy, FiTag, FiFileText } from 'react-icons/fi';
+import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
 import type { UrgentItem } from '../types/dashboardTypes';
 
 interface Props {
     items: UrgentItem[];
+    /**
+     * Chiều cao tối đa khung cuộn (px). Mặc định ~6,5 mục — cố ý để lộ một phần mục kế tiếp
+     * làm tín hiệu còn nội dung bên dưới. Dòng cao không đều nên dùng px thay vì `visibleRows`.
+     */
+    maxHeight?: number;
 }
 
 /** Ánh xạ loại việc gấp → route + icon + màu. */
@@ -15,10 +21,13 @@ const META: Record<UrgentItem['type'], { to: (id: number | null) => string; icon
 
 /**
  * Danh sách việc gấp — mỗi mục link tới bản ghi liên quan.
+ * BE gộp 3 nguồn (phiếu quá hạn SLA / báo giá sắp hết hạn / hóa đơn quá hạn), mỗi nguồn tối đa 6
+ * ⇒ tới 18 mục, nên danh sách phải tự cuộn thay vì kéo dài thẻ dashboard.
  */
-export const UrgentList = ({ items }: Props) => {
+export const UrgentList = ({ items, maxHeight = 340 }: Props) => {
     if (items.length === 0) return <p className="text-sm text-gray-400 py-8 text-center">Không có việc gấp 🎉</p>;
     return (
+        <ScrollFrame maxHeight={maxHeight}>
         <ul className="divide-y divide-gray-100">
             {items.map((it, i) => {
                 const m = META[it.type];
@@ -38,5 +47,6 @@ export const UrgentList = ({ items }: Props) => {
                 );
             })}
         </ul>
+        </ScrollFrame>
     );
 };
