@@ -49,7 +49,7 @@ public class ProductController {
     }
 
     /** Tạo mới hàng hóa. @param cmd JSON body @return 201 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('product.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<ProductResult>> create(@Valid @RequestBody CreateProductCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -74,7 +74,7 @@ public class ProductController {
     }
 
     /** Cập nhật hàng hóa. @param id ID @param cmd JSON body @return 200 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('product.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResult>> update(@PathVariable Long id,
                                                               @Valid @RequestBody UpdateProductCommand cmd) {
@@ -88,7 +88,7 @@ public class ProductController {
     }
 
     /** Xóa mềm hàng hóa. @param id ID @param req HTTP request @return 204 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('product.delete')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, HttpServletRequest req) {
         Long userId = (Long) req.getAttribute("userId");
@@ -108,21 +108,21 @@ public class ProductController {
     }
 
     /** Khôi phục hàng hóa từ thùng rác. @param id ID @return 200 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('product.delete')")
     @PostMapping("/{id}/restore")
     public ResponseEntity<ApiResponse<Void>> restore(@PathVariable Long id) {
         restoreUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Xóa vĩnh viễn hàng hóa khỏi thùng rác. @param id ID @return 200 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('product.delete')")
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Nhập hàng loạt hàng hóa từ file. @param cmd body @return 200 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('product.import')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkProductCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));

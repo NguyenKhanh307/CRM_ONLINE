@@ -53,6 +53,7 @@ public class InvoiceController {
     }
 
     /** Tạo mới đơn hàng. @param cmd JSON body @return 201 */
+    @PreAuthorize("hasAuthority('invoice.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<InvoiceResult>> create(@Valid @RequestBody CreateInvoiceCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -81,6 +82,7 @@ public class InvoiceController {
     }
 
     /** Cập nhật đơn hàng. @param id ID @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('invoice.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<InvoiceResult>> update(@PathVariable Long id, @Valid @RequestBody UpdateInvoiceCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
@@ -112,7 +114,7 @@ public class InvoiceController {
     }
 
     /** Xóa mềm đơn hàng. @param id ID @param req HTTP request @return 204 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('invoice.delete')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, HttpServletRequest req) {
         Long userId = (Long) req.getAttribute("userId");
@@ -132,21 +134,21 @@ public class InvoiceController {
     }
 
     /** Khôi phục đơn hàng từ thùng rác. @param id ID @return 200 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('invoice.delete')")
     @PostMapping("/{id}/restore")
     public ResponseEntity<ApiResponse<Void>> restore(@PathVariable Long id) {
         restoreUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Xóa vĩnh viễn đơn hàng khỏi thùng rác. @param id ID @return 200 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('invoice.delete')")
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Nhập hàng loạt đơn hàng từ file. @param cmd body @return 200 */
-    @PreAuthorize("hasAuthority('invoice.create')")
+    @PreAuthorize("hasAuthority('invoice.import')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkInvoiceCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));

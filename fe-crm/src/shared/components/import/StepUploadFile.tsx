@@ -11,12 +11,28 @@ interface Props {
 const MAX_SIZE_MB = 20;
 const MAX_ROWS = 5000;
 
-function downloadTemplate(fields: ImportField[], fullVersion: boolean) {
-    const headers = fullVersion ? fields.map(f => f.label) : fields.filter(f => f.required).map(f => f.label);
-    const ws = XLSX.utils.aoa_to_sheet([headers]);
+/** Sinh giá trị mẫu theo kiểu field, để người dùng hình dung định dạng cần nhập (dòng thứ 0/1). */
+function sampleValue(field: ImportField, rowIndex: 0 | 1): string {
+    switch (field.type) {
+        case 'number':
+            return rowIndex === 0 ? '100' : '200';
+        case 'date':
+            return rowIndex === 0 ? '01/01/2025' : '15/06/2025';
+        case 'enum':
+            return field.enumValues?.[rowIndex] ?? field.enumValues?.[0] ?? '';
+        default:
+            return `${field.label} mẫu ${rowIndex + 1}`;
+    }
+}
+
+function downloadTemplate(fields: ImportField[]) {
+    const headers = fields.map(f => f.label);
+    const sampleRow1 = fields.map(f => sampleValue(f, 0));
+    const sampleRow2 = fields.map(f => sampleValue(f, 1));
+    const ws = XLSX.utils.aoa_to_sheet([headers, sampleRow1, sampleRow2]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-    XLSX.writeFile(wb, fullVersion ? 'template_day_du.xlsx' : 'template_rut_gon.xlsx');
+    XLSX.writeFile(wb, 'template.xlsx');
 }
 
 export const StepUploadFile = ({ fields, onParsed }: Props) => {
@@ -114,32 +130,18 @@ export const StepUploadFile = ({ fields, onParsed }: Props) => {
                 <li>Cho phép tối đa {MAX_ROWS.toLocaleString('vi-VN')} dòng dữ liệu</li>
             </ul>
 
-            {/* Template downloads */}
+            {/* Template download */}
             <div className="space-y-2">
                 <button
                     type="button"
-                    onClick={() => downloadTemplate(fields, false)}
+                    onClick={() => downloadTemplate(fields)}
                     className="w-full flex items-center justify-between px-4 py-3 rounded-card border border-gray-200 bg-white hover:bg-gray-50 text-md text-text-main"
                 >
                     <div className="flex items-center gap-3">
                         <span className="w-6 h-6 bg-success rounded flex items-center justify-center text-white text-sm font-bold">X</span>
                         <div className="text-left">
-                            <p className="font-medium">Tải tệp mẫu rút gọn</p>
-                            <p className="text-sm text-gray-400">Bao gồm các trường bắt buộc và thông tin cơ bản khác</p>
-                        </div>
-                    </div>
-                    <FiDownload size={16} className="text-gray-400" />
-                </button>
-                <button
-                    type="button"
-                    onClick={() => downloadTemplate(fields, true)}
-                    className="w-full flex items-center justify-between px-4 py-3 rounded-card border border-gray-200 bg-white hover:bg-gray-50 text-md text-text-main"
-                >
-                    <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 bg-success rounded flex items-center justify-center text-white text-sm font-bold">X</span>
-                        <div className="text-left">
-                            <p className="font-medium">Tải tệp mẫu đầy đủ</p>
-                            <p className="text-sm text-gray-400">Bao gồm đầy đủ các trường</p>
+                            <p className="font-medium">Tải tệp mẫu</p>
+                            <p className="text-sm text-gray-400">Đầy đủ các trường, kèm 2 dòng dữ liệu mẫu để tham khảo</p>
                         </div>
                     </div>
                     <FiDownload size={16} className="text-gray-400" />

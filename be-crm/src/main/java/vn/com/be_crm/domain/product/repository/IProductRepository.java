@@ -5,6 +5,7 @@ import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.application.shared.dto.PageResult;
 import vn.com.be_crm.domain.product.entity.Product;
 
+import java.util.List;
 import java.util.Optional;
 
 /** Port lưu trữ cho Product. */
@@ -21,6 +22,13 @@ public interface IProductRepository {
      * @param sku mã SKU @return Optional
      */
     Optional<Product> findBySku(String sku);
+
+    /**
+     * Lấy toàn bộ hàng hóa thuộc 1 danh mục (chưa xóa mềm) — dùng để bulk-seed sản phẩm vào
+     * chính sách giá khi chọn danh mục ({@code price_policy_product_categories}).
+     * @param categoryId ID danh mục @return danh sách hàng hóa
+     */
+    List<Product> findAllByCategoryId(Long categoryId);
 
     /**
      * Xóa mềm hàng hóa theo ID, ghi nhận người xóa.

@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class CreateProductCategoryCommand {
     @NotBlank(message = "Mã danh mục không được để trống") @Size(max = 20) private String code;
     @NotBlank(message = "Tên danh mục không được để trống") @Size(max = 40) private String name;
-    private Long parentId;
     private Integer sortOrder;
     private Boolean isActive;
 }

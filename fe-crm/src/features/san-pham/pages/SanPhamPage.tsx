@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiTrash2, FiUpload, FiDownload } from 'react-icons/fi';
+import { FiTrash2, FiUpload, FiDownload, FiFolder } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
@@ -27,8 +27,7 @@ const QUICK_FILTERS = [
 
 const SanPhamPage = () => {
     const navigate = useNavigate();
-    // Master data: product chỉ có quyền .view → create/edit/delete gate bằng role ADMIN/SALES_MANAGER
-    // (helper can() tự xử lý qua MANAGE_BY_ROLE) — sale chỉ xem
+    // product.create/edit/delete/import/export (2026-07-28) — mã quyền riêng, không còn gate cứng theo role
     const { can } = usePermission();
     const goCreate = () => navigate('/san-pham/them-moi');
     usePageShortcuts({ onCreate: can('product', 'create') ? goCreate : undefined });
@@ -60,6 +59,9 @@ const SanPhamPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Sản phẩm</h1>
                 <div className="flex items-center gap-1.5">
+                    <ActionButton variant="secondary" icon={FiFolder} onClick={() => navigate('/san-pham/danh-muc')}>
+                        Danh mục
+                    </ActionButton>
                     {can('product', 'import') && (
                         <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/san-pham/nhap-file')}>
                             Nhập

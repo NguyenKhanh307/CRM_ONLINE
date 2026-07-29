@@ -71,6 +71,17 @@ export function badgeCell(labels: Record<string, string>, colors: Record<string,
     };
 }
 
+/** Tag trung tính cho chuỗi tự do (vd tên danh mục) — không cần bảng màu cố định theo giá trị như badgeCell. */
+export function tagCell<T>({ getValue }: CellContext<T, unknown>) {
+    const v = getValue() as string | null;
+    if (v == null || v === '') return '—';
+    return (
+        <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-sm">
+            {v}
+        </span>
+    );
+}
+
 /** Resolve ID khóa ngoại sang tên qua map; null → "—", chưa load → "#id". */
 export function fkCell(map: Map<number, string>) {
     return function FkCell<T>({ getValue }: CellContext<T, unknown>) {

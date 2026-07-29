@@ -55,20 +55,25 @@ public class ImportBulkCustomerUseCase {
                 if (existing.isPresent()) {
                     Customer e = existing.get();
                     repo.save(Customer.builder()
-                            .id(e.getId()).code(e.getCode()).name(row.name()).shortName(e.getShortName())
+                            .id(e.getId()).code(e.getCode()).name(row.name())
+                            .shortName(row.shortName() != null ? row.shortName() : e.getShortName())
                             .type(type)
                             .taxCode(row.taxCode() != null ? row.taxCode() : e.getTaxCode())
                             .phone(row.phone() != null ? row.phone() : e.getPhone())
                             .email(row.email() != null ? row.email() : e.getEmail())
-                            .website(e.getWebsite())
+                            .website(row.website() != null ? row.website() : e.getWebsite())
                             .address(row.address() != null ? row.address() : e.getAddress())
-                            .industry(e.getIndustry())
+                            .industry(row.industry() != null ? row.industry() : e.getIndustry())
                             .source(row.source() != null ? row.source() : e.getSource())
                             .status(status)
-                            .creditDays(e.getCreditDays()).creditLimit(e.getCreditLimit())
-                            .bankAccount(e.getBankAccount()).bankName(e.getBankName())
-                            .rating(e.getRating()).annualRevenue(e.getAnnualRevenue())
-                            .employeeSize(e.getEmployeeSize()).isDistributor(e.isDistributor())
+                            .creditDays(row.creditDays() != null ? row.creditDays() : e.getCreditDays())
+                            .creditLimit(row.creditLimit() != null ? row.creditLimit() : e.getCreditLimit())
+                            .bankAccount(row.bankAccount() != null ? row.bankAccount() : e.getBankAccount())
+                            .bankName(row.bankName() != null ? row.bankName() : e.getBankName())
+                            .rating(row.rating() != null ? row.rating() : e.getRating())
+                            .annualRevenue(row.annualRevenue() != null ? row.annualRevenue() : e.getAnnualRevenue())
+                            .employeeSize(row.employeeSize() != null ? row.employeeSize() : e.getEmployeeSize())
+                            .isDistributor(row.isDistributor() != null ? row.isDistributor() : e.isDistributor())
                             .ownerId(ownerId != null ? ownerId : e.getOwnerId())
                             .createdAt(e.getCreatedAt()).build());
                     success++;
@@ -76,10 +81,16 @@ public class ImportBulkCustomerUseCase {
                 } else if (isCreate) {
                     String code = "KH-" + System.currentTimeMillis() + "-" + rowNum;
                     repo.save(Customer.builder()
-                            .code(code).name(row.name()).type(type)
+                            .code(code).name(row.name()).shortName(row.shortName()).type(type)
                             .taxCode(row.taxCode()).phone(row.phone()).email(row.email())
-                            .address(row.address()).source(row.source())
+                            .website(row.website()).address(row.address()).industry(row.industry())
+                            .source(row.source())
                             .status(status).ownerId(ownerId)
+                            .creditDays(row.creditDays()).creditLimit(row.creditLimit())
+                            .bankAccount(row.bankAccount()).bankName(row.bankName())
+                            .rating(row.rating()).annualRevenue(row.annualRevenue())
+                            .employeeSize(row.employeeSize())
+                            .isDistributor(row.isDistributor() != null && row.isDistributor())
                             .build());
                     success++;
                 }

@@ -8,6 +8,9 @@ export function useUpdateOrder() {
     return useMutation({
         mutationFn: ({ id, payload }: { id: number; payload: UpdateOrderPayload }) =>
             orderService.update(id, payload),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
+        onSuccess: (_d, v) => {
+            qc.invalidateQueries({ queryKey: ['orders'] });
+            qc.invalidateQueries({ queryKey: ['order', v.id] });
+        },
     });
 }

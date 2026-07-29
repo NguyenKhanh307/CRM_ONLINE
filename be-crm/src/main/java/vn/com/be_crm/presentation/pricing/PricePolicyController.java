@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.pricing.command.*;
 import vn.com.be_crm.application.pricing.dto.*;
 import vn.com.be_crm.application.pricing.query.*;
+import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.presentation.shared.ApiResponse;
 import vn.com.be_crm.presentation.shared.PageResponse;
@@ -22,12 +23,14 @@ public class PricePolicyController {
     private final DeletePricePolicyUseCase deleteUC;
     private final GetPricePolicyUseCase getUC;
     private final ListPricePolicyUseCase listUC;
+    private final ImportBulkPricePolicyUseCase importBulkUC;
 
-    /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách */
+    /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách @param importBulkUC nhập hàng loạt */
     public PricePolicyController(CreatePricePolicyUseCase createUC, UpdatePricePolicyUseCase updateUC,
-                                  DeletePricePolicyUseCase deleteUC, GetPricePolicyUseCase getUC, ListPricePolicyUseCase listUC) {
+                                  DeletePricePolicyUseCase deleteUC, GetPricePolicyUseCase getUC, ListPricePolicyUseCase listUC,
+                                  ImportBulkPricePolicyUseCase importBulkUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
-        this.getUC = getUC; this.listUC = listUC;
+        this.getUC = getUC; this.listUC = listUC; this.importBulkUC = importBulkUC;
     }
 
     /** Tạo mới chính sách giá. @param cmd JSON body @return 201 */
@@ -68,5 +71,12 @@ public class PricePolicyController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         deleteUC.execute(id); return ResponseEntity.noContent().build();
+    }
+
+    /** Nhập hàng loạt chính sách giá từ file. @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('pricing.import')")
+    @PostMapping("/import-bulk")
+    public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkPricePolicyCommand cmd) {
+        return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 }

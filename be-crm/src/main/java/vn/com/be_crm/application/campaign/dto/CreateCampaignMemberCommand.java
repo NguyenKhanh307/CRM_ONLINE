@@ -1,5 +1,7 @@
 package vn.com.be_crm.application.campaign.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +16,6 @@ public class CreateCampaignMemberCommand {
     private Long leadId;
     private Long contactId;
     @Size(max = 100) private String name;
-    @Size(max = 100) private String email;
+    @NotBlank(message = "Email không được để trống") @Email(message = "Email không đúng định dạng") @Size(max = 100) private String email;
     @Size(max = 20) private String phone;
 }

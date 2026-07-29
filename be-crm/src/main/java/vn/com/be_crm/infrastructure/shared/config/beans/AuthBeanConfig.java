@@ -195,4 +195,10 @@ public class AuthBeanConfig {
                                                          IUserRepository userRepo) {
         return new ListRoleMembersUseCase(userRoleRepo, userRepo);
     }
+
+    /** @return ListUserRoleAssignmentsUseCase được inject IUserRoleRepository */
+    @Bean
+    public ListUserRoleAssignmentsUseCase listUserRoleAssignmentsUseCase(IUserRoleRepository repo) {
+        return new ListUserRoleAssignmentsUseCase(repo);
+    }
 }

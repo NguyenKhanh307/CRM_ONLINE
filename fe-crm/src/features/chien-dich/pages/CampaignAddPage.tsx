@@ -136,13 +136,13 @@ const CampaignAddPage = () => {
                                 <DateInput value={form.endDate} onChange={(v) => set({ endDate: v })} />
                             </FieldRow>
                             <FieldRow label="Ngân sách">
-                                <input type="number" value={form.budget} onChange={(e) => set({ budget: e.target.value })} className={inputCls} />
+                                <input type="number" min={0} value={form.budget} onChange={(e) => set({ budget: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Quy mô mục tiêu">
-                                <input type="number" value={form.targetSize} onChange={(e) => set({ targetSize: e.target.value })} className={inputCls} />
+                                <input type="number" min={0} value={form.targetSize} onChange={(e) => set({ targetSize: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Doanh số kỳ vọng">
-                                <input type="number" value={form.expectedRevenue} onChange={(e) => set({ expectedRevenue: e.target.value })} className={inputCls} />
+                                <input type="number" min={0} value={form.expectedRevenue} onChange={(e) => set({ expectedRevenue: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
                     </div>

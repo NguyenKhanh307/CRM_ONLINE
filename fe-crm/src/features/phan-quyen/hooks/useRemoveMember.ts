@@ -10,6 +10,7 @@ export const useRemoveMember = (roleId: number) => {
         mutationFn: (userId: number) => phanQuyenService.removeMember(userId, roleId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['roleMembers', roleId] });
+            queryClient.invalidateQueries({ queryKey: ['allUserRoles'] });
         },
     });
 };

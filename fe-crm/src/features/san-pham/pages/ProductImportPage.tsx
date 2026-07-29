@@ -3,14 +3,17 @@ import type { ImportField } from '@/shared/components/import/importTypes';
 import { useImportProductBulk } from '../hooks/useImportProductBulk';
 
 const FIELDS: ImportField[] = [
-    { key: 'name',        label: 'Tên sản phẩm', required: true, type: 'text' },
-    { key: 'sku',         label: 'Mã SKU',                        type: 'text' },
-    { key: 'type',        label: 'Loại',                          type: 'enum', enumValues: ['Vật tư hàng hóa', 'Dịch vụ'] },
-    { key: 'unit',        label: 'Đơn vị tính',                   type: 'text' },
-    { key: 'basePrice',   label: 'Giá bán',                       type: 'number' },
-    { key: 'costPrice',   label: 'Giá vốn',                       type: 'number' },
-    { key: 'vatRate',     label: 'Thuế VAT (%)',                   type: 'number' },
-    { key: 'description', label: 'Mô tả',                         type: 'text' },
+    { key: 'name',           label: 'Tên sản phẩm', required: true, type: 'text' },
+    { key: 'sku',            label: 'Mã SKU',                        type: 'text' },
+    { key: 'categoryId',     label: 'ID danh mục',                   type: 'number' },
+    { key: 'type',           label: 'Loại',                          type: 'enum', enumValues: ['Vật tư hàng hóa', 'Dịch vụ'] },
+    { key: 'unit',           label: 'Đơn vị tính',                   type: 'text' },
+    { key: 'basePrice',      label: 'Giá bán',                       type: 'number' },
+    { key: 'costPrice',      label: 'Giá vốn',                       type: 'number' },
+    { key: 'vatRate',        label: 'Thuế VAT (%)',                   type: 'number' },
+    { key: 'description',    label: 'Mô tả',                         type: 'text' },
+    { key: 'isDiscontinued', label: 'Ngừng theo dõi',                type: 'enum', enumValues: ['true', 'false'] },
+    { key: 'isActive',       label: 'Đang hoạt động',                type: 'enum', enumValues: ['true', 'false'] },
 ];
 
 const ProductImportPage = () => {

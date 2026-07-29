@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FiTrash2, FiShare2, FiDownload } from 'react-icons/fi';
+import { FiTrash2, FiShare2, FiDownload, FiUpload } from 'react-icons/fi';
 import type { ColumnDef } from '@tanstack/react-table';
 import { PageHeaderSlot } from '@/shared/components/layout/PageHeaderSlot';
 import { ActionButton } from '@/shared/components/ActionButton';
@@ -70,6 +70,11 @@ const ChamSocPage = () => {
             <PageHeaderSlot>
                 <h1 className="text-lg font-semibold text-text-main truncate">Chăm sóc sau bán</h1>
                 <div className="flex items-center gap-1.5">
+                    {can('ticket', 'import') && (
+                        <ActionButton variant="secondary" icon={FiUpload} onClick={() => navigate('/cham-soc/nhap-file')}>
+                            Nhập
+                        </ActionButton>
+                    )}
                     {can('ticket', 'export') && (
                         <ActionButton variant="secondary" icon={FiDownload} onClick={() => setExportOpen(true)}>
                             Xuất{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}

@@ -52,14 +52,15 @@ public class ImportBulkProductUseCase {
                     Product e = existing.get();
                     repo.save(Product.builder()
                             .id(e.getId()).sku(e.getSku()).name(row.name())
-                            .categoryId(e.getCategoryId())
+                            .categoryId(row.categoryId() != null ? row.categoryId() : e.getCategoryId())
                             .type(type != null ? type : e.getType())
                             .unit(row.unit() != null ? row.unit() : e.getUnit())
                             .basePrice(row.basePrice() != null ? row.basePrice() : e.getBasePrice())
                             .costPrice(row.costPrice() != null ? row.costPrice() : e.getCostPrice())
                             .vatRate(row.vatRate() != null ? row.vatRate() : e.getVatRate())
                             .description(row.description() != null ? row.description() : e.getDescription())
-                            .isActive(e.getIsActive()).isDiscontinued(e.getIsDiscontinued())
+                            .isActive(row.isActive() != null ? row.isActive() : e.getIsActive())
+                            .isDiscontinued(row.isDiscontinued() != null ? row.isDiscontinued() : e.getIsDiscontinued())
                             .createdAt(e.getCreatedAt()).build());
                     success++;
                 // Chưa có và được phép tạo mới → thêm mới
@@ -69,11 +70,13 @@ public class ImportBulkProductUseCase {
                             : "SKU-" + System.currentTimeMillis() + "-" + rowNum;
                     repo.save(Product.builder()
                             .sku(sku).name(row.name())
+                            .categoryId(row.categoryId())
                             .type(type != null ? type : ProductType.goods)
                             .unit(row.unit()).basePrice(row.basePrice())
                             .costPrice(row.costPrice()).vatRate(row.vatRate())
                             .description(row.description())
-                            .isActive(true).isDiscontinued(false)
+                            .isActive(row.isActive() != null ? row.isActive() : true)
+                            .isDiscontinued(row.isDiscontinued() != null && row.isDiscontinued())
                             .build());
                     success++;
                 }

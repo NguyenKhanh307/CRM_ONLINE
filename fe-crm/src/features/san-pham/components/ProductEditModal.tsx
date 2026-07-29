@@ -1,12 +1,14 @@
-import { useRef, useState, type FormEvent, useEffect } from 'react';
+import { useMemo, useRef, useState, type FormEvent, useEffect } from 'react';
 import { collectErrors, nonNegativeError, percentError, sellPriceError } from '@/shared/utils/validators';
 import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
+import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { FiX } from 'react-icons/fi';
 import type { ProductResult, UpdateProductPayload } from '../types/productTypes';
 import { useUpdateProduct } from '../hooks/useUpdateProduct';
+import { useProductCategories } from '../hooks/useProductCategories';
 
 interface Props {
     item: ProductResult | null;
@@ -21,6 +23,8 @@ const PRODUCT_TYPE_OPTIONS: { value: string; label: string }[] = [
 
 export function ProductEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateProduct();
+    const { data: categories = [] } = useProductCategories();
+    const categoryOptions = useMemo(() => categories.map((c) => ({ value: String(c.id), label: c.name })), [categories]);
     const [form, setForm] = useState<UpdateProductPayload>({
         name: '',
         categoryId: null,
@@ -109,17 +113,26 @@ export function ProductEditModal({ item, onClose }: Props) {
                             <input className={inp} value={form.unit ?? ''} onChange={e => setForm(f => ({ ...f, unit: e.target.value || null }))} />
                         </div>
                     </div>
+                    <div>
+                        <label className={lbl}>Danh mục</label>
+                        <SearchableSelect
+                            value={form.categoryId != null ? String(form.categoryId) : ''}
+                            onChange={(v) => setForm(f => ({ ...f, categoryId: v ? Number(v) : null }))}
+                            options={categoryOptions}
+                            fallbackLabel={item.categoryName}
+                        />
+                    </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Giá bán</label>
                             <FieldError error={errors.basePrice}>
-                                <input type="number" className={inp} value={form.basePrice ?? ''} onChange={e => { setForm(f => ({ ...f, basePrice: e.target.value ? +e.target.value : null })); clearError('basePrice'); }} />
+                                <input type="number" min={0} className={inp} value={form.basePrice ?? ''} onChange={e => { setForm(f => ({ ...f, basePrice: e.target.value ? +e.target.value : null })); clearError('basePrice'); }} />
                             </FieldError>
                         </div>
                         <div>
                             <label className={lbl}>Giá vốn</label>
                             <FieldError error={errors.costPrice}>
-                                <input type="number" className={inp} value={form.costPrice ?? ''} onChange={e => { setForm(f => ({ ...f, costPrice: e.target.value ? +e.target.value : null })); clearError('costPrice'); }} />
+                                <input type="number" min={0} className={inp} value={form.costPrice ?? ''} onChange={e => { setForm(f => ({ ...f, costPrice: e.target.value ? +e.target.value : null })); clearError('costPrice'); }} />
                             </FieldError>
                         </div>
                     </div>
@@ -127,7 +140,7 @@ export function ProductEditModal({ item, onClose }: Props) {
                         <div>
                             <label className={lbl}>Thuế VAT (%)</label>
                             <FieldError error={errors.vatRate}>
-                                <input type="number" className={inp} value={form.vatRate ?? ''} onChange={e => { setForm(f => ({ ...f, vatRate: e.target.value ? +e.target.value : null })); clearError('vatRate'); }} />
+                                <input type="number" min={0} max={100} className={inp} value={form.vatRate ?? ''} onChange={e => { setForm(f => ({ ...f, vatRate: e.target.value ? +e.target.value : null })); clearError('vatRate'); }} />
                             </FieldError>
                         </div>
                     </div>

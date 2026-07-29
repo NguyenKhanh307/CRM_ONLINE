@@ -4,11 +4,21 @@ import { useImportLeadBulk } from '../hooks/useImportLeadBulk';
 
 const FIELDS: ImportField[] = [
     { key: 'name',           label: 'Họ và tên',        required: true, type: 'text' },
+    { key: 'companyName',    label: 'Tên tổ chức',                       type: 'text' },
+    { key: 'leadType',       label: 'Loại tiềm năng',                    type: 'text' },
+    { key: 'title',          label: 'Chức danh',                         type: 'text' },
+    { key: 'department',     label: 'Phòng ban',                         type: 'text' },
+    { key: 'taxCode',        label: 'Mã số thuế',                        type: 'text' },
+    { key: 'website',        label: 'Website',                           type: 'text' },
+    { key: 'industry',       label: 'Ngành nghề',                        type: 'text' },
     { key: 'phone',          label: 'Điện thoại',                        type: 'text' },
     { key: 'email',          label: 'Email',                             type: 'text' },
     { key: 'source',         label: 'Nguồn',                             type: 'text' },
+    { key: 'campaignId',     label: 'ID chiến dịch nguồn',                type: 'number' },
     { key: 'status',         label: 'Trạng thái',                        type: 'enum', enumValues: ['new', 'contacting', 'qualified', 'converted', 'lost'] },
     { key: 'estimatedValue', label: 'Giá trị ước tính',                  type: 'number' },
+    { key: 'doNotCall',      label: 'Không gọi điện',                    type: 'enum', enumValues: ['true', 'false'] },
+    { key: 'doNotEmail',     label: 'Không gửi email',                   type: 'enum', enumValues: ['true', 'false'] },
     { key: 'note',           label: 'Ghi chú',                           type: 'text' },
 ];
 

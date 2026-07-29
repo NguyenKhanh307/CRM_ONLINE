@@ -12,7 +12,7 @@ public class ProductCategoryCommandMapper {
      */
     public static ProductCategory toEntity(CreateProductCategoryCommand cmd) {
         return ProductCategory.builder()
-                .code(cmd.getCode()).name(cmd.getName()).parentId(cmd.getParentId())
+                .code(cmd.getCode()).name(cmd.getName())
                 .sortOrder(cmd.getSortOrder() != null ? cmd.getSortOrder() : 0)
                 .isActive(cmd.getIsActive() != null ? cmd.getIsActive() : true).build();
     }
@@ -25,7 +25,6 @@ public class ProductCategoryCommandMapper {
         return ProductCategory.builder()
                 .id(e.getId()).code(e.getCode())
                 .name(cmd.getName() != null ? cmd.getName() : e.getName())
-                .parentId(cmd.getParentId() != null ? cmd.getParentId() : e.getParentId())
                 .sortOrder(cmd.getSortOrder() != null ? cmd.getSortOrder() : e.getSortOrder())
                 .isActive(cmd.getIsActive() != null ? cmd.getIsActive() : e.getIsActive())
                 .createdAt(e.getCreatedAt()).build();
@@ -37,7 +36,7 @@ public class ProductCategoryCommandMapper {
      */
     public static ProductCategoryResult toResult(ProductCategory e) {
         return ProductCategoryResult.builder()
-                .id(e.getId()).code(e.getCode()).name(e.getName()).parentId(e.getParentId())
+                .id(e.getId()).code(e.getCode()).name(e.getName())
                 .sortOrder(e.getSortOrder()).isActive(e.getIsActive())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }

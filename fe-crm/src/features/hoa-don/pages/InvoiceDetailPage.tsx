@@ -86,7 +86,7 @@ const InvoiceDetailPage = () => {
                     <div className="bg-white rounded-card shadow-sm">
                         <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
                         <div className="p-4">
-                            {activeTab === 'payments' && <PaymentSchedulesTable invoiceId={invoiceId} />}
+                            {activeTab === 'payments' && <PaymentSchedulesTable invoiceId={invoiceId} invoiceTotal={invoice.total ?? 0} />}
                             {activeTab === 'tickets' && (
                                 <RelatedTable group={related?.tickets} columns={TICKET_COLUMNS} module="ticket"
                                     emptyText="Hóa đơn chưa có phiếu chăm sóc nào." />

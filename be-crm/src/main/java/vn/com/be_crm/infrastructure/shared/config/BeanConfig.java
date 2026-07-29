@@ -3,6 +3,7 @@ package vn.com.be_crm.infrastructure.shared.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import vn.com.be_crm.infrastructure.shared.config.beans.ActivityBeanConfig;
+import vn.com.be_crm.infrastructure.shared.config.beans.AuditLogBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.AuthBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.CampaignBeanConfig;
 import vn.com.be_crm.infrastructure.shared.config.beans.ContactBeanConfig;
@@ -46,7 +47,8 @@ import vn.com.be_crm.infrastructure.shared.config.beans.ServiceBeanConfig;
         DashboardBeanConfig.class,
         CopilotBeanConfig.class,
         RelatedBeanConfig.class,
-        DuplicateBeanConfig.class
+        DuplicateBeanConfig.class,
+        AuditLogBeanConfig.class
 })
 public class BeanConfig {
 }

@@ -12,6 +12,9 @@ public record ImportCampaignRowCommand(
         String startDate,
         String endDate,
         BigDecimal budget,
+        BigDecimal actualCost,
+        Integer targetSize,
+        BigDecimal expectedRevenue,
         String note,
         Long ownerId,
         String ownerEmail

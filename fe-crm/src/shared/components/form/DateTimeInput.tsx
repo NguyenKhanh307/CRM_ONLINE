@@ -84,7 +84,7 @@ export const DateTimeInput = ({
 
     return (
         <div className={`flex gap-2 ${className}`}>
-            <div ref={containerRef} className="relative flex-1">
+            <div ref={containerRef} className="relative flex-1 min-w-[150px]">
                 <input
                     type="text"
                     inputMode="numeric"
@@ -118,7 +118,7 @@ export const DateTimeInput = ({
                 type="time"
                 value={time}
                 onChange={handleTimeChange}
-                className={`${inputCls} w-28`}
+                className={`${inputCls} w-24`}
             />
         </div>
     );

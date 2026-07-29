@@ -3,14 +3,25 @@ import type { ImportField } from '@/shared/components/import/importTypes';
 import { useImportCustomerBulk } from '../hooks/useImportCustomerBulk';
 
 const FIELDS: ImportField[] = [
-    { key: 'name',    label: 'Tên khách hàng', required: true, type: 'text' },
-    { key: 'type',    label: 'Loại',                           type: 'enum', enumValues: ['individual', 'company'] },
-    { key: 'taxCode', label: 'Mã số thuế',                     type: 'text' },
-    { key: 'phone',   label: 'Điện thoại',                     type: 'text' },
-    { key: 'email',   label: 'Email',                          type: 'text' },
-    { key: 'address', label: 'Địa chỉ',                        type: 'text' },
-    { key: 'source',  label: 'Nguồn',                          type: 'text' },
-    { key: 'status',  label: 'Trạng thái',                     type: 'enum', enumValues: ['active', 'inactive', 'potential'] },
+    { key: 'name',           label: 'Tên khách hàng', required: true, type: 'text' },
+    { key: 'shortName',      label: 'Tên viết tắt',                   type: 'text' },
+    { key: 'type',           label: 'Loại',                           type: 'enum', enumValues: ['individual', 'company'] },
+    { key: 'taxCode',        label: 'Mã số thuế',                     type: 'text' },
+    { key: 'phone',          label: 'Điện thoại',                     type: 'text' },
+    { key: 'email',          label: 'Email',                          type: 'text' },
+    { key: 'website',        label: 'Website',                        type: 'text' },
+    { key: 'address',        label: 'Địa chỉ',                        type: 'text' },
+    { key: 'industry',       label: 'Ngành nghề',                     type: 'text' },
+    { key: 'source',         label: 'Nguồn',                          type: 'text' },
+    { key: 'status',         label: 'Trạng thái',                     type: 'enum', enumValues: ['active', 'inactive', 'potential'] },
+    { key: 'creditDays',     label: 'Số ngày được nợ',                type: 'number' },
+    { key: 'creditLimit',    label: 'Hạn mức nợ tối đa',              type: 'number' },
+    { key: 'bankAccount',    label: 'Số tài khoản ngân hàng',         type: 'text' },
+    { key: 'bankName',       label: 'Tên ngân hàng',                  type: 'text' },
+    { key: 'rating',         label: 'Xếp hạng',                       type: 'enum', enumValues: ['VIP', 'A', 'B', 'C', 'D'] },
+    { key: 'annualRevenue',  label: 'Doanh thu hàng năm',             type: 'number' },
+    { key: 'employeeSize',   label: 'Quy mô nhân sự',                 type: 'text' },
+    { key: 'isDistributor',  label: 'Là nhà phân phối',               type: 'enum', enumValues: ['true', 'false'] },
 ];
 
 const CustomerImportPage = () => {

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiEdit2, FiStar } from 'react-icons/fi';
 import { useAlert } from '@/shared/alert/useAlert';
-import { useConfirm } from '@/shared/confirm/useConfirm';
+import { usePermission } from '@/core/permissions/usePermission';
 import { ReasonModal } from '@/shared/components/ReasonModal';
 import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
 import { formatISODate } from '@/shared/utils/date';
@@ -41,7 +41,7 @@ const TicketDetailPage = () => {
     const { id } = useParams();
     const ticketId = id ? Number(id) : undefined;
     const { showAlert } = useAlert();
-    const { confirmSave } = useConfirm();
+    const { can } = usePermission();
 
     const { data: ticket, isLoading } = useTicket(ticketId);
     const { data: returnItems = [] } = useTicketReturnItems(ticketId);
@@ -61,8 +61,6 @@ const TicketDetailPage = () => {
     const [assignOpen, setAssignOpen] = useState(false);
     const [rejectOpen, setRejectOpen] = useState(false);
     const [resolveKind, setResolveKind] = useState<'resolve' | 'complete' | null>(null);
-    const [csatScore, setCsatScore] = useState(0);
-    const [csatComment, setCsatComment] = useState('');
 
     if (isLoading) return <div className="p-6 text-gray-400">Đang tải...</div>;
     if (!ticket) return <div className="p-6 text-gray-400">Không tìm thấy phiếu.</div>;
@@ -80,6 +78,14 @@ const TicketDetailPage = () => {
     };
 
     const canCsat = ticket.status === 'resolved' || ticket.status === 'closed';
+
+    /** Khách tự đánh giá qua trang public — nhân viên chỉ sao chép liên kết gửi cho khách. */
+    const copySupportLink = () => {
+        const url = `${window.location.origin}/support-page/${ticket.code}`;
+        navigator.clipboard.writeText(url)
+            .then(() => showAlert('Đã sao chép liên kết đánh giá.'))
+            .catch(() => showAlert(url));
+    };
 
     return (
         <div className="p-6 bg-bg-main space-y-4">
@@ -100,9 +106,11 @@ const TicketDetailPage = () => {
                         </div>
                         <p className="text-md text-text-main">{ticket.subject}</p>
                     </div>
-                    <button onClick={() => setEditOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50">
-                        <FiEdit2 size={14} /> Sửa
-                    </button>
+                    {can('ticket', 'edit') && ticket.status !== 'closed' && (
+                        <button onClick={() => setEditOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50">
+                            <FiEdit2 size={14} /> Sửa
+                        </button>
+                    )}
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-100">
                     <TicketWorkflowButtons ticket={ticket} onAction={handleAction} />
@@ -160,7 +168,7 @@ const TicketDetailPage = () => {
 
                     <div className="bg-white rounded-card shadow-sm p-5">
                         <h2 className="text-md font-semibold text-text-main mb-3">Lịch sử / trao đổi</h2>
-                        <TicketTimeline ticketId={ticket.id} />
+                        <TicketTimeline ticketId={ticket.id} closed={ticket.status === 'closed'} />
                     </div>
                 </div>
 
@@ -186,25 +194,14 @@ const TicketDetailPage = () => {
                             </div>
                         ) : canCsat ? (
                             <div className="space-y-2">
-                                <div className="flex items-center gap-1">
-                                    {[1, 2, 3, 4, 5].map(n => (
-                                        <button key={n} type="button" onClick={() => setCsatScore(n)} className="text-warning">
-                                            <FiStar size={20} className={n <= csatScore ? 'fill-current' : ''} />
-                                        </button>
-                                    ))}
-                                </div>
-                                <textarea rows={2} value={csatComment} onChange={(e) => setCsatComment(e.target.value)} placeholder="Nhận xét..."
-                                    className="w-full border border-gray-300 rounded-btn px-3 py-1.5 text-md focus:outline-none focus:border-primary resize-none" />
-                                <button type="button" disabled={csatScore === 0}
-                                    onClick={async () => {
-                                        if (!(await confirmSave('đánh giá'))) return;
-                                        runWorkflow({ id: ticket.id, action: 'csat', score: csatScore, comment: csatComment.trim() },
-                                            { onSuccess: () => showAlert('Đã ghi nhận đánh giá'), onError });
-                                    }}
-                                    className="px-3 py-1.5 rounded-btn bg-primary text-white text-md hover:opacity-90 disabled:opacity-50">Gửi đánh giá</button>
+                                <p className="text-md text-gray-500">Khách chưa đánh giá. Gửi liên kết dưới đây để khách tự chấm điểm.</p>
+                                <button type="button" onClick={copySupportLink}
+                                    className="px-3 py-1.5 rounded-btn border border-gray-300 text-md text-gray-600 hover:bg-gray-50">
+                                    Sao chép liên kết đánh giá
+                                </button>
                             </div>
                         ) : (
-                            <p className="text-md text-gray-400">Đánh giá được sau khi phiếu đã giải quyết / đóng.</p>
+                            <p className="text-md text-gray-400">Khách đánh giá được sau khi phiếu đã giải quyết / đóng.</p>
                         )}
                     </div>
                 </div>

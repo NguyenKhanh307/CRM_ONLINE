@@ -56,6 +56,7 @@ public class CustomerController {
     }
 
     /** Tạo mới khách hàng. @param cmd JSON body @return 201 */
+    @PreAuthorize("hasAuthority('customer.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<CustomerResult>> create(@Valid @RequestBody CreateCustomerCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -84,6 +85,7 @@ public class CustomerController {
     }
 
     /** Cập nhật khách hàng. @param id ID @param cmd JSON body @return 200 */
+    @PreAuthorize("hasAuthority('customer.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CustomerResult>> update(@PathVariable Long id,
                                                                @Valid @RequestBody UpdateCustomerCommand cmd) {
@@ -135,19 +137,21 @@ public class CustomerController {
     }
 
     /** Nhập hàng loạt khách hàng từ file. @param cmd body @return 200 */
-    @PreAuthorize("hasAuthority('customer.create')")
+    @PreAuthorize("hasAuthority('customer.import')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkCustomerCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 
     /** Kích hoạt khách hàng (→ active). @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('customer.activate')")
     @PostMapping("/{id}/activate")
     public ResponseEntity<ApiResponse<CustomerResult>> activate(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.activate(id)));
     }
 
     /** Ngừng hoạt động khách hàng (→ inactive). @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('customer.activate')")
     @PostMapping("/{id}/deactivate")
     public ResponseEntity<ApiResponse<CustomerResult>> deactivate(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.deactivate(id)));

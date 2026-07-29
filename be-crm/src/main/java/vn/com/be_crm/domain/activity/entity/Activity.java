@@ -54,7 +54,7 @@ public class Activity {
     /** Kết quả cuộc gọi. */
     private String callResult;
 
-    /** Thời lượng cuộc gọi (giây). */
+    /** Thời lượng cuộc gọi (phút). */
     private Integer callDuration;
 
     /** ID người dùng được giao. */

@@ -8,6 +8,9 @@ export function useUpdateCustomer() {
     return useMutation({
         mutationFn: ({ id, payload }: { id: number; payload: UpdateCustomerPayload }) =>
             customerService.update(id, payload),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['customers'] }),
+        onSuccess: (_d, v) => {
+            qc.invalidateQueries({ queryKey: ['customers'] });
+            qc.invalidateQueries({ queryKey: ['customer', v.id] });
+        },
     });
 }

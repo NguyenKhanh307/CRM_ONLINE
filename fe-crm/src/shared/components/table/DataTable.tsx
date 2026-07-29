@@ -21,6 +21,7 @@ import type {
     RowAction,
     ServerTableState,
 } from '@/shared/types/table';
+import { SHORTCUTS, matchesShortcut } from '@/shared/keyboard/shortcuts';
 import { applyConditions, checkCondition } from './filterConditions.helpers';
 import { RowContextMenu } from './RowContextMenu';
 import { TableToolbar } from './TableToolbar';
@@ -330,6 +331,33 @@ export const DataTable = <T extends object>({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoSelectFirstRow, selectedRowId, displayData, pageIndex, pageSize]);
+
+    /**
+     * Alt+U sửa / Delete xóa dòng đang chọn — tái dùng đúng action `key: 'edit'`/`key: 'delete'`
+     * đã khai báo trong `rowActions` của trang (menu chuột phải), không định nghĩa hành vi riêng.
+     */
+    useEffect(() => {
+        if (!rowActions) return;
+        const onKey = (e: KeyboardEvent) => {
+            const t = e.target as HTMLElement | null;
+            const typing = !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+            if (typing || !selectedRowId) return;
+
+            const isEdit = matchesShortcut(e, SHORTCUTS.EDIT);
+            const isDelete = matchesShortcut(e, SHORTCUTS.DELETE);
+            if (!isEdit && !isDelete) return;
+
+            const row = table.getRowModel().rows.find((r) => r.id === selectedRowId);
+            if (!row) return;
+            const action = rowActions(row.original).find((a) => a.key === (isEdit ? 'edit' : 'delete'));
+            if (!action || action.disabled) return;
+
+            e.preventDefault();
+            action.onClick();
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [rowActions, selectedRowId, table]);
 
     return (
         <div className="flex flex-col w-full">

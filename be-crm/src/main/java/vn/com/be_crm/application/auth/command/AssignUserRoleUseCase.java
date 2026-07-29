@@ -18,13 +18,15 @@ public class AssignUserRoleUseCase implements IUseCase<AssignUserRoleCommand, Vo
     }
 
     /**
-     * Tạo liên kết user-role và lưu vào DB.
+     * Tạo liên kết user-role và lưu vào DB. Mỗi người chỉ thuộc một nhóm quyền — xóa mọi vai trò
+     * hiện có của người dùng trước khi gán vai trò mới (kể cả khi gọi thẳng API, không chỉ qua FE).
      *
      * @param command userId và roleId cần gán
      * @return null
      */
     @Override
     public Void execute(AssignUserRoleCommand command) {
+        repository.deleteByUserId(command.getUserId());
         UserRole ur = UserRole.builder()
                 .userId(command.getUserId())
                 .roleId(command.getRoleId())

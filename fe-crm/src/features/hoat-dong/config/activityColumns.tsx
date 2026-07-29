@@ -41,7 +41,7 @@ export const getActivityColumns = (): ColumnDef<ActivityResult>[] => [
     { accessorKey: 'location', header: 'Địa điểm', size: 160, cell: textCell },
     { accessorKey: 'callDirection', header: 'Hướng gọi', size: 110, cell: labelCell(CALL_DIRECTION_LABELS) },
     { accessorKey: 'callResult', header: 'Kết quả gọi', size: 150, cell: textCell },
-    { accessorKey: 'callDuration', header: 'Thời lượng (s)', size: 120, cell: numberCell },
+    { accessorKey: 'callDuration', header: 'Thời lượng (phút)', size: 120, cell: numberCell },
     { accessorKey: 'dueAt', header: 'Hạn hoàn thành', size: 160, cell: dateCell },
     { accessorKey: 'completedAt', header: 'Ngày hoàn thành', size: 160, cell: dateCell },
     { accessorKey: 'createdByName', header: 'Người tạo', size: 160, cell: textCell },

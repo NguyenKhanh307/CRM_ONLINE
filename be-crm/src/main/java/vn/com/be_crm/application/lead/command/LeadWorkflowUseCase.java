@@ -14,7 +14,9 @@ import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
 import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
+import vn.com.be_crm.domain.shared.exception.DomainException;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.application.shared.security.ICurrentUser;
 import vn.com.be_crm.application.shared.tx.ITransactionRunner;
 
 import java.math.BigDecimal;
@@ -29,22 +31,30 @@ public class LeadWorkflowUseCase {
     private final IContactRepository contactRepo;
     private final IOpportunityRepository opportunityRepo;
     private final ITransactionRunner tx;
+    private final ICurrentUser currentUser;
 
-    /** @param repo Lead @param customerRepo Khách hàng @param contactRepo Liên hệ @param opportunityRepo Cơ hội @param tx bộ chạy transaction */
+    /** @param repo Lead @param customerRepo Khách hàng @param contactRepo Liên hệ @param opportunityRepo Cơ hội @param tx bộ chạy transaction @param currentUser người đang thao tác */
     public LeadWorkflowUseCase(ILeadRepository repo, ICustomerRepository customerRepo,
                                IContactRepository contactRepo, IOpportunityRepository opportunityRepo,
-                               ITransactionRunner tx) {
+                               ITransactionRunner tx, ICurrentUser currentUser) {
         this.repo = repo;
         this.customerRepo = customerRepo;
         this.contactRepo = contactRepo;
         this.opportunityRepo = opportunityRepo;
         this.tx = tx;
+        this.currentUser = currentUser;
     }
 
     /**
      * Chuyển đổi tiềm năng thành công (qualified → converted): tách dữ liệu phẳng thành
-     * Khách hàng (Account) + Liên hệ (Contact) + Cơ hội (Opportunity) theo mô hình B2B, rồi khóa tiềm năng.
-     * Cả 4 lệnh ghi chạy trong MỘT transaction — lỗi giữa chừng rollback hết, không để lại bản ghi mồ côi.
+     * Khách hàng (Account) + Liên hệ (Contact) + Cơ hội (Opportunity) theo mô hình B2B, rồi xóa mềm tiềm năng
+     * (đã tách xong dữ liệu, không dùng bản ghi tiềm năng nữa).
+     * Cả 5 lệnh ghi chạy trong MỘT transaction — lỗi giữa chừng rollback hết, không để lại bản ghi mồ côi.
+     *
+     * <p>Nếu tiềm năng chưa có người phụ trách (thuộc pool chung, {@code owner_id IS NULL}), 3 bản ghi mới
+     * sẽ được gán cho người đang thao tác convert — nếu không thì owner NULL khiến bản ghi "biến mất" khỏi
+     * danh sách của nhân viên thường (bộ lọc owner ở Contact/Customer/Opportunity chỉ so sánh bằng thẳng,
+     * không có nhánh {@code OR owner_id IS NULL} như tiềm năng pool chung).
      *
      * @param id                 ID tiềm năng
      * @param existingCustomerId dùng khách hàng đã có thay vì tạo mới (null = tạo mới) — chống trùng khách hàng
@@ -61,6 +71,8 @@ public class LeadWorkflowUseCase {
         lead.getStatus().ensureCanTransitionTo(LeadStatus.converted);
 
         long now = System.currentTimeMillis();
+        // Tiềm năng pool chung (chưa ai nhận) → người bấm convert trở thành người phụ trách 3 bản ghi mới
+        Long ownerId = lead.getOwnerId() != null ? lead.getOwnerId() : currentUser.id();
 
         // 1) Khách hàng (mỏ neo B2B): dùng lại bản ghi người dùng đã chọn, hoặc tạo mới từ thông tin tổ chức
         Customer customer = existingCustomerId != null
@@ -73,7 +85,7 @@ public class LeadWorkflowUseCase {
                         .status(CustomerStatus.active)
                         .taxCode(lead.getTaxCode()).phone(lead.getPhone()).email(lead.getEmail())
                         .website(lead.getWebsite()).industry(lead.getIndustry()).source(lead.getSource())
-                        .ownerId(lead.getOwnerId())
+                        .ownerId(ownerId)
                         .build());
 
         // 2) Liên hệ (cá nhân ra quyết định): dùng lại bản ghi đã chọn, hoặc tạo mới gắn vào khách hàng trên
@@ -82,7 +94,7 @@ public class LeadWorkflowUseCase {
                         .orElseThrow(() -> new NotFoundException("Contact not found: " + existingContactId))
                 : contactRepo.save(Contact.builder()
                         .customerId(customer.getId())
-                        .assignedUserId(lead.getOwnerId())
+                        .assignedUserId(ownerId)
                         .fullName(lead.getName()).title(lead.getTitle()).department(lead.getDepartment())
                         .email(lead.getEmail()).source(lead.getSource())
                         .doNotCall(lead.isDoNotCall()).doNotEmail(lead.isDoNotEmail())
@@ -95,19 +107,22 @@ public class LeadWorkflowUseCase {
                 .code("CH-" + now)
                 .name("Cơ hội từ " + (lead.getCompanyName() != null && !lead.getCompanyName().isBlank() ? lead.getCompanyName() : lead.getName()))
                 .opportunityType("KH mới")
-                .customerId(customer.getId()).contactId(contact.getId()).ownerId(lead.getOwnerId())
+                .customerId(customer.getId()).contactId(contact.getId()).ownerId(ownerId)
                 .amount(estimated).expectedRevenue(estimated)
                 .source(lead.getSource()).campaignId(lead.getCampaignId())
                 .status(OpportunityStatus.open)
                 .build());
 
-        // 4) Khóa tiềm năng: chuyển converted + lưu liên kết tới 3 bản ghi vừa tạo (không dùng tiềm năng nữa)
+        // 4) Chuyển converted + lưu liên kết tới 3 bản ghi vừa tạo
         Lead saved = repo.save(lead.toBuilder()
                 .status(LeadStatus.converted)
                 .customerId(customer.getId())
                 .contactId(contact.getId())
                 .convertedOpportunityId(opportunity.getId())
                 .build());
+
+        // 5) Xóa mềm tiềm năng — đã tách xong dữ liệu, giữ lại sẽ trùng lặp với KH/LH/CH vừa tạo
+        repo.deleteById(saved.getId(), currentUser.id());
         return LeadCommandMapper.toResult(saved);
     }
 
@@ -136,6 +151,29 @@ public class LeadWorkflowUseCase {
         String note = reason == null || reason.isBlank() ? lead.getNote()
                 : (lead.getNote() == null || lead.getNote().isBlank() ? "" : lead.getNote() + " | ") + "Lý do thất bại: " + reason;
         return LeadCommandMapper.toResult(repo.save(lead.toBuilder().status(LeadStatus.lost).note(note).build()));
+    }
+
+    /**
+     * Nhân viên tự nhận chăm sóc một tiềm năng đang chưa có người phụ trách (pool chung).
+     * Chạy trong transaction để tránh race hai nhân viên bấm cùng lúc — kiểm tra lại
+     * {@code ownerId == null} bên trong transaction trước khi ghi.
+     *
+     * @param id     ID tiềm năng
+     * @param userId người bấm "Nhận chăm sóc" (sẽ trở thành người phụ trách)
+     * @return tiềm năng sau cập nhật
+     */
+    public LeadResult claim(Long id, Long userId) {
+        return tx.call(() -> {
+            Lead lead = load(id);
+            if (lead.getOwnerId() != null) {
+                throw new DomainException("Tiềm năng đã có người phụ trách");
+            }
+            if (lead.getStatus() == LeadStatus.converted || lead.getStatus() == LeadStatus.lost) {
+                throw new DomainException("Không thể nhận chăm sóc tiềm năng đã " +
+                        (lead.getStatus() == LeadStatus.converted ? "chuyển đổi" : "đánh mất"));
+            }
+            return LeadCommandMapper.toResult(repo.save(lead.toBuilder().ownerId(userId).build()));
+        });
     }
 
     /** Tải tiềm năng theo ID hoặc ném NotFoundException. */

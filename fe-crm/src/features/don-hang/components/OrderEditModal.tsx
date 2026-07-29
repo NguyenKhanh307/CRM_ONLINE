@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { collectErrors, dateRangeError } from '@/shared/utils/validators';
 import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
@@ -8,10 +9,13 @@ import { FiX } from 'react-icons/fi';
 import type { OrderResult, UpdateOrderPayload } from '../types/orderTypes';
 import { useUpdateOrder } from '../hooks/useUpdateOrder';
 import { orderService } from '../services/orderService';
+import { quotationService } from '@/features/bao-gia/services/quotationService';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { DateInput } from '@/shared/components/form/DateInput';
+import { PrefillHint } from '@/shared/components/form/PrefillHint';
+import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
 import {
     type LineItemRow,
     type ProductOption,
@@ -35,6 +39,7 @@ const ORDER_STATUS_COLORS: Record<string, string> = {
 };
 
 export function OrderEditModal({ item, onClose }: Props) {
+    const qc = useQueryClient();
     const { mutateAsync, isPending } = useUpdateOrder();
     const { data: products = [] } = useProductList();
     const [form, setForm] = useState<UpdateOrderPayload>({
@@ -74,6 +79,19 @@ export function OrderEditModal({ item, onClose }: Props) {
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
+    /** Tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Báo giá nguồn. */
+    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
+
+    /** Đổi báo giá nguồn → tự điền cơ hội còn trống (không đè giá trị đã có). */
+    const onPickQuotation = async (v: string) => {
+        setForm(f => ({ ...f, quotationId: v ? Number(v) : null }));
+        setPrefillFrom(null);
+        if (!v) return;
+        const q = (await quotationService.getById(Number(v))).data.data;
+        const patch = fillEmpty({ ...form, quotationId: Number(v) }, { opportunityId: q.opportunityId ?? null });
+        if (hasFilled(patch)) { setForm(f => ({ ...f, ...patch })); setPrefillFrom(`báo giá «${q.code}»`); }
+    };
+
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -108,6 +126,7 @@ export function OrderEditModal({ item, onClose }: Props) {
                 ...toUpdate.map((r) => orderService.updateItem(item.id, r.backendId as number, toItemPayload(r))),
                 ...toDelete.map((id) => orderService.deleteItem(item.id, id)),
             ]);
+            qc.invalidateQueries({ queryKey: ['order-items', item.id] });
             onClose();
         } finally {
             setSaving(false);
@@ -149,8 +168,9 @@ export function OrderEditModal({ item, onClose }: Props) {
                             <label className={lbl}>Báo giá nguồn</label>
                             <RecordPicker module="quotation"
                                 value={form.quotationId != null ? String(form.quotationId) : ''}
-                                onChange={(v) => setForm(f => ({ ...f, quotationId: v ? Number(v) : null }))}
+                                onChange={onPickQuotation}
                                 fallbackLabel={item.quotationCode} />
+                            <PrefillHint source={prefillFrom} />
                         </div>
                         <div>
                             <label className={lbl}>Cơ hội</label>

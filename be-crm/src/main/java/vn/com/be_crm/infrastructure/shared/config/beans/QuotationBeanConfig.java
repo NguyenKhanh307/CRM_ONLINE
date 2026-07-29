@@ -76,20 +76,33 @@ public class QuotationBeanConfig {
         return new GetQuotationEmailDraftUseCase(qr, composer);
     }
 
+    /** @return QuotationPdfDataBuilder — dựng dữ liệu PDF từ báo giá (dùng chung gửi mail + xem trước) */
+    @Bean public vn.com.be_crm.application.quotation.pdf.QuotationPdfDataBuilder quotationPdfDataBuilder(
+            ICustomerRepository cr, IQuotationItemRepository qir, IProductRepository pr) {
+        return new vn.com.be_crm.application.quotation.pdf.QuotationPdfDataBuilder(cr, qir, pr);
+    }
+
     /** @return QuotationWorkflowUseCase */
     @Bean public QuotationWorkflowUseCase quotationWorkflowUseCase(IQuotationRepository qr, IQuotationApprovalRepository ar,
             CreateNotificationUseCase nuc, vn.com.be_crm.application.shared.notify.IManagerResolver mr, IEmailService es,
-            ICustomerRepository cr, IContactRepository cor, IQuotationItemRepository qir,
-            IProductRepository pr, IQuotationPdfService pdf,
+            IContactRepository cor, IQuotationPdfService pdf, vn.com.be_crm.application.quotation.pdf.QuotationPdfDataBuilder pdfDataBuilder,
             vn.com.be_crm.application.quotation.email.QuotationEmailComposer composer,
             @Value("${app.frontend.base-url}") String frontendBaseUrl,
-            ITransactionRunner tx) {
-        return new QuotationWorkflowUseCase(qr, ar, nuc, mr, es, cr, cor, qir, pr, pdf, composer, frontendBaseUrl, tx);
+            ITransactionRunner tx, ConvertQuotationToOrderUseCase convertToOrderUC) {
+        return new QuotationWorkflowUseCase(qr, ar, nuc, mr, es, cor, pdf, pdfDataBuilder, composer, frontendBaseUrl, tx, convertToOrderUC);
     }
 
-    /** @return RespondToQuotationUseCase — khách phản hồi báo giá (đồng ý/điều chỉnh/không đồng ý) */
-    @Bean public RespondToQuotationUseCase respondToQuotationUseCase(IQuotationRepository qr, CreateNotificationUseCase nuc) {
-        return new RespondToQuotationUseCase(qr, nuc);
+    /** @return PreviewQuotationPdfUseCase — xem trước PDF báo giá khi soạn email */
+    @Bean public PreviewQuotationPdfUseCase previewQuotationPdfUseCase(IQuotationRepository qr, IQuotationPdfService pdf,
+            vn.com.be_crm.application.quotation.pdf.QuotationPdfDataBuilder pdfDataBuilder,
+            vn.com.be_crm.application.quotation.email.QuotationEmailComposer composer) {
+        return new PreviewQuotationPdfUseCase(qr, pdf, pdfDataBuilder, composer);
+    }
+
+    /** @return RespondToQuotationUseCase — khách phản hồi báo giá (đồng ý/điều chỉnh/không đồng ý, tự sinh đơn hàng khi đồng ý) */
+    @Bean public RespondToQuotationUseCase respondToQuotationUseCase(IQuotationRepository qr, CreateNotificationUseCase nuc,
+            ConvertQuotationToOrderUseCase convertToOrderUC, ITransactionRunner tx) {
+        return new RespondToQuotationUseCase(qr, nuc, convertToOrderUC, tx);
     }
 
     /** @return GetQuotationByTokenUseCase — xem báo giá công khai theo token */

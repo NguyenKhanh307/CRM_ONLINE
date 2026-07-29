@@ -22,10 +22,11 @@ export interface ShortcutDef {
 
 export const SHORTCUTS = {
     CREATE:   { keys: ['Alt', 'N'],           code: 'KeyN',      alt: true,               description: 'Tạo mới' },
+    EDIT:     { keys: ['Alt', 'U'],           code: 'KeyU',      alt: true,               description: 'Sửa dòng đang chọn' },
+    DELETE:   { keys: ['Delete'],             code: 'Delete',                             description: 'Xóa dòng đang chọn' },
     SEARCH:   { keys: ['Alt', 'F'],           code: 'KeyF',      alt: true,               description: 'Tìm kiếm nhanh' },
     SEARCH_2: { keys: ['Ctrl', 'K'],          code: 'KeyK',      ctrl: true,              description: 'Tìm kiếm nhanh' },
     HOME:     { keys: ['Alt', 'H'],           code: 'KeyH',      alt: true,               description: 'Về trang chủ' },
-    BACK:     { keys: ['Alt', '←'],           code: 'ArrowLeft', alt: true,               description: 'Quay lại trang trước' },
     HELP:     { keys: ['Ctrl', '/'],          code: 'Slash',     ctrl: true,              description: 'Mở danh sách phím tắt' },
     LOGOUT:   { keys: ['Ctrl', 'Shift', 'L'], code: 'KeyL',      ctrl: true, shift: true, description: 'Đăng xuất' },
     SAVE:     { keys: ['Ctrl', 'S'],          code: 'KeyS',      ctrl: true,              description: 'Lưu thay đổi' },
@@ -37,14 +38,13 @@ export const SHORTCUTS = {
 export const FORM_SHORTCUTS: ShortcutDef[] = [
     { keys: ['Enter'], description: 'Sang ô kế tiếp (ô cuối thì lưu)' },
     { keys: ['↑', '↓'], description: 'Di chuyển giữa các ô' },
-    { keys: ['←', '→'], description: 'Sang ô kế khi con trỏ ở đầu/cuối ô' },
-    { keys: ['↑↓←→'], description: 'Trong popup: đổi giữa các nút' },
+    { keys: ['↑↓'], description: 'Trong popup: đổi giữa các nút' },
 ];
 
 /** Thứ tự hiển thị trong bảng phím tắt toàn cục. */
 export const GLOBAL_SHORTCUTS: ShortcutDef[] = [
-    SHORTCUTS.SEARCH_2, SHORTCUTS.SEARCH, SHORTCUTS.CREATE, SHORTCUTS.HOME,
-    SHORTCUTS.HELP, SHORTCUTS.LOGOUT, SHORTCUTS.CANCEL, SHORTCUTS.SAVE, SHORTCUTS.BACK,
+    SHORTCUTS.SEARCH_2, SHORTCUTS.SEARCH, SHORTCUTS.CREATE, SHORTCUTS.EDIT, SHORTCUTS.DELETE,
+    SHORTCUTS.HOME, SHORTCUTS.HELP, SHORTCUTS.LOGOUT, SHORTCUTS.CANCEL, SHORTCUTS.SAVE,
 ];
 
 /**
@@ -58,9 +58,7 @@ export const matchesShortcut = (e: KeyboardEvent, s: ShortcutDef): boolean =>
     && e.ctrlKey === !!s.ctrl
     && e.shiftKey === !!s.shift;
 
-/** Mũi tên đi tới / lùi trong chuỗi điều hướng. */
-export const ARROW_NEXT = ['ArrowDown', 'ArrowRight'];
-export const ARROW_PREV = ['ArrowUp', 'ArrowLeft'];
-/** Mũi tên ngang — cần kiểm tra biên con trỏ trước khi rời ô. */
-export const ARROW_HORIZONTAL = ['ArrowLeft', 'ArrowRight'];
+/** Mũi tên đi tới / lùi trong chuỗi điều hướng — chỉ còn trên/dưới. */
+export const ARROW_NEXT = ['ArrowDown'];
+export const ARROW_PREV = ['ArrowUp'];
 export const ARROW_ALL = [...ARROW_NEXT, ...ARROW_PREV];

@@ -14,6 +14,8 @@ public interface IPricePolicyRepository {
     PricePolicy save(PricePolicy p);
     /** Tìm chính sách giá theo ID. @param id @return Optional */
     Optional<PricePolicy> findById(Long id);
+    /** Tìm chính sách giá theo mã. @param code @return Optional */
+    Optional<PricePolicy> findByCode(String code);
     /** Xóa chính sách giá. @param id */
     void deleteById(Long id);
     /** Lấy danh sách chính sách giá có phân trang. @param r @return PageResult */

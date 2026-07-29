@@ -32,11 +32,11 @@ public class LeadBeanConfig {
     @Bean public GetLeadUseCase getLeadUseCase(ILeadRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new GetLeadUseCase(r, n); }
     /** @return ListLeadUseCase */
     @Bean public ListLeadUseCase listLeadUseCase(ILeadRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListLeadUseCase(r, n); }
-    /** @return LeadWorkflowUseCase — convert (tách KH+LH+CH, 1 transaction) / lose */
+    /** @return LeadWorkflowUseCase — convert (tách KH+LH+CH + xóa mềm lead, 1 transaction) / lose */
     @Bean public LeadWorkflowUseCase leadWorkflowUseCase(ILeadRepository r, ICustomerRepository cr,
                                                          IContactRepository ctr, IOpportunityRepository or,
-                                                         ITransactionRunner tx) {
-        return new LeadWorkflowUseCase(r, cr, ctr, or, tx);
+                                                         ITransactionRunner tx, vn.com.be_crm.application.shared.security.ICurrentUser cu) {
+        return new LeadWorkflowUseCase(r, cr, ctr, or, tx, cu);
     }
 
     // ===== Lead Scoring & Web Tracking =====

@@ -48,6 +48,12 @@ public class ImportBulkActivityUseCase {
                 repo.save(Activity.builder()
                         .type(type != null ? type : ActivityType.task)
                         .subject(row.subject()).content(row.content())
+                        .priority(row.priority())
+                        .targetType(row.targetType()).targetId(row.targetId())
+                        .relatedType(row.relatedType()).relatedId(row.relatedId())
+                        .location(row.location())
+                        .callDirection(row.callDirection()).callResult(row.callResult())
+                        .callDuration(row.callDuration())
                         .assignedUserId(assignedUserId)
                         .status(status != null ? status : ActivityStatus.planned)
                         .dueAt(parseDateTime(row.dueAt()))
@@ -75,7 +81,11 @@ public class ImportBulkActivityUseCase {
 
     private LocalDateTime parseDateTime(String s) {
         if (s == null || s.isBlank()) return null;
-        try { return LocalDateTime.parse(s.trim()); }
-        catch (DateTimeParseException e) { return null; }
+        // Wizard gửi ISO date thuần (yyyy-MM-dd); chấp nhận cả datetime đầy đủ nếu có
+        try { return java.time.LocalDate.parse(s.trim()).atStartOfDay(); }
+        catch (DateTimeParseException e1) {
+            try { return LocalDateTime.parse(s.trim()); }
+            catch (DateTimeParseException e2) { return null; }
+        }
     }
 }

@@ -8,6 +8,9 @@ export function useUpdateCampaign() {
     return useMutation({
         mutationFn: ({ id, payload }: { id: number; payload: UpdateCampaignPayload }) =>
             campaignService.update(id, payload),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['campaigns'] }),
+        onSuccess: (_d, v) => {
+            qc.invalidateQueries({ queryKey: ['campaigns'] });
+            qc.invalidateQueries({ queryKey: ['campaign', v.id] });
+        },
     });
 }

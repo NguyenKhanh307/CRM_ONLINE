@@ -5,7 +5,10 @@ import vn.com.be_crm.application.contact.dto.ImportContactRowCommand;
 import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.ImportRowError;
 import vn.com.be_crm.domain.contact.entity.Contact;
+import vn.com.be_crm.domain.contact.enums.ContactGender;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
+
+import java.time.LocalDate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,33 +47,51 @@ public class ImportBulkContactUseCase {
                 if (isUpdate && row.email() != null && !row.email().isBlank())
                     existing = repo.findByEmail(row.email());
 
+                Long ownerId = resolveOwnerId(cmd);
+                ContactGender gender = parseGender(row.gender());
+                LocalDate dateOfBirth = parseDate(row.dateOfBirth());
+
                 // Có bản ghi → cập nhật (giữ field cũ, ghi đè field có trong file)
                 if (existing.isPresent()) {
                     Contact e = existing.get();
                     repo.save(Contact.builder()
                             .id(e.getId())
-                            .customerId(e.getCustomerId()).assignedUserId(e.getAssignedUserId())
-                            .salutation(e.getSalutation())
+                            .customerId(row.customerId() != null ? row.customerId() : e.getCustomerId())
+                            .assignedUserId(ownerId != null ? ownerId : e.getAssignedUserId())
+                            .salutation(row.salutation() != null ? row.salutation() : e.getSalutation())
                             .fullName(row.fullName())
-                            .title(e.getTitle()).department(e.getDepartment())
+                            .title(row.title() != null ? row.title() : e.getTitle())
+                            .department(row.department() != null ? row.department() : e.getDepartment())
                             .position(row.position() != null ? row.position() : e.getPosition())
                             .email(row.email() != null ? row.email() : e.getEmail())
-                            .workEmail(e.getWorkEmail()).personalEmail(e.getPersonalEmail())
-                            .zalo(e.getZalo()).source(e.getSource())
-                            .gender(e.getGender()).dateOfBirth(e.getDateOfBirth())
+                            .workEmail(row.workEmail() != null ? row.workEmail() : e.getWorkEmail())
+                            .personalEmail(row.personalEmail() != null ? row.personalEmail() : e.getPersonalEmail())
+                            .zalo(row.zalo() != null ? row.zalo() : e.getZalo())
+                            .source(row.source() != null ? row.source() : e.getSource())
+                            .gender(gender != null ? gender : e.getGender())
+                            .dateOfBirth(dateOfBirth != null ? dateOfBirth : e.getDateOfBirth())
                             .address(row.address() != null ? row.address() : e.getAddress())
-                            .doNotCall(e.isDoNotCall()).doNotEmail(e.isDoNotEmail())
-                            .isPrimary(e.getIsPrimary())
+                            .doNotCall(row.doNotCall() != null ? row.doNotCall() : e.isDoNotCall())
+                            .doNotEmail(row.doNotEmail() != null ? row.doNotEmail() : e.isDoNotEmail())
+                            .isPrimary(row.isPrimary() != null ? row.isPrimary() : e.getIsPrimary())
                             .createdAt(e.getCreatedAt()).build());
                     success++;
                 // Chưa có và được phép tạo mới → thêm mới
                 } else if (isCreate) {
                     repo.save(Contact.builder()
+                            .customerId(row.customerId()).assignedUserId(ownerId)
+                            .salutation(row.salutation())
                             .fullName(row.fullName())
+                            .title(row.title()).department(row.department())
                             .position(row.position())
                             .email(row.email())
+                            .workEmail(row.workEmail()).personalEmail(row.personalEmail())
+                            .zalo(row.zalo()).source(row.source())
+                            .gender(gender).dateOfBirth(dateOfBirth)
                             .address(row.address())
-                            .isPrimary(false)
+                            .doNotCall(row.doNotCall() != null && row.doNotCall())
+                            .doNotEmail(row.doNotEmail() != null && row.doNotEmail())
+                            .isPrimary(row.isPrimary() != null && row.isPrimary())
                             .build());
                     success++;
                 }
@@ -80,5 +101,22 @@ public class ImportBulkContactUseCase {
             }
         }
         return new ImportBulkResult(success, errors.size(), errors);
+    }
+
+    private Long resolveOwnerId(ImportBulkContactCommand cmd) {
+        if ("SPECIFIC".equals(cmd.ownerMode())) return cmd.specificOwnerId();
+        return null;
+    }
+
+    private ContactGender parseGender(String s) {
+        if (s == null || s.isBlank()) return null;
+        try { return ContactGender.valueOf(s.trim().toLowerCase()); }
+        catch (Exception e) { return null; }
+    }
+
+    private LocalDate parseDate(String s) {
+        if (s == null || s.isBlank()) return null;
+        try { return LocalDate.parse(s.trim()); }
+        catch (Exception e) { return null; }
     }
 }

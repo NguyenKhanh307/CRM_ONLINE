@@ -16,7 +16,10 @@ export function useCreateCampaignMember(campaignId: number) {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (payload: CreateCampaignMemberPayload) => campaignService.createMember(campaignId, payload),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['campaign-members', campaignId] }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['campaign-members', campaignId] });
+            qc.invalidateQueries({ queryKey: ['campaign-stats', campaignId] });
+        },
     });
 }
 
@@ -25,6 +28,9 @@ export function useDeleteCampaignMember(campaignId: number) {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (memberId: number) => campaignService.deleteMember(campaignId, memberId),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['campaign-members', campaignId] }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['campaign-members', campaignId] });
+            qc.invalidateQueries({ queryKey: ['campaign-stats', campaignId] });
+        },
     });
 }

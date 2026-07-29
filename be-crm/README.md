@@ -83,7 +83,7 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 
 | Method | Endpoint | Mô tả | Auth yêu cầu |
 |--------|----------|-------|--------------|
-| `POST` | `/api/auth/login` | Đăng nhập, trả JWT token. Email phải là @gmail.com | Không |
+| `POST` | `/api/auth/login` | Đăng nhập, trả JWT token. Email hợp lệ theo định dạng chung (không còn ràng buộc @gmail.com); sai mật khẩu/email không tồn tại/tài khoản chưa kích hoạt trả message riêng | Không |
 | `POST` | `/api/auth/google` | Đăng nhập bằng Google — xác thực ID token, chỉ cho vào nếu email có trong bảng `users` + active; tự điền avatar từ ảnh Google khi trống | Không |
 | `POST` | `/api/auth/register-employee` | Admin đăng ký tài khoản nhân viên, gửi email kích hoạt | Bearer JWT (ADMIN) |
 | `POST` | `/api/auth/activate` | Nhân viên kích hoạt tài khoản và đặt mật khẩu lần đầu | Không |
@@ -437,6 +437,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/tickets/deleted` | Thùng rác (30 ngày) |
 | `POST` | `/api/tickets/{id}/restore` · `DELETE .../purge` | Khôi phục / xóa vĩnh viễn |
 | `POST` | `/api/tickets/handover-bulk` | Bàn giao nhiều phiếu — body: `{ ids, toUserId, reason? }` |
+| `POST` | `/api/tickets/import-bulk` | Nhập hàng loạt từ file — chỉ field header (không đụng status/SLA/CSAT) |
 | `POST` | `/api/tickets/{id}/assign` | Giao xử lý (new → assigned) — body: `{ toUserId }`; tạo notification |
 | `POST` | `/api/tickets/{id}/start` | Bắt đầu (assigned/reopened → in_progress), set `firstResponseAt` |
 | `POST` | `/api/tickets/{id}/resolve` | Giải quyết (support/complaint) — body: `{ resolutionType?, note? }` |
@@ -479,12 +480,18 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 #### Danh mục sản phẩm — `/api/product-categories`
 
+> 2026-07-29: FE có trang quản lý riêng `/san-pham/danh-muc` (nút "Danh mục" trên trang Sản
+> phẩm). Đã bỏ hẳn cột `parent_id` (danh mục cha, self-reference) — chưa từng được dùng để dựng
+> cây ở bất kỳ đâu trong code, mọi danh mục thực tế đều là gốc. `code` không sửa được sau khi tạo
+> (`UpdateProductCategoryCommand` không nhận field này). Xóa danh mục không chặn nếu đang có sản
+> phẩm gắn — FK `ON DELETE SET NULL` tự đưa `products.category_id` về NULL.
+
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
 | `POST` | `/api/product-categories` | Tạo danh mục |
 | `GET` | `/api/product-categories` | Danh sách danh mục (phân trang) |
 | `GET` | `/api/product-categories/{id}` | Lấy danh mục theo ID |
-| `PUT` | `/api/product-categories/{id}` | Cập nhật danh mục |
+| `PUT` | `/api/product-categories/{id}` | Cập nhật danh mục (không đổi được `code`) |
 | `DELETE` | `/api/product-categories/{id}` | Xóa danh mục |
 
 ---
@@ -500,6 +507,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/price-policies/{id}` | Lấy chính sách theo ID |
 | `PUT` | `/api/price-policies/{id}` | Cập nhật chính sách |
 | `DELETE` | `/api/price-policies/{id}` | Xóa chính sách |
+| `POST` | `/api/price-policies/import-bulk` | Nhập hàng loạt chính sách giá từ file (chỉ bảng header) |
 
 #### Giá theo sản phẩm — `/api/price-policies/{policyId}/products`
 
@@ -510,14 +518,6 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `PUT` | `/api/price-policies/{policyId}/products/{id}` | Cập nhật giá sản phẩm |
 | `DELETE` | `/api/price-policies/{policyId}/products/{id}` | Xóa giá sản phẩm |
 
-#### Giá theo loại sản phẩm — `/api/price-policies/{policyId}/product-types`
-
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `POST` | `/api/price-policies/{policyId}/product-types` | Thêm giá theo loại SP |
-| `GET` | `/api/price-policies/{policyId}/product-types` | Danh sách giá loại SP |
-| `DELETE` | `/api/price-policies/{policyId}/product-types/{id}` | Xóa giá loại SP |
-
 #### Giá theo khách hàng — `/api/price-policies/{policyId}/customers`
 
 | Method | Endpoint | Mô tả |
@@ -526,13 +526,24 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `GET` | `/api/price-policies/{policyId}/customers` | Danh sách giá khách hàng |
 | `DELETE` | `/api/price-policies/{policyId}/customers/{id}` | Xóa giá khách hàng |
 
-#### Giá theo nhóm khách hàng — `/api/price-policies/{policyId}/customer-categories`
+#### Danh mục sản phẩm (chọn nhanh) — `/api/price-policies/{policyId}/product-categories`
+
+> 2026-07-29: đổi tên từ `customer-categories` (tên cũ sai — ERD trỏ nhầm `category_id` vào
+> `product_categories` dù đặt tên "danh mục khách hàng"; DB không có khái niệm phân khúc khách
+> hàng nào khác). Bảng chỉ là **marker chọn nhanh** (id/pricePolicyId/categoryId) — KHÔNG mang
+> giá/chiết khấu (1 giá cố định cho cả danh mục là sai vì các sản phẩm cùng danh mục thường có
+> giá gốc rất khác nhau). Thêm 1 danh mục → BE tự **bulk-seed** toàn bộ sản phẩm thuộc danh mục
+> đó vào `price_policy_products` (giá để trống), người dùng sửa giá từng dòng ở tab "Sản phẩm"
+> như bình thường (xem `CreatePricePolicyProductCategoryUseCase`). Xóa marker **không** cascade
+> xóa các dòng đã bulk-seed (đã là dòng giá độc lập, có thể đã bị chỉnh tay) — nên không có `PUT`.
+> Bảng `price_policy_product_types` (trùng lặp, cùng trỏ `product_categories`, chưa từng có code
+> nào dùng) đã bị xóa hẳn cùng đợt này.
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/price-policies/{policyId}/customer-categories` | Thêm giá theo nhóm KH |
-| `GET` | `/api/price-policies/{policyId}/customer-categories` | Danh sách giá nhóm KH |
-| `DELETE` | `/api/price-policies/{policyId}/customer-categories/{id}` | Xóa giá nhóm KH |
+| `POST` | `/api/price-policies/{policyId}/product-categories` | Thêm danh mục (bulk-seed sản phẩm chưa có giá riêng) |
+| `GET` | `/api/price-policies/{policyId}/product-categories` | Danh sách danh mục đã thêm |
+| `DELETE` | `/api/price-policies/{policyId}/product-categories/{id}` | Xóa marker (giữ nguyên các dòng sản phẩm đã bulk-seed) |
 
 #### Giá theo nhân viên — `/api/price-policies/{policyId}/employees`
 
@@ -701,14 +712,16 @@ Trạng thái không sửa tay qua `PUT`; đổi qua các endpoint hành động
 |--------|----------|-------|
 | `POST` | `/api/leads/{id}/convert` | qualified → converted; **tách thành Khách hàng + Liên hệ + Cơ hội** rồi khóa lead |
 | `POST` | `/api/leads/{id}/lose` | → lost (body `{reason}`) |
+| `POST` | `/api/leads/{id}/claim` | **MỚI (2026-07-27)** — nhân viên tự nhận chăm sóc một tiềm năng đang chưa có người phụ trách (`owner_id IS NULL`); 400 nếu đã có người nhận (race hai nhân viên bấm cùng lúc, kiểm tra lại trong transaction). Danh sách `GET /api/leads` cho nhân viên nay trả thêm bản ghi `owner_id IS NULL` (`includeUnassigned`) để có gì mà nhận |
 | `POST` | `/api/customers/{id}/activate` \| `/deactivate` | active ↔ inactive |
 | `POST` | `/api/activities/{id}/start` \| `/complete` \| `/cancel` | planned→in_progress→done / cancelled |
 | `POST` | `/api/invoices/{id}/issue` \| `/cancel` | draft→sent (khóa) / cancelled |
-| `POST` | `/api/quotations/{id}/submit` \| `/approve` \| `/reject` \| `/send` \| `/accept` | draft→pending→approved/rejected→sent→accepted (approve/reject cần ADMIN/SALES_MANAGER; **send** gửi email khách kèm **PDF bảng báo giá** + 3 nút phản hồi, sinh `response_token`). **send** nhận body tùy chọn `{ to, cc, bcc, subject, body }` — người dùng sửa được **người nhận** và thêm CC/BCC (nhiều email cách nhau dấu phẩy); bỏ trống `to` thì lấy email liên hệ/khách hàng. 3 nút phản hồi luôn được BE tự chèn vào cuối |
+| `POST` | `/api/quotations/{id}/submit` \| `/approve` \| `/reject` \| `/send` \| `/accept` | draft→pending→approved/rejected→sent→accepted (approve/reject cần ADMIN/SALES_MANAGER; **send** gửi email khách kèm **PDF bảng báo giá** + 3 nút phản hồi, sinh `response_token`). **send** nhận body tùy chọn `{ to, cc, bcc, subject, body }` — người dùng sửa được **người nhận** và thêm CC/BCC (nhiều email cách nhau dấu phẩy); bỏ trống `to` thì lấy email liên hệ/khách hàng. 3 nút phản hồi luôn được BE tự chèn vào cuối. **`accept`** (2026-07-27) nay **tự động tạo Đơn hàng** (giữ `status=draft`, khóa báo giá, cơ hội→won) trong cùng transaction — idempotent, gọi lại không tạo trùng nếu báo giá đã khóa |
 | `POST` | `/api/quotations/{id}/mark-sent` | **MỚI** — đánh dấu đã gửi mà KHÔNG gửi email (approved → sent), dùng khi báo giá gửi qua Zalo / in giấy. Vẫn sinh `response_token` để chia sẻ link phản hồi khi cần |
 | `GET`  | `/api/quotations/{id}/email-draft` | Lấy nội dung email mặc định (`{ toEmail, recipientName, subject, body }`) để FE hiển thị trong ô soạn trước khi gửi |
+| `GET`  | `/api/quotations/{id}/pdf-preview` | **MỚI (2026-07-27)** — xem trước PDF báo giá (trả `application/pdf`) khi soạn email, KHÔNG đổi trạng thái/không gửi mail. Cần JWT (FE tải qua `axiosInstance` responseType `blob` rồi mở tab mới) |
 | `GET`  | `/api/public/quotations/{token}` | (public) Xem báo giá theo token để khách phản hồi |
-| `POST` | `/api/public/quotations/{token}/respond` | (public) Khách phản hồi — body `{ action: accept\|adjust\|reject, note? }`; `accept`→accepted + thông báo người phụ trách |
+| `POST` | `/api/public/quotations/{token}/respond` | (public) Khách phản hồi — body `{ action: accept\|adjust\|reject, note? }`; `accept`→accepted + **tự động tạo Đơn hàng** (như accept nội bộ) + thông báo người phụ trách |
 | `POST` | `/api/quotations/from-opportunity/{opportunityId}` | Clone báo giá từ cơ hội (OLI→QLI, đặt primary nếu là báo giá đầu) |
 | `POST` | `/api/quotations/{id}/sync-items-from-opportunity` | Cập nhật lại dòng hàng báo giá theo cơ hội nguồn (xóa + clone lại OLI→QLI, giữ `opportunityItemId`) |
 | `POST` | `/api/quotations/{id}/set-primary` | Đặt báo giá đồng bộ (chỉ 1 primary/cơ hội) |
@@ -796,6 +809,17 @@ CÂU HỎI:
   `diagrams/vector_migration.sql`. Index HNSW là **tùy chọn** — lỗi thì bỏ qua, vài nghìn dòng
   brute-force vẫn dưới 50ms.
 - **Cấu hình** (externalize như JWT/mail): `app.ai.api-key` (env `APP_AI_API_KEY` — bắt buộc, không commit), `app.ai.model` (mặc định `gemini-flash-latest` — model chạy được trên free tier; `gemini-2.0-flash` bị giới hạn quota 0 nên **không dùng free tier**), `app.ai.base-url`. Nhúng câu hỏi thêm `app.ai.embed.enabled|model|dimensions|top-k|max-distance` (env `APP_AI_EMBED_*`, đều có default). Dev đặt key trong `application-local.properties`.
+- **Chặn cứng câu hỏi ngoài phạm vi cho nhân viên (MỚI 2026-07-27)**: `CopilotIntentDetector.isOutOfScopeForStaff(question)` dò từ khóa (đã bỏ dấu) thuộc phạm vi admin/hệ thống ("quản trị", "phân quyền", "vai trò", "toàn công ty", "toàn hệ thống", "tài khoản người dùng"...). `AskCopilotUseCase` gọi hàm này **trước** khi build context/gọi AI — nhân viên hỏi trúng từ khóa thì trả thẳng câu từ chối, **không tốn quota Gemini**. Đây là lớp phòng thủ tất định bổ sung cho `STAFF_SCOPE` (chỉ là chỉ dẫn prompt cho LLM, có thể bị lách qua bằng prompt injection) — cả hai lớp cùng tồn tại.
+
+### 2.15 Audit Log — Nhật ký hệ thống (MỚI 2026-07-27, chỉ ADMIN)
+
+Đọc-only, **không có bảng riêng** — gộp 5 nguồn dữ liệu đã có sẵn trong DB bằng UNION ALL native SQL (`AuditLogRepositoryImpl`, theo mẫu `RelatedRepositoryImpl`): `quotation_approvals` (duyệt/từ chối báo giá), `lead_transfers` (bàn giao tiềm năng), `ticket_comments` type=system (nhật ký phiếu chăm sóc), `notifications` (thông báo hệ thống), và `created_by`/`updated_by`/`deleted_by` của 6 bảng nghiệp vụ chính (leads/customers/opportunities/quotations/orders/invoices) — "ai tạo/sửa/xóa gần nhất".
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| `GET` | `/api/audit-log?source=&q=&page=&size=` | Danh sách nhật ký, mới nhất trước. `source` lọc theo nguồn (`quotation_approval`\|`lead_transfer`\|`ticket_comment`\|`notification`\|`record_change`), `q` tìm theo bản ghi đích/ghi chú/người thực hiện |
+
+**Quyền**: chặn ở URL level trong `SecurityConfig` (`/api/audit-log/**` → `hasAuthority("ADMIN")`), kể cả `GET` (khác pattern thường "GET mở cho mọi user" vì đây là dữ liệu nhạy cảm liên quan tới thao tác của người khác). FE route `/nhat-ky-he-thong` (sidebar `adminOnly`).
 
 ---
 
@@ -981,7 +1005,7 @@ be-crm/src/main/java/vn/com/be_crm/
 | File / Folder | Tầng | Công dụng |
 |---------------|------|-----------|
 | `domain/product/entity/Product.java` | Domain | Entity sản phẩm (soft delete) |
-| `domain/product/entity/ProductCategory.java` | Domain | Danh mục sản phẩm (self-referencing — danh mục cha/con) |
+| `domain/product/entity/ProductCategory.java` | Domain | Danh mục sản phẩm (phẳng — đã bỏ `parentId` self-referencing 2026-07-29, chưa từng dùng) |
 | `domain/product/enums/ProductType.java` | Domain | Loại sản phẩm |
 | `domain/product/repository/I*Repository.java` | Domain | 2 interface repository |
 | `application/product/...` | Application | Use case CRUD + query cho Product & Category |
@@ -995,19 +1019,17 @@ be-crm/src/main/java/vn/com/be_crm/
 |---------------|------|-----------|
 | `domain/pricing/entity/PricePolicy.java` | Domain | Entity chính sách giá |
 | `domain/pricing/entity/PricePolicyProduct.java` | Domain | Giá riêng theo từng sản phẩm |
-| `domain/pricing/entity/PricePolicyProductType.java` | Domain | Giá riêng theo loại sản phẩm |
 | `domain/pricing/entity/PricePolicyCustomer.java` | Domain | Giá riêng theo từng khách hàng |
-| `domain/pricing/entity/PricePolicyCustomerCategory.java` | Domain | Giá riêng theo nhóm khách hàng |
+| `domain/pricing/entity/PricePolicyProductCategory.java` | Domain | Marker chọn danh mục — Create bulk-seed sản phẩm vào PricePolicyProduct (đổi tên từ PricePolicyCustomerCategory 2026-07-29) |
 | `domain/pricing/entity/PricePolicyEmployee.java` | Domain | Giá riêng theo nhân viên bán hàng |
 | `domain/pricing/enums/PricePolicyStatus.java` | Domain | Trạng thái chính sách |
 | `domain/pricing/enums/DiscountType.java` | Domain | Loại chiết khấu (%, số tiền cố định) |
-| `domain/pricing/repository/I*Repository.java` | Domain | 6 interface repository |
-| `application/pricing/...` | Application | Use case cho PricePolicy và 5 sub-entity |
+| `domain/pricing/repository/I*Repository.java` | Domain | 5 interface repository |
+| `application/pricing/...` | Application | Use case cho PricePolicy và 4 sub-entity |
 | `presentation/pricing/PricePolicyController.java` | Presentation | REST `/api/price-policies` |
 | `presentation/pricing/PricePolicyProductController.java` | Presentation | REST `/api/price-policies/{id}/products` |
-| `presentation/pricing/PricePolicyProductTypeController.java` | Presentation | REST `/api/price-policies/{id}/product-types` |
 | `presentation/pricing/PricePolicyCustomerController.java` | Presentation | REST `/api/price-policies/{id}/customers` |
-| `presentation/pricing/PricePolicyCustomerCategoryController.java` | Presentation | REST `/api/price-policies/{id}/customer-categories` |
+| `presentation/pricing/PricePolicyProductCategoryController.java` | Presentation | REST `/api/price-policies/{id}/product-categories` |
 | `presentation/pricing/PricePolicyEmployeeController.java` | Presentation | REST `/api/price-policies/{id}/employees` |
 | `infrastructure/pricing/...` | Infrastructure | Hibernate entity, mapper, repository impl |
 

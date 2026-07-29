@@ -5,18 +5,9 @@ import { useAuth } from '@/core/auth/useAuth';
 export type PermAction =
     | 'view' | 'create' | 'edit' | 'delete'
     | 'import' | 'export' | 'handover'
-    | 'approve' | 'process' | 'approve_return';
-
-/**
- * Module chỉ có quyền `.view` (không có create/edit/delete lẻ) → quản lý bằng role
- * ADMIN/SALES_MANAGER (khớp BE gate product mutating theo role).
- */
-const MANAGE_BY_ROLE = new Set(['product']);
-/**
- * Module không có code `.delete` riêng → BE gate xóa bằng role ADMIN/SALES_MANAGER
- * (quotation/invoice/product). Với các module này, `edit` fallback về `.create`.
- */
-const DELETE_BY_ROLE = new Set(['quotation', 'invoice', 'product']);
+    | 'approve' | 'process' | 'approve_return'
+    | 'submit' | 'send' | 'activate' | 'change_stage'
+    | 'create_invoice' | 'send_email' | 'convert';
 
 interface PermissionContextValue {
     roles: string[];
@@ -58,20 +49,11 @@ export const PermissionProvider = ({ children }: PermissionProviderProps) => {
             hasModuleAccess: (module) => permissions.some((p) => p.startsWith(`${module}.`)),
             can: (module, action) => {
                 switch (action) {
-                    case 'create':
-                    case 'import':
-                        return MANAGE_BY_ROLE.has(module) ? isManager : has(`${module}.create`);
-                    case 'edit':
-                        if (MANAGE_BY_ROLE.has(module)) return isManager;
-                        return has(`${module}.edit`) || (DELETE_BY_ROLE.has(module) && has(`${module}.create`));
-                    case 'delete':
-                        return DELETE_BY_ROLE.has(module) ? isManager : has(`${module}.delete`);
-                    case 'export':
-                        return has(`${module}.export`);
                     case 'handover':
                         return isManager;
                     default:
-                        // view, approve, process, approve_return
+                        // view, create, edit, delete, import, export, approve, process,
+                        // approve_return, submit, send, activate, change_stage, create_invoice, send_email, convert
                         return has(`${module}.${action}`);
                 }
             },

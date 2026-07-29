@@ -1,6 +1,6 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult } from '@/shared/types/api';
-import type { RoleGroup, GroupPermission, GroupMember, GroupFormPayload } from '../types/phanQuyenTypes';
+import type { RoleGroup, GroupPermission, GroupMember, GroupFormPayload, UserRoleAssignment } from '../types/phanQuyenTypes';
 
 /**
  * Service tập trung tất cả API calls cho trang Phân quyền.
@@ -25,6 +25,10 @@ export const phanQuyenService = {
     /** Lấy danh sách thành viên của một nhóm. */
     getRoleMembers: (roleId: number) =>
         axiosInstance.get<ApiResponse<GroupMember[]>>(`/api/roles/${roleId}/members`),
+
+    /** Lấy toàn bộ liên kết user-role hiện có (mỗi người chỉ thuộc một nhóm). */
+    getUserRoleAssignments: () =>
+        axiosInstance.get<ApiResponse<UserRoleAssignment[]>>('/api/roles/user-assignments'),
 
     /** Tạo nhóm mới. */
     createRole: (body: GroupFormPayload) =>

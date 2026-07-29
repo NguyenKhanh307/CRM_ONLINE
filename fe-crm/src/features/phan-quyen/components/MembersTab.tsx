@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { FiUserPlus, FiTrash2, FiLock, FiUnlock, FiEdit2, FiCheck, FiX } from 'react-icons/fi';
 import { useRoleMembers } from '../hooks/useRoleMembers';
 import { useAllUsers } from '../hooks/useAllUsers';
+import { useAllUserRoles } from '../hooks/useAllUserRoles';
 import { useAddMember } from '../hooks/useAddMember';
 import { useRemoveMember } from '../hooks/useRemoveMember';
 import { useRevokeUser } from '../hooks/useRevokeUser';
@@ -66,13 +67,15 @@ const MembersTab = ({ roleId }: Props) => {
 
     const { data: members = [], isLoading: loadingMembers } = useRoleMembers(roleId);
     const { data: allUsers = [] } = useAllUsers();
+    const { data: userRoleAssignments = [] } = useAllUserRoles();
     const addMutation = useAddMember(roleId);
     const removeMutation = useRemoveMember(roleId);
     const revokeMutation = useRevokeUser(roleId);
     const reactivateMutation = useReactivateUser(roleId);
     const updateYearMutation = useUpdateDataAccess(roleId);
 
-    const existingMemberIds = useMemo(() => new Set(members.map(m => m.id)), [members]);
+    // Mỗi người chỉ thuộc một nhóm — loại người đã có nhóm (bất kỳ) khỏi modal thêm thành viên.
+    const assignedUserIds = useMemo(() => new Set(userRoleAssignments.map(ur => ur.userId)), [userRoleAssignments]);
 
     const activeMutation = confirmState?.type === 'remove' ? removeMutation
         : confirmState?.type === 'revoke' ? revokeMutation
@@ -184,6 +187,8 @@ const MembersTab = ({ roleId }: Props) => {
                                             <div className="flex items-center justify-center gap-1">
                                                 <input
                                                     type="number"
+                                                    min={2000}
+                                                    max={2100}
                                                     value={yearInput}
                                                     onChange={e => { setYearInput(e.target.value); setYearError(null); }}
                                                     placeholder="YYYY"
@@ -265,7 +270,7 @@ const MembersTab = ({ roleId }: Props) => {
             {showModal && (
                 <AddMemberModal
                     allUsers={allUsers}
-                    existingMemberIds={existingMemberIds}
+                    assignedUserIds={assignedUserIds}
                     onClose={() => setShowModal(false)}
                     onAdd={handleAdd}
                     isLoading={addMutation.isPending}

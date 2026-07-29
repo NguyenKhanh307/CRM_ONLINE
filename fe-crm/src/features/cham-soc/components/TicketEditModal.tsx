@@ -8,6 +8,10 @@ import { FieldError } from '@/shared/components/form/FormField';
 import { SearchableSelect, type SelectOption } from '@/shared/components/SearchableSelect';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { FieldRow } from '@/shared/components/form/FieldRow';
+import { PrefillHint } from '@/shared/components/form/PrefillHint';
+import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
+import { fetchPrimaryContactId } from '@/shared/lookup/recordPrefill';
+import { invoiceService } from '@/features/hoa-don/services/invoiceService';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useUpdateTicket } from '../hooks/useUpdateTicket';
@@ -57,8 +61,34 @@ export function TicketEditModal({ ticket, customerOptions, userOptions, productO
         enabled: !!ticket && !!form,
     });
 
+    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
+
     if (!ticket || !form) return null;
     const set = (p: Partial<FormState>) => setForm((s) => (s ? { ...s, ...p } : s));
+
+    /** Đổi khách hàng → tự điền liên hệ chính (chỉ khi ô liên hệ còn trống). */
+    const onPickCustomer = async (v: string) => {
+        // Đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai.
+        const base = { ...form, customerId: v, contactId: '' };
+        set({ customerId: v, contactId: '' });
+        setPrefillFrom(null);
+        if (!v) return;
+        const patch = fillEmpty(base, { contactId: await fetchPrimaryContactId(Number(v)) });
+        if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customerOptions.find(o => o.value === v)?.label ?? v}»`); }
+    };
+
+    /** Đổi hóa đơn → tự điền khách hàng + liên hệ của hóa đơn đó (chỉ ô còn trống). */
+    const onPickInvoice = async (v: string) => {
+        set({ invoiceId: v });
+        setPrefillFrom(null);
+        if (!v) return;
+        const inv = (await invoiceService.getById(Number(v))).data.data;
+        const patch = fillEmpty({ ...form, invoiceId: v }, {
+            customerId: inv.customerId ? String(inv.customerId) : '',
+            contactId: inv.contactId ? String(inv.contactId) : '',
+        });
+        if (hasFilled(patch)) { set(patch); setPrefillFrom(`hóa đơn «${inv.code}»`); }
+    };
 
     const submit = async (e: FormEvent) => {
         e.preventDefault();
@@ -115,7 +145,8 @@ export function TicketEditModal({ ticket, customerOptions, userOptions, productO
                         <SearchableSelect value={form.reason} onChange={(v) => set({ reason: v })} options={REASON_OPTIONS} />
                     </FieldRow>
                     <FieldRow label="Khách hàng">
-                        <SearchableSelect value={form.customerId} onChange={(v) => set({ customerId: v })} options={customerOptions} fallbackLabel={ticket?.customerName} />
+                        <SearchableSelect value={form.customerId} onChange={onPickCustomer} options={customerOptions} fallbackLabel={ticket?.customerName} />
+                        <PrefillHint source={prefillFrom} />
                     </FieldRow>
                     <FieldRow label="Liên hệ">
                         <RecordPicker module="contact" value={form.contactId} onChange={(v) => set({ contactId: v })}
@@ -128,7 +159,7 @@ export function TicketEditModal({ ticket, customerOptions, userOptions, productO
                         <SearchableSelect value={form.assignedUserId} onChange={(v) => set({ assignedUserId: v })} options={userOptions} fallbackLabel={ticket?.assignedUserName} />
                     </FieldRow>
                     <FieldRow label="Hóa đơn">
-                        <RecordPicker module="invoice" value={form.invoiceId} onChange={(v) => set({ invoiceId: v })}
+                        <RecordPicker module="invoice" value={form.invoiceId} onChange={onPickInvoice}
                             fallbackLabel={ticket?.invoiceCode} />
                     </FieldRow>
                     <FieldRow label="Mô tả" alignTop>

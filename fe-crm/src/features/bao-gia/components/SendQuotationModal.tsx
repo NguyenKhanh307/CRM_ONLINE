@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiEye } from 'react-icons/fi';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { RichTextEditor } from '@/shared/components/RichTextEditor';
 import { ModalFooter } from '@/shared/components/ModalFooter';
+import { ActionButton } from '@/shared/components/ActionButton';
 import { FormField } from '@/shared/components/form/FormField';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { collectErrors, emailError } from '@/shared/utils/validators';
 import { useQuotationEmailDraft } from '../hooks/useQuotationEmailDraft';
 import { useQuotationWorkflow } from '../hooks/useQuotationWorkflow';
+import { quotationService } from '../services/quotationService';
 
 /** Kiểm danh sách email cách nhau bởi dấu phẩy (CC/BCC). */
 const emailListError = (v: string, label: string): string | null => {
@@ -39,6 +41,7 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [previewing, setPreviewing] = useState(false);
 
     const formRef = useRef<HTMLFormElement>(null);
     // enabled: open — modal render rỗng khi đóng. Hook tự né Enter/mũi tên trong TinyMCE (.tox).
@@ -58,6 +61,22 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
     }, [draft]);
 
     if (!open) return null;
+
+    /** Tải PDF báo giá và mở ở tab mới — endpoint cần JWT nên không dùng <a href> trực tiếp. */
+    const handlePreviewPdf = async () => {
+        setPreviewing(true);
+        try {
+            const res = await quotationService.getPdfPreview(quotationId as number);
+            const url = URL.createObjectURL(res.data);
+            window.open(url, '_blank');
+            // Thu hồi sau một nhịp để tab mới kịp nạp xong nội dung.
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+        } catch {
+            showAlert('Không tải được PDF xem trước');
+        } finally {
+            setPreviewing(false);
+        }
+    };
 
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
@@ -116,7 +135,12 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
             <div className="bg-white rounded-card shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-semibold text-text-main">Soạn email báo giá</h2>
-                    <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
+                    <div className="flex items-center gap-1.5">
+                        <ActionButton type="button" variant="outline" icon={FiEye} onClick={handlePreviewPdf} disabled={previewing}>
+                            {previewing ? 'Đang tải...' : 'Xem trước PDF'}
+                        </ActionButton>
+                        <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
+                    </div>
                 </div>
                 <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <FormField

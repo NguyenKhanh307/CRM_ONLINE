@@ -3,6 +3,9 @@ package vn.com.be_crm.presentation.quotation;
 import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -44,12 +47,14 @@ public class QuotationController {
     private final SetPrimaryQuotationUseCase setPrimaryUC;
     private final ConvertQuotationToOrderUseCase convertToOrderUC;
     private final GetQuotationEmailDraftUseCase emailDraftUC;
+    private final PreviewQuotationPdfUseCase previewPdfUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
      *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
      *  @param handoverBulkUC bàn giao hàng loạt @param workflowUC luồng duyệt báo giá
      *  @param fromOpportunityUC clone từ cơ hội @param refreshItemsUC cập nhật lại dòng hàng từ cơ hội
-     *  @param setPrimaryUC đặt báo giá đồng bộ @param convertToOrderUC chuyển thành đơn hàng */
+     *  @param setPrimaryUC đặt báo giá đồng bộ @param convertToOrderUC chuyển thành đơn hàng
+     *  @param previewPdfUC xem trước PDF báo giá khi soạn email */
     public QuotationController(CreateQuotationUseCase createUC, UpdateQuotationUseCase updateUC,
                                 DeleteQuotationUseCase deleteUC, GetQuotationUseCase getUC, ListQuotationUseCase listUC,
                                 ListDeletedQuotationsUseCase listDeletedUC, RestoreQuotationUseCase restoreUC, PurgeQuotationUseCase purgeUC,
@@ -60,7 +65,8 @@ public class QuotationController {
                                 RefreshQuotationItemsFromOpportunityUseCase refreshItemsUC,
                                 SetPrimaryQuotationUseCase setPrimaryUC,
                                 ConvertQuotationToOrderUseCase convertToOrderUC,
-                                GetQuotationEmailDraftUseCase emailDraftUC) {
+                                GetQuotationEmailDraftUseCase emailDraftUC,
+                                PreviewQuotationPdfUseCase previewPdfUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
@@ -69,9 +75,11 @@ public class QuotationController {
         this.setPrimaryUC = setPrimaryUC;
         this.convertToOrderUC = convertToOrderUC;
         this.emailDraftUC = emailDraftUC;
+        this.previewPdfUC = previewPdfUC;
     }
 
     /** Tạo mới báo giá. @param cmd JSON body @return 201 */
+    @PreAuthorize("hasAuthority('quotation.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<QuotationResult>> create(@Valid @RequestBody CreateQuotationCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -100,6 +108,7 @@ public class QuotationController {
     }
 
     /** Cập nhật báo giá. @param id ID @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('quotation.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<QuotationResult>> update(@PathVariable Long id,
                                                                 @Valid @RequestBody UpdateQuotationCommand cmd) {
@@ -144,7 +153,7 @@ public class QuotationController {
     }
 
     /** Xóa mềm báo giá. @param id ID @param req HTTP request @return 204 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('quotation.delete')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, HttpServletRequest req) {
         Long userId = (Long) req.getAttribute("userId");
@@ -164,27 +173,28 @@ public class QuotationController {
     }
 
     /** Khôi phục báo giá từ thùng rác. @param id ID @return 200 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('quotation.delete')")
     @PostMapping("/{id}/restore")
     public ResponseEntity<ApiResponse<Void>> restore(@PathVariable Long id) {
         restoreUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Xóa vĩnh viễn báo giá khỏi thùng rác. @param id ID @return 200 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('quotation.delete')")
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     /** Nhập hàng loạt báo giá từ file. @param cmd body @return 200 */
-    @PreAuthorize("hasAuthority('quotation.create')")
+    @PreAuthorize("hasAuthority('quotation.import')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkQuotationCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 
     /** Nhân viên gửi báo giá lên quản lý duyệt (draft → pending). @param id ID @param req HTTP request @return 200 */
+    @PreAuthorize("hasAuthority('quotation.submit')")
     @PostMapping("/{id}/submit")
     public ResponseEntity<ApiResponse<QuotationResult>> submit(@PathVariable Long id, HttpServletRequest req) {
         Long userId = (Long) req.getAttribute("userId");
@@ -217,8 +227,23 @@ public class QuotationController {
         return ResponseEntity.ok(ApiResponse.ok(emailDraftUC.execute(id)));
     }
 
+    /**
+     * Xem trước PDF báo giá (khi soạn email trước khi gửi) — KHÔNG đổi trạng thái, không gửi mail.
+     * @param id ID báo giá
+     * @return 200, {@code Content-Type: application/pdf}
+     */
+    @GetMapping("/{id}/pdf-preview")
+    public ResponseEntity<byte[]> pdfPreview(@PathVariable Long id) {
+        byte[] pdf = previewPdfUC.execute(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.inline().filename("BaoGia-" + id + ".pdf").build().toString())
+                .body(pdf);
+    }
+
     /** Nhân viên gửi email báo giá cho khách (approved → sent). @param id ID @param body người nhận/CC/BCC/tiêu đề/nội dung tùy biến @return 200 */
-    @PreAuthorize("hasAuthority('quotation.approve')")
+    @PreAuthorize("hasAuthority('quotation.send')")
     @PostMapping("/{id}/send")
     public ResponseEntity<ApiResponse<QuotationResult>> send(@PathVariable Long id,
             @RequestBody(required = false) SendQuotationRequest body) {
@@ -240,7 +265,7 @@ public class QuotationController {
      * @param id ID báo giá
      * @return 200
      */
-    @PreAuthorize("hasAuthority('quotation.approve')")
+    @PreAuthorize("hasAuthority('quotation.send')")
     @PostMapping("/{id}/mark-sent")
     public ResponseEntity<ApiResponse<QuotationResult>> markSent(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.markSent(id)));

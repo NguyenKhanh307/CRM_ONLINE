@@ -12,8 +12,9 @@ export function useOrderWorkflow() {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: ({ id, action }: { id: number; action: OrderAction }) => orderService[action](id),
-        onSuccess: () => {
+        onSuccess: (_d, v) => {
             qc.invalidateQueries({ queryKey: ['orders'] });
+            qc.invalidateQueries({ queryKey: ['order', v.id] });
             qc.invalidateQueries({ queryKey: ['invoices'] });
         },
     });

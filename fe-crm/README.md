@@ -240,7 +240,7 @@ export function useUpdateLead() {
 ## 4. Các module đã có
 
 ### Auth
-- `POST /api/auth/login` → JWT token lưu localStorage. **Email phải là @gmail.com** (validate cả FE lẫn BE)
+- `POST /api/auth/login` → JWT token lưu localStorage. Email chỉ cần đúng định dạng chung (không còn ràng buộc @gmail.com); banner lỗi hiện đúng message BE trả (sai mật khẩu / email không tồn tại / chưa kích hoạt)
 - `POST /api/auth/register-employee` → Admin đăng ký nhân viên, BE gửi email kích hoạt (route `/dang-ky-nhan-vien`)
 - `POST /api/auth/activate` → Nhân viên kích hoạt tài khoản qua link email (route public `/activate?token=...`)
 - `POST /api/auth/google` → Đăng nhập bằng Google (`GoogleLoginButton` dùng Google Identity Services lấy ID token). Chỉ vào được nếu email có trong bảng `users` + active. Cần `VITE_GOOGLE_CLIENT_ID` + script GSI trong `index.html`
@@ -441,13 +441,14 @@ Trang quản lý nhóm người dùng và phân quyền theo nhóm. Kết nối 
 Mọi nút Thêm/Sửa/Xóa/Nhập/Xuất/Bàn giao + menu chuột phải + phím tắt Alt+N + route `them-moi`/`nhap-file` đều gate theo quyền, **khớp guard BE**. Dùng `const { can } = usePermission();`:
 
 - `can(m,'create')` → `CreateButton`, Alt+N (`usePageShortcuts({ onCreate: can(m,'create') ? goCreate : undefined })`), route `them-moi`
-- `can(m,'import')` → nút Nhập + route `nhap-file` (= `<m>.create`)
-- `can(m,'export')` → nút Xuất (**quyền mới `<m>.export`** trong DB — reseed + đăng nhập lại mới có)
-- `can(m,'edit')` / `can(m,'delete')` → menu Chỉnh sửa / Xóa + nút Xóa hàng loạt
+- `can(m,'import')` → nút Nhập + route `nhap-file` (mã quyền riêng `<m>.import`, 2026-07-28 — trước đây dùng chung `<m>.create`)
+- `can(m,'export')` → nút Xuất (mã quyền `<m>.export`)
+- `can(m,'edit')` / `can(m,'delete')` → menu Chỉnh sửa / Xóa + nút Xóa hàng loạt (2026-07-28: mọi module đều có mã `.edit`/`.delete` thật, kể cả quotation/invoice/product — không còn gate bằng role hardcode)
 - `can(m,'handover')` → nút Bàn giao (role ADMIN/SALES_MANAGER)
 - `can(m,'approve'|'process'|'approve_return')` → hành động workflow (duyệt báo giá, phát hành hóa đơn, xử lý phiếu...)
+- `can(m,'submit'|'send')` (báo giá), `can('customer','activate')`, `can('opportunity','change_stage')`, `can('order','create_invoice')`, `can('campaign','send_email')`, `can('lead','convert')` — quyền đặc thù theo hành động thật (2026-07-28), thay cho các chỗ trước đây gate sai module/action hoặc không gate gì
 
-Ngoại lệ do BE: quotation/invoice/product xóa gate bằng role; product quản lý bằng role (chỉ có `product.view`). Helper tự xử lý qua `MANAGE_BY_ROLE`/`DELETE_BY_ROLE`. Route thiếu quyền → `RequirePermission` redirect `/forbidden`.
+`PermissionContext.tsx#can()` nay chỉ còn một nhánh chung `has(`${module}.${action}`)` cho mọi action (trừ `handover` theo role) — đã bỏ 2 cơ chế đặc cách `MANAGE_BY_ROLE`/`DELETE_BY_ROLE` vì product/quotation/invoice giờ có đủ mã quyền thật. Route thiếu quyền → `RequirePermission` redirect `/forbidden`. ⚠️ Token cũ (trước 2026-07-28) không có các mã quyền mới — phải đăng nhập lại.
 
 | Endpoint | Mô tả |
 |----------|-------|
@@ -476,6 +477,15 @@ Trang hiển thị bản ghi đã xóa mềm trong 30 ngày gần nhất. Admin 
 - **Xóa vĩnh viễn**: `DELETE /api/{module}/{id}/purge` — set `is_purged=1`, ẩn UI, DB giữ soft-delete
 
 Files: `features/thung-rac/` — types/thungRacTypes.ts, services/trashService.ts, hooks/useTrash.ts, config/trashColumns.tsx, pages/ThungRacPage.tsx
+
+### Nhật ký hệ thống — `/nhat-ky-he-thong` (MỚI 2026-07-27, chỉ ADMIN)
+
+Trang admin xem nhật ký sự kiện thao tác người dùng — gộp từ các bảng đã có sẵn trong DB (đọc-only, không có bảng riêng). Tab lọc theo nguồn: Tất cả / Duyệt báo giá / Bàn giao tiềm năng / Phiếu chăm sóc / Thông báo hệ thống / Tạo-sửa-xóa bản ghi. Server-side pagination + search, theo mẫu `usePagedLeadList`.
+
+- `GET /api/audit-log?source=&q=&page=&size=` — chỉ ADMIN được gọi (chặn ở BE `SecurityConfig`, kể cả GET)
+- Sidebar: mục "Nhật ký hệ thống" với `adminOnly: true` (chỉ ADMIN nhìn thấy trong menu, giống "Phân quyền"/"Đăng ký NV")
+
+Files: `features/nhat-ky-he-thong/` — types/auditLogTypes.ts, services/auditLogService.ts, hooks/useAuditLogList.ts, config/auditLogColumns.tsx, pages/NhatKyHeThongPage.tsx
 
 ### Bàn giao công việc (2026-06-12)
 
@@ -552,6 +562,8 @@ Mỗi module data có trang thêm mới full-page (layout AMIS), truy cập qua 
 | Sản phẩm | `/san-pham/them-moi` | `POST /api/products` |
 
 > **Trạng thái + dropdown nổi (2026-06-24):** form thêm mới **không còn chọn `status`** (tự động/qua hành động); trường người phụ trách mặc định = user đăng nhập (`useAuth()`). Mỗi list page có **nút hành động** theo status gọi `features/<m>/hooks/use<Module>Workflow.ts` (lead convert/lose, customer activate/deactivate, activity start/complete/cancel, order confirm/process/complete/cancel, quotation submit/approve/reject/send). Route mới **`/co-hoi/pipeline`** (`OpportunityPipelinePage`) để CRUD giai đoạn — status cơ hội suy ra từ giai đoạn. `SearchableSelect` render qua **portal** (`createPortal` + `position:fixed`, `z-[10000]`) nên không bị section/bảng/modal đè. Lý do nhập qua `shared/components/ReasonModal.tsx`. Ngày/số dùng `@/shared/utils/date.ts` + `@/shared/utils/number.ts`.
+>
+> **Route mới `/san-pham/danh-muc` (2026-07-29)** — `ProductCategoryPage.tsx` (mirror y hệt `OpportunityPipelinePage.tsx`): CRUD `product_categories` (bảng thủ công, modal thêm/sửa dùng chung, `code` khóa khi sửa vì không đổi được sau khi tạo). Nút "Danh mục" trên `SanPhamPage.tsx` (`PageHeaderSlot`, không gate theo `can()` — giống nút "Giai đoạn" của Cơ hội). `useProductCategoryMutations.ts` invalidate `['product-categories']` — dropdown chọn danh mục ở `ProductAddPage`/`ProductEditModal`/`PolicyProductCategoriesTab` (cùng queryKey qua `useProductCategories()`) tự cập nhật theo, không cần sửa 3 nơi đó. Cột `parent_id` (danh mục cha) đã bị xóa hẳn khỏi DB — chưa từng dùng để dựng cây.
 
 **Shared form components** — `src/shared/components/form/`:
 
@@ -576,7 +588,7 @@ Mỗi module data có trang thêm mới full-page (layout AMIS), truy cập qua 
 - `features/users/hooks/useActiveUsers.ts` — `GET /api/users?status=active`
 - `features/users/hooks/useOrgUnits.ts` — `GET /api/org-units`
 - `features/co-hoi/hooks/useOpportunityStages.ts` — `GET /api/opportunity-stages`
-- `features/san-pham/hooks/useProductCategories.ts` — `GET /api/product-categories`
+- `features/san-pham/hooks/useProductCategories.ts` — `GET /api/product-categories` (CRUD đầy đủ ở `useProductCategoryMutations.ts` + trang `/san-pham/danh-muc`, xem mục Trạng thái + dropdown nổi phía trên)
 - Tái sử dụng `useCustomerList` / `useContactList` / `useProductList`
 
 ### Nhập file Excel/CSV — 8 module (2026-06-11)
@@ -595,6 +607,8 @@ Mỗi module data có trang nhập file 4 bước riêng, truy cập qua nút "N
 | Hóa đơn | `/hoa-don/nhap-file` | `POST /api/invoices/import-bulk` |
 | Hoạt động | `/hoat-dong/nhap-file` | `POST /api/activities/import-bulk` |
 | Sản phẩm | `/san-pham/nhap-file` | `POST /api/products/import-bulk` |
+| Chăm sóc | `/cham-soc/nhap-file` | `POST /api/tickets/import-bulk` |
+| Chính sách giá | `/chinh-sach-gia/nhap-file` | `POST /api/price-policies/import-bulk` |
 
 **Shared wizard** — `src/shared/components/import/`:
 
@@ -616,11 +630,11 @@ importBulk: (payload: ImportBulkLeadCommand) =>
 
 **Dependency**: `xlsx` (SheetJS) — parse file trong trình duyệt, backend chỉ nhận JSON.
 
-**Lưu ý**: Import UPDATE/BOTH áp dụng cho các module có khóa duy nhất (lead, product, contact, customer, opportunity, order, quotation). **Hoạt động chỉ hỗ trợ CREATE** (không có khóa duy nhất).
+**Lưu ý**: Import UPDATE/BOTH áp dụng cho các module có khóa duy nhất (lead, product, contact, customer, opportunity, order, quotation, invoice, campaign, ticket, price-policy — khớp `code`). **Hoạt động chỉ hỗ trợ CREATE** (không có khóa duy nhất).
 
-### Xuất file Excel/CSV — 8 module (2026-06-19)
+### Xuất file Excel/CSV — 8 module (2026-06-19), +Chăm sóc +Chính sách giá (2026-07-28)
 
-Mỗi trang danh sách (8 module data) có nút **"Xuất file"** (`FiDownload`) cạnh nút "Nhập file". Xuất **hoàn toàn ở frontend** (dùng `xlsx` đã có sẵn) — không cần endpoint backend.
+Mỗi trang danh sách có nút **"Xuất file"** (`FiDownload`) cạnh nút "Nhập file". Xuất **hoàn toàn ở frontend** (dùng `xlsx` đã có sẵn) — không cần endpoint backend. Chăm sóc (ticket) đã có từ trước; Chính sách giá (`pricingExportColumns.ts`) mới thêm 2026-07-28 cùng đợt xây tính năng Nhập file cho module này.
 
 - **Phạm vi dòng**: có dòng đang tick → xuất các dòng đó; không tick → xuất toàn bộ danh sách (`rowsToExport = selectedRows.length > 0 ? selectedRows : data`).
 - **Chọn cột**: `ExportModal` liệt kê toàn bộ cột (mặc định tick tất cả), có nút Chọn/Bỏ chọn tất cả.

@@ -8,6 +8,9 @@ export function useUpdateOpportunity() {
     return useMutation({
         mutationFn: ({ id, payload }: { id: number; payload: UpdateOpportunityPayload }) =>
             opportunityService.update(id, payload),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['opportunities'] }),
+        onSuccess: (_d, v) => {
+            qc.invalidateQueries({ queryKey: ['opportunities'] });
+            qc.invalidateQueries({ queryKey: ['opportunity', v.id] });
+        },
     });
 }

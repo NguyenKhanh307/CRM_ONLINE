@@ -6,10 +6,13 @@ import java.math.BigDecimal;
 public record ImportProductRowCommand(
         String name,
         String sku,
+        Long categoryId,
         String type,
         String unit,
         BigDecimal basePrice,
         BigDecimal costPrice,
         BigDecimal vatRate,
-        String description
+        String description,
+        Boolean isDiscontinued,
+        Boolean isActive
 ) {}

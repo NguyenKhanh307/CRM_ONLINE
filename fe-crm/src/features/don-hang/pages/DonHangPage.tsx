@@ -92,19 +92,19 @@ const DonHangPage = () => {
     /** Thao tác của một đơn hàng — hiện trong menu chuột phải. */
     const rowActions = (o: OrderResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/don-hang/${o.id}`) },
-        ...(o.status === 'draft' && can('order', 'edit')
+        ...(o.status === 'draft' && can('order', 'process')
             ? [{ key: 'confirm', label: 'Xác nhận đơn', onClick: () => runAction(o.id, 'confirm') }]
             : []),
-        ...(o.status === 'confirmed' && can('order', 'edit')
+        ...(o.status === 'confirmed' && can('order', 'process')
             ? [{ key: 'process', label: 'Bắt đầu xử lý', onClick: () => runAction(o.id, 'process') }]
             : []),
-        ...((o.status === 'confirmed' || o.status === 'processing') && can('invoice', 'create')
+        ...((o.status === 'confirmed' || o.status === 'processing') && can('order', 'create_invoice')
             ? [{ key: 'createInvoice', label: 'Xuất hóa đơn', onClick: () => runAction(o.id, 'createInvoice') }]
             : []),
-        ...(o.status === 'processing' && can('order', 'edit')
+        ...(o.status === 'processing' && can('order', 'process')
             ? [{ key: 'complete', label: 'Hoàn tất đơn', onClick: () => runAction(o.id, 'complete') }]
             : []),
-        ...((o.status === 'draft' || o.status === 'confirmed' || o.status === 'processing') && can('order', 'edit')
+        ...((o.status === 'draft' || o.status === 'confirmed' || o.status === 'processing') && can('order', 'process')
             ? [{ key: 'cancel', label: 'Hủy đơn', onClick: () => runAction(o.id, 'cancel') }]
             : []),
         ...(!o.isLocked && can('order', 'edit')

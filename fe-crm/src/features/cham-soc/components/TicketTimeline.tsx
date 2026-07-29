@@ -5,10 +5,12 @@ import { useTicketComments, useCreateTicketComment } from '../hooks/useTicketCom
 
 interface Props {
     ticketId: number;
+    /** Phiếu đã đóng — chỉ mở lại mới ghi chú tiếp được. */
+    closed?: boolean;
 }
 
 /** Dòng thời gian ghi chú / lịch sử phiếu: phân biệt system (audit) và note (người nhập). */
-export function TicketTimeline({ ticketId }: Props) {
+export function TicketTimeline({ ticketId, closed = false }: Props) {
     const { data: comments = [], isLoading } = useTicketComments(ticketId);
     const { mutate: addNote, isPending } = useCreateTicketComment(ticketId);
     const [content, setContent] = useState('');
@@ -21,21 +23,25 @@ export function TicketTimeline({ ticketId }: Props) {
 
     return (
         <div className="space-y-4">
-            <div className="space-y-2">
-                <textarea rows={2} value={content} onChange={(e) => setContent(e.target.value)}
-                    placeholder="Nhập trao đổi / ghi chú..."
-                    className="w-full border border-gray-300 rounded-btn px-3 py-1.5 text-md text-text-main focus:outline-none focus:border-primary resize-none" />
-                <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 text-sm text-gray-600">
-                        <input type="checkbox" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)} />
-                        Ghi chú nội bộ
-                    </label>
-                    <button type="button" onClick={submit} disabled={isPending || !content.trim()}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn bg-primary text-white text-md font-medium hover:opacity-90 disabled:opacity-50">
-                        <FiSend size={14} /> Gửi
-                    </button>
+            {closed ? (
+                <p className="text-md text-gray-400">Phiếu đã đóng — mở lại để ghi chú tiếp.</p>
+            ) : (
+                <div className="space-y-2">
+                    <textarea rows={2} value={content} onChange={(e) => setContent(e.target.value)}
+                        placeholder="Nhập trao đổi / ghi chú..."
+                        className="w-full border border-gray-300 rounded-btn px-3 py-1.5 text-md text-text-main focus:outline-none focus:border-primary resize-none" />
+                    <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 text-sm text-gray-600">
+                            <input type="checkbox" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)} />
+                            Ghi chú nội bộ
+                        </label>
+                        <button type="button" onClick={submit} disabled={isPending || !content.trim()}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn bg-primary text-white text-md font-medium hover:opacity-90 disabled:opacity-50">
+                            <FiSend size={14} /> Gửi
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {isLoading ? (
                 <p className="text-gray-400 text-md">Đang tải lịch sử...</p>

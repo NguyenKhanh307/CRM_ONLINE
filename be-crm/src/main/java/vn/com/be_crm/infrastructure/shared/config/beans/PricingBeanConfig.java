@@ -4,15 +4,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.application.pricing.command.*;
 import vn.com.be_crm.application.pricing.query.*;
-import vn.com.be_crm.domain.pricing.repository.IPricePolicyCustomerCategoryRepository;
+import vn.com.be_crm.application.shared.tx.ITransactionRunner;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyCustomerRepository;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyEmployeeRepository;
+import vn.com.be_crm.domain.pricing.repository.IPricePolicyProductCategoryRepository;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyProductRepository;
-import vn.com.be_crm.domain.pricing.repository.IPricePolicyProductTypeRepository;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyRepository;
+import vn.com.be_crm.domain.product.repository.IProductRepository;
 
 /**
- * Wire các UseCase của module Pricing (policy + 5 bảng liên kết) qua @Bean.
+ * Wire các UseCase của module Pricing (policy + 4 bảng liên kết) qua @Bean.
  */
 @Configuration
 public class PricingBeanConfig {
@@ -29,6 +30,8 @@ public class PricingBeanConfig {
     @Bean public GetPricePolicyUseCase getPricePolicyUseCase(IPricePolicyRepository r) { return new GetPricePolicyUseCase(r); }
     /** @return ListPricePolicyUseCase */
     @Bean public ListPricePolicyUseCase listPricePolicyUseCase(IPricePolicyRepository r) { return new ListPricePolicyUseCase(r); }
+    /** @return ImportBulkPricePolicyUseCase */
+    @Bean public ImportBulkPricePolicyUseCase importBulkPricePolicyUseCase(IPricePolicyRepository r) { return new ImportBulkPricePolicyUseCase(r); }
 
     // ===== Price Policy Product =====
 
@@ -54,23 +57,19 @@ public class PricingBeanConfig {
     /** @return ListPricePolicyCustomerUseCase */
     @Bean public ListPricePolicyCustomerUseCase listPricePolicyCustomerUseCase(IPricePolicyCustomerRepository r) { return new ListPricePolicyCustomerUseCase(r); }
 
-    // ===== Price Policy Customer Category =====
+    // ===== Price Policy Product Category (doi ten tu Customer Category 2026-07-29) =====
+    // Marker "chon nhanh": Create bulk-seed san pham thuoc danh muc vao price_policy_products.
 
-    /** @return CreatePricePolicyCustomerCategoryUseCase */
-    @Bean public CreatePricePolicyCustomerCategoryUseCase createPricePolicyCustomerCategoryUseCase(IPricePolicyCustomerCategoryRepository r) { return new CreatePricePolicyCustomerCategoryUseCase(r); }
-    /** @return DeletePricePolicyCustomerCategoryUseCase */
-    @Bean public DeletePricePolicyCustomerCategoryUseCase deletePricePolicyCustomerCategoryUseCase(IPricePolicyCustomerCategoryRepository r) { return new DeletePricePolicyCustomerCategoryUseCase(r); }
-    /** @return ListPricePolicyCustomerCategoryUseCase */
-    @Bean public ListPricePolicyCustomerCategoryUseCase listPricePolicyCustomerCategoryUseCase(IPricePolicyCustomerCategoryRepository r) { return new ListPricePolicyCustomerCategoryUseCase(r); }
-
-    // ===== Price Policy Product Type =====
-
-    /** @return CreatePricePolicyProductTypeUseCase */
-    @Bean public CreatePricePolicyProductTypeUseCase createPricePolicyProductTypeUseCase(IPricePolicyProductTypeRepository r) { return new CreatePricePolicyProductTypeUseCase(r); }
-    /** @return DeletePricePolicyProductTypeUseCase */
-    @Bean public DeletePricePolicyProductTypeUseCase deletePricePolicyProductTypeUseCase(IPricePolicyProductTypeRepository r) { return new DeletePricePolicyProductTypeUseCase(r); }
-    /** @return ListPricePolicyProductTypeUseCase */
-    @Bean public ListPricePolicyProductTypeUseCase listPricePolicyProductTypeUseCase(IPricePolicyProductTypeRepository r) { return new ListPricePolicyProductTypeUseCase(r); }
+    /** @return CreatePricePolicyProductCategoryUseCase */
+    @Bean public CreatePricePolicyProductCategoryUseCase createPricePolicyProductCategoryUseCase(
+            IPricePolicyProductCategoryRepository r, IProductRepository productRepo,
+            IPricePolicyProductRepository policyProductRepo, ITransactionRunner tx) {
+        return new CreatePricePolicyProductCategoryUseCase(r, productRepo, policyProductRepo, tx);
+    }
+    /** @return DeletePricePolicyProductCategoryUseCase */
+    @Bean public DeletePricePolicyProductCategoryUseCase deletePricePolicyProductCategoryUseCase(IPricePolicyProductCategoryRepository r) { return new DeletePricePolicyProductCategoryUseCase(r); }
+    /** @return ListPricePolicyProductCategoryUseCase */
+    @Bean public ListPricePolicyProductCategoryUseCase listPricePolicyProductCategoryUseCase(IPricePolicyProductCategoryRepository r) { return new ListPricePolicyProductCategoryUseCase(r); }
 
     // ===== Price Policy Employee =====
 

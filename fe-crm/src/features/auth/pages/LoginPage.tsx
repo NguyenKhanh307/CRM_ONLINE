@@ -43,11 +43,7 @@ const LoginPage = () => {
         e.preventDefault();
 
         const found = collectErrors({
-            email: !email.trim()
-                ? 'Vui lòng nhập email'
-                : emailError(email) ?? (email.trim().toLowerCase().endsWith('@gmail.com')
-                    ? null
-                    : 'Chỉ chấp nhận địa chỉ @gmail.com'),
+            email: !email.trim() ? 'Vui lòng nhập email' : emailError(email),
             password: !password.trim() ? 'Vui lòng nhập mật khẩu' : null,
         });
         setErrors(found);

@@ -22,8 +22,6 @@ public class ProductCategoryHibernate {
     private String code;
     @Column(name = "name", nullable = false, length = 40)
     private String name;
-    @Column(name = "parent_id")
-    private Long parentId;
     @Column(name = "sort_order", nullable = false)
     private Integer sortOrder;
     @Column(name = "is_active", nullable = false)

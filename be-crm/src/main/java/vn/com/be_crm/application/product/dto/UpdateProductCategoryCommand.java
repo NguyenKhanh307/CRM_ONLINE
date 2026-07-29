@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 public class UpdateProductCategoryCommand {
     private Long id;
     @Size(max = 40) private String name;
-    private Long parentId;
     private Integer sortOrder;
     private Boolean isActive;
 }

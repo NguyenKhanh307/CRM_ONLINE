@@ -53,6 +53,9 @@ public class ImportBulkCampaignUseCase {
                             .startDate(parseDate(row.startDate()) != null ? parseDate(row.startDate()) : e.getStartDate())
                             .endDate(parseDate(row.endDate()) != null ? parseDate(row.endDate()) : e.getEndDate())
                             .budget(row.budget() != null ? row.budget() : e.getBudget())
+                            .actualCost(row.actualCost() != null ? row.actualCost() : e.getActualCost())
+                            .targetSize(row.targetSize() != null ? row.targetSize() : e.getTargetSize())
+                            .expectedRevenue(row.expectedRevenue() != null ? row.expectedRevenue() : e.getExpectedRevenue())
                             .ownerId(ownerId != null ? ownerId : e.getOwnerId())
                             .description(row.note() != null ? row.note() : e.getDescription())
                             .build());
@@ -64,7 +67,9 @@ public class ImportBulkCampaignUseCase {
                             .code(code).name(row.name() != null ? row.name() : code)
                             .type(type).status(status).channel(row.channel())
                             .startDate(parseDate(row.startDate())).endDate(parseDate(row.endDate()))
-                            .budget(row.budget()).ownerId(ownerId).description(row.note())
+                            .budget(row.budget()).actualCost(row.actualCost())
+                            .targetSize(row.targetSize()).expectedRevenue(row.expectedRevenue())
+                            .ownerId(ownerId).description(row.note())
                             .build());
                     success++;
                 }

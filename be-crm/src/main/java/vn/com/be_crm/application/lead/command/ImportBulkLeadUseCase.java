@@ -64,11 +64,22 @@ public class ImportBulkLeadUseCase {
                             .id(e.getId()).code(e.getCode())
                             .name(row.name()).ownerId(ownerId)
                             .customerId(e.getCustomerId()).contactId(e.getContactId())
+                            .convertedOpportunityId(e.getConvertedOpportunityId())
+                            .companyName(row.companyName() != null ? row.companyName() : e.getCompanyName())
+                            .leadType(row.leadType() != null ? row.leadType() : e.getLeadType())
+                            .title(row.title() != null ? row.title() : e.getTitle())
+                            .department(row.department() != null ? row.department() : e.getDepartment())
+                            .taxCode(row.taxCode() != null ? row.taxCode() : e.getTaxCode())
+                            .website(row.website() != null ? row.website() : e.getWebsite())
+                            .industry(row.industry() != null ? row.industry() : e.getIndustry())
+                            .campaignId(row.campaignId() != null ? row.campaignId() : e.getCampaignId())
                             .source(row.source() != null ? row.source() : e.getSource())
                             .status(status != null ? status : e.getStatus())
                             .estimatedValue(row.estimatedValue() != null ? row.estimatedValue() : e.getEstimatedValue())
                             .phone(row.phone() != null ? row.phone() : e.getPhone())
                             .email(row.email() != null ? row.email() : e.getEmail())
+                            .doNotCall(row.doNotCall() != null ? row.doNotCall() : e.isDoNotCall())
+                            .doNotEmail(row.doNotEmail() != null ? row.doNotEmail() : e.isDoNotEmail())
                             .note(row.note() != null ? row.note() : e.getNote())
                             .createdAt(e.getCreatedAt()).build());
                     success++;
@@ -77,10 +88,16 @@ public class ImportBulkLeadUseCase {
                     String code = "IMP-" + System.currentTimeMillis() + "-" + rowNum;
                     repo.save(Lead.builder()
                             .code(code).name(row.name()).ownerId(ownerId)
+                            .companyName(row.companyName()).leadType(row.leadType())
+                            .title(row.title()).department(row.department()).taxCode(row.taxCode())
+                            .website(row.website()).industry(row.industry()).campaignId(row.campaignId())
                             .source(row.source())
                             .status(status != null ? status : LeadStatus.new_)
                             .estimatedValue(row.estimatedValue())
-                            .phone(row.phone()).email(row.email()).note(row.note())
+                            .phone(row.phone()).email(row.email())
+                            .doNotCall(row.doNotCall() != null && row.doNotCall())
+                            .doNotEmail(row.doNotEmail() != null && row.doNotEmail())
+                            .note(row.note())
                             .build());
                     success++;
                 }

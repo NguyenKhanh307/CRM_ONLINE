@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 /**
  * Mapper cho các sub-entity của PricePolicy
- * (PricePolicyProduct, PricePolicyCustomer, PricePolicyCustomerCategory, PricePolicyProductType, PricePolicyEmployee).
+ * (PricePolicyProduct, PricePolicyCustomer, PricePolicyProductCategory, PricePolicyEmployee).
  */
 @Component
 public class PricePolicySubEntityHibernateMapper {
@@ -40,26 +40,15 @@ public class PricePolicySubEntityHibernateMapper {
         return PricePolicyCustomer.builder().id(h.getId()).pricePolicyId(h.getPricePolicyId()).customerId(h.getCustomerId()).build();
     }
 
-    /** Chuyển PricePolicyCustomerCategory domain entity sang Hibernate entity. @param d @return hibernate entity */
-    public PricePolicyCustomerCategoryHibernate toCategoryHibernate(PricePolicyCustomerCategory d) {
-        PricePolicyCustomerCategoryHibernate h = new PricePolicyCustomerCategoryHibernate();
+    /** Chuyển PricePolicyProductCategory domain entity sang Hibernate entity. @param d @return hibernate entity */
+    public PricePolicyProductCategoryHibernate toCategoryHibernate(PricePolicyProductCategory d) {
+        PricePolicyProductCategoryHibernate h = new PricePolicyProductCategoryHibernate();
         h.setId(d.getId()); h.setPricePolicyId(d.getPricePolicyId()); h.setCategoryId(d.getCategoryId());
         return h;
     }
-    /** Chuyển PricePolicyCustomerCategoryHibernate sang domain entity. @param h @return domain entity */
-    public PricePolicyCustomerCategory toCategoryDomain(PricePolicyCustomerCategoryHibernate h) {
-        return PricePolicyCustomerCategory.builder().id(h.getId()).pricePolicyId(h.getPricePolicyId()).categoryId(h.getCategoryId()).build();
-    }
-
-    /** Chuyển PricePolicyProductType domain entity sang Hibernate entity. @param d @return hibernate entity */
-    public PricePolicyProductTypeHibernate toProductTypeHibernate(PricePolicyProductType d) {
-        PricePolicyProductTypeHibernate h = new PricePolicyProductTypeHibernate();
-        h.setId(d.getId()); h.setPricePolicyId(d.getPricePolicyId()); h.setProductTypeId(d.getProductTypeId());
-        return h;
-    }
-    /** Chuyển PricePolicyProductTypeHibernate sang domain entity. @param h @return domain entity */
-    public PricePolicyProductType toProductTypeDomain(PricePolicyProductTypeHibernate h) {
-        return PricePolicyProductType.builder().id(h.getId()).pricePolicyId(h.getPricePolicyId()).productTypeId(h.getProductTypeId()).build();
+    /** Chuyển PricePolicyProductCategoryHibernate sang domain entity. @param h @return domain entity */
+    public PricePolicyProductCategory toCategoryDomain(PricePolicyProductCategoryHibernate h) {
+        return PricePolicyProductCategory.builder().id(h.getId()).pricePolicyId(h.getPricePolicyId()).categoryId(h.getCategoryId()).build();
     }
 
     /** Chuyển PricePolicyEmployee domain entity sang Hibernate entity. @param d @return hibernate entity */

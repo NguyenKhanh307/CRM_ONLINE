@@ -5,7 +5,7 @@ import vn.com.be_crm.domain.pricing.entity.*;
 
 /**
  * Mapper cho các sub-entity đơn giản của PricePolicy
- * (PricePolicyCustomer, PricePolicyCustomerCategory, PricePolicyProductType, PricePolicyEmployee).
+ * (PricePolicyCustomer, PricePolicyProductCategory, PricePolicyEmployee).
  */
 public class PricePolicySubEntityCommandMapper {
 
@@ -18,22 +18,13 @@ public class PricePolicySubEntityCommandMapper {
         return PricePolicyCustomerResult.builder().id(e.getId()).pricePolicyId(e.getPricePolicyId()).customerId(e.getCustomerId()).build();
     }
 
-    /** Tạo PricePolicyCustomerCategory. @param cmd @return domain entity */
-    public static PricePolicyCustomerCategory toCategoryEntity(CreatePricePolicyCustomerCategoryCommand cmd) {
-        return PricePolicyCustomerCategory.builder().pricePolicyId(cmd.getPricePolicyId()).categoryId(cmd.getCategoryId()).build();
+    /** Tạo PricePolicyProductCategory. @param cmd @return domain entity */
+    public static PricePolicyProductCategory toCategoryEntity(CreatePricePolicyProductCategoryCommand cmd) {
+        return PricePolicyProductCategory.builder().pricePolicyId(cmd.getPricePolicyId()).categoryId(cmd.getCategoryId()).build();
     }
-    /** Chuyển PricePolicyCustomerCategory sang result. @param e @return result */
-    public static PricePolicyCustomerCategoryResult toCategoryResult(PricePolicyCustomerCategory e) {
-        return PricePolicyCustomerCategoryResult.builder().id(e.getId()).pricePolicyId(e.getPricePolicyId()).categoryId(e.getCategoryId()).build();
-    }
-
-    /** Tạo PricePolicyProductType. @param cmd @return domain entity */
-    public static PricePolicyProductType toProductTypeEntity(CreatePricePolicyProductTypeCommand cmd) {
-        return PricePolicyProductType.builder().pricePolicyId(cmd.getPricePolicyId()).productTypeId(cmd.getProductTypeId()).build();
-    }
-    /** Chuyển PricePolicyProductType sang result. @param e @return result */
-    public static PricePolicyProductTypeResult toProductTypeResult(PricePolicyProductType e) {
-        return PricePolicyProductTypeResult.builder().id(e.getId()).pricePolicyId(e.getPricePolicyId()).productTypeId(e.getProductTypeId()).build();
+    /** Chuyển PricePolicyProductCategory sang result. @param e @return result */
+    public static PricePolicyProductCategoryResult toCategoryResult(PricePolicyProductCategory e) {
+        return PricePolicyProductCategoryResult.builder().id(e.getId()).pricePolicyId(e.getPricePolicyId()).categoryId(e.getCategoryId()).build();
     }
 
     /** Tạo PricePolicyEmployee. @param cmd @return domain entity */

@@ -50,6 +50,17 @@ public class CopilotIntentDetector {
             new Module("analytics", "/phan-tich", "phân tích so sánh", List.of("phan tich", "trang so sanh"), false, false),
             new Module("trash", "/thung-rac", "thùng rác", List.of("thung rac"), false, false));
 
+    /**
+     * Từ khóa phạm vi admin/hệ thống (đã bỏ dấu, chữ thường) — nhân viên hỏi trúng các từ này bị
+     * chặn cứng, KHÔNG gọi AI. Đây là lớp phòng thủ tất định bổ sung cho {@code STAFF_SCOPE} trong
+     * {@code CopilotPrompts} (vốn chỉ là chỉ dẫn cho LLM, có thể bị vượt qua bằng prompt injection).
+     */
+    private static final List<String> STAFF_OUT_OF_SCOPE_WORDS = List.of(
+            "quan tri", "phan quyen", "vai tro", "toan cong ty", "toan he thong", "toan bo cong ty",
+            "nhan vien khac", "tai khoan nguoi dung", "danh sach nguoi dung", "so luong nguoi dung",
+            "bao nhieu tai khoan", "bao nhieu nhan vien", "quan ly nguoi dung", "nhat ky he thong",
+            "audit log", "role permission");
+
     private static final List<String> OPEN_VERBS = List.of("mo ", "vao ", "xem ", "chuyen ", "den ", "toi ", "di den ");
     private static final List<String> CREATE_VERBS = List.of("tao ", "them ");
     private static final List<String> FILLERS = List.of("trang", "danh sach", "cho toi", "giup toi", "gium toi",
@@ -97,6 +108,18 @@ public class CopilotIntentDetector {
             }
         }
         return new Intent(Type.NONE, null, null, null, null, wantsChart, period);
+    }
+
+    /**
+     * Câu hỏi có chạm từ khóa thuộc phạm vi admin/hệ thống hay không — dùng để chặn cứng câu hỏi
+     * của NHÂN VIÊN trước khi gọi AI, tất định (không phụ thuộc LLM có tuân thủ prompt hay không).
+     *
+     * @param question câu hỏi gốc (giữ dấu)
+     * @return true nếu nên từ chối ngay, không gọi AI
+     */
+    public boolean isOutOfScopeForStaff(String question) {
+        String norm = stripDiacritics(question == null ? "" : question).toLowerCase(Locale.ROOT);
+        return STAFF_OUT_OF_SCOPE_WORDS.stream().anyMatch(norm::contains);
     }
 
     /** Suy mã kỳ từ từ khóa (mặc định quarter). @param norm chuỗi đã bỏ dấu @return month/quarter/year */

@@ -35,7 +35,7 @@ public class ProductCategoryController {
     }
 
     /** Tạo mới danh mục. @param cmd JSON body @return 201 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('product.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<ProductCategoryResult>> create(@Valid @RequestBody CreateProductCategoryCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -57,17 +57,17 @@ public class ProductCategoryController {
     }
 
     /** Cập nhật danh mục. @param id ID @param cmd JSON body @return 200 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('product.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductCategoryResult>> update(@PathVariable Long id,
                                                                       @Valid @RequestBody UpdateProductCategoryCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateProductCategoryCommand.builder().id(id).name(cmd.getName())
-                        .parentId(cmd.getParentId()).sortOrder(cmd.getSortOrder()).isActive(cmd.getIsActive()).build())));
+                        .sortOrder(cmd.getSortOrder()).isActive(cmd.getIsActive()).build())));
     }
 
     /** Xóa danh mục. @param id ID @return 204 */
-    @PreAuthorize("hasAnyAuthority('ADMIN','SALES_MANAGER')")
+    @PreAuthorize("hasAuthority('product.delete')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         deleteUC.execute(id); return ResponseEntity.noContent().build();

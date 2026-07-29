@@ -12,8 +12,10 @@ import { INVOICE_COLUMNS, ORDER_COLUMNS } from '@/shared/components/detail/relat
 import { formatCurrency, formatNumber } from '@/shared/utils/number';
 import { useQuotationDetail } from '../hooks/useQuotationDetail';
 import { useQuotationRelated } from '../hooks/useQuotationRelated';
+import { useQuotationApprovals } from '../hooks/useQuotationApprovals';
 import { QuotationInfoPanel } from '../components/QuotationInfoPanel';
 import { QuotationEditModal } from '../components/QuotationEditModal';
+import { QuotationApprovalHistory } from '../components/QuotationApprovalHistory';
 
 const STATUS_LABELS: Record<string, string> = {
     draft: 'Nháp', pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Từ chối',
@@ -25,7 +27,7 @@ const STATUS_COLORS: Record<string, string> = {
     expired: 'bg-orange-100 text-orange-700',
 };
 
-type TabKey = 'orders' | 'invoices' | 'activities';
+type TabKey = 'orders' | 'invoices' | 'activities' | 'approvals';
 
 /** Trang chi tiết Báo giá — 2 cột: thông tin + đơn hàng/hóa đơn phát sinh + hoạt động. */
 const QuotationDetailPage = () => {
@@ -33,6 +35,7 @@ const QuotationDetailPage = () => {
     const quotationId = Number(id);
     const { data: quotation, isLoading } = useQuotationDetail(quotationId);
     const { data: related } = useQuotationRelated(quotationId);
+    const { data: approvals } = useQuotationApprovals(quotationId);
     const [activeTab, setActiveTab] = useState<TabKey>('orders');
     const [editOpen, setEditOpen] = useState(false);
 
@@ -43,6 +46,7 @@ const QuotationDetailPage = () => {
         { key: 'orders', label: 'Đơn hàng', count: related?.orders.total },
         { key: 'invoices', label: 'Hóa đơn', count: related?.invoices.total },
         { key: 'activities', label: 'Hoạt động', count: related?.activities.total },
+        { key: 'approvals', label: 'Lịch sử duyệt', count: approvals?.length },
     ];
 
     const stats: StatCard[] = [
@@ -90,6 +94,7 @@ const QuotationDetailPage = () => {
                                     emptyText="Báo giá chưa phát sinh hóa đơn." />
                             )}
                             {activeTab === 'activities' && <Timeline group={related?.activities} />}
+                            {activeTab === 'approvals' && <QuotationApprovalHistory approvals={approvals} />}
                         </div>
                     </div>
                 </main>

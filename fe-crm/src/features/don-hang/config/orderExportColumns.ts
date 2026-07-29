@@ -12,7 +12,7 @@ export const orderExportColumns: ExportColumn<OrderResult>[] = [
     { key: 'code', label: 'Mã Đơn hàng' },
     { key: 'status', label: 'Trạng thái', format: r => ORDER_STATUS_LABELS[r.status] ?? r.status },
     { key: 'total', label: 'Tổng tiền', format: r => r.total ?? '' },
-    { key: 'orderDate', label: 'Ngày đơn hàng' },
-    { key: 'deliveryDate', label: 'Ngày giao' },
+    { key: 'orderDate', label: 'Ngày đơn hàng', format: r => r.orderDate ? formatISODate(r.orderDate) : '' },
+    { key: 'deliveryDate', label: 'Ngày giao', format: r => r.deliveryDate ? formatISODate(r.deliveryDate) : '' },
     { key: 'createdAt', label: 'Ngày tạo', format: r => formatISODate(r.createdAt) },
 ];

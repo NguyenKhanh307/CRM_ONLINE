@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { collectErrors, nonNegativeError } from '@/shared/utils/validators';
 import { FieldError } from '@/shared/components/form/FormField';
 import { formatNumber } from '@/shared/utils/number';
@@ -35,6 +36,7 @@ const OPP_STATUS_COLORS: Record<string, string> = {
 };
 
 export function OpportunityEditModal({ item, onClose }: Props) {
+    const qc = useQueryClient();
     const { mutateAsync, isPending } = useUpdateOpportunity();
     const { data: products = [] } = useProductList();
     const { data: stages = [] } = useOpportunityStages();
@@ -110,6 +112,10 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                 ...toUpdate.map((r) => opportunityService.updateItem(item.id, r.backendId as number, toItemPayload(r))),
                 ...toDelete.map((id) => opportunityService.deleteItem(item.id, id)),
             ]);
+            // Dòng hàng đổi → BE roll-up lại amount cơ hội → làm mới cả dòng hàng lẫn header
+            qc.invalidateQueries({ queryKey: ['opportunity-items', item.id] });
+            qc.invalidateQueries({ queryKey: ['opportunities'] });
+            qc.invalidateQueries({ queryKey: ['opportunity', item.id] });
             onClose();
         } finally {
             setSaving(false);
@@ -184,12 +190,12 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-3 gap-3">
                         <div>
                             <label className={lbl}>Giá trị (đ)</label>
-                            <input type="number" className={inp} value={form.amount ?? ''} onChange={e => setForm(f => ({ ...f, amount: e.target.value ? +e.target.value : null }))} />
+                            <input type="number" min={0} className={inp} value={form.amount ?? ''} onChange={e => setForm(f => ({ ...f, amount: e.target.value ? +e.target.value : null }))} />
                         </div>
                         <div>
                             <label className={lbl}>Doanh số kỳ vọng</label>
                             <FieldError error={errors.expectedRevenue}>
-                                <input type="number" className={inp} value={form.expectedRevenue ?? ''} onChange={e => { setForm(f => ({ ...f, expectedRevenue: e.target.value ? +e.target.value : null })); clearError('expectedRevenue'); }} />
+                                <input type="number" min={0} className={inp} value={form.expectedRevenue ?? ''} onChange={e => { setForm(f => ({ ...f, expectedRevenue: e.target.value ? +e.target.value : null })); clearError('expectedRevenue'); }} />
                             </FieldError>
                         </div>
                         <div>

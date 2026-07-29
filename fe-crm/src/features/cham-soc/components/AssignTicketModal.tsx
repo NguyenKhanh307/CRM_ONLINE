@@ -17,8 +17,14 @@ interface Props {
  */
 export function AssignTicketModal({ userOptions, onConfirm, onCancel }: Props) {
     const [userId, setUserId] = useState('');
+    const [error, setError] = useState<string | null>(null);
     const ref = useRef<HTMLDivElement>(null);
     useDialogKeyboardNav(ref, { onCancel, autoFocus: 'none' });
+
+    const handleConfirm = () => {
+        if (!userId) { setError('Vui lòng chọn nhân viên xử lý'); return; }
+        onConfirm(Number(userId));
+    };
 
     return (
         <div ref={ref} className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40" onClick={onCancel}>
@@ -29,13 +35,13 @@ export function AssignTicketModal({ userOptions, onConfirm, onCancel }: Props) {
                 </div>
                 <div className="px-5 py-4 space-y-3">
                     <label className="block text-sm font-medium text-gray-700">Nhân viên xử lý</label>
-                    <SearchableSelect value={userId} onChange={setUserId} options={userOptions} placeholder="Chọn nhân viên" />
+                    <SearchableSelect value={userId} onChange={(v) => { setUserId(v); setError(null); }} options={userOptions} placeholder="Chọn nhân viên" />
+                    {error && <p className="text-xs text-danger">{error}</p>}
                 </div>
                 <DialogFooter
                     onCancel={onCancel}
-                    onConfirm={() => onConfirm(Number(userId))}
+                    onConfirm={handleConfirm}
                     confirmLabel="Giao"
-                    confirmDisabled={!userId}
                 />
             </div>
         </div>

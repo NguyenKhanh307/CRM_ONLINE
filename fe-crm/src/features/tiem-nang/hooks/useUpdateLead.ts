@@ -8,6 +8,9 @@ export function useUpdateLead() {
     return useMutation({
         mutationFn: ({ id, payload }: { id: number; payload: UpdateLeadPayload }) =>
             leadService.update(id, payload),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['leads'] }),
+        onSuccess: (_d, v) => {
+            qc.invalidateQueries({ queryKey: ['leads'] });
+            qc.invalidateQueries({ queryKey: ['lead', v.id] });
+        },
     });
 }

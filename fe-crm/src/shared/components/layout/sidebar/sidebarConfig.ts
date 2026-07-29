@@ -15,6 +15,7 @@ import {
     FiLifeBuoy,
     FiTarget,
     FiShoppingCart,
+    FiList,
 } from 'react-icons/fi';
 
 export interface NavItem {
@@ -45,6 +46,7 @@ export const NAV_ITEMS: NavItem[] = [
     { label: 'Chăm sóc',     path: '/cham-soc',            icon: FiLifeBuoy,     module: 'ticket' },
     { label: 'Phân quyền',   path: '/phan-quyen',          icon: FiShield,       adminOnly: true },
     { label: 'Đăng ký NV',   path: '/dang-ky-nhan-vien',  icon: FiUserPlus,     adminOnly: true },
+    { label: 'Nhật ký hệ thống', path: '/nhat-ky-he-thong', icon: FiList,       adminOnly: true },
     // Thùng rác: mọi role thấy — admin xem/khôi phục toàn bộ, nhân viên chỉ thấy bản ghi mình xóa (BE đã hỗ trợ)
     { label: 'Thùng rác',    path: '/thung-rac',           icon: FiTrash2 },
 ];

@@ -8,7 +8,8 @@ import type { GroupMember } from '../types/phanQuyenTypes';
 
 interface Props {
     allUsers: GroupMember[];
-    existingMemberIds: Set<number>;
+    /** userId đã thuộc một nhóm bất kỳ — mỗi người chỉ thuộc một nhóm nên bị loại khỏi danh sách. */
+    assignedUserIds: Set<number>;
     onClose: () => void;
     onAdd: (userId: number) => void;
     isLoading: boolean;
@@ -25,7 +26,7 @@ const STATUS_LABEL: Record<string, string> = {
  * Ô tìm kiếm là form tra cứu — không nằm trong `<form>` nên Enter vô hại, không có popup lỗi.
  * Nút "Thêm" mới là hành động ghi nên phải qua popup xác nhận.
  */
-const AddMemberModal = ({ allUsers, existingMemberIds, onClose, onAdd, isLoading }: Props) => {
+const AddMemberModal = ({ allUsers, assignedUserIds, onClose, onAdd, isLoading }: Props) => {
     const [search, setSearch] = useState('');
     const { confirmCreate } = useConfirm();
 
@@ -34,11 +35,11 @@ const AddMemberModal = ({ allUsers, existingMemberIds, onClose, onAdd, isLoading
 
     const candidates = useMemo(() =>
         allUsers.filter(u =>
-            !existingMemberIds.has(u.id) &&
+            !assignedUserIds.has(u.id) &&
             (u.fullName.toLowerCase().includes(search.toLowerCase()) ||
              u.email.toLowerCase().includes(search.toLowerCase()))
         ),
-        [allUsers, existingMemberIds, search]
+        [allUsers, assignedUserIds, search]
     );
 
     const handleAdd = async (user: GroupMember) => {

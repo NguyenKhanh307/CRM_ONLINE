@@ -218,10 +218,10 @@ const OpportunityAddPage = () => {
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
                             <FieldRow label="Giá trị">
-                                <input type="number" value={form.amount} onChange={(e) => set({ amount: e.target.value })} className={inputCls} />
+                                <input type="number" min={0} value={form.amount} onChange={(e) => set({ amount: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Doanh số kỳ vọng">
-                                <input type="number" value={form.expectedRevenue} onChange={(e) => set({ expectedRevenue: e.target.value })} className={inputCls} />
+                                <input type="number" min={0} value={form.expectedRevenue} onChange={(e) => set({ expectedRevenue: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
                         <div className="space-y-4">

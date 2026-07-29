@@ -55,7 +55,10 @@ export function useChangeOpportunityStage(q?: string) {
         onError: (_err, _vars, ctx) => {
             if (ctx?.previous) qc.setQueryData(key, ctx.previous);
         },
-        // Làm mới cả bảng Kanban lẫn danh sách cơ hội (queryKey ['opportunities'] khớp tiền tố)
-        onSettled: () => qc.invalidateQueries({ queryKey: ['opportunities'] }),
+        // Làm mới cả bảng Kanban lẫn danh sách cơ hội (queryKey ['opportunities'] khớp tiền tố) + trang chi tiết nếu đang mở
+        onSettled: (_d, _e, v) => {
+            qc.invalidateQueries({ queryKey: ['opportunities'] });
+            qc.invalidateQueries({ queryKey: ['opportunity', v.id] });
+        },
     });
 }

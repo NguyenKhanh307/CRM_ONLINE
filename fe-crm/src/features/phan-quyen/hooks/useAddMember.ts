@@ -10,6 +10,7 @@ export const useAddMember = (roleId: number) => {
         mutationFn: (userId: number) => phanQuyenService.addMember(userId, roleId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['roleMembers', roleId] });
+            queryClient.invalidateQueries({ queryKey: ['allUserRoles'] });
         },
     });
 };

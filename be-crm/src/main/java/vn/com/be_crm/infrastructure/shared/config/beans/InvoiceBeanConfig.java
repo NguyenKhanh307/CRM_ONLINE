@@ -55,9 +55,9 @@ public class InvoiceBeanConfig {
     // ===== Invoice Payment Schedule =====
 
     /** @return CreateInvoicePaymentScheduleUseCase */
-    @Bean public CreateInvoicePaymentScheduleUseCase createInvoicePaymentScheduleUseCase(IInvoicePaymentScheduleRepository r) { return new CreateInvoicePaymentScheduleUseCase(r); }
+    @Bean public CreateInvoicePaymentScheduleUseCase createInvoicePaymentScheduleUseCase(IInvoicePaymentScheduleRepository r, IInvoiceRepository ir) { return new CreateInvoicePaymentScheduleUseCase(r, ir); }
     /** @return UpdateInvoicePaymentScheduleUseCase */
-    @Bean public UpdateInvoicePaymentScheduleUseCase updateInvoicePaymentScheduleUseCase(IInvoicePaymentScheduleRepository r) { return new UpdateInvoicePaymentScheduleUseCase(r); }
+    @Bean public UpdateInvoicePaymentScheduleUseCase updateInvoicePaymentScheduleUseCase(IInvoicePaymentScheduleRepository r, IInvoiceRepository ir) { return new UpdateInvoicePaymentScheduleUseCase(r, ir); }
     /** @return DeleteInvoicePaymentScheduleUseCase */
     @Bean public DeleteInvoicePaymentScheduleUseCase deleteInvoicePaymentScheduleUseCase(IInvoicePaymentScheduleRepository r) { return new DeleteInvoicePaymentScheduleUseCase(r); }
     /** @return ListInvoicePaymentScheduleUseCase */

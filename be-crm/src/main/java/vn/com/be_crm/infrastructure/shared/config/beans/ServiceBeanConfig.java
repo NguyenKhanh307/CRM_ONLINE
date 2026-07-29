@@ -30,6 +30,8 @@ public class ServiceBeanConfig {
     @Bean public GetTicketUseCase getTicketUseCase(ITicketRepository r) { return new GetTicketUseCase(r); }
     /** @return ListTicketUseCase */
     @Bean public ListTicketUseCase listTicketUseCase(ITicketRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListTicketUseCase(r, n); }
+    /** @return ImportBulkTicketUseCase */
+    @Bean public ImportBulkTicketUseCase importBulkTicketUseCase(ITicketRepository r) { return new ImportBulkTicketUseCase(r); }
 
     // ===== Workflow / CSAT =====
 
@@ -40,21 +42,32 @@ public class ServiceBeanConfig {
     /** @return SubmitCsatUseCase */
     @Bean public SubmitCsatUseCase submitCsatUseCase(ITicketRepository r) { return new SubmitCsatUseCase(r); }
 
+    // ===== Trang public (không JWT) — support-page theo mã phiếu =====
+
+    /** @return GetTicketByCodePublicUseCase — xem phiếu công khai theo mã */
+    @Bean public GetTicketByCodePublicUseCase getTicketByCodePublicUseCase(ITicketRepository r) {
+        return new GetTicketByCodePublicUseCase(r);
+    }
+    /** @return SubmitCsatByCodeUseCase — khách tự đánh giá qua trang public theo mã */
+    @Bean public SubmitCsatByCodeUseCase submitCsatByCodeUseCase(ITicketRepository r, SubmitCsatUseCase submitCsatUseCase) {
+        return new SubmitCsatByCodeUseCase(r, submitCsatUseCase);
+    }
+
     // ===== Return items =====
 
     /** @return CreateTicketReturnItemUseCase */
-    @Bean public CreateTicketReturnItemUseCase createTicketReturnItemUseCase(ITicketReturnItemRepository r) { return new CreateTicketReturnItemUseCase(r); }
+    @Bean public CreateTicketReturnItemUseCase createTicketReturnItemUseCase(ITicketReturnItemRepository r, ITicketRepository tr) { return new CreateTicketReturnItemUseCase(r, tr); }
     /** @return UpdateTicketReturnItemUseCase */
-    @Bean public UpdateTicketReturnItemUseCase updateTicketReturnItemUseCase(ITicketReturnItemRepository r) { return new UpdateTicketReturnItemUseCase(r); }
+    @Bean public UpdateTicketReturnItemUseCase updateTicketReturnItemUseCase(ITicketReturnItemRepository r, ITicketRepository tr) { return new UpdateTicketReturnItemUseCase(r, tr); }
     /** @return DeleteTicketReturnItemUseCase */
-    @Bean public DeleteTicketReturnItemUseCase deleteTicketReturnItemUseCase(ITicketReturnItemRepository r) { return new DeleteTicketReturnItemUseCase(r); }
+    @Bean public DeleteTicketReturnItemUseCase deleteTicketReturnItemUseCase(ITicketReturnItemRepository r, ITicketRepository tr) { return new DeleteTicketReturnItemUseCase(r, tr); }
     /** @return ListTicketReturnItemUseCase */
     @Bean public ListTicketReturnItemUseCase listTicketReturnItemUseCase(ITicketReturnItemRepository r) { return new ListTicketReturnItemUseCase(r); }
 
     // ===== Comments =====
 
     /** @return CreateTicketCommentUseCase */
-    @Bean public CreateTicketCommentUseCase createTicketCommentUseCase(ITicketCommentRepository r) { return new CreateTicketCommentUseCase(r); }
+    @Bean public CreateTicketCommentUseCase createTicketCommentUseCase(ITicketCommentRepository r, ITicketRepository tr) { return new CreateTicketCommentUseCase(r, tr); }
     /** @return ListTicketCommentUseCase */
     @Bean public ListTicketCommentUseCase listTicketCommentUseCase(ITicketCommentRepository r, vn.com.be_crm.application.shared.lookup.INameResolver n) { return new ListTicketCommentUseCase(r, n); }
 

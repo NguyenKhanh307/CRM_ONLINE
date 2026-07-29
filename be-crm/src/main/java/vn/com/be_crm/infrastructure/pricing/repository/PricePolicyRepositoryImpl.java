@@ -44,6 +44,13 @@ public class PricePolicyRepositoryImpl implements IPricePolicyRepository {
         });
     }
 
+    /** Tìm PricePolicy theo mã. @param code @return Optional */
+    @Override public Optional<PricePolicy> findByCode(String code) {
+        return TxSupport.read(sf, s -> s.createQuery(
+                        "FROM PricePolicyHibernate WHERE code = :code", PricePolicyHibernate.class)
+                .setParameter("code", code).uniqueResultOptional().map(mapper::toDomain));
+    }
+
     /** Xóa PricePolicy. @param id */
     @Override public void deleteById(Long id) {
         TxSupport.writeVoid(sf, s -> {

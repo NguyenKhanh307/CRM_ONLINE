@@ -62,6 +62,14 @@ public class ProductRepositoryImpl implements IProductRepository {
         });
     }
 
+    /** Lấy toàn bộ Product thuộc 1 danh mục (chưa xóa mềm). @param categoryId ID danh mục @return danh sách */
+    @Override public List<Product> findAllByCategoryId(Long categoryId) {
+        return TxSupport.read(sf, s -> {
+            return s.createQuery("FROM ProductHibernate WHERE categoryId = :categoryId AND deletedAt IS NULL", ProductHibernate.class)
+                    .setParameter("categoryId", categoryId).list().stream().map(mapper::toDomain).collect(Collectors.toList());
+        });
+    }
+
     /** Xóa mềm Product, ghi nhận người xóa. @param id ID @param deletedBy userId người xóa */
     @Override public void deleteById(Long id, Long deletedBy) {
         TxSupport.writeVoid(sf, s -> {

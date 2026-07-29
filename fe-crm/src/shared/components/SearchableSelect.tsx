@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FiSearch, FiCheck, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
@@ -44,6 +44,9 @@ interface PanelRect {
     width: number;
 }
 
+/** Khoảng cách tối thiểu tới mép màn hình khi phải lật panel lên trên. */
+const EDGE_GAP = 8;
+
 /**
  * Custom select với ô tìm kiếm và highlight lựa chọn hiện tại.
  * Panel options render qua portal (position: fixed) để luôn nổi trên section/bảng/modal,
@@ -65,12 +68,15 @@ export const SearchableSelect = ({
     const [rect, setRect] = useState<PanelRect | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
+    /** Bounding box của trigger tại lần đo gần nhất — dùng để lật panel lên trên nếu tràn đáy. */
+    const triggerRectRef = useRef<DOMRect | null>(null);
 
-    /** Tính lại vị trí panel từ bounding box của nút trigger. */
+    /** Tính lại vị trí panel từ bounding box của nút trigger (mặc định đặt phía dưới). */
     const updateRect = useCallback(() => {
         const el = containerRef.current;
         if (!el) return;
         const r = el.getBoundingClientRect();
+        triggerRectRef.current = r;
         setRect({ top: r.bottom + 4, left: r.left, width: r.width });
     }, []);
 
@@ -86,6 +92,22 @@ export const SearchableSelect = ({
             window.removeEventListener('resize', onScrollOrResize);
         };
     }, [open, updateRect]);
+
+    // Sau khi panel đã render ở vị trí mặc định (phía dưới), đo chiều cao thật rồi lật lên trên
+    // nếu tràn đáy màn hình — cùng cách RowContextMenu tự lật khi chạm mép. Chạy trước khi trình
+    // duyệt vẽ để không nhấp nháy. Không đưa `rect.top` vào dependency để tránh vòng lặp vô hạn.
+    useLayoutEffect(() => {
+        if (!open || !rect) return;
+        const panelEl = panelRef.current;
+        const trigger = triggerRectRef.current;
+        if (!panelEl || !trigger) return;
+        const height = panelEl.getBoundingClientRect().height;
+        const overflowsBottom = trigger.bottom + 4 + height > window.innerHeight - EDGE_GAP;
+        if (!overflowsBottom) return;
+        const top = Math.max(EDGE_GAP, trigger.top - height - 4);
+        setRect((prev) => (prev ? { ...prev, top } : prev));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, rect?.left, rect?.width]);
 
     // Click-outside: đóng khi click ngoài cả trigger lẫn panel (panel nằm ở portal).
     useEffect(() => {

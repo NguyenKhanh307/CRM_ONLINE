@@ -88,28 +88,21 @@ export interface CreatePricePolicyCustomerPayload {
     customerId: number;
 }
 
-export interface PricePolicyCustomerCategoryResult {
+/**
+ * Danh mục sản phẩm trong chính sách giá — chỉ là marker "chọn nhanh": chọn 1 danh mục thì BE tự
+ * bulk-seed toàn bộ sản phẩm thuộc danh mục vào price_policy_products (giá để trống), sửa giá
+ * từng dòng ở tab "Sản phẩm" như bình thường. Không mang field giá/chiết khấu nào.
+ */
+export interface PricePolicyProductCategoryResult {
     id: number;
     pricePolicyId: number;
     categoryId: number;
     categoryName?: string;
 }
 
-export interface CreatePricePolicyCustomerCategoryPayload {
+export interface CreatePricePolicyProductCategoryPayload {
     pricePolicyId: number;
     categoryId: number;
-}
-
-export interface PricePolicyProductTypeResult {
-    id: number;
-    pricePolicyId: number;
-    productTypeId: number;
-    productTypeName?: string;
-}
-
-export interface CreatePricePolicyProductTypePayload {
-    pricePolicyId: number;
-    productTypeId: number;
 }
 
 export interface PricePolicyEmployeeResult {

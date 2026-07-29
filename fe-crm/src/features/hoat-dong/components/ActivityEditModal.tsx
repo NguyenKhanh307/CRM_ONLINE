@@ -2,6 +2,8 @@ import { useRef, useState, type FormEvent, useEffect } from 'react';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
+import { collectErrors } from '@/shared/utils/validators';
+import { FieldError } from '@/shared/components/form/FormField';
 import { FiX } from 'react-icons/fi';
 import type { ActivityResult, UpdateActivityPayload } from '../types/activityTypes';
 import { useUpdateActivity } from '../hooks/useUpdateActivity';
@@ -43,6 +45,9 @@ export function ActivityEditModal({ item, onClose }: Props) {
         });
     }, [item]);
 
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const clearErr = (key: string) => setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
+
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -55,6 +60,11 @@ export function ActivityEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        const errs = collectErrors({
+            subject: !form.subject.trim() ? 'Tiêu đề không được để trống' : null,
+        });
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
         if (!(await confirmSave('hoạt động'))) return;
         mutate({ id: item.id, payload: form }, { onSuccess: onClose });
     };
@@ -72,7 +82,10 @@ export function ActivityEditModal({ item, onClose }: Props) {
                 <form ref={formRef} onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-3">
                     <div>
                         <label className={lbl}>Tiêu đề <span className="text-danger">*</span></label>
-                        <input className={inp} required value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))} />
+                        <FieldError error={errors.subject}>
+                            <input className={inp} value={form.subject}
+                                onChange={e => { setForm(f => ({ ...f, subject: e.target.value })); clearErr('subject'); }} />
+                        </FieldError>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
@@ -121,8 +134,8 @@ export function ActivityEditModal({ item, onClose }: Props) {
                                 <input className={inp} value={form.callResult ?? ''} onChange={e => setForm(f => ({ ...f, callResult: e.target.value || null }))} />
                             </div>
                             <div>
-                                <label className={lbl}>Thời lượng (s)</label>
-                                <input type="number" className={inp} value={form.callDuration ?? ''} onChange={e => setForm(f => ({ ...f, callDuration: e.target.value ? +e.target.value : null }))} />
+                                <label className={lbl}>Thời lượng (phút)</label>
+                                <input type="number" min={0} className={inp} value={form.callDuration ?? ''} onChange={e => setForm(f => ({ ...f, callDuration: e.target.value ? +e.target.value : null }))} />
                             </div>
                         </div>
                     )}

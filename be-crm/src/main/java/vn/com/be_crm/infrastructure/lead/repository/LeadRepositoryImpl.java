@@ -164,7 +164,9 @@ public class LeadRepositoryImpl implements ILeadRepository {
     @Override public PageResult<Lead> findAll(PageRequest r) {
         return TxSupport.read(sf, s -> {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
-            String ownerFilter = r.getOwnerId() != null ? " AND ownerId = :ownerId" : "";
+            String ownerFilter = r.getOwnerId() != null
+                    ? (r.isIncludeUnassigned() ? " AND (ownerId = :ownerId OR ownerId IS NULL)" : " AND ownerId = :ownerId")
+                    : "";
             String searchFilter = ListQueryUtils.likeClause(r.getQ(), "code", "name", "companyName", "phone", "email");
             var statusVal = ListQueryUtils.parseEnum(vn.com.be_crm.domain.lead.enums.LeadStatus.class, r.getStatus());
             String statusFilter = statusVal != null ? " AND status = :status" : "";

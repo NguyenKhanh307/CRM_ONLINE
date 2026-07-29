@@ -39,6 +39,12 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
     /** Bản nháp đang chỉnh — null nghĩa là chưa nạp xong dữ liệu server. */
     const [draft, setDraft] = useState<Set<number> | null>(null);
     const [saving, setSaving] = useState(false);
+    /**
+     * Baseline tạm thời sau khi lưu thành công — dùng ngay lập tức thay vì đợi `invalidateQueries`
+     * refetch xong. Không có bước này, `savedIds` (từ server) vẫn cũ trong một nhịp render, khiến
+     * `dirty` vẫn true → thanh "đã thay đổi" không tắt → bấm Lưu lần 2 gửi lại request đã lưu → lỗi trùng.
+     */
+    const [optimisticSavedIds, setOptimisticSavedIds] = useState<Set<number> | null>(null);
 
     // Nạp lại bản nháp khi đổi nhóm hoặc khi server trả dữ liệu mới (sau khi lưu xong).
     // `savedKey` là chuỗi id đã sắp xếp — so sánh theo giá trị, không theo tham chiếu Set.
@@ -46,12 +52,15 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
     useEffect(() => {
         if (loadingRole) return;
         setDraft(new Set(savedKey ? savedKey.split(',').map(Number) : []));
+        setOptimisticSavedIds(null); // dữ liệu server đã tới — bỏ baseline tạm thời
     }, [roleId, savedKey, loadingRole]);
 
-    const current = draft ?? savedIds;
+    /** Baseline để so sánh diff — ưu tiên baseline tạm thời (ngay sau khi lưu) trước server. */
+    const baselineIds = optimisticSavedIds ?? savedIds;
+    const current = draft ?? baselineIds;
 
-    const toAssign = useMemo(() => [...current].filter(id => !savedIds.has(id)), [current, savedIds]);
-    const toRevoke = useMemo(() => [...savedIds].filter(id => !current.has(id)), [current, savedIds]);
+    const toAssign = useMemo(() => [...current].filter(id => !baselineIds.has(id)), [current, baselineIds]);
+    const toRevoke = useMemo(() => [...baselineIds].filter(id => !current.has(id)), [current, baselineIds]);
     const changeCount = toAssign.length + toRevoke.length;
     const dirty = changeCount > 0;
 
@@ -97,7 +106,7 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
         });
     }, [moduleGroups]);
 
-    const handleReset = () => setDraft(new Set(savedIds));
+    const handleReset = () => setDraft(new Set(baselineIds));
 
     const handleSave = async () => {
         const message = `Cập nhật quyền nhóm${roleName ? ` "${roleName}"` : ''}: `
@@ -107,12 +116,17 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
             ].filter(Boolean).join(', ') + '?';
         if (!(await confirm({ message }))) return;
 
+        // Chốt lại trạng thái đích tại thời điểm bấm Lưu — dùng làm baseline mới ngay khi thành công.
+        const nextIds = new Set(current);
+
         setSaving(true);
         try {
             await Promise.all([
                 ...toAssign.map(id => assign.mutateAsync(id)),
                 ...toRevoke.map(id => revoke.mutateAsync(id)),
             ]);
+            // Đóng thanh "đã thay đổi" ngay lập tức, không đợi refetch — tránh bấm Lưu lần 2.
+            setOptimisticSavedIds(nextIds);
         } catch {
             showAlert('Cập nhật quyền thất bại. Vui lòng thử lại.');
         } finally {

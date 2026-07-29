@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.service.command.*;
 import vn.com.be_crm.application.service.dto.CreateTicketCommand;
+import vn.com.be_crm.application.service.dto.ImportBulkTicketCommand;
 import vn.com.be_crm.application.service.dto.TicketResult;
 import vn.com.be_crm.application.service.dto.UpdateTicketCommand;
 import vn.com.be_crm.application.service.query.GetTicketUseCase;
@@ -16,6 +17,7 @@ import vn.com.be_crm.application.service.query.ListTicketUseCase;
 import vn.com.be_crm.application.shared.dto.DeleteCommand;
 import vn.com.be_crm.application.shared.dto.DeletedItemResult;
 import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
+import vn.com.be_crm.application.shared.dto.ImportBulkResult;
 import vn.com.be_crm.application.shared.dto.PageRequest;
 import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
 import vn.com.be_crm.presentation.service.request.AssignTicketRequest;
@@ -43,22 +45,25 @@ public class TicketController {
     private final HandoverBulkTicketUseCase handoverBulkUC;
     private final TicketWorkflowUseCase workflowUC;
     private final SubmitCsatUseCase csatUC;
+    private final ImportBulkTicketUseCase importBulkUC;
 
     /** @param createUC tạo @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
      *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn
-     *  @param handoverBulkUC bàn giao @param workflowUC luồng trạng thái @param csatUC đánh giá CSAT */
+     *  @param handoverBulkUC bàn giao @param workflowUC luồng trạng thái @param csatUC đánh giá CSAT
+     *  @param importBulkUC nhập hàng loạt */
     public TicketController(CreateTicketUseCase createUC, UpdateTicketUseCase updateUC, DeleteTicketUseCase deleteUC,
                             GetTicketUseCase getUC, ListTicketUseCase listUC, ListDeletedTicketsUseCase listDeletedUC,
                             RestoreTicketUseCase restoreUC, PurgeTicketUseCase purgeUC,
                             HandoverBulkTicketUseCase handoverBulkUC, TicketWorkflowUseCase workflowUC,
-                            SubmitCsatUseCase csatUC) {
+                            SubmitCsatUseCase csatUC, ImportBulkTicketUseCase importBulkUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC; this.listDeletedUC = listDeletedUC;
         this.restoreUC = restoreUC; this.purgeUC = purgeUC; this.handoverBulkUC = handoverBulkUC;
-        this.workflowUC = workflowUC; this.csatUC = csatUC;
+        this.workflowUC = workflowUC; this.csatUC = csatUC; this.importBulkUC = importBulkUC;
     }
 
     /** Tạo mới phiếu. @param cmd body @return 201 */
+    @PreAuthorize("hasAuthority('ticket.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<TicketResult>> create(@Valid @RequestBody CreateTicketCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -98,6 +103,7 @@ public class TicketController {
     }
 
     /** Cập nhật phiếu (KHÔNG nhận status). @param id ID @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('ticket.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<TicketResult>> update(@PathVariable Long id,
                                                             @Valid @RequestBody UpdateTicketCommand cmd) {
@@ -130,6 +136,14 @@ public class TicketController {
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<ApiResponse<Void>> purge(@PathVariable Long id) {
         purgeUC.execute(id); return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    /** Nhập hàng loạt phiếu từ file. @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('ticket.import')")
+    @PostMapping("/import-bulk")
+    public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(
+            @Valid @RequestBody ImportBulkTicketCommand cmd) {
+        return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 
     /** Bàn giao hàng loạt phiếu sang người xử lý khác. @param body body @param req HTTP request @return 200 */

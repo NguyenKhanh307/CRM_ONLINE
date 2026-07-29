@@ -1,5 +1,6 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
+import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 import type {
     CreateTicketPayload, UpdateTicketPayload, TicketResult,
     TicketReturnItemPayload, TicketReturnItemResult, TicketComment,
@@ -19,6 +20,14 @@ export const ticketService = {
         axiosInstance.delete(`/api/tickets/${id}`),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/tickets/handover-bulk', payload),
+    importBulk: (rows: Record<string, unknown>[], options: ImportOptions) =>
+        axiosInstance.post<ApiResponse<ImportBulkResult>>('/api/tickets/import-bulk', {
+            importType: options.importType,
+            ownerMode: options.ownerMode,
+            specificOwnerId: options.specificOwnerId ?? null,
+            ownerFileColumn: options.ownerFileColumn ?? null,
+            rows,
+        }),
 
     // ===== Dòng hàng trả/đổi =====
     getReturnItems: (ticketId: number) =>

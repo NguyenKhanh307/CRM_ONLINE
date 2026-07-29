@@ -17,6 +17,9 @@ import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import { DateInput } from '@/shared/components/form/DateInput';
+import { PrefillHint } from '@/shared/components/form/PrefillHint';
+import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
+import { opportunityService } from '@/features/co-hoi/services/opportunityService';
 import {
     type LineItemRow,
     type ProductOption,
@@ -83,6 +86,22 @@ export function QuotationEditModal({ item, onClose }: Props) {
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
+    /** Tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Cơ hội. */
+    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
+
+    /** Đổi cơ hội → tự điền chiến dịch/chính sách giá còn trống (không đè giá trị đã có). */
+    const onPickOpportunity = async (v: string) => {
+        setForm(f => ({ ...f, opportunityId: v ? Number(v) : null }));
+        setPrefillFrom(null);
+        if (!v) return;
+        const o = (await opportunityService.getById(Number(v))).data.data;
+        const patch = fillEmpty({ ...form, opportunityId: Number(v) }, {
+            campaignId: o.campaignId ?? null,
+            pricePolicyId: o.pricePolicyId ?? null,
+        });
+        if (hasFilled(patch)) { setForm(f => ({ ...f, ...patch })); setPrefillFrom(`cơ hội «${o.code}»`); }
+    };
+
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -119,6 +138,9 @@ export function QuotationEditModal({ item, onClose }: Props) {
             ]);
             // Sửa dòng hàng báo giá primary đồng bộ ngược về cơ hội (amount roll-up) → làm mới cơ hội + báo giá
             ['quotations', 'opportunities'].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
+            qc.invalidateQueries({ queryKey: ['quotation', item.id] });
+            qc.invalidateQueries({ queryKey: ['quotation-items', item.id] });
+            if (item.opportunityId != null) qc.invalidateQueries({ queryKey: ['opportunity', item.opportunityId] });
             onClose();
         } finally {
             setSaving(false);
@@ -136,6 +158,9 @@ export function QuotationEditModal({ item, onClose }: Props) {
             setRows(loaded);
             setOriginalRows(loaded);
             ['quotations', 'opportunities'].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
+            qc.invalidateQueries({ queryKey: ['quotation', item.id] });
+            qc.invalidateQueries({ queryKey: ['quotation-items', item.id] });
+            if (item.opportunityId != null) qc.invalidateQueries({ queryKey: ['opportunity', item.opportunityId] });
             showAlert('Đã cập nhật dòng hàng từ cơ hội');
         } catch (err) {
             const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
@@ -183,7 +208,7 @@ export function QuotationEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Tỷ giá</label>
-                            <input type="number" className={inp} value={form.exchangeRate ?? ''} onChange={e => setForm(f => ({ ...f, exchangeRate: e.target.value ? +e.target.value : null }))} />
+                            <input type="number" min={0} className={inp} value={form.exchangeRate ?? ''} onChange={e => setForm(f => ({ ...f, exchangeRate: e.target.value ? +e.target.value : null }))} />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -191,8 +216,9 @@ export function QuotationEditModal({ item, onClose }: Props) {
                             <label className={lbl}>Cơ hội</label>
                             <RecordPicker module="opportunity"
                                 value={form.opportunityId != null ? String(form.opportunityId) : ''}
-                                onChange={(v) => setForm(f => ({ ...f, opportunityId: v ? Number(v) : null }))}
+                                onChange={onPickOpportunity}
                                 fallbackLabel={item.opportunityName} />
+                            <PrefillHint source={prefillFrom} />
                         </div>
                         <div>
                             <label className={lbl}>Chiến dịch</label>

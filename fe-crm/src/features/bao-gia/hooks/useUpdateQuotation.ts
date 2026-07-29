@@ -8,6 +8,9 @@ export function useUpdateQuotation() {
     return useMutation({
         mutationFn: ({ id, payload }: { id: number; payload: UpdateQuotationPayload }) =>
             quotationService.update(id, payload),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['quotations'] }),
+        onSuccess: (_d, v) => {
+            qc.invalidateQueries({ queryKey: ['quotations'] });
+            qc.invalidateQueries({ queryKey: ['quotation', v.id] });
+        },
     });
 }

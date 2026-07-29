@@ -8,6 +8,7 @@ import vn.com.be_crm.domain.auth.entity.User;
 import vn.com.be_crm.domain.auth.repository.IPermissionRepository;
 import vn.com.be_crm.domain.auth.repository.IUserRepository;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
+import vn.com.be_crm.domain.shared.exception.DomainException;
 
 import java.util.List;
 
@@ -46,23 +47,19 @@ public class LoginUseCase implements IUseCase<LoginCommand, LoginResult> {
      *
      * @param command LoginCommand chứa email và password
      * @return LoginResult với token và thông tin cơ bản
-     * @throws RuntimeException nếu thông tin đăng nhập không hợp lệ
+     * @throws DomainException nếu thông tin đăng nhập không hợp lệ
      */
     @Override
     public LoginResult execute(LoginCommand command) {
-        if (!command.getEmail().toLowerCase().endsWith("@gmail.com")) {
-            throw new RuntimeException("Chỉ chấp nhận địa chỉ @gmail.com");
-        }
-
         User user = userRepository.findByEmail(command.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không đúng"));
+                .orElseThrow(() -> new DomainException("Email không tồn tại trong hệ thống"));
 
         if (user.getStatus() != vn.com.be_crm.domain.auth.enums.UserStatus.active) {
-            throw new RuntimeException("Tài khoản chưa được kích hoạt");
+            throw new DomainException("Tài khoản chưa được kích hoạt");
         }
 
         if (!passwordEncoder.matches(command.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Email hoặc mật khẩu không đúng");
+            throw new DomainException("Mật khẩu không đúng");
         }
 
         List<String> roles = userRoleRepository.findRoleCodesByUserId(user.getId());

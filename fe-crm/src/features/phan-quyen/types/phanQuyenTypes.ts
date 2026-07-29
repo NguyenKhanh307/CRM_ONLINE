@@ -31,6 +31,12 @@ export interface GroupMember {
     dataAccessFromYear: number | null;
 }
 
+/** Liên kết user-role — mỗi người chỉ thuộc một nhóm. */
+export interface UserRoleAssignment {
+    userId: number;
+    roleId: number;
+}
+
 /** Payload tạo/sửa nhóm. */
 export interface GroupFormPayload {
     code?: string;

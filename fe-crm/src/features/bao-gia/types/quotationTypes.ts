@@ -18,6 +18,18 @@ export interface UpdateQuotationPayload {
     note: string | null;
 }
 
+/** Một bước phê duyệt báo giá (GET /api/quotations/{id}/approvals). */
+export interface QuotationApprovalResult {
+    id: number;
+    quotationId: number;
+    approverId: number | null;
+    level: number;
+    status: string;
+    comment: string | null;
+    approvedAt: string | null;
+    createdAt: string;
+}
+
 /** Nội dung email báo giá mặc định (GET /api/quotations/{id}/email-draft). */
 export interface QuotationEmailDraft {
     toEmail: string;

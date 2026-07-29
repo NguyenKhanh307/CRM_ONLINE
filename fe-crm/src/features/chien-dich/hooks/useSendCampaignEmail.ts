@@ -7,6 +7,9 @@ export function useSendCampaignEmail(campaignId: number) {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (payload: SendCampaignEmailPayload) => campaignService.sendEmail(campaignId, payload).then(r => r.data.data),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['campaign-members', campaignId] }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['campaign-members', campaignId] });
+            qc.invalidateQueries({ queryKey: ['campaign-stats', campaignId] });
+        },
     });
 }

@@ -13,7 +13,7 @@ export const opportunityExportColumns: ExportColumn<OpportunityResult>[] = [
     { key: 'amount', label: 'Giá trị', format: r => r.amount ?? '' },
     { key: 'probability', label: 'Xác suất (%)', format: r => r.probability ?? '' },
     { key: 'status', label: 'Trạng thái', format: r => STATUS_LABELS[r.status] ?? r.status },
-    { key: 'expectedCloseDate', label: 'Ngày đóng dự kiến', format: r => r.expectedCloseDate ?? '' },
+    { key: 'expectedCloseDate', label: 'Ngày đóng dự kiến', format: r => r.expectedCloseDate ? formatISODate(r.expectedCloseDate) : '' },
     { key: 'campaignName', label: 'Chiến dịch', format: r => r.campaignName ?? '' },
     { key: 'createdAt', label: 'Ngày tạo', format: r => formatISODate(r.createdAt) },
 ];

@@ -1,8 +1,11 @@
 import { useState, useMemo } from 'react';
-import { FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiUsers } from 'react-icons/fi';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
+import { ActionButton } from '@/shared/components/ActionButton';
 import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
 import { toIdNameMap } from '@/shared/utils/lookup';
+import { useAlert } from '@/shared/alert/useAlert';
+import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import AddEntityModal from '../AddEntityModal';
 import { usePolicyCustomers, useCreatePolicyCustomer, useDeletePolicyCustomer } from '../../hooks/usePolicyCustomers';
@@ -11,8 +14,10 @@ interface Props { policyId: number; }
 
 export function PolicyCustomersTab({ policyId }: Props) {
     const { data = [], isLoading } = usePolicyCustomers(policyId);
-    const { mutate: createFn, isPending: isCreating } = useCreatePolicyCustomer(policyId);
+    const { mutate: createFn, mutateAsync: createFnAsync, isPending: isCreating } = useCreatePolicyCustomer(policyId);
     const { mutate: deleteFn, isPending: isDeleting } = useDeletePolicyCustomer(policyId);
+    const { showAlert } = useAlert();
+    const { confirm } = useConfirm();
 
     const { data: customers = [] } = useCustomerList();
     const options = useMemo(() => customers.map((c) => ({ id: c.id, label: c.name, sub: c.code })), [customers]);
@@ -22,18 +27,42 @@ export function PolicyCustomersTab({ policyId }: Props) {
 
     const [showAdd, setShowAdd] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+    const [isAddingAll, setIsAddingAll] = useState(false);
 
     const handleAdd = (customerId: number) => {
         createFn({ pricePolicyId: policyId, customerId });
+    };
+
+    const handleAddAllActive = async () => {
+        const targets = customers.filter(c => c.status === 'active' && !existingIds.has(c.id));
+        if (targets.length === 0) {
+            showAlert('Không có khách hàng đang hoạt động nào chưa có trong chính sách này.');
+            return;
+        }
+        if (!(await confirm({
+            message: `Thêm ${targets.length} khách hàng đang hoạt động vào chính sách giá?`,
+            confirmLabel: 'Thêm tất cả',
+        }))) return;
+
+        setIsAddingAll(true);
+        try {
+            await Promise.all(targets.map(c => createFnAsync({ pricePolicyId: policyId, customerId: c.id })));
+            showAlert(`Đã thêm ${targets.length} khách hàng vào chính sách giá.`);
+        } finally {
+            setIsAddingAll(false);
+        }
     };
 
     if (isLoading) return <div className="p-4 text-gray-400 text-sm">Đang tải...</div>;
 
     return (
         <div className="space-y-3">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+                <ActionButton variant="secondary" type="button" icon={FiUsers} disabled={isAddingAll} onClick={handleAddAllActive}>
+                    Chọn tất cả KH đang hoạt động
+                </ActionButton>
                 <button onClick={() => setShowAdd(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-btn bg-primary text-white text-sm hover:opacity-90">
-                    <FiPlus size={14} /> Thêm khách hàng
+                    <FiPlus size={14} /> Thêm
                 </button>
             </div>
 

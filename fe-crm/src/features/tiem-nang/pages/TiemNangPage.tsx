@@ -85,6 +85,8 @@ const TiemNangPage = () => {
                         ? 'Đã gắn Liên hệ và Cơ hội vào khách hàng đã có'
                         : 'Đã tạo Khách hàng, Liên hệ và Cơ hội từ tiềm năng');
                     navigate('/co-hoi');
+                } else if (action === 'claim') {
+                    showAlert('Bạn đã nhận chăm sóc tiềm năng này');
                 }
             },
             onError: (err: unknown) => {
@@ -101,10 +103,13 @@ const TiemNangPage = () => {
         const isOpen = l.status !== 'converted' && l.status !== 'lost';
         return [
             { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/tiem-nang/${l.id}`) },
+            ...(l.ownerId == null && isOpen && can('lead', 'edit')
+                ? [{ key: 'claim', label: 'Nhận chăm sóc', onClick: () => runAction(l.id, 'claim') }]
+                : []),
             ...(l.status === 'new' || l.status === 'contacting'
                 ? [{ key: 'qualify', label: 'Đủ điều kiện', onClick: () => runAction(l.id, 'qualify') }]
                 : []),
-            ...(l.status === 'qualified'
+            ...(l.status === 'qualified' && can('lead', 'convert')
                 ? [{ key: 'convert', label: 'Chuyển đổi', onClick: () => setConvertTarget(l) }]
                 : []),
             ...(isOpen

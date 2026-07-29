@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * Domain entity đại diện cho danh mục hàng hóa (cây phân cấp).
+ * Domain entity đại diện cho danh mục hàng hóa.
  */
 @Getter
 @Builder
@@ -21,8 +21,6 @@ public class ProductCategory {
     private String code;
     /** Tên danh mục. */
     private String name;
-    /** ID danh mục cha (null nếu là gốc). */
-    private Long parentId;
     /** Thứ tự sắp xếp. */
     private Integer sortOrder;
     /** Đang hoạt động. */

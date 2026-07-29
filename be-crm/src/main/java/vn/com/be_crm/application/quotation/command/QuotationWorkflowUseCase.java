@@ -1,34 +1,27 @@
 package vn.com.be_crm.application.quotation.command;
 
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
+import vn.com.be_crm.application.order.dto.OrderResult;
 import vn.com.be_crm.application.quotation.dto.QuotationEmailDraft;
 import vn.com.be_crm.application.quotation.dto.QuotationResult;
 import vn.com.be_crm.application.quotation.dto.SendQuotationCommand;
 import vn.com.be_crm.application.quotation.email.QuotationEmailComposer;
 import vn.com.be_crm.application.quotation.mapper.QuotationCommandMapper;
+import vn.com.be_crm.application.quotation.pdf.QuotationPdfDataBuilder;
 import vn.com.be_crm.application.shared.email.IEmailService;
 import vn.com.be_crm.application.shared.pdf.IQuotationPdfService;
-import vn.com.be_crm.application.shared.pdf.QuotationPdfData;
 import vn.com.be_crm.application.shared.notify.IManagerResolver;
-import vn.com.be_crm.domain.contact.entity.Contact;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
-import vn.com.be_crm.domain.customer.entity.Customer;
-import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
-import vn.com.be_crm.domain.product.entity.Product;
-import vn.com.be_crm.domain.product.repository.IProductRepository;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.entity.QuotationApproval;
-import vn.com.be_crm.domain.quotation.entity.QuotationItem;
 import vn.com.be_crm.domain.quotation.enums.QuotationApprovalStatus;
 import vn.com.be_crm.domain.quotation.enums.QuotationStatus;
 import vn.com.be_crm.domain.quotation.repository.IQuotationApprovalRepository;
-import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 import vn.com.be_crm.domain.shared.exception.DomainException;
 import vn.com.be_crm.domain.shared.exception.NotFoundException;
 import vn.com.be_crm.application.shared.tx.ITransactionRunner;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,41 +38,37 @@ public class QuotationWorkflowUseCase {
     private final CreateNotificationUseCase createNotificationUC;
     private final IManagerResolver managerResolver;
     private final IEmailService emailService;
-    private final ICustomerRepository customerRepo;
     private final IContactRepository contactRepo;
-    private final IQuotationItemRepository quotationItemRepo;
-    private final IProductRepository productRepo;
     private final IQuotationPdfService pdfService;
+    private final QuotationPdfDataBuilder pdfDataBuilder;
     private final QuotationEmailComposer emailComposer;
     private final String frontendBaseUrl;
     private final ITransactionRunner tx;
+    private final ConvertQuotationToOrderUseCase convertToOrderUC;
 
     /** @param quotationRepo báo giá @param approvalRepo bước duyệt @param createNotificationUC tạo thông báo
      *  @param managerResolver tìm quản lý trực tiếp của người phụ trách @param emailService gửi email
-     *  @param customerRepo khách hàng @param contactRepo liên hệ
-     *  @param quotationItemRepo dòng hàng báo giá @param productRepo hàng hóa @param pdfService sinh PDF
+     *  @param contactRepo liên hệ @param pdfService sinh PDF @param pdfDataBuilder dựng dữ liệu PDF từ báo giá
      *  @param emailComposer dựng nội dung email mặc định + resolve người nhận @param frontendBaseUrl URL FE cho link phản hồi
-     *  @param tx bộ chạy transaction */
+     *  @param tx bộ chạy transaction @param convertToOrderUC tự sinh đơn hàng khi báo giá được chấp nhận */
     public QuotationWorkflowUseCase(IQuotationRepository quotationRepo, IQuotationApprovalRepository approvalRepo,
                                     CreateNotificationUseCase createNotificationUC, IManagerResolver managerResolver,
-                                    IEmailService emailService, ICustomerRepository customerRepo,
-                                    IContactRepository contactRepo, IQuotationItemRepository quotationItemRepo,
-                                    IProductRepository productRepo, IQuotationPdfService pdfService,
+                                    IEmailService emailService, IContactRepository contactRepo,
+                                    IQuotationPdfService pdfService, QuotationPdfDataBuilder pdfDataBuilder,
                                     QuotationEmailComposer emailComposer, String frontendBaseUrl,
-                                    ITransactionRunner tx) {
+                                    ITransactionRunner tx, ConvertQuotationToOrderUseCase convertToOrderUC) {
         this.quotationRepo = quotationRepo;
         this.approvalRepo = approvalRepo;
         this.createNotificationUC = createNotificationUC;
         this.managerResolver = managerResolver;
         this.emailService = emailService;
-        this.customerRepo = customerRepo;
         this.contactRepo = contactRepo;
-        this.quotationItemRepo = quotationItemRepo;
-        this.productRepo = productRepo;
         this.pdfService = pdfService;
+        this.pdfDataBuilder = pdfDataBuilder;
         this.emailComposer = emailComposer;
         this.frontendBaseUrl = frontendBaseUrl;
         this.tx = tx;
+        this.convertToOrderUC = convertToOrderUC;
     }
 
     /**
@@ -171,7 +160,7 @@ public class QuotationWorkflowUseCase {
         String token = (q.getResponseToken() != null && !q.getResponseToken().isBlank())
                 ? q.getResponseToken() : UUID.randomUUID().toString().replace("-", "");
         String responseLink = trimTrailingSlash(frontendBaseUrl) + "/bao-gia-phan-hoi/" + token;
-        byte[] pdf = pdfService.render(buildPdfData(q, draft.recipientName()));
+        byte[] pdf = pdfService.render(pdfDataBuilder.build(q, draft.recipientName()));
 
         emailService.sendQuotationEmail(to, cc, bcc, finalSubject, finalBody,
                 responseLink, pdf, "BaoGia-" + q.getCode() + ".pdf");
@@ -219,22 +208,6 @@ public class QuotationWorkflowUseCase {
         }
     }
 
-    /** Dựng dữ liệu PDF từ báo giá: tên KH, dòng hàng (kèm tên sản phẩm), tổng tiền. */
-    private QuotationPdfData buildPdfData(Quotation q, String contactName) {
-        String customerName = q.getCustomerId() == null ? "" :
-                customerRepo.findById(q.getCustomerId()).map(Customer::getName).orElse("");
-        List<QuotationPdfData.Line> lines = new ArrayList<>();
-        int stt = 1;
-        for (QuotationItem it : quotationItemRepo.findAllByQuotationId(q.getId())) {
-            String productName = it.getProductId() == null ? "" :
-                    productRepo.findById(it.getProductId()).map(Product::getName).orElse("#" + it.getProductId());
-            lines.add(new QuotationPdfData.Line(stt++, productName, it.getUnit(),
-                    it.getQuantity(), it.getUnitPrice(), it.getDiscount(), it.getAmount()));
-        }
-        return new QuotationPdfData(q.getCode(), customerName, contactName,
-                q.getQuoteDate(), q.getValidUntil(), q.getCurrency(), q.getNote(), q.getTotal(), lines);
-    }
-
     /** Bỏ dấu '/' cuối URL để ghép path. */
     private String trimTrailingSlash(String url) {
         if (url == null) return "";
@@ -242,7 +215,9 @@ public class QuotationWorkflowUseCase {
     }
 
     /**
-     * Khách hàng chấp nhận báo giá: sent → accepted. Sau bước này có thể chuyển thành hóa đơn.
+     * Khách hàng chấp nhận báo giá: sent → accepted. Tự động sinh Đơn hàng (giữ trạng thái nháp
+     * để nhân viên xác nhận→xử lý→hoàn tất→xuất hóa đơn như quy trình thủ công bình thường) —
+     * cả bước đổi trạng thái lẫn tạo đơn chạy trong MỘT transaction.
      * @param quotationId ID báo giá @return báo giá sau cập nhật
      */
     public QuotationResult accept(Long quotationId) {
@@ -250,10 +225,28 @@ public class QuotationWorkflowUseCase {
             Quotation q = load(quotationId);
             q.getStatus().ensureCanTransitionTo(QuotationStatus.accepted);
             Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.accepted).build());
+            String orderNote = autoCreateOrder(saved);
             notifyOwner(saved, "quotation_accepted", "Báo giá được chấp nhận: " + saved.getCode(),
-                    "Báo giá " + saved.getCode() + " đã được khách hàng chấp nhận. Bạn có thể chuyển thành hóa đơn.");
+                    "Báo giá " + saved.getCode() + " đã được khách hàng chấp nhận." + orderNote);
             return QuotationCommandMapper.toResult(saved);
         });
+    }
+
+    /**
+     * Tự động chuyển báo giá vừa chấp nhận thành đơn hàng — idempotent: nếu báo giá đã khóa
+     * (đã có đơn hàng từ trước) thì bỏ qua, tránh lỗi khi accept được gọi lại hoặc dữ liệu cũ.
+     * @param q báo giá vừa chuyển sang accepted
+     * @return đoạn văn bản bổ sung cho nội dung thông báo (rỗng nếu bỏ qua)
+     */
+    private String autoCreateOrder(Quotation q) {
+        if (q.isLocked()) return "";
+        try {
+            OrderResult order = convertToOrderUC.execute(q.getId());
+            return " Đơn hàng " + order.getCode() + " đã được tạo tự động — bạn có thể xác nhận và xử lý.";
+        } catch (DomainException e) {
+            // Báo giá đã có đơn hàng (race/dữ liệu cũ) — không chặn việc chấp nhận báo giá.
+            return "";
+        }
     }
 
     /** Tải báo giá theo ID hoặc ném NotFoundException. */

@@ -15,6 +15,7 @@ import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCreateCustomer } from '../hooks/useCreateCustomer';
 import type { CreateCustomerPayload } from '../types/customerTypes';
+import { RATING_OPTIONS } from '../config/customerOptions';
 
 const TYPE_OPTIONS = [
     { value: 'company', label: 'Doanh nghiệp' },
@@ -27,12 +28,6 @@ const SOURCE_OPTIONS = [
     { value: 'dien-thoai', label: 'Điện thoại' },
     { value: 'email', label: 'Email' },
     { value: 'khac', label: 'Khác' },
-];
-
-const RATING_OPTIONS = [
-    { value: 'A', label: 'A' },
-    { value: 'B', label: 'B' },
-    { value: 'C', label: 'C' },
 ];
 
 interface FormState {
@@ -203,7 +198,7 @@ const CustomerAddPage = () => {
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
                             <FieldRow label="Số ngày được nợ">
-                                <input type="number" value={form.creditDays} onChange={(e) => set({ creditDays: e.target.value })} className={inputCls} />
+                                <input type="number" min={0} value={form.creditDays} onChange={(e) => set({ creditDays: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Số tài khoản">
                                 <input type="text" value={form.bankAccount} onChange={(e) => set({ bankAccount: e.target.value })} className={inputCls} />
@@ -211,7 +206,7 @@ const CustomerAddPage = () => {
                         </div>
                         <div className="space-y-4">
                             <FieldRow label="Hạn mức nợ" error={errors.creditLimit}>
-                                <input type="number" value={form.creditLimit} onChange={(e) => set({ creditLimit: e.target.value })} className={inputCls} />
+                                <input type="number" min={0} value={form.creditLimit} onChange={(e) => set({ creditLimit: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Ngân hàng">
                                 <input type="text" value={form.bankName} onChange={(e) => set({ bankName: e.target.value })} className={inputCls} />
@@ -227,7 +222,7 @@ const CustomerAddPage = () => {
                                 <SearchableSelect value={form.rating} onChange={(v) => set({ rating: v })} options={RATING_OPTIONS} />
                             </FieldRow>
                             <FieldRow label="Doanh thu hàng năm" error={errors.annualRevenue}>
-                                <input type="number" value={form.annualRevenue} onChange={(e) => set({ annualRevenue: e.target.value })} className={inputCls} />
+                                <input type="number" min={0} value={form.annualRevenue} onChange={(e) => set({ annualRevenue: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
                         <div className="space-y-4">

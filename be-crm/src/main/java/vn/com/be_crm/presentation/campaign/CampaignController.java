@@ -55,6 +55,7 @@ public class CampaignController {
     }
 
     /** Tạo mới chiến dịch. @param cmd body @return 201 */
+    @PreAuthorize("hasAuthority('campaign.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<CampaignResult>> create(@Valid @RequestBody CreateCampaignCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -89,6 +90,7 @@ public class CampaignController {
     }
 
     /** Cập nhật chiến dịch. @param id ID @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('campaign.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CampaignResult>> update(@PathVariable Long id, @Valid @RequestBody UpdateCampaignCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
@@ -130,7 +132,7 @@ public class CampaignController {
     }
 
     /** Gửi email hàng loạt cho thành viên chiến dịch. @param id ID @param cmd body @return 200 số email đã gửi */
-    @PreAuthorize("hasAuthority('campaign.edit')")
+    @PreAuthorize("hasAuthority('campaign.send_email')")
     @PostMapping("/{id}/send-email")
     public ResponseEntity<ApiResponse<Integer>> sendEmail(@PathVariable Long id, @Valid @RequestBody SendCampaignEmailCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(sendEmailUC.execute(
@@ -172,7 +174,7 @@ public class CampaignController {
     }
 
     /** Nhập hàng loạt chiến dịch từ file. @param cmd body @return 200 */
-    @PreAuthorize("hasAuthority('campaign.create')")
+    @PreAuthorize("hasAuthority('campaign.import')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkCampaignCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));

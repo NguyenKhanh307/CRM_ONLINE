@@ -50,15 +50,20 @@ const ActivityImportPage = lazy(() => import('@/features/hoat-dong/pages/Activit
 const SanPhamPage     = lazy(() => import('@/features/san-pham/pages/SanPhamPage'));
 const ProductAddPage  = lazy(() => import('@/features/san-pham/pages/ProductAddPage'));
 const ProductImportPage = lazy(() => import('@/features/san-pham/pages/ProductImportPage'));
+const ProductCategoryPage = lazy(() => import('@/features/san-pham/pages/ProductCategoryPage'));
 const PhanQuyenPage   = lazy(() => import('@/features/phan-quyen/pages/PhanQuyenPage'));
 const ThungRacPage    = lazy(() => import('@/features/thung-rac/pages/ThungRacPage'));
+const NhatKyHeThongPage = lazy(() => import('@/features/nhat-ky-he-thong/pages/NhatKyHeThongPage'));
 const ChamSocPage     = lazy(() => import('@/features/cham-soc/pages/ChamSocPage'));
 const TicketAddPage   = lazy(() => import('@/features/cham-soc/pages/TicketAddPage'));
+const TicketImportPage = lazy(() => import('@/features/cham-soc/pages/TicketImportPage'));
 const TicketDetailPage = lazy(() => import('@/features/cham-soc/pages/TicketDetailPage'));
 const ChinhSachGiaPage = lazy(() => import('@/features/chinh-sach-gia/pages/ChinhSachGiaPage'));
 const ChinhSachGiaDetailPage = lazy(() => import('@/features/chinh-sach-gia/pages/ChinhSachGiaDetailPage'));
+const PricePolicyImportPage = lazy(() => import('@/features/chinh-sach-gia/pages/PricePolicyImportPage'));
 const TrackingDemoPage = lazy(() => import('@/features/tracking-demo/pages/TrackingDemoPage'));
 const QuotationResponsePage = lazy(() => import('@/features/bao-gia-phan-hoi/pages/QuotationResponsePage'));
+const SupportPublicPage = lazy(() => import('@/features/support-public/pages/SupportPublicPage'));
 
 const fallback = <div className="p-6 text-gray-400">Đang tải...</div>;
 
@@ -109,15 +114,19 @@ export const router = createBrowserRouter([
             { path: '/hoat-dong/them-moi',    element: <RequirePermission module="activity"><Suspense fallback={fallback}><ActivityAddPage /></Suspense></RequirePermission> },
             { path: '/hoat-dong/nhap-file',   element: <RequirePermission module="activity"><Suspense fallback={fallback}><ActivityImportPage /></Suspense></RequirePermission> },
             { path: '/san-pham',              element: <Suspense fallback={fallback}><SanPhamPage /></Suspense> },
+            { path: '/san-pham/danh-muc',     element: <Suspense fallback={fallback}><ProductCategoryPage /></Suspense> },
             { path: '/san-pham/them-moi',     element: <RequirePermission module="product"><Suspense fallback={fallback}><ProductAddPage /></Suspense></RequirePermission> },
             { path: '/san-pham/nhap-file',    element: <RequirePermission module="product"><Suspense fallback={fallback}><ProductImportPage /></Suspense></RequirePermission> },
             { path: '/cham-soc',              element: <Suspense fallback={fallback}><ChamSocPage /></Suspense> },
             { path: '/cham-soc/them-moi',     element: <RequirePermission module="ticket"><Suspense fallback={fallback}><TicketAddPage /></Suspense></RequirePermission> },
+            { path: '/cham-soc/nhap-file',    element: <RequirePermission module="ticket"><Suspense fallback={fallback}><TicketImportPage /></Suspense></RequirePermission> },
             { path: '/cham-soc/:id',          element: <Suspense fallback={fallback}><TicketDetailPage /></Suspense> },
             { path: '/chinh-sach-gia',        element: <Suspense fallback={fallback}><ChinhSachGiaPage /></Suspense> },
+            { path: '/chinh-sach-gia/nhap-file', element: <RequirePermission module="pricing"><Suspense fallback={fallback}><PricePolicyImportPage /></Suspense></RequirePermission> },
             { path: '/chinh-sach-gia/:id',   element: <Suspense fallback={fallback}><ChinhSachGiaDetailPage /></Suspense> },
             { path: '/phan-quyen',           element: <Suspense fallback={fallback}><PhanQuyenPage /></Suspense> },
             { path: '/thung-rac',            element: <Suspense fallback={fallback}><ThungRacPage /></Suspense> },
+            { path: '/nhat-ky-he-thong',     element: <Suspense fallback={fallback}><NhatKyHeThongPage /></Suspense> },
         ],
     },
     {
@@ -149,6 +158,14 @@ export const router = createBrowserRouter([
         element: (
             <Suspense fallback={<div className="min-h-screen bg-bg-main" />}>
                 <QuotationResponsePage />
+            </Suspense>
+        ),
+    },
+    {
+        path: '/support-page/:code',
+        element: (
+            <Suspense fallback={<div className="min-h-screen bg-bg-main" />}>
+                <SupportPublicPage />
             </Suspense>
         ),
     },

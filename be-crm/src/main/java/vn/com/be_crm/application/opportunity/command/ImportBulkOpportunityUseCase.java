@@ -57,14 +57,20 @@ public class ImportBulkOpportunityUseCase {
                     Opportunity e = existing.get();
                     repo.save(Opportunity.builder()
                             .id(e.getId()).code(e.getCode()).name(row.name())
-                            .opportunityType(e.getOpportunityType())
-                            .customerId(e.getCustomerId()).contactId(e.getContactId())
-                            .ownerId(ownerId != null ? ownerId : e.getOwnerId()).stageId(e.getStageId())
+                            .opportunityType(row.opportunityType() != null ? row.opportunityType() : e.getOpportunityType())
+                            .customerId(row.customerId() != null ? row.customerId() : e.getCustomerId())
+                            .contactId(row.contactId() != null ? row.contactId() : e.getContactId())
+                            .ownerId(ownerId != null ? ownerId : e.getOwnerId())
+                            .stageId(row.stageId() != null ? row.stageId() : e.getStageId())
+                            .pricePolicyId(row.pricePolicyId() != null ? row.pricePolicyId() : e.getPricePolicyId())
                             .amount(row.amount() != null ? row.amount() : e.getAmount())
-                            .expectedRevenue(e.getExpectedRevenue())
+                            .expectedRevenue(row.expectedRevenue() != null ? row.expectedRevenue() : e.getExpectedRevenue())
                             .probability(row.probability() != null ? row.probability() : e.getProbability())
                             .expectedCloseDate(closeDate != null ? closeDate : e.getExpectedCloseDate())
-                            .source(e.getSource()).winLossReason(e.getWinLossReason()).description(e.getDescription())
+                            .source(row.source() != null ? row.source() : e.getSource())
+                            .campaignId(row.campaignId() != null ? row.campaignId() : e.getCampaignId())
+                            .winLossReason(row.winLossReason() != null ? row.winLossReason() : e.getWinLossReason())
+                            .description(row.description() != null ? row.description() : e.getDescription())
                             .status(status != null ? status : e.getStatus())
                             .createdAt(e.getCreatedAt()).build());
                     success++;
@@ -73,8 +79,14 @@ public class ImportBulkOpportunityUseCase {
                     String code = "CO-" + System.currentTimeMillis() + "-" + rowNum;
                     repo.save(Opportunity.builder()
                             .code(code).name(row.name()).ownerId(ownerId)
-                            .amount(row.amount()).probability(row.probability())
+                            .opportunityType(row.opportunityType())
+                            .customerId(row.customerId()).contactId(row.contactId())
+                            .stageId(row.stageId()).pricePolicyId(row.pricePolicyId())
+                            .amount(row.amount() != null ? row.amount() : java.math.BigDecimal.ZERO)
+                            .expectedRevenue(row.expectedRevenue()).probability(row.probability())
                             .expectedCloseDate(closeDate)
+                            .source(row.source()).campaignId(row.campaignId())
+                            .winLossReason(row.winLossReason()).description(row.description())
                             .status(status != null ? status : OpportunityStatus.open)
                             .build());
                     success++;

@@ -54,6 +54,12 @@ public class AskCopilotUseCase implements IUseCase<AskCopilotQuery, CopilotAnswe
         if (input == null || input.question() == null || input.question().isBlank()) {
             throw new DomainException("Vui lòng nhập câu hỏi.");
         }
+        // Chặn cứng câu hỏi phạm vi admin/hệ thống của NHÂN VIÊN — tất định, không cần gọi AI
+        // (bổ sung cho STAFF_SCOPE trong CopilotPrompts, vốn chỉ là chỉ dẫn LLM có thể bị lách qua).
+        if (!input.isPrivileged() && intentDetector.isOutOfScopeForStaff(input.question())) {
+            return new CopilotAnswer(CopilotPrompts.OUT_OF_SCOPE);
+        }
+
         Intent intent = intentDetector.detect(input.question());
         switch (intent.type()) {
             case OPEN_PAGE:

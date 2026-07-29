@@ -43,6 +43,14 @@ public class PageRequest {
     private Long ownerId;
 
     /**
+     * Khi có {@code ownerId} lọc, cho phép trả THÊM các bản ghi chưa có người phụ trách
+     * (owner_id IS NULL) — dùng cho tiềm năng: nhân viên cần thấy tiềm năng trong "pool" chung
+     * để bấm "Nhận chăm sóc". Mặc định false — không ảnh hưởng các module khác.
+     */
+    @Builder.Default
+    private boolean includeUnassigned = false;
+
+    /**
      * Chỉ trả bản ghi thuộc khách hàng này — null nghĩa là không lọc.
      * Hiện dùng cho danh sách liên hệ: ô chọn Liên hệ trong form phải thu hẹp theo khách hàng đang chọn,
      * không thể để người dùng dò trong hàng chục nghìn liên hệ.

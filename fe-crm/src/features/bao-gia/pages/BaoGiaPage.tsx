@@ -107,7 +107,7 @@ const BaoGiaPage = () => {
     /** Thao tác của một báo giá — hiện trong menu chuột phải. */
     const rowActions = (q: QuotationResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/bao-gia/${q.id}`) },
-        ...(q.status === 'draft' && can('quotation', 'edit')
+        ...(q.status === 'draft' && can('quotation', 'submit')
             ? [{ key: 'submit', label: 'Gửi duyệt', onClick: () => runAction(q.id, 'submit') }]
             : []),
         ...(q.status === 'pending' && can('quotation', 'approve')
@@ -116,7 +116,7 @@ const BaoGiaPage = () => {
                 { key: 'reject', label: 'Từ chối', onClick: () => setRejectTarget(q.id) },
             ]
             : []),
-        ...(q.status === 'approved' && can('quotation', 'approve')
+        ...(q.status === 'approved' && can('quotation', 'send')
             ? [
                 { key: 'send', label: 'Gửi email cho khách', onClick: () => setSendTarget(q.id) },
                 { key: 'markSent', label: 'Đánh dấu đã gửi', onClick: () => runAction(q.id, 'markSent') },

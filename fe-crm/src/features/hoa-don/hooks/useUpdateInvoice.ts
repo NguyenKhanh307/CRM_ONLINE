@@ -8,6 +8,9 @@ export function useUpdateInvoice() {
     return useMutation({
         mutationFn: ({ id, payload }: { id: number; payload: UpdateInvoicePayload }) =>
             invoiceService.update(id, payload),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices'] }),
+        onSuccess: (_d, v) => {
+            qc.invalidateQueries({ queryKey: ['invoices'] });
+            qc.invalidateQueries({ queryKey: ['invoice', v.id] });
+        },
     });
 }

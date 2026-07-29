@@ -14,7 +14,6 @@ public class ProductCategoryHibernateMapper {
     public ProductCategoryHibernate toHibernate(ProductCategory d) {
         ProductCategoryHibernate h = new ProductCategoryHibernate();
         h.setId(d.getId()); h.setCode(d.getCode()); h.setName(d.getName());
-        h.setParentId(d.getParentId());
         h.setSortOrder(d.getSortOrder() != null ? d.getSortOrder() : 0);
         h.setIsActive(d.getIsActive() != null ? d.getIsActive() : true);
         return h;
@@ -25,7 +24,7 @@ public class ProductCategoryHibernateMapper {
      */
     public ProductCategory toDomain(ProductCategoryHibernate h) {
         return ProductCategory.builder()
-                .id(h.getId()).code(h.getCode()).name(h.getName()).parentId(h.getParentId())
+                .id(h.getId()).code(h.getCode()).name(h.getName())
                 .sortOrder(h.getSortOrder()).isActive(h.getIsActive())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt()).build();
     }

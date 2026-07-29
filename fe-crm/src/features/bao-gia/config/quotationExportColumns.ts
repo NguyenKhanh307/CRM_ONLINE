@@ -12,8 +12,8 @@ export const quotationExportColumns: ExportColumn<QuotationResult>[] = [
     { key: 'code', label: 'Số báo giá' },
     { key: 'status', label: 'Trạng thái', format: r => STATUS_LABELS[r.status] ?? r.status },
     { key: 'total', label: 'Tổng tiền', format: r => r.total ?? '' },
-    { key: 'quoteDate', label: 'Ngày báo giá' },
-    { key: 'validUntil', label: 'Hiệu lực đến' },
+    { key: 'quoteDate', label: 'Ngày báo giá', format: r => r.quoteDate ? formatISODate(r.quoteDate) : '' },
+    { key: 'validUntil', label: 'Hiệu lực đến', format: r => r.validUntil ? formatISODate(r.validUntil) : '' },
     { key: 'campaignName', label: 'Chiến dịch', format: r => r.campaignName ?? '' },
     { key: 'createdAt', label: 'Ngày tạo', format: r => formatISODate(r.createdAt) },
 ];

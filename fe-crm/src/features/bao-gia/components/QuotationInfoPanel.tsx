@@ -7,6 +7,13 @@ interface Props {
     quotation: QuotationResult;
 }
 
+/** Nhãn phản hồi của khách hàng qua trang công khai. */
+const CUSTOMER_RESPONSE_LABEL: Record<string, string> = {
+    accepted: 'Đồng ý',
+    adjust: 'Yêu cầu điều chỉnh',
+    rejected: 'Không đồng ý',
+};
+
 /** Thông tin cột trái của trang chi tiết Báo giá. */
 export const QuotationInfoPanel = ({ quotation: q }: Props) => (
     <div>
@@ -26,6 +33,13 @@ export const QuotationInfoPanel = ({ quotation: q }: Props) => (
         <InfoRow label="Báo giá chính" value={q.isPrimary ? 'Có' : 'Không'} />
         <InfoRow label="Đã khóa" value={q.isLocked ? 'Có' : 'Không'} />
         <InfoRow label="Ghi chú" value={q.note} />
+        {q.customerResponse && (
+            <>
+                <InfoRow label="Khách phản hồi" value={CUSTOMER_RESPONSE_LABEL[q.customerResponse] ?? q.customerResponse} />
+                <InfoRow label="Ghi chú của khách" value={q.customerResponseNote} />
+                <InfoRow label="Thời điểm phản hồi" value={q.customerRespondedAt ? formatISODate(q.customerRespondedAt) : null} />
+            </>
+        )}
         <InfoRow label="Người tạo" value={q.createdByName} />
         <InfoRow label="Ngày tạo" value={q.createdAt ? formatISODate(q.createdAt) : null} />
         <InfoRow label="Người sửa cuối" value={q.updatedByName} />

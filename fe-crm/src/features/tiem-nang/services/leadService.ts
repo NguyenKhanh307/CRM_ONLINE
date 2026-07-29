@@ -39,4 +39,6 @@ export const leadService = {
     /** Đánh mất tiềm năng (→ lost). */
     lose: (id: number, reason?: string) =>
         axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/lose`, { reason }),
+    /** Nhân viên tự nhận chăm sóc tiềm năng chưa có người phụ trách (pool chung). */
+    claim: (id: number) => axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/claim`),
 };

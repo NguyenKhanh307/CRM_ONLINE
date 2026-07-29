@@ -1,19 +1,20 @@
 package vn.com.be_crm.infrastructure.auth.repository;
 
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.domain.auth.entity.UserRole;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
-import vn.com.be_crm.infrastructure.auth.entity.UserRoleHibernate;
 import vn.com.be_crm.infrastructure.auth.mapper.UserRoleHibernateMapper;
-
-import java.util.List;
-import java.util.stream.Collectors;
 import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
- * Hibernate implementation của IUserRoleRepository.
+ * Hibernate implementation của IUserRoleRepository — mọi truy vấn dùng native SQL (không HQL).
  */
 @Repository
 public class UserRoleRepositoryImpl implements IUserRoleRepository {
@@ -39,13 +40,13 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
     @Override
     public UserRole save(UserRole userRole) {
         return TxSupport.write(sf, s -> {
-            UserRoleHibernate merged = s.merge(mapper.toHibernate(userRole));
+            var merged = s.merge(mapper.toHibernate(userRole));
             return mapper.toDomain(merged);
         });
     }
 
     /**
-     * Thu hồi vai trò khỏi người dùng bằng HQL DELETE.
+     * Thu hồi vai trò khỏi người dùng bằng native SQL DELETE.
      *
      * @param userId ID người dùng
      * @param roleId ID vai trò cần thu hồi
@@ -53,16 +54,45 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
     @Override
     public void deleteByUserIdAndRoleId(Long userId, Long roleId) {
         TxSupport.writeVoid(sf, s -> {
-            s.createMutationQuery(
-                    "DELETE FROM UserRoleHibernate WHERE userId = :userId AND roleId = :roleId")
+            s.createNativeQuery("DELETE FROM user_roles WHERE user_id = :userId AND role_id = :roleId")
                     .setParameter("userId", userId)
                     .setParameter("roleId", roleId)
                     .executeUpdate();
-            });
+        });
     }
 
     /**
-     * Lấy danh sách code vai trò của một người dùng bằng HQL subquery.
+     * Xóa toàn bộ vai trò hiện có của một người dùng bằng native SQL DELETE.
+     *
+     * @param userId ID người dùng
+     */
+    @Override
+    public void deleteByUserId(Long userId) {
+        TxSupport.writeVoid(sf, s -> {
+            s.createNativeQuery("DELETE FROM user_roles WHERE user_id = :userId")
+                    .setParameter("userId", userId)
+                    .executeUpdate();
+        });
+    }
+
+    /**
+     * Lấy toàn bộ liên kết user-role hiện có bằng native SQL.
+     *
+     * @return danh sách UserRole
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<UserRole> findAll() {
+        return TxSupport.read(sf, s -> {
+            List<Object[]> rows = s.createNativeQuery(
+                            "SELECT id, user_id, role_id, created_at FROM user_roles", Object[].class)
+                    .list();
+            return rows.stream().map(UserRoleRepositoryImpl::toDomain).collect(Collectors.toList());
+        });
+    }
+
+    /**
+     * Lấy danh sách code vai trò của một người dùng bằng native SQL JOIN.
      *
      * @param userId ID người dùng
      * @return danh sách code vai trò
@@ -70,48 +100,63 @@ public class UserRoleRepositoryImpl implements IUserRoleRepository {
     @Override
     public List<String> findRoleCodesByUserId(Long userId) {
         return TxSupport.read(sf, s -> {
-            return s.createQuery(
-                    "SELECT r.code FROM RoleHibernate r WHERE r.id IN " +
-                    "(SELECT ur.roleId FROM UserRoleHibernate ur WHERE ur.userId = :userId)",
-                    String.class)
+            String sql = """
+                    SELECT r.code FROM roles r
+                    JOIN user_roles ur ON ur.role_id = r.id
+                    WHERE ur.user_id = :userId
+                    """;
+            return s.createNativeQuery(sql, String.class)
                     .setParameter("userId", userId)
                     .list();
         });
     }
 
     /**
-     * Lấy tất cả UserRole theo roleId.
+     * Lấy tất cả UserRole theo roleId bằng native SQL.
      *
      * @param roleId ID vai trò
      * @return danh sách UserRole
      */
     @Override
+    @SuppressWarnings("unchecked")
     public List<UserRole> findByRoleId(Long roleId) {
         return TxSupport.read(sf, s -> {
-            return s.createQuery(
-                    "FROM UserRoleHibernate WHERE roleId = :roleId", UserRoleHibernate.class)
+            List<Object[]> rows = s.createNativeQuery(
+                            "SELECT id, user_id, role_id, created_at FROM user_roles WHERE role_id = :roleId", Object[].class)
                     .setParameter("roleId", roleId)
-                    .list()
-                    .stream().map(mapper::toDomain).collect(Collectors.toList());
+                    .list();
+            return rows.stream().map(UserRoleRepositoryImpl::toDomain).collect(Collectors.toList());
         });
     }
 
     /**
-     * Lấy danh sách ID người dùng có vai trò thuộc tập code cho trước.
+     * Lấy danh sách ID người dùng có vai trò thuộc tập code cho trước bằng native SQL JOIN.
      *
      * @param roleCodes danh sách code vai trò
      * @return danh sách userId không trùng
      */
     @Override
     public List<Long> findUserIdsByRoleCodes(List<String> roleCodes) {
-        if (roleCodes == null || roleCodes.isEmpty()) return List.of();
+        if (roleCodes == null || roleCodes.isEmpty()) return Collections.emptyList();
         return TxSupport.read(sf, s -> {
-            return s.createQuery(
-                    "SELECT DISTINCT ur.userId FROM UserRoleHibernate ur WHERE ur.roleId IN " +
-                    "(SELECT r.id FROM RoleHibernate r WHERE r.code IN (:codes))",
-                    Long.class)
+            String sql = """
+                    SELECT DISTINCT ur.user_id FROM user_roles ur
+                    JOIN roles r ON r.id = ur.role_id
+                    WHERE r.code IN (:codes)
+                    """;
+            return s.createNativeQuery(sql, Long.class)
                     .setParameter("codes", roleCodes)
                     .list();
         });
+    }
+
+    /** Map một dòng native SQL (id, user_id, role_id, created_at) sang domain UserRole. */
+    private static UserRole toDomain(Object[] row) {
+        return UserRole.builder()
+                .id(((Number) row[0]).longValue())
+                .userId(((Number) row[1]).longValue())
+                .roleId(((Number) row[2]).longValue())
+                .createdAt(row[3] instanceof Timestamp ts ? ts.toLocalDateTime() : (LocalDateTime) row[3])
+                .build();
     }
 }

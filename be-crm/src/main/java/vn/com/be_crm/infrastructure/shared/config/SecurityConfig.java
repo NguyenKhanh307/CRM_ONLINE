@@ -63,6 +63,8 @@ public class SecurityConfig {
                         // GET vẫn mở cho mọi user đã đăng nhập (FE dùng làm lookup: HandoverModal, form thêm mới...).
                         .requestMatchers("/api/auth/register-employee").hasAuthority("ADMIN")
                         .requestMatchers("/api/handover/all").hasAnyAuthority("ADMIN", "SALES_MANAGER")
+                        // Nhật ký hệ thống — chỉ ADMIN xem được (kể cả GET, dữ liệu nhạy cảm).
+                        .requestMatchers("/api/audit-log/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/**", "/api/roles/**", "/api/permissions/**").authenticated()
                         .requestMatchers("/api/users/**", "/api/roles/**", "/api/permissions/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()

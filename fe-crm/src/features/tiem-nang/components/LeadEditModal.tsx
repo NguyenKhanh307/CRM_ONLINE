@@ -5,9 +5,12 @@ import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { FiX } from 'react-icons/fi';
+import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import type { LeadResult, UpdateLeadPayload } from '../types/leadTypes';
 import { useUpdateLead } from '../hooks/useUpdateLead';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
+import { SOURCE_OPTIONS } from '../config/leadOptions';
 
 interface Props {
     item: LeadResult | null;
@@ -21,11 +24,12 @@ const LEAD_STATUS_COLORS: Record<string, string> = {
     new: 'bg-gray-100 text-gray-600', contacting: 'bg-blue-100 text-blue-700', qualified: 'bg-green-100 text-green-700',
     converted: 'bg-emerald-100 text-emerald-700', lost: 'bg-red-100 text-red-600',
 };
-const LEAD_SOURCES = ['website', 'referral', 'social', 'email', 'event', 'other'];
 
 export function LeadEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateLead();
     const { data: campaigns } = useCampaignList();
+    const { data: users = [] } = useActiveUsers();
+    const userOptions = users.map((u) => ({ value: String(u.id), label: u.fullName }));
     const [form, setForm] = useState<UpdateLeadPayload>({
         name: '', ownerId: null, customerId: null, contactId: null, campaignId: null,
         source: null, estimatedValue: null, phone: null, email: null, note: null,
@@ -114,10 +118,18 @@ export function LeadEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Nguồn</label>
-                            <select className={inp} value={form.source ?? ''} onChange={e => setForm(f => ({ ...f, source: e.target.value || null }))}>
-                                <option value="">-- Chọn --</option>
-                                {LEAD_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
-                            </select>
+                            <SearchableSelect value={form.source ?? ''} onChange={v => setForm(f => ({ ...f, source: v || null }))} options={SOURCE_OPTIONS} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Người phụ trách</label>
+                            <SearchableSelect
+                                value={form.ownerId ? String(form.ownerId) : ''}
+                                onChange={v => setForm(f => ({ ...f, ownerId: v ? Number(v) : null }))}
+                                options={userOptions}
+                                fallbackLabel={item.ownerName}
+                            />
                         </div>
                     </div>
                     <div>
@@ -135,7 +147,7 @@ export function LeadEditModal({ item, onClose }: Props) {
                     <div>
                         <label className={lbl}>Giá trị dự kiến</label>
                         <FieldError error={errors.estimatedValue}>
-                            <input type="number" className={inp} value={form.estimatedValue ?? ''} onChange={e => { setForm(f => ({ ...f, estimatedValue: e.target.value ? +e.target.value : null })); clearError('estimatedValue'); }} />
+                            <input type="number" min={0} className={inp} value={form.estimatedValue ?? ''} onChange={e => { setForm(f => ({ ...f, estimatedValue: e.target.value ? +e.target.value : null })); clearError('estimatedValue'); }} />
                         </FieldError>
                     </div>
                     <div className="grid grid-cols-2 gap-3">

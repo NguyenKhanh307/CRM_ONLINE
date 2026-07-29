@@ -12,6 +12,7 @@ import {
 } from '@/shared/components/detail/relatedColumns';
 import { formatISODate } from '@/shared/utils/date';
 import { formatCurrency, formatNumber } from '@/shared/utils/number';
+import { usePermission } from '@/core/permissions/usePermission';
 import { useCampaign } from '../hooks/useCampaign';
 import { useCampaignStats } from '../hooks/useCampaignStats';
 import { useCampaignRelated } from '../hooks/useCampaignRelated';
@@ -26,6 +27,7 @@ type TabKey = 'overview' | 'members' | 'leads' | 'opportunities' | 'orders' | 'i
  * các bản ghi quy về chiến dịch (attribution) và hiệu quả (ROI).
  */
 const CampaignDetailPage = () => {
+    const { can } = usePermission();
     const { id } = useParams();
     const campaignId = Number(id);
     const { data: campaign, isLoading } = useCampaign(campaignId);
@@ -79,9 +81,11 @@ const CampaignDetailPage = () => {
                     { label: 'Ngân sách', value: campaign.budget != null ? formatCurrency(campaign.budget) : null },
                 ]}
                 actions={
-                    <ActionButton variant="primary" icon={FiSend} onClick={() => setEmailOpen(true)}>
-                        Gửi email
-                    </ActionButton>
+                    can('campaign', 'send_email') ? (
+                        <ActionButton variant="primary" icon={FiSend} onClick={() => setEmailOpen(true)}>
+                            Gửi email
+                        </ActionButton>
+                    ) : undefined
                 }
             />
 
@@ -136,7 +140,7 @@ const CampaignDetailPage = () => {
                 </div>
             </div>
 
-            <SendEmailModal campaignId={campaignId} open={emailOpen} onClose={() => setEmailOpen(false)} />
+            <SendEmailModal campaignId={campaignId} campaignCode={campaign.code} open={emailOpen} onClose={() => setEmailOpen(false)} />
         </div>
     );
 };

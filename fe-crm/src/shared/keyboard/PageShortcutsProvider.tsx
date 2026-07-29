@@ -96,12 +96,6 @@ export const PageShortcutsProvider = ({ children }: { children: ReactNode }) => 
             if (matchesShortcut(e, SHORTCUTS.HOME)) {
                 e.preventDefault();
                 navigate('/dashboard');
-                return;
-            }
-
-            if (matchesShortcut(e, SHORTCUTS.BACK)) {
-                e.preventDefault();
-                navigate(-1);
             }
         };
 

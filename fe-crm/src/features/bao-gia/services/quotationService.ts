@@ -1,6 +1,6 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
-import type { CreateQuotationPayload, QuotationEmailDraft, QuotationItemPayload, QuotationItemResult, QuotationResult, SendQuotationPayload, UpdateQuotationPayload } from '../types/quotationTypes';
+import type { CreateQuotationPayload, QuotationApprovalResult, QuotationEmailDraft, QuotationItemPayload, QuotationItemResult, QuotationResult, SendQuotationPayload, UpdateQuotationPayload } from '../types/quotationTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 import type { QuotationRelatedResult } from '@/shared/types/related';
 
@@ -69,4 +69,10 @@ export const quotationService = {
     /** Cập nhật lại dòng hàng báo giá theo cơ hội nguồn (xóa + clone lại, giữ liên kết). */
     syncItemsFromOpportunity: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/sync-items-from-opportunity`),
+    /** Lịch sử phê duyệt báo giá (mỗi lần gửi duyệt tạo một bước mới). */
+    getApprovals: (id: number) =>
+        axiosInstance.get<ApiResponse<QuotationApprovalResult[]>>(`/api/quotations/${id}/approvals`),
+    /** Xem trước PDF báo giá (khi soạn email) — trả về blob PDF, không đổi trạng thái. */
+    getPdfPreview: (id: number) =>
+        axiosInstance.get<Blob>(`/api/quotations/${id}/pdf-preview`, { responseType: 'blob' }),
 };

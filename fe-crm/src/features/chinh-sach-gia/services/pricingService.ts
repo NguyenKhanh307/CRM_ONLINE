@@ -1,5 +1,6 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
+import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 import type {
     PricePolicyResult,
     CreatePricePolicyPayload,
@@ -9,10 +10,8 @@ import type {
     UpdatePricePolicyProductPayload,
     PricePolicyCustomerResult,
     CreatePricePolicyCustomerPayload,
-    PricePolicyCustomerCategoryResult,
-    CreatePricePolicyCustomerCategoryPayload,
-    PricePolicyProductTypeResult,
-    CreatePricePolicyProductTypePayload,
+    PricePolicyProductCategoryResult,
+    CreatePricePolicyProductCategoryPayload,
     PricePolicyEmployeeResult,
     CreatePricePolicyEmployeePayload,
     ResolvePriceResult,
@@ -34,6 +33,11 @@ export const pricingService = {
         axiosInstance.put<ApiResponse<PricePolicyResult>>(`/api/price-policies/${id}`, payload),
     remove: (id: number) =>
         axiosInstance.delete(`/api/price-policies/${id}`),
+    importBulk: (rows: Record<string, unknown>[], options: ImportOptions) =>
+        axiosInstance.post<ApiResponse<ImportBulkResult>>('/api/price-policies/import-bulk', {
+            importType: options.importType,
+            rows,
+        }),
 
     getProducts: (policyId: number) =>
         axiosInstance.get<ApiResponse<PricePolicyProductResult[]>>(`/api/price-policies/${policyId}/products`),
@@ -51,19 +55,13 @@ export const pricingService = {
     removeCustomer: (policyId: number, id: number) =>
         axiosInstance.delete(`/api/price-policies/${policyId}/customers/${id}`),
 
-    getCustomerCategories: (policyId: number) =>
-        axiosInstance.get<ApiResponse<PricePolicyCustomerCategoryResult[]>>(`/api/price-policies/${policyId}/customer-categories`),
-    createCustomerCategory: (policyId: number, payload: CreatePricePolicyCustomerCategoryPayload) =>
-        axiosInstance.post<ApiResponse<PricePolicyCustomerCategoryResult>>(`/api/price-policies/${policyId}/customer-categories`, payload),
-    removeCustomerCategory: (policyId: number, id: number) =>
-        axiosInstance.delete(`/api/price-policies/${policyId}/customer-categories/${id}`),
-
-    getProductTypes: (policyId: number) =>
-        axiosInstance.get<ApiResponse<PricePolicyProductTypeResult[]>>(`/api/price-policies/${policyId}/product-types`),
-    createProductType: (policyId: number, payload: CreatePricePolicyProductTypePayload) =>
-        axiosInstance.post<ApiResponse<PricePolicyProductTypeResult>>(`/api/price-policies/${policyId}/product-types`, payload),
-    removeProductType: (policyId: number, id: number) =>
-        axiosInstance.delete(`/api/price-policies/${policyId}/product-types/${id}`),
+    getProductCategories: (policyId: number) =>
+        axiosInstance.get<ApiResponse<PricePolicyProductCategoryResult[]>>(`/api/price-policies/${policyId}/product-categories`),
+    /** Thêm danh mục — BE tự bulk-seed sản phẩm thuộc danh mục vào tab "Sản phẩm" (giá để trống). */
+    createProductCategory: (policyId: number, payload: CreatePricePolicyProductCategoryPayload) =>
+        axiosInstance.post<ApiResponse<PricePolicyProductCategoryResult>>(`/api/price-policies/${policyId}/product-categories`, payload),
+    removeProductCategory: (policyId: number, id: number) =>
+        axiosInstance.delete(`/api/price-policies/${policyId}/product-categories/${id}`),
 
     getEmployees: (policyId: number) =>
         axiosInstance.get<ApiResponse<PricePolicyEmployeeResult[]>>(`/api/price-policies/${policyId}/employees`),

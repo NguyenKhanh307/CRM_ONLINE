@@ -34,9 +34,10 @@ export function useQuotationWorkflow() {
             }
         },
         // convertToOrder tạo đơn hàng + chuyển cơ hội sang won; setPrimary đồng bộ cơ hội
-        onSuccess: () => {
+        onSuccess: (_d, v) => {
             ['quotations', 'invoices', 'orders', 'opportunities'].forEach(
                 (key) => qc.invalidateQueries({ queryKey: [key] }));
+            qc.invalidateQueries({ queryKey: ['quotation', v.id] });
         },
     });
 }

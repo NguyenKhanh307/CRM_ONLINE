@@ -261,7 +261,7 @@ const InvoiceAddPage = () => {
                                 <input type="text" value={form.currency} onChange={(e) => set({ currency: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Tỷ giá">
-                                <input type="number" value={form.exchangeRate} onChange={(e) => set({ exchangeRate: e.target.value })} className={inputCls} />
+                                <input type="number" min={0} value={form.exchangeRate} onChange={(e) => set({ exchangeRate: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Mã số thuế">
                                 <input type="text" value={form.taxCode} onChange={(e) => set({ taxCode: e.target.value })} className={inputCls} />

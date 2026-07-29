@@ -2,11 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadService } from '../services/leadService';
 
 /** Loại hành động chuyển trạng thái tiềm năng. */
-export type LeadAction = 'qualify' | 'convert' | 'lose';
+export type LeadAction = 'qualify' | 'convert' | 'lose' | 'claim';
 
 /**
  * Hook thực hiện hành động chuyển trạng thái tiềm năng:
- * convert (chuyển đổi) / lose (đánh mất, kèm lý do).
+ * convert (chuyển đổi) / lose (đánh mất, kèm lý do) / claim (nhân viên tự nhận chăm sóc).
  */
 export function useLeadWorkflow() {
     const qc = useQueryClient();
@@ -17,12 +17,14 @@ export function useLeadWorkflow() {
                 case 'qualify': return leadService.qualify(id);
                 case 'convert': return leadService.convert(id, customerId);
                 case 'lose': return leadService.lose(id, reason);
+                case 'claim': return leadService.claim(id);
             }
         },
         // convert tạo Khách hàng + Liên hệ + Cơ hội → làm mới cả các danh sách đó
-        onSuccess: () => {
+        onSuccess: (_d, v) => {
             ['leads', 'customers', 'contacts', 'opportunities'].forEach(
                 (key) => qc.invalidateQueries({ queryKey: [key] }));
+            qc.invalidateQueries({ queryKey: ['lead', v.id] });
         },
     });
 }

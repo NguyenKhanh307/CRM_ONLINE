@@ -13,7 +13,6 @@ public class ProductCategoryResult {
     private Long id;
     private String code;
     private String name;
-    private Long parentId;
     private Integer sortOrder;
     private Boolean isActive;
     private LocalDateTime createdAt;

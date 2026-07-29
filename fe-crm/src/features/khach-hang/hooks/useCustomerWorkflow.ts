@@ -12,6 +12,9 @@ export function useCustomerWorkflow() {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: ({ id, action }: { id: number; action: CustomerAction }) => customerService[action](id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['customers'] }),
+        onSuccess: (_d, v) => {
+            qc.invalidateQueries({ queryKey: ['customers'] });
+            qc.invalidateQueries({ queryKey: ['customer', v.id] });
+        },
     });
 }

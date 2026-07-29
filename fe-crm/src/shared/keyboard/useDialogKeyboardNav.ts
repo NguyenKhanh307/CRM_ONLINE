@@ -18,7 +18,7 @@ interface Options {
 }
 
 /**
- * Điều hướng bàn phím cho popup xác nhận: 4 mũi tên trần đổi qua lại giữa các nút footer.
+ * Điều hướng bàn phím cho popup xác nhận: mũi tên ↑↓ trần đổi qua lại giữa các nút footer.
  *
  * Chỉ bắt phím khi focus đang nằm trên một nút — nếu người dùng đang gõ trong ô nhập
  * (textarea lý do, select người nhận…) thì mũi tên vẫn thuộc về ô đó.

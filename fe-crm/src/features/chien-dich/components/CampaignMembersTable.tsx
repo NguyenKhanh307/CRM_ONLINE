@@ -1,11 +1,13 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { FiTrash2, FiPlus } from 'react-icons/fi';
+import { FiTrash2, FiPlus, FiUsers } from 'react-icons/fi';
 import { formatISODate } from '@/shared/utils/date';
 import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
 import { ActionButton } from '@/shared/components/ActionButton';
+import { useAlert } from '@/shared/alert/useAlert';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
-import { collectErrors, emailError, phoneError } from '@/shared/utils/validators';
+import { collectErrors, emailError } from '@/shared/utils/validators';
+import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useCampaignMembers, useCreateCampaignMember, useDeleteCampaignMember } from '../hooks/useCampaignMembers';
 
 interface Props {
@@ -23,17 +25,18 @@ const MEMBER_STATUS_COLORS: Record<string, string> = {
     unsubscribed: 'bg-gray-200 text-gray-500',
 };
 
-/** Bảng khách hàng của chiến dịch (bảng `campaign_members`) — thêm nhanh (tên/email/sđt) + xóa. */
+/** Bảng khách hàng của chiến dịch (bảng `campaign_members`) — thêm nhanh theo email + xóa. */
 export function CampaignMembersTable({ campaignId }: Props) {
     const { data: members = [], isLoading } = useCampaignMembers(campaignId);
-    const { mutate: createMember, isPending: isCreating } = useCreateCampaignMember(campaignId);
+    const { mutate: createMember, mutateAsync: createMemberAsync, isPending: isCreating } = useCreateCampaignMember(campaignId);
     const { mutate: deleteMember } = useDeleteCampaignMember(campaignId);
-    const [name, setName] = useState('');
+    const { data: customers = [] } = useCustomerList();
+    const { showAlert } = useAlert();
     const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isAddingAll, setIsAddingAll] = useState(false);
 
-    const { confirmCreate, confirmDelete } = useConfirm();
+    const { confirmCreate, confirmDelete, confirm } = useConfirm();
 
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -48,9 +51,7 @@ export function CampaignMembersTable({ campaignId }: Props) {
         e.preventDefault();
 
         const found = collectErrors({
-            name: !name.trim() && !email.trim() ? 'Nhập tên hoặc email' : null,
-            email: emailError(email),
-            phone: phoneError(phone),
+            email: !email.trim() ? 'Vui lòng nhập email' : emailError(email),
         });
         setErrors(found);
         if (Object.keys(found).length > 0) return;
@@ -58,9 +59,32 @@ export function CampaignMembersTable({ campaignId }: Props) {
         if (!(await confirmCreate('khách hàng vào chiến dịch'))) return;
 
         createMember(
-            { leadId: null, contactId: null, name: name.trim() || null, email: email.trim() || null, phone: phone.trim() || null },
-            { onSuccess: () => { setName(''); setEmail(''); setPhone(''); } },
+            { leadId: null, contactId: null, name: null, email: email.trim(), phone: null },
+            { onSuccess: () => setEmail('') },
         );
+    };
+
+    const handleAddAllActive = async () => {
+        const existingEmails = new Set(members.map(m => m.email?.toLowerCase()).filter(Boolean));
+        const targets = customers.filter(c => c.status === 'active' && c.email && !existingEmails.has(c.email.toLowerCase()));
+        if (targets.length === 0) {
+            showAlert('Không có khách hàng đang hoạt động nào (chưa có email hoặc đã có trong chiến dịch).');
+            return;
+        }
+        if (!(await confirm({
+            message: `Thêm ${targets.length} khách hàng đang hoạt động vào chiến dịch?`,
+            confirmLabel: 'Thêm tất cả',
+        }))) return;
+
+        setIsAddingAll(true);
+        try {
+            await Promise.all(targets.map(c =>
+                createMemberAsync({ leadId: null, contactId: null, name: null, email: c.email, phone: null }),
+            ));
+            showAlert(`Đã thêm ${targets.length} khách hàng vào chiến dịch.`);
+        } finally {
+            setIsAddingAll(false);
+        }
     };
 
     const handleDelete = async (id: number, label: string) => {
@@ -75,22 +99,15 @@ export function CampaignMembersTable({ campaignId }: Props) {
         <div className="space-y-4">
             <form ref={formRef} onSubmit={handleAdd} noValidate className="flex flex-wrap items-start gap-2">
                 <div>
-                    <input className={`${inp} ${errCls('name')}`} placeholder="Tên" value={name}
-                        onChange={e => { setName(e.target.value); clearError('name'); }} />
-                    {errors.name && <p className="text-xs text-danger mt-1">{errors.name}</p>}
-                </div>
-                <div>
                     <input className={`${inp} ${errCls('email')}`} placeholder="Email" value={email}
-                        onChange={e => { setEmail(e.target.value); clearError('email'); clearError('name'); }} />
+                        onChange={e => { setEmail(e.target.value); clearError('email'); }} />
                     {errors.email && <p className="text-xs text-danger mt-1">{errors.email}</p>}
-                </div>
-                <div>
-                    <input className={`${inp} ${errCls('phone')}`} placeholder="Số điện thoại" value={phone}
-                        onChange={e => { setPhone(e.target.value); clearError('phone'); }} />
-                    {errors.phone && <p className="text-xs text-danger mt-1">{errors.phone}</p>}
                 </div>
                 <ActionButton variant="primary" type="submit" icon={FiPlus} disabled={isCreating}>
                     Thêm khách hàng
+                </ActionButton>
+                <ActionButton variant="secondary" type="button" icon={FiUsers} disabled={isAddingAll} onClick={handleAddAllActive}>
+                    Chọn tất cả khách hàng đang hoạt động
                 </ActionButton>
             </form>
 

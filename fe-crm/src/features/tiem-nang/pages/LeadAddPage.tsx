@@ -21,15 +21,7 @@ import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { useCreateLead } from '../hooks/useCreateLead';
 import type { CreateLeadPayload } from '../types/leadTypes';
-
-const SOURCE_OPTIONS = [
-    { value: 'website', label: 'Website' },
-    { value: 'gioi-thieu', label: 'Giới thiệu' },
-    { value: 'dien-thoai', label: 'Điện thoại' },
-    { value: 'email', label: 'Email' },
-    { value: 'mxh', label: 'Mạng xã hội' },
-    { value: 'khac', label: 'Khác' },
-];
+import { SOURCE_OPTIONS } from '../config/leadOptions';
 
 const LEAD_TYPE_OPTIONS = [
     { value: 'ca-nhan', label: 'Cá nhân' },
@@ -266,7 +258,7 @@ const LeadAddPage = () => {
                                     customerId={form.customerId ? Number(form.customerId) : undefined} />
                             </FieldRow>
                             <FieldRow label="Giá trị ước tính" error={errors.estimatedValue}>
-                                <input type="number" value={form.estimatedValue} onChange={(e) => set({ estimatedValue: e.target.value })} className={inputCls} />
+                                <input type="number" min={0} value={form.estimatedValue} onChange={(e) => set({ estimatedValue: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Chiến dịch nguồn">
                                 <SearchableSelect value={form.campaignId} onChange={(v) => set({ campaignId: v })} options={campaignOptions} />

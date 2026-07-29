@@ -1,21 +1,31 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { FiX } from 'react-icons/fi';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useConfirm } from '@/shared/confirm/useConfirm';
+import { RichTextEditor } from '@/shared/components/RichTextEditor';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { FormField } from '@/shared/components/form/FormField';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { collectErrors } from '@/shared/utils/validators';
+import { UTM_PARAM } from '@/features/tracking-demo/config/trackingDemoConfig';
 import { useSendCampaignEmail } from '../hooks/useSendCampaignEmail';
 
 interface Props {
     campaignId: number;
+    /** Mã chiến dịch — dùng để dựng link tracking-demo gắn đúng nguồn. */
+    campaignCode: string;
     open: boolean;
     onClose: () => void;
 }
 
+/** Nội dung mẫu ban đầu: mời khách trải nghiệm, kèm link landing page gắn mã chiến dịch. */
+const buildDefaultBody = (campaignCode: string): string => {
+    const trackingUrl = `${window.location.origin}/tracking-demo?${UTM_PARAM}=${campaignCode}`;
+    return `<p>Xin chào,</p><p>Mời bạn tìm hiểu thêm giải pháp của chúng tôi tại đây: <a href="${trackingUrl}">${trackingUrl}</a></p><p>Trân trọng.</p>`;
+};
+
 /** Modal soạn + gửi email hàng loạt cho thành viên chiến dịch. */
-export function SendEmailModal({ campaignId, open, onClose }: Props) {
+export function SendEmailModal({ campaignId, campaignCode, open, onClose }: Props) {
     const { showAlert } = useAlert();
     const { confirm } = useConfirm();
     const { mutateAsync, isPending } = useSendCampaignEmail(campaignId);
@@ -24,12 +34,18 @@ export function SendEmailModal({ campaignId, open, onClose }: Props) {
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const formRef = useRef<HTMLFormElement>(null);
-    // enabled: open — modal render rỗng khi đóng.
+    // enabled: open — modal render rỗng khi đóng. Hook tự né Enter/mũi tên trong TinyMCE (.tox).
     useFormKeyboardNav(formRef, {
         onSubmit: () => formRef.current?.requestSubmit(),
         onCancel: onClose,
         enabled: open,
     });
+
+    // Mở modal lần đầu (nội dung còn trống) → nạp sẵn mẫu kèm link tracking-demo, người dùng vẫn sửa được.
+    useEffect(() => {
+        if (open && !body) setBody(buildDefaultBody(campaignCode));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open]);
 
     if (!open) return null;
 
@@ -68,7 +84,7 @@ export function SendEmailModal({ campaignId, open, onClose }: Props) {
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40" onClick={onClose}>
-            <div className="bg-white rounded-card shadow-lg w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-card shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-semibold text-text-main">Gửi email chiến dịch</h2>
                     <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-500"><FiX size={18} /></button>
@@ -79,13 +95,12 @@ export function SendEmailModal({ campaignId, open, onClose }: Props) {
                             onChange={e => { setSubject(e.target.value); clearError('subject'); }} />
                     </FormField>
                     <FormField
-                        label="Nội dung (hỗ trợ HTML)"
+                        label="Nội dung"
                         required
                         error={errors.body}
-                        hint="Email sẽ gửi tới tất cả thành viên có email hợp lệ và chưa hủy đăng ký."
+                        hint="Email sẽ gửi tới tất cả thành viên có email hợp lệ và chưa hủy đăng ký. Đã kèm sẵn link trang landing page gắn đúng mã chiến dịch — có thể sửa lại nội dung tùy ý."
                     >
-                        <textarea className={inp} rows={6} value={body}
-                            onChange={e => { setBody(e.target.value); clearError('body'); }} />
+                        <RichTextEditor value={body} onChange={(html) => { setBody(html); clearError('body'); }} height={280} />
                     </FormField>
                     <ModalFooter onCancel={onClose} saving={isPending} saveLabel="Gửi email" />
                 </form>

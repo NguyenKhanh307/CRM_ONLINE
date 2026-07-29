@@ -4,8 +4,8 @@ import { FiArrowLeft, FiEdit2 } from 'react-icons/fi';
 import { usePricePolicyDetail } from '../hooks/usePricePolicyDetail';
 import { PricePolicyFormModal } from '../components/PricePolicyFormModal';
 import { PolicyProductsTab } from '../components/tabs/PolicyProductsTab';
+import { PolicyProductCategoriesTab } from '../components/tabs/PolicyProductCategoriesTab';
 import { PolicyCustomersTab } from '../components/tabs/PolicyCustomersTab';
-import { PolicyProductTypesTab } from '../components/tabs/PolicyProductTypesTab';
 import type { PricePolicyStatus } from '../types/pricingTypes';
 
 const STATUS_LABEL: Record<PricePolicyStatus, string> = {
@@ -20,9 +20,9 @@ const STATUS_CLASS: Record<PricePolicyStatus, string> = {
 };
 
 const TABS = [
-    { key: 'products',      label: 'Sản phẩm' },
-    { key: 'customers',     label: 'Khách hàng' },
-    { key: 'product-types', label: 'Loại sản phẩm' },
+    { key: 'products',         label: 'Sản phẩm' },
+    { key: 'productCategories', label: 'Danh mục sản phẩm' },
+    { key: 'customers',        label: 'Khách hàng' },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -94,9 +94,9 @@ const ChinhSachGiaDetailPage = () => {
                     ))}
                 </div>
                 <div className="p-4">
-                    {activeTab === 'products'      && <PolicyProductsTab policyId={policyId} />}
-                    {activeTab === 'customers'     && <PolicyCustomersTab policyId={policyId} />}
-                    {activeTab === 'product-types' && <PolicyProductTypesTab policyId={policyId} />}
+                    {activeTab === 'products'          && <PolicyProductsTab policyId={policyId} />}
+                    {activeTab === 'productCategories' && <PolicyProductCategoriesTab policyId={policyId} />}
+                    {activeTab === 'customers'         && <PolicyCustomersTab policyId={policyId} />}
                 </div>
             </div>
 

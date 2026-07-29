@@ -1,6 +1,6 @@
 import { useRef, type RefObject } from 'react';
 import { focusAndSelect, getVisibleElements, useContainerKeydown, useRafFocus } from './focusHelpers';
-import { ARROW_HORIZONTAL, ARROW_NEXT, ARROW_PREV, SHORTCUTS, matchesShortcut } from './shortcuts';
+import { ARROW_NEXT, ARROW_PREV, SHORTCUTS, matchesShortcut } from './shortcuts';
 
 /**
  * Các ô nhập được tính vào chuỗi điều hướng.
@@ -28,7 +28,7 @@ interface Options {
 
 /**
  * Con trỏ đã chạm biên ô và không bôi đen text?
- * Dùng để mũi tên chỉ rời ô khi không còn gì để di chuyển bên trong.
+ * Dùng để mũi tên dọc trong textarea chỉ rời ô khi không còn gì để di chuyển bên trong.
  */
 const isCaretAtEdge = (el: HTMLElement, toEnd: boolean): boolean => {
     const isText = el instanceof HTMLTextAreaElement
@@ -56,7 +56,7 @@ const isCaretAtEdge = (el: HTMLElement, toEnd: boolean): boolean => {
  *
  * - Tự focus ô đầu tiên khi mở form.
  * - `Enter` chuyển sang ô kế tiếp; ở ô cuối thì submit.
- * - `↑` `↓` luôn đổi focus. `←` `→` chỉ đổi focus khi con trỏ đã ở đầu/cuối ô.
+ * - `↑` `↓` đổi focus (trong textarea chỉ đổi khi con trỏ đã ở dòng đầu/cuối).
  * - `Ctrl+S` lưu, `Esc` hủy.
  *
  * Enter được bỏ qua trong textarea và trình soạn thảo TinyMCE — ở đó Enter phải xuống dòng,
@@ -96,9 +96,8 @@ export function useFormKeyboardNav<T extends HTMLElement>(
             // Mũi tên trong TinyMCE thuộc về trình soạn thảo.
             if (target.isContentEditable || target.closest('.tox')) return;
 
-            // Mũi tên ngang nhường cho con trỏ khi chưa chạm biên ô.
-            // Mũi tên dọc cũng vậy, nhưng chỉ trong textarea — ở đó chúng đổi dòng.
-            const checkEdge = ARROW_HORIZONTAL.includes(e.key) || target.tagName === 'TEXTAREA';
+            // Mũi tên dọc trong textarea nhường cho con trỏ khi chưa chạm biên ô (đổi dòng trước).
+            const checkEdge = target.tagName === 'TEXTAREA';
             if (checkEdge && !isCaretAtEdge(target, isNext)) return;
 
             // preventDefault chặn ô number tăng/giảm giá trị và <select> đổi option.

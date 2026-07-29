@@ -9,9 +9,10 @@ export function useCreateQuotationFromOpportunity() {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (opportunityId: number) => quotationService.fromOpportunity(opportunityId),
-        onSuccess: () => {
+        onSuccess: (_d, opportunityId) => {
             ['quotations', 'opportunities'].forEach(
                 (key) => qc.invalidateQueries({ queryKey: [key] }));
+            qc.invalidateQueries({ queryKey: ['opportunity', opportunityId] });
         },
     });
 }

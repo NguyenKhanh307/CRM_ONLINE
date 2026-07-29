@@ -57,6 +57,7 @@ public class OrderController {
     }
 
     /** Tạo mới đơn hàng. @param cmd JSON body @return 201 */
+    @PreAuthorize("hasAuthority('order.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResult>> create(@Valid @RequestBody CreateOrderCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -85,6 +86,7 @@ public class OrderController {
     }
 
     /** Cập nhật đơn hàng. @param id ID @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('order.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<OrderResult>> update(@PathVariable Long id, @Valid @RequestBody UpdateOrderCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
@@ -99,31 +101,35 @@ public class OrderController {
     }
 
     /** Xác nhận đơn hàng (draft → confirmed). @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('order.process')")
     @PostMapping("/{id}/confirm")
     public ResponseEntity<ApiResponse<OrderResult>> confirm(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.confirm(id)));
     }
 
     /** Chuyển đơn hàng sang đang xử lý (confirmed → processing). @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('order.process')")
     @PostMapping("/{id}/process")
     public ResponseEntity<ApiResponse<OrderResult>> process(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.process(id)));
     }
 
     /** Hoàn tất đơn hàng (→ completed). @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('order.process')")
     @PostMapping("/{id}/complete")
     public ResponseEntity<ApiResponse<OrderResult>> complete(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.complete(id)));
     }
 
     /** Hủy đơn hàng (→ cancelled). @param id ID @return 200 */
-    @PreAuthorize("hasAuthority('order.edit')")
+    @PreAuthorize("hasAuthority('order.process')")
     @PostMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse<OrderResult>> cancel(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.cancel(id)));
     }
 
     /** Xuất hóa đơn từ đơn hàng (1-1, khóa đơn hàng + đơn hàng completed). @param id ID đơn hàng @return 201 hóa đơn */
+    @PreAuthorize("hasAuthority('order.create_invoice')")
     @PostMapping("/{id}/create-invoice")
     public ResponseEntity<ApiResponse<InvoiceResult>> createInvoice(@PathVariable Long id) {
         return ResponseEntity.status(201).body(ApiResponse.created(createInvoiceUC.execute(id)));
@@ -164,7 +170,7 @@ public class OrderController {
     }
 
     /** Nhập hàng loạt đơn hàng từ file. @param cmd body @return 200 */
-    @PreAuthorize("hasAuthority('order.create')")
+    @PreAuthorize("hasAuthority('order.import')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkOrderCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));

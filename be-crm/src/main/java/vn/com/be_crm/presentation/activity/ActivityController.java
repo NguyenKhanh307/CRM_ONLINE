@@ -60,6 +60,7 @@ public class ActivityController {
      * @param request JSON body tạo mới
      * @return 201 Created với ActivityResult
      */
+    @PreAuthorize("hasAuthority('activity.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<ActivityResult>> create(@Valid @RequestBody CreateActivityRequest request) {
         CreateActivityCommand cmd = CreateActivityCommand.builder()
@@ -121,6 +122,7 @@ public class ActivityController {
      * @param request JSON body cập nhật
      * @return 200 OK với ActivityResult đã cập nhật
      */
+    @PreAuthorize("hasAuthority('activity.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ActivityResult>> update(@PathVariable Long id,
             @Valid @RequestBody UpdateActivityRequest request) {
@@ -148,7 +150,7 @@ public class ActivityController {
     }
 
     /** Nhập hàng loạt hoạt động từ file. @param cmd body @return 200 */
-    @PreAuthorize("hasAuthority('activity.create')")
+    @PreAuthorize("hasAuthority('activity.import')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkActivityCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));

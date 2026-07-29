@@ -204,8 +204,8 @@ const ActivityAddPage = () => {
                                 <FieldRow label="Hướng gọi">
                                     <SearchableSelect value={form.callDirection} onChange={(v) => set({ callDirection: v })} options={CALL_DIRECTION_OPTIONS} />
                                 </FieldRow>
-                                <FieldRow label="Thời lượng (giây)">
-                                    <input type="number" value={form.callDuration} onChange={(e) => set({ callDuration: e.target.value })} className={inputCls} />
+                                <FieldRow label="Thời lượng (phút)">
+                                    <input type="number" min={0} value={form.callDuration} onChange={(e) => set({ callDuration: e.target.value })} className={inputCls} />
                                 </FieldRow>
                             </div>
                             <FieldRow label="Kết quả">

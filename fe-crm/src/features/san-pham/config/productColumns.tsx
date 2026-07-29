@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { boolBadge, currencyCell, dateCell, labelCell, numberCell, textCell, yesNoCell } from '@/shared/components/table/cells';
+import { boolBadge, currencyCell, dateCell, labelCell, numberCell, tagCell, textCell, yesNoCell } from '@/shared/components/table/cells';
 import type { ProductResult } from '../types/productTypes';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -10,7 +10,7 @@ const TYPE_LABELS: Record<string, string> = {
 export const getProductColumns = (): ColumnDef<ProductResult>[] => [
     { accessorKey: 'sku', header: 'Mã SKU', size: 120, enableSorting: true },
     { accessorKey: 'name', header: 'Tên sản phẩm', size: 200, enableSorting: true },
-    { accessorKey: 'categoryName', header: 'Danh mục', size: 150, cell: textCell },
+    { accessorKey: 'categoryName', header: 'Danh mục', size: 150, cell: tagCell },
     { accessorKey: 'type', header: 'Loại', size: 120, cell: labelCell(TYPE_LABELS) },
     { accessorKey: 'unit', header: 'Đơn vị', size: 90, cell: textCell },
     { accessorKey: 'basePrice', header: 'Giá bán', size: 140, cell: currencyCell },

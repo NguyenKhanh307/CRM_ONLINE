@@ -74,7 +74,7 @@ const KhachHangPage = () => {
     /** Thao tác của một khách hàng — hiện trong menu chuột phải. */
     const rowActions = (c: CustomerResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/khach-hang/${c.id}`) },
-        ...(can('customer', 'edit')
+        ...(can('customer', 'activate')
             ? (c.status !== 'active'
                 ? [{ key: 'activate', label: 'Kích hoạt', onClick: () => runAction(c.id, 'activate') }]
                 : [{ key: 'deactivate', label: 'Ngừng hoạt động', onClick: () => runAction(c.id, 'deactivate') }])

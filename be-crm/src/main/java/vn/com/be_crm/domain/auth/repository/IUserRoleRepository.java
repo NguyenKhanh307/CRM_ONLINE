@@ -26,6 +26,22 @@ public interface IUserRoleRepository {
     void deleteByUserIdAndRoleId(Long userId, Long roleId);
 
     /**
+     * Xóa toàn bộ vai trò hiện có của một người dùng — dùng để đảm bảo mỗi người chỉ thuộc một nhóm
+     * trước khi gán vai trò mới.
+     *
+     * @param userId ID người dùng
+     */
+    void deleteByUserId(Long userId);
+
+    /**
+     * Lấy toàn bộ liên kết user-role hiện có (bảng nhỏ, tải hết một lần).
+     * Dùng để FE biết người dùng nào đã thuộc một nhóm bất kỳ.
+     *
+     * @return danh sách UserRole
+     */
+    List<UserRole> findAll();
+
+    /**
      * Lấy danh sách code vai trò của một người dùng.
      *
      * @param userId ID người dùng

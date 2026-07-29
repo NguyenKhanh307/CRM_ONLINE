@@ -7,6 +7,7 @@ import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { FiX } from 'react-icons/fi';
 import type { CustomerResult, UpdateCustomerPayload } from '../types/customerTypes';
 import { useUpdateCustomer } from '../hooks/useUpdateCustomer';
+import { RATING_OPTIONS } from '../config/customerOptions';
 
 interface Props {
     item: CustomerResult | null;
@@ -154,12 +155,12 @@ export function CustomerEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Số ngày được nợ</label>
-                            <input type="number" className={inp} value={form.creditDays ?? ''} onChange={e => setForm(f => ({ ...f, creditDays: e.target.value ? +e.target.value : null }))} />
+                            <input type="number" min={0} className={inp} value={form.creditDays ?? ''} onChange={e => setForm(f => ({ ...f, creditDays: e.target.value ? +e.target.value : null }))} />
                         </div>
                         <div>
                             <label className={lbl}>Hạn mức nợ</label>
                             <FieldError error={errors.creditLimit}>
-                                <input type="number" className={inp} value={form.creditLimit ?? ''} onChange={e => { setForm(f => ({ ...f, creditLimit: e.target.value ? +e.target.value : null })); clearError('creditLimit'); }} />
+                                <input type="number" min={0} className={inp} value={form.creditLimit ?? ''} onChange={e => { setForm(f => ({ ...f, creditLimit: e.target.value ? +e.target.value : null })); clearError('creditLimit'); }} />
                             </FieldError>
                         </div>
                     </div>
@@ -176,12 +177,15 @@ export function CustomerEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Xếp hạng</label>
-                            <input className={inp} value={form.rating ?? ''} onChange={e => setForm(f => ({ ...f, rating: e.target.value || null }))} />
+                            <select className={inp} value={form.rating ?? ''} onChange={e => setForm(f => ({ ...f, rating: e.target.value || null }))}>
+                                <option value="">-- Không xếp hạng --</option>
+                                {RATING_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                            </select>
                         </div>
                         <div>
                             <label className={lbl}>Doanh thu năm</label>
                             <FieldError error={errors.annualRevenue}>
-                                <input type="number" className={inp} value={form.annualRevenue ?? ''} onChange={e => { setForm(f => ({ ...f, annualRevenue: e.target.value ? +e.target.value : null })); clearError('annualRevenue'); }} />
+                                <input type="number" min={0} className={inp} value={form.annualRevenue ?? ''} onChange={e => { setForm(f => ({ ...f, annualRevenue: e.target.value ? +e.target.value : null })); clearError('annualRevenue'); }} />
                             </FieldError>
                         </div>
                     </div>

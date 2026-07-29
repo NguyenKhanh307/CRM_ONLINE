@@ -30,6 +30,7 @@ public class RoleController {
     private final RevokeRolePermissionUseCase revokePermUseCase;
     private final ListRolePermissionsUseCase listRolePermissionsUseCase;
     private final ListRoleMembersUseCase listRoleMembersUseCase;
+    private final ListUserRoleAssignmentsUseCase listUserRoleAssignmentsUseCase;
 
     /**
      * @param createUseCase              use case tạo mới
@@ -41,13 +42,15 @@ public class RoleController {
      * @param revokePermUseCase          use case thu hồi quyền
      * @param listRolePermissionsUseCase use case lấy danh sách quyền của vai trò
      * @param listRoleMembersUseCase     use case lấy danh sách thành viên của vai trò
+     * @param listUserRoleAssignmentsUseCase use case lấy toàn bộ liên kết user-role
      */
     public RoleController(CreateRoleUseCase createUseCase, UpdateRoleUseCase updateUseCase,
                            DeleteRoleUseCase deleteUseCase, GetRoleUseCase getUseCase,
                            ListRoleUseCase listUseCase, AssignRolePermissionUseCase assignPermUseCase,
                            RevokeRolePermissionUseCase revokePermUseCase,
                            ListRolePermissionsUseCase listRolePermissionsUseCase,
-                           ListRoleMembersUseCase listRoleMembersUseCase) {
+                           ListRoleMembersUseCase listRoleMembersUseCase,
+                           ListUserRoleAssignmentsUseCase listUserRoleAssignmentsUseCase) {
         this.createUseCase = createUseCase;
         this.updateUseCase = updateUseCase;
         this.deleteUseCase = deleteUseCase;
@@ -57,6 +60,7 @@ public class RoleController {
         this.revokePermUseCase = revokePermUseCase;
         this.listRolePermissionsUseCase = listRolePermissionsUseCase;
         this.listRoleMembersUseCase = listRoleMembersUseCase;
+        this.listUserRoleAssignmentsUseCase = listUserRoleAssignmentsUseCase;
     }
 
     /**
@@ -180,5 +184,16 @@ public class RoleController {
     @GetMapping("/{id}/members")
     public ResponseEntity<ApiResponse<List<UserResult>>> listMembers(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(listRoleMembersUseCase.execute(id)));
+    }
+
+    /**
+     * Lấy toàn bộ liên kết user-role hiện có — FE dùng để biết người dùng nào đã thuộc một nhóm
+     * bất kỳ (mỗi người chỉ thuộc một nhóm).
+     *
+     * @return 200 OK với danh sách UserRoleResult
+     */
+    @GetMapping("/user-assignments")
+    public ResponseEntity<ApiResponse<List<UserRoleResult>>> listUserAssignments() {
+        return ResponseEntity.ok(ApiResponse.ok(listUserRoleAssignmentsUseCase.execute(null)));
     }
 }

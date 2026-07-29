@@ -115,19 +115,19 @@ export function CampaignEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Ngân sách</label>
-                            <input type="number" className={inp} value={form.budget ?? ''} onChange={e => setForm(f => ({ ...f, budget: num(e.target.value) }))} />
+                            <input type="number" min={0} className={inp} value={form.budget ?? ''} onChange={e => setForm(f => ({ ...f, budget: num(e.target.value) }))} />
                         </div>
                         <div>
                             <label className={lbl}>Chi phí thực tế</label>
-                            <input type="number" className={inp} value={form.actualCost ?? ''} onChange={e => setForm(f => ({ ...f, actualCost: num(e.target.value) }))} />
+                            <input type="number" min={0} className={inp} value={form.actualCost ?? ''} onChange={e => setForm(f => ({ ...f, actualCost: num(e.target.value) }))} />
                         </div>
                         <div>
                             <label className={lbl}>Quy mô mục tiêu</label>
-                            <input type="number" className={inp} value={form.targetSize ?? ''} onChange={e => setForm(f => ({ ...f, targetSize: num(e.target.value) }))} />
+                            <input type="number" min={0} className={inp} value={form.targetSize ?? ''} onChange={e => setForm(f => ({ ...f, targetSize: num(e.target.value) }))} />
                         </div>
                         <div>
                             <label className={lbl}>Doanh số kỳ vọng</label>
-                            <input type="number" className={inp} value={form.expectedRevenue ?? ''} onChange={e => setForm(f => ({ ...f, expectedRevenue: num(e.target.value) }))} />
+                            <input type="number" min={0} className={inp} value={form.expectedRevenue ?? ''} onChange={e => setForm(f => ({ ...f, expectedRevenue: num(e.target.value) }))} />
                         </div>
                     </div>
                     <div>

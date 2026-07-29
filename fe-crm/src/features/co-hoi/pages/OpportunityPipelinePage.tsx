@@ -172,7 +172,7 @@ const OpportunityPipelinePage = () => {
                             </FormField>
                             <div className="grid grid-cols-2 gap-3">
                                 <FormField label="Thứ tự" error={errors.sortOrder}>
-                                    <input type="number" className={inp} value={form.sortOrder}
+                                    <input type="number" min={0} className={inp} value={form.sortOrder}
                                         onChange={(e) => { setForm(f => ({ ...f, sortOrder: e.target.value })); clearError('sortOrder'); }} />
                                 </FormField>
                                 <FormField label="Xác suất (%)" error={errors.probability}>

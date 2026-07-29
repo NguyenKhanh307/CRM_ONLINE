@@ -62,6 +62,7 @@ public class LeadController {
      * @param body { customerId?, contactId? } — có thể null
      * @return 200
      */
+    @PreAuthorize("hasAuthority('lead.convert')")
     @PostMapping("/{id}/convert")
     public ResponseEntity<ApiResponse<LeadResult>> convert(@PathVariable Long id,
             @RequestBody(required = false) ConvertLeadRequest body) {
@@ -88,7 +89,20 @@ public class LeadController {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.lose(id, body != null ? body.getReason() : null)));
     }
 
+    /**
+     * Nhân viên tự nhận chăm sóc một tiềm năng chưa có người phụ trách (pool chung).
+     * @param id  ID tiềm năng
+     * @param req HTTP request (lấy userId từ JWT)
+     * @return 200
+     */
+    @PostMapping("/{id}/claim")
+    public ResponseEntity<ApiResponse<LeadResult>> claim(@PathVariable Long id, HttpServletRequest req) {
+        Long userId = (Long) req.getAttribute("userId");
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.claim(id, userId)));
+    }
+
     /** Tạo mới tiềm năng. @param cmd JSON body @return 201 */
+    @PreAuthorize("hasAuthority('lead.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<LeadResult>> create(@Valid @RequestBody CreateLeadCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -106,8 +120,10 @@ public class LeadController {
         Long userId = (Long) req.getAttribute("userId");
         boolean privileged = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
         Long ownerId = privileged ? null : userId;
+        // Nhân viên cũng thấy tiềm năng chưa có người phụ trách (pool chung) để bấm "Nhận chăm sóc"
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listUC.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).ownerId(ownerId).build()))));
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear)
+                        .q(q).status(status).ownerId(ownerId).includeUnassigned(!privileged).build()))));
     }
 
     /** Lấy tiềm năng theo ID. @param id ID @return 200 */
@@ -117,6 +133,7 @@ public class LeadController {
     }
 
     /** Cập nhật tiềm năng. @param id ID @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('lead.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<LeadResult>> update(@PathVariable Long id, @Valid @RequestBody UpdateLeadCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
@@ -168,7 +185,7 @@ public class LeadController {
     }
 
     /** Nhập hàng loạt tiềm năng từ file. @param cmd body @return 200 */
-    @PreAuthorize("hasAuthority('lead.create')")
+    @PreAuthorize("hasAuthority('lead.import')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkLeadCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));

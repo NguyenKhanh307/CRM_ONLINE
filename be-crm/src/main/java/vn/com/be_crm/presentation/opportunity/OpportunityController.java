@@ -80,6 +80,7 @@ public class OpportunityController {
      * @param body giai đoạn đích + lý do thắng/thua (tùy chọn)
      * @return 200 kèm cơ hội sau cập nhật
      */
+    @PreAuthorize("hasAuthority('opportunity.change_stage')")
     @PostMapping("/{id}/stage")
     public ResponseEntity<ApiResponse<OpportunityResult>> changeStage(@PathVariable Long id,
                                                                        @Valid @RequestBody ChangeStageRequest body) {
@@ -88,6 +89,7 @@ public class OpportunityController {
     }
 
     /** Tạo mới cơ hội. @param cmd JSON body @return 201 */
+    @PreAuthorize("hasAuthority('opportunity.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<OpportunityResult>> create(@Valid @RequestBody CreateOpportunityCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -116,6 +118,7 @@ public class OpportunityController {
     }
 
     /** Cập nhật cơ hội. @param id ID @param cmd body @return 200 */
+    @PreAuthorize("hasAuthority('opportunity.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<OpportunityResult>> update(@PathVariable Long id,
                                                                   @Valid @RequestBody UpdateOpportunityCommand cmd) {
@@ -165,7 +168,7 @@ public class OpportunityController {
     }
 
     /** Nhập hàng loạt cơ hội từ file. @param cmd body @return 200 */
-    @PreAuthorize("hasAuthority('opportunity.create')")
+    @PreAuthorize("hasAuthority('opportunity.import')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkOpportunityCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));

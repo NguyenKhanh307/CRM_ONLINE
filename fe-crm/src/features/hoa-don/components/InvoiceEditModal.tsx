@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { collectErrors, dateRangeError } from '@/shared/utils/validators';
 import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
@@ -8,11 +9,14 @@ import { FiX } from 'react-icons/fi';
 import type { InvoiceResult, UpdateInvoicePayload } from '../types/invoiceTypes';
 import { useUpdateInvoice } from '../hooks/useUpdateInvoice';
 import { invoiceService } from '../services/invoiceService';
+import { orderService } from '@/features/don-hang/services/orderService';
 import { PaymentSchedulesTable } from './PaymentSchedulesTable';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { PrefillHint } from '@/shared/components/form/PrefillHint';
+import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import { DateInput } from '@/shared/components/form/DateInput';
 import {
@@ -42,6 +46,7 @@ const PAYMENT_STATUS_COLORS: Record<string, string> = {
 };
 
 export function InvoiceEditModal({ item, onClose }: Props) {
+    const qc = useQueryClient();
     const { mutateAsync, isPending } = useUpdateInvoice();
     const { data: products = [] } = useProductList();
     const { data: campaigns = [] } = useCampaignList();
@@ -83,6 +88,25 @@ export function InvoiceEditModal({ item, onClose }: Props) {
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
+    /** Tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Đơn hàng. */
+    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
+
+    /** Đổi đơn hàng → tự điền báo giá/cơ hội/chiến dịch/MST/địa chỉ còn trống (không đè giá trị đã có). */
+    const onPickOrder = async (v: string) => {
+        setForm(f => ({ ...f, orderId: v ? Number(v) : null }));
+        setPrefillFrom(null);
+        if (!v) return;
+        const order = (await orderService.getById(Number(v))).data.data;
+        const patch = fillEmpty({ ...form, orderId: Number(v) }, {
+            campaignId: order.campaignId ?? null,
+            quotationId: order.quotationId ?? null,
+            opportunityId: order.opportunityId ?? null,
+            taxCode: order.taxCode ?? null,
+            billingAddress: order.billingAddress ?? null,
+        });
+        if (hasFilled(patch)) { setForm(f => ({ ...f, ...patch })); setPrefillFrom(`đơn hàng «${order.code}»`); }
+    };
+
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -117,6 +141,7 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                 ...toUpdate.map((r) => invoiceService.updateItem(item.id, r.backendId as number, toItemPayload(r))),
                 ...toDelete.map((id) => invoiceService.deleteItem(item.id, id)),
             ]);
+            qc.invalidateQueries({ queryKey: ['invoice-items', item.id] });
             onClose();
         } finally {
             setSaving(false);
@@ -174,8 +199,9 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                             <label className={lbl}>Đơn hàng</label>
                             <RecordPicker module="order"
                                 value={form.orderId != null ? String(form.orderId) : ''}
-                                onChange={(v) => setForm(f => ({ ...f, orderId: v ? Number(v) : null }))}
+                                onChange={onPickOrder}
                                 fallbackLabel={item.orderCode} />
+                            <PrefillHint source={prefillFrom} />
                         </div>
                         <div>
                             <label className={lbl}>Báo giá nguồn</label>
@@ -208,7 +234,7 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                     </div>
                     <div>
                         <label className={lbl}>Đợt thanh toán</label>
-                        <PaymentSchedulesTable invoiceId={item.id} />
+                        <PaymentSchedulesTable invoiceId={item.id} invoiceTotal={item.total ?? 0} />
                     </div>
                     <div>
                         <label className={lbl}>Ghi chú</label>

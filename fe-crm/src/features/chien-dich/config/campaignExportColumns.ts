@@ -11,7 +11,7 @@ export const campaignExportColumns: ExportColumn<CampaignResult>[] = [
     { key: 'status', label: 'Trạng thái', format: r => CAMPAIGN_STATUS_LABELS[r.status] ?? r.status },
     { key: 'channel', label: 'Kênh', format: r => r.channel ?? '' },
     { key: 'budget', label: 'Ngân sách', format: r => r.budget ?? '' },
-    { key: 'startDate', label: 'Bắt đầu' },
-    { key: 'endDate', label: 'Kết thúc' },
+    { key: 'startDate', label: 'Bắt đầu', format: r => r.startDate ? formatISODate(r.startDate) : '' },
+    { key: 'endDate', label: 'Kết thúc', format: r => r.endDate ? formatISODate(r.endDate) : '' },
     { key: 'createdAt', label: 'Ngày tạo', format: r => formatISODate(r.createdAt) },
 ];

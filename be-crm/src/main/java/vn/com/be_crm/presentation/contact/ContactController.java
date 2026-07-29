@@ -49,6 +49,7 @@ public class ContactController {
     }
 
     /** Tạo mới liên hệ. @param cmd JSON body @return 201 */
+    @PreAuthorize("hasAuthority('contact.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<ContactResult>> create(@Valid @RequestBody CreateContactCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
@@ -78,6 +79,7 @@ public class ContactController {
     }
 
     /** Cập nhật liên hệ. @param id ID @param cmd JSON body @return 200 */
+    @PreAuthorize("hasAuthority('contact.edit')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ContactResult>> update(@PathVariable Long id,
                                                               @Valid @RequestBody UpdateContactCommand cmd) {
@@ -128,7 +130,7 @@ public class ContactController {
     }
 
     /** Nhập hàng loạt liên hệ từ file. @param cmd body @return 200 */
-    @PreAuthorize("hasAuthority('contact.create')")
+    @PreAuthorize("hasAuthority('contact.import')")
     @PostMapping("/import-bulk")
     public ResponseEntity<ApiResponse<ImportBulkResult>> importBulk(@Valid @RequestBody ImportBulkContactCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
