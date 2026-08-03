@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 
-/** Một thẻ thống kê trên trang chi tiết (số liệu tóm tắt của bản ghi). */
+// một thẻ thống kê trên trang chi tiết (số liệu tóm tắt của bản ghi)
 export interface StatCard {
     label: string;
     value: ReactNode;
-    /** Tông màu nền: trung tính / tích cực (tiền, đã xong) / cảnh báo (chờ, quá hạn). */
+    // tông màu nền: trung tính / tích cực (tiền, đã xong) / cảnh báo (chờ, quá hạn)
     tone?: 'neutral' | 'success' | 'warning';
 }
 
@@ -24,7 +24,7 @@ interface StatCardsProps {
     stats: StatCard[];
 }
 
-/** Hàng thẻ thống kê tóm tắt của trang chi tiết — bố cục giống ảnh mẫu (đếm / tiền đã / tiền chờ). */
+// hàng thẻ thống kê tóm tắt của trang chi tiết — bố cục giống ảnh mẫu (đếm / tiền đã / tiền chờ)
 export const StatCards = ({ stats }: StatCardsProps) => (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         {stats.map(s => {

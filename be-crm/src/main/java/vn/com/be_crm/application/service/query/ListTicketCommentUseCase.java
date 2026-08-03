@@ -2,9 +2,9 @@ package vn.com.be_crm.application.service.query;
 
 import vn.com.be_crm.application.service.dto.TicketCommentResult;
 import vn.com.be_crm.application.service.mapper.TicketCommentMapper;
-import vn.com.be_crm.application.shared.lookup.INameResolver;
-import vn.com.be_crm.application.shared.lookup.NameEnricher;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.lookup.port.INameResolver;
+import vn.com.be_crm.core.lookup.NameEnricher;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.service.repository.ITicketCommentRepository;
 
 import java.util.List;

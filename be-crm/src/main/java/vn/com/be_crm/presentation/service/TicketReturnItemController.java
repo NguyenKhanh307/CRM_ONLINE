@@ -10,7 +10,7 @@ import vn.com.be_crm.application.service.dto.CreateTicketReturnItemCommand;
 import vn.com.be_crm.application.service.dto.TicketReturnItemResult;
 import vn.com.be_crm.application.service.dto.UpdateTicketReturnItemCommand;
 import vn.com.be_crm.application.service.query.ListTicketReturnItemUseCase;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

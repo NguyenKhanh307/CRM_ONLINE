@@ -7,6 +7,7 @@ interface Props {
     onChange: (o: ImportOptions) => void;
 }
 
+// bước 3 của wizard nhập file: chọn loại nhập (thêm mới/cập nhật/cả hai) + cách gán chủ sở hữu
 export const StepOptions = ({ options, fileColumns, mappings, onChange }: Props) => {
     const set = <K extends keyof ImportOptions>(k: K, v: ImportOptions[K]) =>
         onChange({ ...options, [k]: v });

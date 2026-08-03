@@ -1,10 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { phanQuyenService } from '../services/phanQuyenService';
 
-/**
- * Lấy danh sách thành viên của một nhóm.
- * @param roleId ID nhóm đang chọn
- */
+// lấy danh sách thành viên của một nhóm theo roleId đang chọn
 export const useRoleMembers = (roleId: number | null) => {
     return useQuery({
         queryKey: ['roleMembers', roleId],

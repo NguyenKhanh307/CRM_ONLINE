@@ -2,7 +2,7 @@ package vn.com.be_crm.application.opportunity.command;
 
 import vn.com.be_crm.application.opportunity.dto.*;
 import vn.com.be_crm.application.opportunity.mapper.OpportunityStageCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityStageRepository;
 
 /** Use case tạo mới giai đoạn pipeline. */

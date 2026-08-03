@@ -11,7 +11,7 @@ import vn.com.be_crm.infrastructure.pricing.mapper.PricePolicySubEntityHibernate
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
 /**
  * Hibernate implementation của IPricePolicyCustomerRepository.
@@ -55,6 +55,27 @@ public class PricePolicyCustomerRepositoryImpl implements IPricePolicyCustomerRe
         return TxSupport.read(sf, s -> {
             return s.createQuery("FROM PricePolicyCustomerHibernate WHERE pricePolicyId = :pid", PricePolicyCustomerHibernate.class)
                     .setParameter("pid", pricePolicyId).list().stream().map(mapper::toCustomerDomain).collect(Collectors.toList());
+        });
+    }
+
+    /** ID các chính sách customerId được phép dùng: không có dòng nào (không giới hạn) HOẶC có dòng khớp customerId. @param customerId @return danh sách policy ID */
+    @Override public List<Long> findEligiblePolicyIdsForCustomer(Long customerId) {
+        return TxSupport.read(sf, s -> s.createQuery(
+                "SELECT DISTINCT pp.id FROM PricePolicyHibernate pp WHERE " +
+                "NOT EXISTS (SELECT 1 FROM PricePolicyCustomerHibernate c WHERE c.pricePolicyId = pp.id) " +
+                "OR EXISTS (SELECT 1 FROM PricePolicyCustomerHibernate c2 WHERE c2.pricePolicyId = pp.id AND c2.customerId = :cid)",
+                Long.class).setParameter("cid", customerId).list());
+    }
+
+    /** true nếu policy không giới hạn khách hàng (0 dòng) HOẶC có dòng khớp customerId. @param pricePolicyId @param customerId @return có hợp lệ không */
+    @Override public boolean isEligibleForCustomer(Long pricePolicyId, Long customerId) {
+        return TxSupport.read(sf, s -> {
+            Long count = s.createQuery("SELECT COUNT(c) FROM PricePolicyCustomerHibernate c WHERE c.pricePolicyId = :pid", Long.class)
+                    .setParameter("pid", pricePolicyId).uniqueResult();
+            if (count == null || count == 0) return true;
+            Long match = s.createQuery("SELECT COUNT(c) FROM PricePolicyCustomerHibernate c WHERE c.pricePolicyId = :pid AND c.customerId = :cid", Long.class)
+                    .setParameter("pid", pricePolicyId).setParameter("cid", customerId).uniqueResult();
+            return match != null && match > 0;
         });
     }
 }

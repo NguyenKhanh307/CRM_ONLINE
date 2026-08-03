@@ -1,8 +1,8 @@
 package vn.com.be_crm.application.opportunity.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityItemRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case xóa dòng sản phẩm trong cơ hội. */
 public class DeleteOpportunityItemUseCase implements IUseCase<Long, Void> {

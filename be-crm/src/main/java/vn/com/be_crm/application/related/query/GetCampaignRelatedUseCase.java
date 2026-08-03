@@ -4,8 +4,8 @@ import vn.com.be_crm.application.related.dto.CampaignRelatedResult;
 import vn.com.be_crm.domain.campaign.entity.Campaign;
 import vn.com.be_crm.domain.campaign.repository.ICampaignRepository;
 import vn.com.be_crm.domain.related.repository.IRelatedRepository;
-import vn.com.be_crm.domain.shared.exception.ForbiddenException;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.ForbiddenException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Lấy toàn bộ bản ghi quy về một chiến dịch cho trang chi tiết Chiến dịch.

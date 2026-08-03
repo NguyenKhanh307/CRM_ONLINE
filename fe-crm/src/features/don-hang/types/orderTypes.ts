@@ -19,7 +19,7 @@ export interface UpdateOrderPayload {
     note: string | null;
 }
 
-/** Một dòng hàng gửi kèm khi tạo Đơn hàng. */
+// một dòng hàng gửi kèm khi tạo Đơn hàng
 export interface OrderItemPayload {
     productId: number;
     unit: string | null;
@@ -31,7 +31,7 @@ export interface OrderItemPayload {
     note: string | null;
 }
 
-/** Payload tạo mới Đơn hàng — POST /api/orders (kèm items[]). */
+// payload tạo mới Đơn hàng — POST /api/orders (kèm items[])
 export interface CreateOrderPayload {
     code: string;
     customerId: number | null;
@@ -55,7 +55,7 @@ export interface CreateOrderPayload {
     items: OrderItemPayload[];
 }
 
-/** Dòng hàng trả về từ GET /api/orders/{id}/items. */
+// dòng hàng trả về từ GET /api/orders/{id}/items
 export interface OrderItemResult {
     id: number;
     orderId: number;

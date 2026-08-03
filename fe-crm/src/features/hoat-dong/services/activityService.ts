@@ -22,10 +22,10 @@ export const activityService = {
             ownerFileColumn: options.ownerFileColumn ?? null,
             rows,
         }),
-    /** Bắt đầu thực hiện (planned → in_progress). */
+    // bắt đầu thực hiện (planned -> in_progress)
     start: (id: number) => axiosInstance.post<ApiResponse<ActivityResult>>(`/api/activities/${id}/start`),
-    /** Hoàn thành (→ done). */
+    // hoàn thành (-> done)
     complete: (id: number) => axiosInstance.post<ApiResponse<ActivityResult>>(`/api/activities/${id}/complete`),
-    /** Hủy hoạt động (→ cancelled). */
+    // hủy hoạt động (-> cancelled)
     cancel: (id: number) => axiosInstance.post<ApiResponse<ActivityResult>>(`/api/activities/${id}/cancel`),
 };

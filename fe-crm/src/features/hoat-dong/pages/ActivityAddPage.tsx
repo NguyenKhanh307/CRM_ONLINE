@@ -49,7 +49,7 @@ interface FormState {
     callDirection: string; callResult: string; callDuration: string;
 }
 
-/** State khởi tạo — người thực hiện mặc định là user đang đăng nhập. */
+// state khởi tạo — người thực hiện mặc định là user đang đăng nhập
 const initialState = (assignedUserId: string): FormState => ({
     type: 'call', subject: '', content: '', priority: 'medium',
     assignedUserId, targetType: '', targetId: '', relatedType: '', relatedId: '',
@@ -58,7 +58,7 @@ const initialState = (assignedUserId: string): FormState => ({
 
 const num = (s: string): number | null => (s.trim() ? Number(s) : null);
 
-/** Trang thêm hoạt động mới — form full-page (layout AMIS). */
+// trang thêm hoạt động mới — form full-page (layout AMIS)
 const ActivityAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
@@ -73,7 +73,7 @@ const ActivityAddPage = () => {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    // hàm cập nhật form và xóa lỗi của đúng những field vừa gõ
     const set = (patch: Partial<FormState>) => {
         setForm((p) => ({ ...p, ...patch }));
         setErrors((e) => {
@@ -83,14 +83,15 @@ const ActivityAddPage = () => {
         });
     };
 
-    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    // hàm kiểm tra bắt buộc + biên (khớp ràng buộc backend) — trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
             subject: !form.subject.trim() ? 'Tiêu đề không được để trống' : null,
         });
 
+    // hàm lưu — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const submit = async (andNew: boolean) => {
-        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
@@ -111,6 +112,7 @@ const ActivityAddPage = () => {
             assignedUserId: form.assignedUserId ? Number(form.assignedUserId) : null,
             dueAt: form.dueAt ? `${form.dueAt}:00` : null,
         };
+        // bước hỏi xác nhận rồi mới gọi api lưu
         if (!(await confirmCreate('hoạt động'))) return;
         mutate(payload, {
             onSuccess: () => {

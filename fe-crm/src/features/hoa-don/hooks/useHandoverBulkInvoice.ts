@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoiceService } from '../services/invoiceService';
 
-/** Bàn giao hàng loạt Hóa đơn cho nhân viên khác. */
+// bàn giao hàng loạt Hóa đơn cho nhân viên khác
 export function useHandoverBulkInvoice() {
     const qc = useQueryClient();
     return useMutation({

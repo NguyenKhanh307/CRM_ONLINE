@@ -1,8 +1,8 @@
 package vn.com.be_crm.application.activity.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.activity.repository.IActivityRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case xóa hoạt động. */
 public class DeleteActivityUseCase implements IUseCase<Long, Void> {

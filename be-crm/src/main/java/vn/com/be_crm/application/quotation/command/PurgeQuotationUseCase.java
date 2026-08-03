@@ -1,6 +1,6 @@
 package vn.com.be_crm.application.quotation.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 
 /** Use case ẩn báo giá khỏi thùng rác. */

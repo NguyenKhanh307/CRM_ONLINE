@@ -16,7 +16,7 @@ export interface UpdateActivityPayload {
     dueAt: string | null;
 }
 
-/** Payload tạo mới hoạt động — POST /api/activities. */
+// payload tạo mới hoạt động — POST /api/activities
 export interface CreateActivityPayload {
     type: string;
     subject: string;

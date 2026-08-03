@@ -11,7 +11,7 @@ interface CustomerInfoPanelProps {
     customer: CustomerResult;
 }
 
-/** Tab "Tổng quan" của trang chi tiết Khách hàng — toàn bộ trường nghiệp vụ, chia 2 cột. */
+// tab "Tổng quan" của trang chi tiết Khách hàng — toàn bộ trường nghiệp vụ, chia 2 cột
 export const CustomerInfoPanel = ({ customer: c }: CustomerInfoPanelProps) => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
         <div>

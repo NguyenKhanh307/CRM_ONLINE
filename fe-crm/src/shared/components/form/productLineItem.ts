@@ -1,7 +1,7 @@
-/** Một dòng hàng hóa trong form báo giá/đơn hàng/cơ hội. */
+// một dòng hàng hóa trong form báo giá/đơn hàng/cơ hội
 export interface LineItemRow {
     id: string;
-    /** ID dòng đã lưu ở backend (chỉ có khi đang sửa); dòng mới để undefined. */
+    // ID dòng đã lưu ở backend (chỉ có khi đang sửa); dòng mới để undefined
     backendId?: number;
     productId: string;
     unit: string;
@@ -12,7 +12,7 @@ export interface LineItemRow {
     note: string;
 }
 
-/** Option sản phẩm cho dropdown — kèm unit/price/vatRate để autofill. */
+// option sản phẩm cho dropdown — kèm unit/price/vatRate để autofill
 export interface ProductOption {
     value: string;
     label: string;
@@ -21,7 +21,7 @@ export interface ProductOption {
     vatRate?: number;
 }
 
-/** Tạo một dòng trống mới. */
+// tạo một dòng trống mới
 export const emptyLineItem = (): LineItemRow => ({
     id: crypto.randomUUID(),
     productId: '',
@@ -33,18 +33,18 @@ export const emptyLineItem = (): LineItemRow => ({
     note: '',
 });
 
-/** Thành tiền của một dòng (trước chiết khấu/thuế). */
+// thành tiền của một dòng (trước chiết khấu/thuế)
 export const rowSubtotal = (r: LineItemRow): number => r.quantity * r.unitPrice;
-/** Tiền chiết khấu của một dòng. */
+// tiền chiết khấu của một dòng
 export const rowDiscount = (r: LineItemRow): number => (rowSubtotal(r) * r.discountPct) / 100;
-/** Tiền thuế của một dòng (sau chiết khấu). */
+// tiền thuế của một dòng (sau chiết khấu)
 export const rowTax = (r: LineItemRow): number =>
     ((rowSubtotal(r) - rowDiscount(r)) * r.taxRate) / 100;
-/** Tổng tiền của một dòng. */
+// tổng tiền của một dòng
 export const rowTotal = (r: LineItemRow): number =>
     rowSubtotal(r) - rowDiscount(r) + rowTax(r);
 
-/** Tổng hợp subtotal/discount/tax/total của toàn bộ dòng. */
+// tổng hợp subtotal/discount/tax/total của toàn bộ dòng
 export const computeTotals = (rows: LineItemRow[]) =>
     rows.reduce(
         (acc, r) => ({
@@ -56,7 +56,7 @@ export const computeTotals = (rows: LineItemRow[]) =>
         { subtotal: 0, discount: 0, tax: 0, total: 0 },
     );
 
-/** Chuyển một dòng UI sang payload item gửi API. */
+// chuyển một dòng UI sang payload item gửi API
 export const toItemPayload = (r: LineItemRow) => ({
     productId: Number(r.productId),
     unit: r.unit || null,
@@ -68,11 +68,11 @@ export const toItemPayload = (r: LineItemRow) => ({
     note: r.note || null,
 });
 
-/** Chuyển các dòng UI sang payload item gửi API (lọc dòng chưa chọn sản phẩm). */
+// chuyển các dòng UI sang payload item gửi API (lọc dòng chưa chọn sản phẩm)
 export const toItemPayloads = (rows: LineItemRow[]) =>
     rows.filter((r) => r.productId).map(toItemPayload);
 
-/** Dòng item trả về từ backend (GET) — đủ field để dựng lại LineItemRow. */
+// dòng item trả về từ backend (GET) — đủ field để dựng lại LineItemRow
 export interface ItemResultLike {
     id: number;
     productId: number | null;
@@ -84,7 +84,7 @@ export interface ItemResultLike {
     note: string | null;
 }
 
-/** Dựng LineItemRow từ item backend (suy ngược discountPct từ tiền chiết khấu). */
+// dựng LineItemRow từ item backend (suy ngược discountPct từ tiền chiết khấu)
 export const fromItemResult = (it: ItemResultLike): LineItemRow => {
     const base = it.quantity * it.unitPrice;
     return {
@@ -100,10 +100,7 @@ export const fromItemResult = (it: ItemResultLike): LineItemRow => {
     };
 };
 
-/**
- * So sánh dòng gốc (backend) với dòng hiện tại để biết cần tạo/sửa/xóa item nào.
- * @param original danh sách dòng khi mở modal @param current danh sách dòng hiện tại
- */
+// so sánh dòng gốc (backend) với dòng hiện tại để biết cần tạo/sửa/xóa item nào
 export const diffLineItems = (original: LineItemRow[], current: LineItemRow[]) => {
     const curIds = new Set(current.filter((r) => r.backendId).map((r) => r.backendId));
     const toDelete = original.filter((r) => r.backendId && !curIds.has(r.backendId)).map((r) => r.backendId as number);
@@ -112,11 +109,8 @@ export const diffLineItems = (original: LineItemRow[], current: LineItemRow[]) =
     return { toCreate, toUpdate, toDelete };
 };
 
-/**
- * Kiểm tra biên các dòng hàng (khớp ràng buộc backend): SL > 0, đơn giá ≥ 0, CK% và Thuế% trong [0,100].
- * @param rows danh sách dòng hàng
- * @returns thông báo lỗi đầu tiên (kèm số thứ tự dòng), hoặc null nếu tất cả hợp lệ
- */
+// kiểm tra biên các dòng hàng (khớp ràng buộc backend): SL > 0, đơn giá >= 0, CK% và Thuế% trong [0,100]
+// trả về thông báo lỗi đầu tiên (kèm số thứ tự dòng), hoặc null nếu tất cả hợp lệ
 export const validateLineItems = (rows: LineItemRow[]): string | null => {
     for (let i = 0; i < rows.length; i++) {
         const r = rows[i];

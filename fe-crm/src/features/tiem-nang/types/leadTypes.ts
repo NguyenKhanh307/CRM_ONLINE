@@ -21,7 +21,7 @@ export interface UpdateLeadPayload {
     note: string | null;
 }
 
-/** Payload tạo mới tiềm năng — POST /api/leads. */
+// payload tạo mới tiềm năng — POST /api/leads
 export interface CreateLeadPayload {
     code: string;
     name: string;

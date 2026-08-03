@@ -1,9 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { phanQuyenService } from '../services/phanQuyenService';
 
-/**
- * Bật/tắt một quyền cho nhóm — gọi API ngay khi toggle.
- */
+// bật/tắt một quyền cho nhóm — gọi api ngay khi toggle
 export const useTogglePermission = (roleId: number) => {
     const queryClient = useQueryClient();
 

@@ -1,11 +1,11 @@
 package vn.com.be_crm.application.campaign.command;
 
-import vn.com.be_crm.application.shared.util.CrossFieldRules;
+import vn.com.be_crm.core.util.CrossFieldRules;
 import vn.com.be_crm.application.campaign.dto.CreateCampaignCommand;
 import vn.com.be_crm.application.campaign.dto.CampaignResult;
 import vn.com.be_crm.application.campaign.mapper.CampaignCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
-import vn.com.be_crm.domain.shared.exception.DomainException;
+import vn.com.be_crm.core.usecase.IUseCase;
+import vn.com.be_crm.core.error.frontend.DomainException;
 import vn.com.be_crm.domain.campaign.repository.ICampaignRepository;
 
 /** Use case tạo mới chiến dịch. */

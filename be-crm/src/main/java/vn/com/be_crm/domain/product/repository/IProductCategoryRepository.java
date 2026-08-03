@@ -1,7 +1,7 @@
 package vn.com.be_crm.domain.product.repository;
 
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.domain.product.entity.ProductCategory;
 
 import java.util.Optional;

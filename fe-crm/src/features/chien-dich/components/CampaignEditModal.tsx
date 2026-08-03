@@ -38,7 +38,7 @@ export function CampaignEditModal({ item, onClose }: Props) {
     }, [item]);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
-    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    // xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
@@ -55,15 +55,18 @@ export function CampaignEditModal({ item, onClose }: Props) {
     const num = (v: string): number | null => (v === '' ? null : Number(v));
     const userOptions = users.map((u) => ({ value: String(u.id), label: u.fullName }));
 
+    // lưu chiến dịch — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+
+        // bước kiểm tra dữ liệu
         const errs = collectErrors({
             endDate: dateRangeError(form.startDate, form.endDate, 'ngày bắt đầu', 'Ngày kết thúc'),
         });
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
 
+        // bước hỏi xác nhận rồi gọi api lưu
         if (!(await confirmSave('chiến dịch'))) return;
         await mutateAsync({ id: item.id, payload: form });
         onClose();

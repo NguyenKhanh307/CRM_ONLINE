@@ -2,8 +2,8 @@ package vn.com.be_crm.application.campaign.command;
 
 import vn.com.be_crm.application.campaign.dto.ImportBulkCampaignCommand;
 import vn.com.be_crm.application.campaign.dto.ImportCampaignRowCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.ImportRowError;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.dto.import_.ImportRowError;
 import vn.com.be_crm.domain.campaign.entity.Campaign;
 import vn.com.be_crm.domain.campaign.enums.CampaignStatus;
 import vn.com.be_crm.domain.campaign.enums.CampaignType;

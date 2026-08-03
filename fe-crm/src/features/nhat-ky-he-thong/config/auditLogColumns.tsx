@@ -2,7 +2,7 @@ import { type ColumnDef } from '@tanstack/react-table';
 import { formatISODate } from '@/shared/utils/date';
 import type { AuditLogEntry } from '../types/auditLogTypes';
 
-/** Định dạng ngày giờ đầy đủ (dd/mm/yyyy HH:mm) từ chuỗi ISO. */
+// định dạng ngày giờ đầy đủ (dd/mm/yyyy HH:mm) từ chuỗi ISO
 function formatDateTime(iso: string): string {
     if (!iso) return '';
     const time = new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });

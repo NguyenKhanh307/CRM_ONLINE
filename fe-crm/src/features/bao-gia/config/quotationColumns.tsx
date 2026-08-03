@@ -16,7 +16,7 @@ const STATUS_LABELS: Record<string, string> = {
     rejected: 'Từ chối', sent: 'Đã gửi', expired: 'Hết hạn',
 };
 
-/** Tạo danh sách cột Báo giá — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+// tạo danh sách cột Báo giá — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn)
 export const getQuotationColumns = (): ColumnDef<QuotationResult>[] => [
     { accessorKey: 'code', header: 'Số báo giá', size: 130, enableSorting: true },
     { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },

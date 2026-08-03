@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { quotationService } from '../services/quotationService';
 
-/** Xóa báo giá — invalidate danh sách sau khi thành công. */
+// xóa báo giá — invalidate danh sách sau khi thành công
 export function useDeleteQuotation() {
     const qc = useQueryClient();
     return useMutation({

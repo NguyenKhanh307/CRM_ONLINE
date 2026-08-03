@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { opportunityService } from '../services/opportunityService';
 
-/** Lấy chi tiết một cơ hội theo ID (trang 360°). */
+// lấy chi tiết một cơ hội theo ID (trang 360°)
 export function useOpportunityDetail(id: number | undefined) {
     return useQuery({
         queryKey: ['opportunity', id],

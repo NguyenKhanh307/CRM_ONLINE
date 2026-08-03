@@ -3,7 +3,7 @@ export interface UpdateInvoicePayload {
     contactId: number | null;
     quotationId?: number | null;
     opportunityId?: number | null;
-    /** Đơn hàng mà hóa đơn này thu tiền cho. */
+    // đơn hàng mà hóa đơn này thu tiền cho
     orderId?: number | null;
     campaignId?: number | null;
     ownerId: number | null;
@@ -21,7 +21,7 @@ export interface UpdateInvoicePayload {
     note: string | null;
 }
 
-/** Một dòng hàng gửi kèm khi tạo Hóa đơn. */
+// một dòng hàng gửi kèm khi tạo Hóa đơn
 export interface InvoiceItemPayload {
     productId: number;
     unit: string | null;
@@ -33,14 +33,14 @@ export interface InvoiceItemPayload {
     note: string | null;
 }
 
-/** Payload tạo mới Hóa đơn — POST /api/invoices (kèm items[]). */
+// payload tạo mới Hóa đơn — POST /api/invoices (kèm items[])
 export interface CreateInvoicePayload {
     code: string;
     customerId: number | null;
     contactId: number | null;
     quotationId: number | null;
     opportunityId: number | null;
-    /** Đơn hàng mà hóa đơn này thu tiền cho. */
+    // đơn hàng mà hóa đơn này thu tiền cho
     orderId: number | null;
     campaignId: number | null;
     ownerId: number | null;
@@ -59,7 +59,7 @@ export interface CreateInvoicePayload {
     items: InvoiceItemPayload[];
 }
 
-/** Dòng hàng trả về từ GET /api/invoices/{id}/items. */
+// dòng hàng trả về từ GET /api/invoices/{id}/items
 export interface InvoiceItemResult {
     id: number;
     invoiceId: number;
@@ -75,7 +75,7 @@ export interface InvoiceItemResult {
 
 export type PaymentScheduleStatus = 'pending' | 'partial' | 'paid' | 'overdue';
 
-/** Một đợt thanh toán của hóa đơn (GET /api/invoices/{id}/payment-schedules). */
+// một đợt thanh toán của hóa đơn (GET /api/invoices/{id}/payment-schedules)
 export interface InvoicePaymentScheduleResult {
     id: number;
     invoiceId: number;
@@ -88,7 +88,7 @@ export interface InvoicePaymentScheduleResult {
     note: string | null;
 }
 
-/** Payload tạo/sửa một đợt thanh toán. */
+// payload tạo/sửa một đợt thanh toán
 export interface PaymentSchedulePayload {
     installmentNo: number | null;
     dueDate: string | null;
@@ -106,7 +106,7 @@ export interface InvoiceResult {
     contactId: number | null;
     quotationId: number | null;
     opportunityId: number | null;
-    /** Đơn hàng mà hóa đơn này thu tiền cho. */
+    // đơn hàng mà hóa đơn này thu tiền cho
     orderId: number | null;
     campaignId: number | null;
     ownerId: number | null;
@@ -139,4 +139,30 @@ export interface InvoiceResult {
     updatedBy: number | null;
     createdByName: string | null;
     updatedByName: string | null;
+}
+
+// một bản ghi doanh số/chia hoa hồng theo nhân viên trên hóa đơn (GET .../revenue-records)
+export interface InvoiceRevenueRecordResult {
+    id: number;
+    invoiceId: number;
+    userId: number;
+    revenueAmount: number | null;
+    percentage: number | null;
+    note: string | null;
+    createdAt: string;
+}
+
+// payload tạo mới bản ghi doanh số — POST .../revenue-records (userId bắt buộc, không sửa được sau khi tạo)
+export interface CreateInvoiceRevenueRecordPayload {
+    userId: number;
+    revenueAmount: number | null;
+    percentage: number | null;
+    note: string | null;
+}
+
+// payload sửa bản ghi doanh số — PUT .../revenue-records/{id} (userId/invoiceId KHÔNG sửa được)
+export interface UpdateInvoiceRevenueRecordPayload {
+    revenueAmount: number | null;
+    percentage: number | null;
+    note: string | null;
 }

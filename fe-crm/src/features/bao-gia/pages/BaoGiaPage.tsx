@@ -30,7 +30,7 @@ import { SendQuotationModal } from '../components/SendQuotationModal';
 import { ReasonModal } from '@/shared/components/ReasonModal';
 import type { QuotationItemResult, QuotationResult } from '../types/quotationTypes';
 
-/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+// tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render
 const QUICK_FILTERS = [
     { id: 'draft',    label: 'Nháp',      field: 'status', value: 'draft' },
     { id: 'pending',  label: 'Chờ duyệt', field: 'status', value: 'pending' },
@@ -83,7 +83,7 @@ const BaoGiaPage = () => {
             .catch(() => {});
     }, [focusId]);
 
-    /** Chạy một hành động chuyển trạng thái báo giá, báo lỗi qua alert nếu bước chuyển không hợp lệ. */
+    // chạy một hành động chuyển trạng thái báo giá, báo lỗi qua alert nếu bước chuyển không hợp lệ
     const runAction = (id: number, action: QuotationAction, comment?: string) =>
         workflowFn({ id, action, comment }, {
             onSuccess: (res: unknown) => {
@@ -104,7 +104,7 @@ const BaoGiaPage = () => {
 
     const columns = useMemo<ColumnDef<QuotationResult>[]>(() => getQuotationColumns(), []);
 
-    /** Thao tác của một báo giá — hiện trong menu chuột phải. */
+    // thao tác của một báo giá — hiện trong menu chuột phải
     const rowActions = (q: QuotationResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/bao-gia/${q.id}`) },
         ...(q.status === 'draft' && can('quotation', 'submit')

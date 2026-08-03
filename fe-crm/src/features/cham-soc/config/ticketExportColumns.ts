@@ -5,7 +5,7 @@ import {
     TYPE_LABELS, STATUS_LABELS, PRIORITY_LABELS, CHANNEL_LABELS, RESOLUTION_LABELS,
 } from './ticketEnums';
 
-/** Cột xuất file cho phiếu hỗ trợ — ghi giá trị thuần đã format (nhãn enum, ngày dd/mm/yyyy). */
+// cột xuất file cho phiếu hỗ trợ — ghi giá trị thuần đã format (nhãn enum, ngày dd/mm/yyyy)
 export const ticketExportColumns: ExportColumn<TicketResult>[] = [
     { key: 'code', label: 'Mã phiếu' },
     { key: 'subject', label: 'Tiêu đề' },

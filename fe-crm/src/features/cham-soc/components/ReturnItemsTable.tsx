@@ -4,7 +4,7 @@ import { inputCls } from '@/shared/components/form/formStyles';
 import type { ReturnReason, TicketReturnItemPayload } from '../types/ticketTypes';
 import { REASON_OPTIONS } from '../config/ticketEnums';
 
-/** Một dòng hàng trả/đổi ở phía FE (state form). */
+// một dòng hàng trả/đổi ở phía FE (state form)
 export interface ReturnRow {
     key: string;
     productId: string;
@@ -16,12 +16,12 @@ export interface ReturnRow {
 }
 
 let seq = 0;
-/** Tạo dòng trống mới. */
+// tạo dòng trống mới
 export const emptyReturnRow = (): ReturnRow => ({
     key: `r${++seq}`, productId: '', quantity: 1, unitPrice: 0, amount: 0, reason: '', conditionNote: '',
 });
 
-/** Chuyển các dòng form sang payload gửi BE (bỏ dòng chưa chọn sản phẩm). */
+// chuyển các dòng form sang payload gửi BE (bỏ dòng chưa chọn sản phẩm)
 export const toReturnItemPayloads = (rows: ReturnRow[]): TicketReturnItemPayload[] =>
     rows.filter(r => r.productId).map(r => ({
         invoiceItemId: null,
@@ -39,13 +39,13 @@ interface Props {
     productOptions: SelectOption[];
 }
 
-/** Bảng nhập dòng hàng trả/đổi (product/quantity/unitPrice/amount/reason/conditionNote). */
+// bảng nhập dòng hàng trả/đổi (product/quantity/unitPrice/amount/reason/conditionNote)
 export function ReturnItemsTable({ rows, onChange, productOptions }: Props) {
     const patch = (key: string, p: Partial<ReturnRow>) =>
         onChange(rows.map(r => {
             if (r.key !== key) return r;
             const next = { ...r, ...p };
-            // Tự tính thành tiền = số lượng × đơn giá khi hai giá trị này đổi
+            // tự tính thành tiền = số lượng x đơn giá khi hai giá trị này đổi
             if (p.quantity != null || p.unitPrice != null) next.amount = next.quantity * next.unitPrice;
             return next;
         }));

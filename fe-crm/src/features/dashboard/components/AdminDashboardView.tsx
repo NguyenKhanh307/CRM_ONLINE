@@ -13,13 +13,11 @@ interface Props {
     onRefresh: () => void;
 }
 
-/** Dịch nhãn trạng thái tài khoản sang tiếng Việt. */
+// dịch nhãn trạng thái tài khoản sang tiếng Việt
 const userSeg = (arr: DonutSegment[]): DonutSegment[] =>
     arr.map((s) => ({ ...s, label: viStatus('user', s.label) }));
 
-/**
- * Dashboard ADMIN — sức khỏe hệ thống: tài khoản, vai trò, quyền, cơ cấu tổ chức.
- */
+// dashboard ADMIN — sức khỏe hệ thống: tài khoản, vai trò, quyền, cơ cấu tổ chức
 export const AdminDashboardView = ({ data, periodLabel, onRefresh }: Props) => (
     <div className="space-y-4">
         {/* KPI hệ thống */}

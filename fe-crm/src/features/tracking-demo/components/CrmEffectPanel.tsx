@@ -2,13 +2,13 @@ import { FiArrowRight } from 'react-icons/fi';
 import { QUALIFY_THRESHOLD } from '../config/trackingDemoConfig';
 
 interface Props {
-    /** Có chiến dịch nguồn gắn vào tiềm năng hay không — đổi lời giải thích phần attribution. */
+    // có chiến dịch nguồn gắn vào tiềm năng hay không — đổi lời giải thích phần attribution
     hasCampaign: boolean;
-    /** Tiềm năng đã vượt ngưỡng chưa. */
+    // tiềm năng đã vượt ngưỡng chưa
     qualified: boolean;
 }
 
-/** Một bước trong chuỗi hệ quả bên CRM. */
+// một bước trong chuỗi hệ quả bên CRM
 const Step = ({ done, title, detail }: { done: boolean; title: string; detail: string }) => (
     <li className="flex gap-3">
         <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
@@ -23,10 +23,8 @@ const Step = ({ done, title, detail }: { done: boolean; title: string; detail: s
     </li>
 );
 
-/**
- * Bảng giải thích: mỗi thao tác trên landing page tạo ra hệ quả gì bên trong CRM.
- * Đây là phần giúp người xem demo nối được landing page với dữ liệu thật.
- */
+// bảng giải thích: mỗi thao tác trên landing page tạo ra hệ quả gì bên trong CRM
+// giúp người xem demo nối được landing page với dữ liệu thật
 export const CrmEffectPanel = ({ hasCampaign, qualified }: Props) => (
     <section className="rounded-xl border border-blue-200 bg-blue-50/60 p-5">
         <h2 className="mb-3 font-semibold text-gray-800">Điều gì đang xảy ra bên trong CRM</h2>

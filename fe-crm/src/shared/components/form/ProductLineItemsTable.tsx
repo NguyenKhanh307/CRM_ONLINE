@@ -15,18 +15,18 @@ import {
 
 interface Props {
     rows: LineItemRow[];
-    /**
-     * Setter của danh sách dòng hàng — dạng `useState` setter để patch bất đồng bộ (tra giá theo
-     * chính sách) luôn đọc được trạng thái mới nhất, không ghi đè mất thao tác vừa làm.
-     */
+    // setter của danh sách dòng hàng — dạng `useState` setter để patch bất đồng bộ (tra giá theo
+    // chính sách) luôn đọc được trạng thái mới nhất, không ghi đè mất thao tác vừa làm
     onChange: Dispatch<SetStateAction<LineItemRow[]>>;
     productOptions: ProductOption[];
-    /** Hiện cột Đơn vị tính (báo giá/đơn hàng). */
+    // hiện cột Đơn vị tính (báo giá/đơn hàng)
     showUnit?: boolean;
-    /** Hiện cột Thuế suất (báo giá/đơn hàng). */
+    // hiện cột Thuế suất (báo giá/đơn hàng)
     showTax?: boolean;
-    /** Chính sách giá đang chọn — nếu có, đơn giá/CK% dòng hàng tra qua /api/pricing/resolve. */
+    // chính sách giá đang chọn — nếu có, đơn giá/CK% dòng hàng tra qua /api/pricing/resolve
     pricePolicyId?: number | null;
+    // khách hàng đang chọn trên form — BE kiểm tra price_policy_customers khi tra giá dòng hàng
+    customerId?: number | null;
 }
 
 const fmt = (n: number) => formatNumber(n);
@@ -36,10 +36,8 @@ const tdBase = 'border-b border-gray-200 px-2 py-1';
 const numIn = 'w-full bg-transparent text-table text-text-main text-right focus:outline-none';
 const txtIn = 'w-full bg-transparent text-table text-text-main focus:outline-none';
 
-/**
- * Bảng hàng hóa controlled — dùng chung cho form báo giá / đơn hàng / cơ hội.
- * Chọn sản phẩm tự điền đơn vị / đơn giá / thuế suất từ ProductOption.
- */
+// bảng hàng hóa controlled — dùng chung cho form báo giá / đơn hàng / cơ hội
+// chọn sản phẩm tự điền đơn vị / đơn giá / thuế suất từ ProductOption
 export const ProductLineItemsTable = ({
     rows,
     onChange,
@@ -47,17 +45,19 @@ export const ProductLineItemsTable = ({
     showUnit = false,
     showTax = false,
     pricePolicyId,
+    customerId,
 }: Props) => {
     const totals = useMemo(() => computeTotals(rows), [rows]);
 
-    const { priceRow, priceRowDebounced, hints } = usePolicyPricing(pricePolicyId, rows, productOptions, onChange);
+    const { priceRow, priceRowDebounced, hints } = usePolicyPricing(pricePolicyId, rows, productOptions, onChange, customerId);
 
     const changeRow = (id: string, patch: Partial<LineItemRow>) =>
         onChange((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
 
+    // chọn sản phẩm
     const selectProduct = (id: string, productId: string) => {
         const opt = productOptions.find((o) => o.value === productId);
-        // Điền ngay từ sản phẩm để giao diện phản hồi tức thì...
+        // điền ngay từ sản phẩm để giao diện phản hồi tức thì...
         changeRow(id, {
             productId,
             unit: opt?.unit ?? '',
@@ -68,7 +68,7 @@ export const ProductLineItemsTable = ({
         priceRow(id, productId, rows.find((r) => r.id === id)?.quantity ?? 1);
     };
 
-    /** Đổi số lượng có thể vượt/tụt qua ngưỡng min_qty của chính sách → tra lại giá. */
+    // đổi số lượng có thể vượt/tụt qua ngưỡng min_qty của chính sách -> tra lại giá
     const changeQuantity = (row: LineItemRow, quantity: number) => {
         changeRow(row.id, { quantity });
         if (row.productId) priceRowDebounced(row.id, row.productId, quantity);
@@ -106,7 +106,7 @@ export const ProductLineItemsTable = ({
                                         options={productOptions}
                                         placeholder="Chọn hàng hóa"
                                     />
-                                    {/* Vì sao giá chính sách chưa áp — gợi ý nhẹ, không dùng modal chặn thao tác */}
+                                    {/* vì sao giá chính sách chưa áp — gợi ý nhẹ, không dùng modal chặn thao tác */}
                                     {hints[row.id] && (
                                         <p className="text-[11px] text-amber-600 mt-0.5">{hints[row.id]}</p>
                                     )}

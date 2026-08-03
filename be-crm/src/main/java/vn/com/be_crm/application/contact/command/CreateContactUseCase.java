@@ -4,7 +4,7 @@ import vn.com.be_crm.application.contact.dto.ContactResult;
 import vn.com.be_crm.application.contact.dto.CreateContactCommand;
 import vn.com.be_crm.application.contact.mapper.ContactCommandMapper;
 import vn.com.be_crm.application.contact.mapper.ContactPhoneCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
 
 import java.util.stream.Collectors;

@@ -11,7 +11,7 @@ import vn.com.be_crm.infrastructure.quotation.mapper.QuotationApprovalHibernateM
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
 /**
  * Hibernate implementation của IQuotationApprovalRepository.

@@ -12,7 +12,7 @@ interface OpportunityInfoPanelProps {
     opportunity: OpportunityResult;
 }
 
-/** Tab "Tổng quan" của trang chi tiết Cơ hội — thông tin chung + bảng dòng hàng (chỉ xem). */
+// tab "Tổng quan" của trang chi tiết Cơ hội — thông tin chung + bảng dòng hàng (chỉ xem)
 export const OpportunityInfoPanel = ({ opportunity: o }: OpportunityInfoPanelProps) => {
     const { data: items = [], isLoading } = useOpportunityItems(o.id);
     const productMap = useProductMap();

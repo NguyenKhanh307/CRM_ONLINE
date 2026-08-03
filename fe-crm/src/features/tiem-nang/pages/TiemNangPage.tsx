@@ -26,7 +26,7 @@ import { LeadEditModal } from '../components/LeadEditModal';
 import { ConvertLeadModal } from '../components/ConvertLeadModal';
 import type { LeadResult } from '../types/leadTypes';
 
-/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+// tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render
 const QUICK_FILTERS = [
     { id: 'new',        label: 'Mới',         field: 'status', value: 'new' },
     { id: 'contacting', label: 'Đang liên hệ', field: 'status', value: 'contacting' },
@@ -42,7 +42,7 @@ const TiemNangPage = () => {
     const [searchParams] = useSearchParams();
     const focusId = searchParams.get('focus');
     const { showAlert } = useAlert();
-    // Server-side pagination + search + tag lọc nhanh
+    // state phân trang + tìm kiếm + lọc nhanh (server-side)
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');
@@ -66,7 +66,7 @@ const TiemNangPage = () => {
     const [handoverOpen, setHandoverOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
 
-    // Bấm thông báo (?focus=) → tra code bản ghi rồi search theo code để bản ghi hiện ra ở trang 1
+    // bấm thông báo (?focus=) -> tra code bản ghi rồi search theo code để bản ghi hiện ra ở trang 1
     useEffect(() => {
         if (!focusId) return;
         leadService.getById(Number(focusId))
@@ -74,8 +74,8 @@ const TiemNangPage = () => {
             .catch(() => {});
     }, [focusId]);
 
-    /** Chạy hành động chuyển trạng thái tiềm năng, báo lỗi qua alert nếu bước chuyển không hợp lệ.
-     *  Convert thành công → điều hướng sang Cơ hội (KH + LH + Cơ hội vừa được tạo). */
+    // hàm chạy hành động chuyển trạng thái tiềm năng — convert thành công thì điều hướng sang
+    // Cơ hội (KH + LH + Cơ hội vừa được tạo)
     const runAction = (id: number, action: LeadAction, reason?: string, customerId?: number | null) =>
         workflowFn({ id, action, reason, customerId }, {
             onSuccess: () => {
@@ -98,7 +98,7 @@ const TiemNangPage = () => {
 
     const columns = useMemo<ColumnDef<LeadResult>[]>(() => getLeadColumns(), []);
 
-    /** Thao tác của một tiềm năng — hiện trong menu chuột phải. */
+    // hàm dựng menu thao tác chuột phải cho một dòng tiềm năng
     const rowActions = (l: LeadResult): RowAction[] => {
         const isOpen = l.status !== 'converted' && l.status !== 'lost';
         return [
@@ -211,7 +211,7 @@ const TiemNangPage = () => {
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
                 onExport={async (keys, format) => {
-                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    // không tick dòng nào -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await leadService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;

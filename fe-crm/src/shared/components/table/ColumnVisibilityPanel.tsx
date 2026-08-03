@@ -6,9 +6,7 @@ interface ColumnVisibilityPanelProps {
     onClose: () => void;
 }
 
-/**
- * Panel ẩn/hiện cột bằng checkbox grid.
- */
+// panel ẩn/hiện cột bằng checkbox grid
 export const ColumnVisibilityPanel = ({ columns, onClose }: ColumnVisibilityPanelProps) => {
     const dataCols = columns.filter((c) => c.id !== '__select__');
 

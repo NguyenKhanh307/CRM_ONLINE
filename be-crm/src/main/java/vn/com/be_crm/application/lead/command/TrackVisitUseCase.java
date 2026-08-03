@@ -8,10 +8,8 @@ import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Use case xử lý lượt truy cập web tracking: nếu đã có mã thì trả về trạng thái hiện tại,
- * ngược lại tạo tiềm năng ẩn danh mới với mã dạng TNW... và điểm = 0.
- */
+// xử lý lượt truy cập web tracking: đã có mã thì trả về trạng thái hiện tại, ngược lại tạo
+// tiềm năng ẩn danh mới với mã dạng TNW... và điểm = 0
 public class TrackVisitUseCase {
     private static final String CODE_PREFIX = "TNW";
     private static final char[] BASE36 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
@@ -19,20 +17,13 @@ public class TrackVisitUseCase {
 
     private final ILeadRepository repo;
 
-    /** @param repo port lưu trữ Lead */
     public TrackVisitUseCase(ILeadRepository repo) { this.repo = repo; }
 
-    /**
-     * Trả về tiềm năng theo mã nếu tồn tại, ngược lại tạo mới tiềm năng ẩn danh.
-     *
-     * <p><b>Attribution first-touch</b>: chiến dịch chỉ được gắn khi tiềm năng chưa có chiến dịch nào.
-     * Khách quay lại qua link của chiến dịch khác thì nguồn ban đầu vẫn giữ — nếu ghi đè, công
-     * sinh ra tiềm năng sẽ bị tính nhầm cho chiến dịch chạm sau cùng.</p>
-     *
-     * @param code       mã TNW... từ cookie/localStorage máy khách (có thể null/rỗng)
-     * @param campaignId chiến dịch nguồn từ tham số `utm_campaign` của landing page (có thể null)
-     * @return LeadResult của tiềm năng tương ứng
-     */
+    // code: mã TNW... từ cookie/localStorage máy khách (có thể null/rỗng)
+    // campaignId: chiến dịch nguồn từ tham số utm_campaign của landing page (có thể null)
+    // attribution first-touch: chiến dịch chỉ gắn khi tiềm năng CHƯA có chiến dịch nào — khách
+    // quay lại qua link chiến dịch khác thì nguồn ban đầu vẫn giữ, ghi đè sẽ tính nhầm công sinh
+    // ra tiềm năng cho chiến dịch chạm sau cùng
     public LeadResult execute(String code, Long campaignId) {
         if (code != null && !code.isBlank()) {
             Lead existing = repo.findByCode(code.trim()).orElse(null);
@@ -51,21 +42,17 @@ public class TrackVisitUseCase {
         return LeadCommandMapper.toResult(repo.save(lead));
     }
 
-    /**
-     * Sinh mã TNW với hậu tố ngẫu nhiên base36 (vd TNW7K2P9Q) — tránh va chạm khi nhiều
-     * khách truy cập song song (mã tuần tự dễ trùng do giao dịch chưa commit). Vẫn kiểm tra
-     * findByCode để bảo đảm duy nhất.
-     */
+    // hậu tố ngẫu nhiên base36 (vd TNW7K2P9Q) — tránh va chạm khi nhiều khách truy cập song song
+    // (mã tuần tự dễ trùng do giao dịch chưa commit); vẫn kiểm tra findByCode để bảo đảm duy nhất
     private String generateCode() {
         for (int attempt = 0; attempt < 20; attempt++) {
             String code = CODE_PREFIX + randomSuffix();
             if (repo.findByCode(code).isEmpty()) return code;
         }
-        // Cực hiếm: thêm timestamp để chắc chắn duy nhất
+        // cực hiếm: thêm timestamp để chắc chắn duy nhất
         return CODE_PREFIX + randomSuffix() + Long.toString(System.currentTimeMillis(), 36).toUpperCase();
     }
 
-    /** Sinh chuỗi base36 ngẫu nhiên độ dài SUFFIX_LEN. */
     private String randomSuffix() {
         StringBuilder sb = new StringBuilder(SUFFIX_LEN);
         ThreadLocalRandom rnd = ThreadLocalRandom.current();

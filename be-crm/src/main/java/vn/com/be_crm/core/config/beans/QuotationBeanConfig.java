@@ -1,0 +1,165 @@
+package vn.com.be_crm.core.config.beans;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import vn.com.be_crm.core.notify.NotifyAssignmentUseCase;
+import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
+import vn.com.be_crm.application.quotation.command.*;
+import vn.com.be_crm.application.quotation.query.*;
+import vn.com.be_crm.application.opportunity.command.RecomputeOpportunityAmountUseCase;
+import vn.com.be_crm.core.email.port.IEmailService;
+import vn.com.be_crm.core.pdf.port.IQuotationPdfService;
+import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
+import vn.com.be_crm.domain.contact.repository.IContactRepository;
+import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
+import vn.com.be_crm.domain.opportunity.repository.IOpportunityItemRepository;
+import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
+import vn.com.be_crm.domain.product.repository.IProductRepository;
+import vn.com.be_crm.domain.quotation.repository.IQuotationApprovalRepository;
+import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
+import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
+
+/**
+ * Wire các UseCase của module Quotation (quotation, item, approval, trash, handover, import) qua @Bean.
+ */
+@Configuration
+public class QuotationBeanConfig {
+
+    // ===== Quotation =====
+
+    /** @return CreateQuotationUseCase */
+    @Bean public CreateQuotationUseCase createQuotationUseCase(IQuotationRepository r) { return new CreateQuotationUseCase(r); }
+    /** @return UpdateQuotationUseCase */
+    @Bean public UpdateQuotationUseCase updateQuotationUseCase(IQuotationRepository r, RecomputeQuotationTotalsUseCase rc, NotifyAssignmentUseCase n) { return new UpdateQuotationUseCase(r, rc, n); }
+    /** @return DeleteQuotationUseCase */
+    @Bean public DeleteQuotationUseCase deleteQuotationUseCase(IQuotationRepository r) { return new DeleteQuotationUseCase(r); }
+    /** @return GetQuotationUseCase */
+    @Bean public GetQuotationUseCase getQuotationUseCase(IQuotationRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new GetQuotationUseCase(r, n); }
+    /** @return ListQuotationUseCase */
+    @Bean public ListQuotationUseCase listQuotationUseCase(IQuotationRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListQuotationUseCase(r, n); }
+
+    // ===== Quotation Item =====
+
+    /** @return CreateQuotationItemUseCase */
+    @Bean public CreateQuotationItemUseCase createQuotationItemUseCase(IQuotationItemRepository r, RecomputeQuotationTotalsUseCase rc) { return new CreateQuotationItemUseCase(r, rc); }
+    /** @return UpdateQuotationItemUseCase */
+    @Bean public UpdateQuotationItemUseCase updateQuotationItemUseCase(IQuotationItemRepository r, RecomputeQuotationTotalsUseCase rc) { return new UpdateQuotationItemUseCase(r, rc); }
+    /** @return DeleteQuotationItemUseCase */
+    @Bean public DeleteQuotationItemUseCase deleteQuotationItemUseCase(IQuotationItemRepository r, RecomputeQuotationTotalsUseCase rc) { return new DeleteQuotationItemUseCase(r, rc); }
+    /** @return ListQuotationItemUseCase */
+    @Bean public ListQuotationItemUseCase listQuotationItemUseCase(IQuotationItemRepository r) { return new ListQuotationItemUseCase(r); }
+
+    // ===== Quotation Approval =====
+
+    /** @return CreateQuotationApprovalUseCase */
+    @Bean public CreateQuotationApprovalUseCase createQuotationApprovalUseCase(IQuotationApprovalRepository r) { return new CreateQuotationApprovalUseCase(r); }
+    /** @return UpdateQuotationApprovalUseCase */
+    @Bean public UpdateQuotationApprovalUseCase updateQuotationApprovalUseCase(IQuotationApprovalRepository r) { return new UpdateQuotationApprovalUseCase(r); }
+    /** @return DeleteQuotationApprovalUseCase */
+    @Bean public DeleteQuotationApprovalUseCase deleteQuotationApprovalUseCase(IQuotationApprovalRepository r) { return new DeleteQuotationApprovalUseCase(r); }
+    /** @return ListQuotationApprovalUseCase */
+    @Bean public ListQuotationApprovalUseCase listQuotationApprovalUseCase(IQuotationApprovalRepository r) { return new ListQuotationApprovalUseCase(r); }
+
+    // ===== Quotation Workflow (submit / approve / reject / send) =====
+
+    /** @return QuotationEmailComposer — dựng nội dung email báo giá mặc định + resolve người nhận */
+    @Bean public vn.com.be_crm.application.quotation.email.QuotationEmailComposer quotationEmailComposer(
+            ICustomerRepository cr, IContactRepository cor) {
+        return new vn.com.be_crm.application.quotation.email.QuotationEmailComposer(cr, cor);
+    }
+
+    /** @return GetQuotationEmailDraftUseCase — xem-trước nội dung email báo giá mặc định */
+    @Bean public GetQuotationEmailDraftUseCase getQuotationEmailDraftUseCase(IQuotationRepository qr,
+            vn.com.be_crm.application.quotation.email.QuotationEmailComposer composer) {
+        return new GetQuotationEmailDraftUseCase(qr, composer);
+    }
+
+    /** @return QuotationPdfDataBuilder — dựng dữ liệu PDF từ báo giá (dùng chung gửi mail + xem trước) */
+    @Bean public vn.com.be_crm.application.quotation.pdf.QuotationPdfDataBuilder quotationPdfDataBuilder(
+            ICustomerRepository cr, IQuotationItemRepository qir, IProductRepository pr) {
+        return new vn.com.be_crm.application.quotation.pdf.QuotationPdfDataBuilder(cr, qir, pr);
+    }
+
+    /** @return QuotationWorkflowUseCase */
+    @Bean public QuotationWorkflowUseCase quotationWorkflowUseCase(IQuotationRepository qr, IQuotationApprovalRepository ar,
+            CreateNotificationUseCase nuc, vn.com.be_crm.core.notify.port.IManagerResolver mr, IEmailService es,
+            IContactRepository cor, IQuotationPdfService pdf, vn.com.be_crm.application.quotation.pdf.QuotationPdfDataBuilder pdfDataBuilder,
+            vn.com.be_crm.application.quotation.email.QuotationEmailComposer composer,
+            @Value("${app.frontend.base-url}") String frontendBaseUrl,
+            ITransactionRunner tx, ConvertQuotationToOrderUseCase convertToOrderUC) {
+        return new QuotationWorkflowUseCase(qr, ar, nuc, mr, es, cor, pdf, pdfDataBuilder, composer, frontendBaseUrl, tx, convertToOrderUC);
+    }
+
+    /** @return PreviewQuotationPdfUseCase — xem trước PDF báo giá khi soạn email */
+    @Bean public PreviewQuotationPdfUseCase previewQuotationPdfUseCase(IQuotationRepository qr, IQuotationPdfService pdf,
+            vn.com.be_crm.application.quotation.pdf.QuotationPdfDataBuilder pdfDataBuilder,
+            vn.com.be_crm.application.quotation.email.QuotationEmailComposer composer) {
+        return new PreviewQuotationPdfUseCase(qr, pdf, pdfDataBuilder, composer);
+    }
+
+    /** @return RespondToQuotationUseCase — khách phản hồi báo giá (đồng ý/điều chỉnh/không đồng ý, tự sinh đơn hàng khi đồng ý) */
+    @Bean public RespondToQuotationUseCase respondToQuotationUseCase(IQuotationRepository qr, CreateNotificationUseCase nuc,
+            ConvertQuotationToOrderUseCase convertToOrderUC, ITransactionRunner tx) {
+        return new RespondToQuotationUseCase(qr, nuc, convertToOrderUC, tx);
+    }
+
+    /** @return GetQuotationByTokenUseCase — xem báo giá công khai theo token */
+    @Bean public GetQuotationByTokenUseCase getQuotationByTokenUseCase(IQuotationRepository qr,
+            IQuotationItemRepository qir, IProductRepository pr, ICustomerRepository cr, IContactRepository cor) {
+        return new GetQuotationByTokenUseCase(qr, qir, pr, cr, cor);
+    }
+
+    // ===== Quotation ↔ Opportunity ↔ Invoice (clone / primary / sync / convert) =====
+
+    /** @return CreateQuotationFromOpportunityUseCase — clone báo giá từ cơ hội */
+    @Bean public CreateQuotationFromOpportunityUseCase createQuotationFromOpportunityUseCase(
+            IQuotationRepository qr, IOpportunityRepository or, IOpportunityItemRepository oir) {
+        return new CreateQuotationFromOpportunityUseCase(qr, or, oir);
+    }
+    /** @return RefreshQuotationItemsFromOpportunityUseCase — cập nhật lại dòng hàng báo giá từ cơ hội */
+    @Bean public RefreshQuotationItemsFromOpportunityUseCase refreshQuotationItemsFromOpportunityUseCase(
+            IQuotationRepository qr, IQuotationItemRepository qir, IOpportunityItemRepository oir,
+            ITransactionRunner tx) {
+        return new RefreshQuotationItemsFromOpportunityUseCase(qr, qir, oir, tx);
+    }
+    /** @return SetPrimaryQuotationUseCase — đặt báo giá đồng bộ */
+    @Bean public SetPrimaryQuotationUseCase setPrimaryQuotationUseCase(IQuotationRepository qr) {
+        return new SetPrimaryQuotationUseCase(qr);
+    }
+    /** @return SyncQuotationToOpportunityUseCase — đồng bộ dòng hàng báo giá primary về cơ hội */
+    @Bean public SyncQuotationToOpportunityUseCase syncQuotationToOpportunityUseCase(
+            IQuotationRepository qr, IQuotationItemRepository qir, IOpportunityItemRepository oir,
+            RecomputeOpportunityAmountUseCase ruc, ITransactionRunner tx) {
+        return new SyncQuotationToOpportunityUseCase(qr, qir, oir, ruc, tx);
+    }
+    /** @return ConvertQuotationToOrderUseCase — chuyển báo giá thành đơn hàng */
+    @Bean public ConvertQuotationToOrderUseCase convertQuotationToOrderUseCase(
+            IQuotationRepository qr, IQuotationItemRepository qir,
+            vn.com.be_crm.domain.order.repository.IOrderRepository ordr, IOpportunityRepository or,
+            ITransactionRunner tx) {
+        return new ConvertQuotationToOrderUseCase(qr, qir, ordr, or, tx);
+    }
+
+    // ===== Trash =====
+
+    /** @return ListDeletedQuotationsUseCase */
+    @Bean public ListDeletedQuotationsUseCase listDeletedQuotationsUseCase(IQuotationRepository r) { return new ListDeletedQuotationsUseCase(r); }
+    /** @return RestoreQuotationUseCase */
+    @Bean public RestoreQuotationUseCase restoreQuotationUseCase(IQuotationRepository r) { return new RestoreQuotationUseCase(r); }
+    /** @return PurgeQuotationUseCase */
+    @Bean public PurgeQuotationUseCase purgeQuotationUseCase(IQuotationRepository r) { return new PurgeQuotationUseCase(r); }
+
+    // ===== Handover & Import =====
+
+    /** @return HandoverBulkQuotationUseCase */
+    @Bean public HandoverBulkQuotationUseCase handoverBulkQuotationUseCase(IQuotationRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkQuotationUseCase(r, n); }
+    /** @return ImportBulkQuotationUseCase */
+    @Bean public ImportBulkQuotationUseCase importBulkQuotationUseCase(IQuotationRepository r) { return new ImportBulkQuotationUseCase(r); }
+
+    /** @return RecomputeQuotationTotalsUseCase — tính lại tổng tiền từ dòng hàng (server là nguồn chân lý) */
+    @Bean public RecomputeQuotationTotalsUseCase recomputeQuotationTotalsUseCase(IQuotationRepository r, IQuotationItemRepository ir) {
+        return new RecomputeQuotationTotalsUseCase(r, ir);
+    }
+}

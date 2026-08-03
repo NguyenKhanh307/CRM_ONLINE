@@ -8,8 +8,8 @@ import vn.com.be_crm.domain.service.enums.ResolutionType;
 import vn.com.be_crm.domain.service.enums.TicketStatus;
 import vn.com.be_crm.domain.service.enums.TicketType;
 import vn.com.be_crm.domain.service.repository.ITicketRepository;
-import vn.com.be_crm.domain.shared.exception.DomainException;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.DomainException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;

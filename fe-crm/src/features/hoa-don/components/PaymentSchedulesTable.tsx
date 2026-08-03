@@ -9,7 +9,7 @@ import type { InvoicePaymentScheduleResult, PaymentSchedulePayload, PaymentSched
 
 interface Props {
     invoiceId: number;
-    /** Tổng tiền hóa đơn — dùng để tính "Còn lại" và chặn thu vượt quá. */
+    // tổng tiền hóa đơn — dùng để tính "Còn lại" và chặn thu vượt quá
     invoiceTotal: number;
 }
 
@@ -20,14 +20,14 @@ const STATUS_OPTIONS: PaymentScheduleStatus[] = ['pending', 'partial', 'paid', '
 
 const inp = 'w-full border border-gray-300 rounded-btn px-2 py-1 text-sm text-text-main focus:outline-none focus:border-primary';
 
-/** Lỗi khi tổng đã thu (các đợt khác + giá trị đang nhập) vượt quá tổng hóa đơn. */
+// lỗi khi tổng đã thu (các đợt khác + giá trị đang nhập) vượt quá tổng hóa đơn
 function overpayError(otherPaid: number, value: number | null, invoiceTotal: number): string | null {
     if (value == null) return null;
     if (otherPaid + value > invoiceTotal) return 'Vượt quá tổng hóa đơn';
     return null;
 }
 
-/** Một dòng đợt thanh toán đã tồn tại — chỉnh sửa tại chỗ rồi lưu. */
+// một dòng đợt thanh toán đã tồn tại — chỉnh sửa tại chỗ rồi lưu
 function ScheduleRow({ invoiceId, s, otherPaid, invoiceTotal }: { invoiceId: number; s: InvoicePaymentScheduleResult; otherPaid: number; invoiceTotal: number }) {
     const { update, remove } = useInvoicePayments(invoiceId);
     const { confirmSave, confirmDelete } = useConfirm();
@@ -38,7 +38,7 @@ function ScheduleRow({ invoiceId, s, otherPaid, invoiceTotal }: { invoiceId: num
     const [error, setError] = useState<string | null>(null);
 
     const handleSave = async () => {
-        // Lỗi nhập liệu hiện đỏ ngay dưới ô, không dùng popup.
+        // lỗi nhập liệu hiện đỏ ngay dưới ô, không dùng popup
         const err = nonNegativeError(form.paidAmount, 'Đã thu') ?? overpayError(otherPaid, form.paidAmount, invoiceTotal);
         setError(err);
         if (err) return;
@@ -85,8 +85,8 @@ function ScheduleRow({ invoiceId, s, otherPaid, invoiceTotal }: { invoiceId: num
     );
 }
 
-/** Bảng đợt thanh toán của hóa đơn — thêm/sửa/xóa; BE tự suy ra paymentStatus. Chỉ nhập "Đã thu",
- * không còn ô "Số tiền" (đợt dự kiến) — "Còn lại" tính thẳng từ tổng hóa đơn trừ đã thu. */
+// bảng đợt thanh toán của hóa đơn — thêm/sửa/xóa; be tự suy ra paymentStatus. chỉ nhập "Đã thu",
+// không còn ô "Số tiền" (đợt dự kiến) — "Còn lại" tính thẳng từ tổng hóa đơn trừ đã thu
 export function PaymentSchedulesTable({ invoiceId, invoiceTotal }: Props) {
     const { list, add } = useInvoicePayments(invoiceId);
     const { confirmCreate } = useConfirm();
@@ -100,7 +100,7 @@ export function PaymentSchedulesTable({ invoiceId, invoiceTotal }: Props) {
     const remaining = Math.max(invoiceTotal - totalPaid, 0);
 
     const submitAdd = async () => {
-        // Lỗi nhập liệu hiện đỏ ngay dưới ô, không dùng popup.
+        // lỗi nhập liệu hiện đỏ ngay dưới ô, không dùng popup
         const err = nonNegativeError(draft.paidAmount, 'Đã thu') ?? overpayError(totalPaid, draft.paidAmount, invoiceTotal);
         setDraftError(err);
         if (err) return;

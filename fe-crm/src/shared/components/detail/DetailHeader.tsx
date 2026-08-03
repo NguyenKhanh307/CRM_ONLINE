@@ -2,29 +2,27 @@ import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 
-/** Một mục trong hàng thông tin tóm tắt của header (vd "Mã: KH00045"). */
+// một mục trong hàng thông tin tóm tắt của header (vd "Mã: KH00045")
 export interface DetailMeta {
     label: string;
     value: ReactNode;
 }
 
 interface DetailHeaderProps {
-    /** Route quay lại danh sách, vd "/khach-hang". */
+    // route quay lại danh sách, vd "/khach-hang"
     backTo: string;
-    /** Nhãn nút quay lại (mặc định "Quay lại danh sách"). */
+    // nhãn nút quay lại (mặc định "Quay lại danh sách")
     backLabel?: string;
     title: string;
-    /** Badge trạng thái hiển thị cạnh tiêu đề. */
+    // badge trạng thái hiển thị cạnh tiêu đề
     badge?: ReactNode;
-    /** Hàng thông tin tóm tắt dưới tiêu đề — bỏ qua mục có value rỗng. */
+    // hàng thông tin tóm tắt dưới tiêu đề — bỏ qua mục có value rỗng
     meta?: DetailMeta[];
-    /** Nhóm nút hành động bên phải. */
+    // nhóm nút hành động bên phải
     actions?: ReactNode;
 }
 
-/**
- * Card header dùng chung cho mọi trang chi tiết: nút quay lại, tiêu đề, badge, hàng meta, nhóm nút.
- */
+// card header dùng chung cho mọi trang chi tiết: nút quay lại, tiêu đề, badge, hàng meta, nhóm nút
 export const DetailHeader = ({ backTo, backLabel = 'Quay lại danh sách', title, badge, meta, actions }: DetailHeaderProps) => {
     const navigate = useNavigate();
     const shown = (meta ?? []).filter(m => m.value !== null && m.value !== undefined && m.value !== '');

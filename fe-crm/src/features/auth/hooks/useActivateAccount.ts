@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { activationService } from '../services/activationService';
 import type { ActivateAccountPayload } from '@/features/users/types/userTypes';
 
-/** Kích hoạt tài khoản — đặt mật khẩu lần đầu rồi điều hướng /login. */
+// kích hoạt tài khoản — đặt mật khẩu lần đầu rồi điều hướng /login
 export function useActivateAccount() {
     const navigate = useNavigate();
     return useMutation({

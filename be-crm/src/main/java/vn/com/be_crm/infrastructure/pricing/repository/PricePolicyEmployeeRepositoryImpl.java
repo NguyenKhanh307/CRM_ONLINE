@@ -11,7 +11,7 @@ import vn.com.be_crm.infrastructure.pricing.mapper.PricePolicySubEntityHibernate
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
 /**
  * Hibernate implementation của IPricePolicyEmployeeRepository.
@@ -55,6 +55,27 @@ public class PricePolicyEmployeeRepositoryImpl implements IPricePolicyEmployeeRe
         return TxSupport.read(sf, s -> {
             return s.createQuery("FROM PricePolicyEmployeeHibernate WHERE pricePolicyId = :pid", PricePolicyEmployeeHibernate.class)
                     .setParameter("pid", pricePolicyId).list().stream().map(mapper::toEmployeeDomain).collect(Collectors.toList());
+        });
+    }
+
+    /** ID các chính sách userId được phép dùng: không có dòng nào (không giới hạn) HOẶC có dòng khớp userId. @param userId @return danh sách policy ID */
+    @Override public List<Long> findEligiblePolicyIdsForUser(Long userId) {
+        return TxSupport.read(sf, s -> s.createQuery(
+                "SELECT DISTINCT pp.id FROM PricePolicyHibernate pp WHERE " +
+                "NOT EXISTS (SELECT 1 FROM PricePolicyEmployeeHibernate e WHERE e.pricePolicyId = pp.id) " +
+                "OR EXISTS (SELECT 1 FROM PricePolicyEmployeeHibernate e2 WHERE e2.pricePolicyId = pp.id AND e2.userId = :uid)",
+                Long.class).setParameter("uid", userId).list());
+    }
+
+    /** true nếu policy không giới hạn nhân viên (0 dòng) HOẶC có dòng khớp userId. @param pricePolicyId @param userId @return có hợp lệ không */
+    @Override public boolean isEligibleForUser(Long pricePolicyId, Long userId) {
+        return TxSupport.read(sf, s -> {
+            Long count = s.createQuery("SELECT COUNT(e) FROM PricePolicyEmployeeHibernate e WHERE e.pricePolicyId = :pid", Long.class)
+                    .setParameter("pid", pricePolicyId).uniqueResult();
+            if (count == null || count == 0) return true;
+            Long match = s.createQuery("SELECT COUNT(e) FROM PricePolicyEmployeeHibernate e WHERE e.pricePolicyId = :pid AND e.userId = :uid", Long.class)
+                    .setParameter("pid", pricePolicyId).setParameter("uid", userId).uniqueResult();
+            return match != null && match > 0;
         });
     }
 }

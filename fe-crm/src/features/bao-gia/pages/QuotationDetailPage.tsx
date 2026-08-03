@@ -29,7 +29,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 type TabKey = 'orders' | 'invoices' | 'activities' | 'approvals';
 
-/** Trang chi tiết Báo giá — 2 cột: thông tin + đơn hàng/hóa đơn phát sinh + hoạt động. */
+// trang chi tiết Báo giá — 2 cột: thông tin + đơn hàng/hóa đơn phát sinh + hoạt động
 const QuotationDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const quotationId = Number(id);

@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.opportunity.command.*;
 import vn.com.be_crm.application.opportunity.dto.*;
 import vn.com.be_crm.application.opportunity.query.*;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.presentation.shared.ApiResponse;
-import vn.com.be_crm.presentation.shared.PageResponse;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.response.ApiResponse;
+import vn.com.be_crm.core.page.PageResponse;
 
 /**
  * REST controller cho nghiệp vụ quản lý giai đoạn pipeline cơ hội.

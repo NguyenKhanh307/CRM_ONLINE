@@ -4,11 +4,10 @@ import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.lead.entity.LeadTrackingEvent;
 import vn.com.be_crm.infrastructure.lead.entity.LeadTrackingEventHibernate;
 
-/** Chuyển đổi giữa LeadTrackingEvent domain entity ↔ LeadTrackingEventHibernate. */
+// chuyển đổi giữa LeadTrackingEvent domain entity <-> LeadTrackingEventHibernate
 @Component
 public class LeadTrackingEventHibernateMapper {
 
-    /** Chuyển domain entity sang Hibernate entity. @param d domain entity @return hibernate entity */
     public LeadTrackingEventHibernate toHibernate(LeadTrackingEvent d) {
         LeadTrackingEventHibernate h = new LeadTrackingEventHibernate();
         h.setId(d.getId()); h.setLeadId(d.getLeadId());
@@ -17,7 +16,6 @@ public class LeadTrackingEventHibernateMapper {
         return h;
     }
 
-    /** Chuyển Hibernate entity sang domain entity. @param h hibernate entity @return domain entity */
     public LeadTrackingEvent toDomain(LeadTrackingEventHibernate h) {
         return LeadTrackingEvent.builder()
                 .id(h.getId()).leadId(h.getLeadId())

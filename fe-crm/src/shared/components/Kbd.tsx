@@ -1,4 +1,4 @@
-/** Hiển thị một tổ hợp phím dạng <kbd>, ví dụ ['Alt','N'] → Alt + N. */
+// hiển thị một tổ hợp phím dạng <kbd>, ví dụ ['Alt','N'] -> Alt + N
 export const Kbd = ({ keys }: { keys: string[] }) => (
     <span className="flex items-center gap-1">
         {keys.map((k, i) => (

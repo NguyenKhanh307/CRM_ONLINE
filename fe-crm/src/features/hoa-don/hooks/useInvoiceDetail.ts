@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { invoiceService } from '../services/invoiceService';
 
-/** Lấy chi tiết một hóa đơn theo ID (trang chi tiết). */
+// lấy chi tiết một hóa đơn theo id (trang chi tiết)
 export function useInvoiceDetail(id: number | undefined) {
     return useQuery({
         queryKey: ['invoice', id],

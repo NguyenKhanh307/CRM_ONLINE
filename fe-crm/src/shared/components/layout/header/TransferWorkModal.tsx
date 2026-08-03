@@ -10,6 +10,7 @@ interface ModalProps {
     onClose: () => void;
 }
 
+// modal "bàn giao toàn bộ công việc" — chuyển hết 5 module từ người này sang người khác (chỉ ADMIN/SALES_MANAGER)
 const TransferWorkModal = ({ onClose }: ModalProps) => {
     const [fromUser, setFromUser] = useState<number | ''>('');
     const [toUser, setToUser] = useState<number | ''>('');
@@ -34,7 +35,7 @@ const TransferWorkModal = ({ onClose }: ModalProps) => {
     };
 
     const ref = useRef<HTMLDivElement>(null);
-    // Không tự focus nút — người dùng phải chọn người giao/người nhận trước.
+    // không tự focus nút — người dùng phải chọn người giao/người nhận trước
     useDialogKeyboardNav(ref, { onCancel: onClose, autoFocus: 'none' });
 
     return (
@@ -142,6 +143,7 @@ const TransferWorkModal = ({ onClose }: ModalProps) => {
     );
 };
 
+// icon "..." trên header, mở TransferWorkModal
 export const TransferWorkButton = () => {
     const [open, setOpen] = useState(false);
 

@@ -1,9 +1,9 @@
 package vn.com.be_crm.application.campaign.command;
 
-import vn.com.be_crm.application.shared.dto.DeleteCommand;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.dto.delete.DeleteCommand;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.campaign.repository.ICampaignRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case xóa mềm chiến dịch. */
 public class DeleteCampaignUseCase implements IUseCase<DeleteCommand, Void> {

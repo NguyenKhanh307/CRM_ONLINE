@@ -3,7 +3,7 @@ package vn.com.be_crm.infrastructure.order.mapper;
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.order.entity.Order;
 import vn.com.be_crm.domain.order.enums.OrderStatus;
-import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
+import vn.com.be_crm.core.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.order.entity.OrderHibernate;
 
 import java.math.BigDecimal;

@@ -6,7 +6,7 @@ const STATUS_LABELS: Record<string, string> = {
     active: 'Đang áp dụng', inactive: 'Ngừng áp dụng', expired: 'Hết hạn',
 };
 
-/** Các cột khả dụng khi xuất file phân hệ Chính sách giá. */
+// các cột khả dụng khi xuất file phân hệ Chính sách giá
 export const pricingExportColumns: ExportColumn<PricePolicyResult>[] = [
     { key: 'code', label: 'Mã chính sách' },
     { key: 'name', label: 'Tên chính sách' },

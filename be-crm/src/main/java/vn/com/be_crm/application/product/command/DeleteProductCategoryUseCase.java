@@ -1,8 +1,8 @@
 package vn.com.be_crm.application.product.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.product.repository.IProductCategoryRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case xóa danh mục hàng hóa. */
 public class DeleteProductCategoryUseCase implements IUseCase<Long, Void> {

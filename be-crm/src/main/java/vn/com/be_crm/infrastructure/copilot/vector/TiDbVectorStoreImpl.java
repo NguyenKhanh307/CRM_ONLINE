@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.domain.copilot.model.VectorHit;
 import vn.com.be_crm.domain.copilot.repository.IVectorStore;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
 import java.util.ArrayList;
 import java.util.List;

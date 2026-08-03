@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { pricingService } from '../services/pricingService';
 import type { CreatePricePolicyProductCategoryPayload } from '../types/pricingTypes';
 
-/** Lấy danh sách danh mục sản phẩm của chính sách. */
+// lấy danh sách danh mục sản phẩm của chính sách
 export function usePolicyProductCategories(policyId: number) {
     return useQuery({
         queryKey: ['price-policy-product-categories', policyId],
@@ -11,11 +11,9 @@ export function usePolicyProductCategories(policyId: number) {
     });
 }
 
-/**
- * Thêm danh mục sản phẩm vào chính sách — BE tự bulk-seed sản phẩm thuộc danh mục vào
- * price_policy_products, nên phải invalidate CẢ danh sách danh mục lẫn danh sách sản phẩm
- * (tab "Sản phẩm" mới thấy các dòng vừa được thêm mà không cần F5 thủ công).
- */
+// thêm danh mục sản phẩm vào chính sách — be tự bulk-seed sản phẩm thuộc danh mục vào
+// price_policy_products, nên phải invalidate CẢ danh sách danh mục lẫn danh sách sản phẩm
+// (tab "Sản phẩm" mới thấy các dòng vừa được thêm mà không cần f5 thủ công)
 export function useCreatePolicyProductCategory(policyId: number) {
     const qc = useQueryClient();
     return useMutation({
@@ -28,7 +26,7 @@ export function useCreatePolicyProductCategory(policyId: number) {
     });
 }
 
-/** Xóa danh mục sản phẩm của chính sách (chỉ xóa marker, giữ nguyên các dòng sản phẩm đã bulk-seed). */
+// xóa danh mục sản phẩm của chính sách (chỉ xóa marker, giữ nguyên các dòng sản phẩm đã bulk-seed)
 export function useDeletePolicyProductCategory(policyId: number) {
     const qc = useQueryClient();
     return useMutation({

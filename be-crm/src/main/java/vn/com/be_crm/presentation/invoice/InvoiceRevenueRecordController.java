@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.invoice.command.*;
 import vn.com.be_crm.application.invoice.dto.*;
 import vn.com.be_crm.application.invoice.query.ListInvoiceRevenueRecordUseCase;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

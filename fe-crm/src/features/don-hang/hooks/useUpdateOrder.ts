@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService } from '../services/orderService';
 import type { UpdateOrderPayload } from '../types/orderTypes';
 
-/** Cập nhật Đơn hàng — invalidate danh sách sau khi thành công. */
+// cập nhật Đơn hàng — invalidate cả danh sách lẫn chi tiết sau khi thành công
 export function useUpdateOrder() {
     const qc = useQueryClient();
     return useMutation({

@@ -10,21 +10,20 @@ interface SortPanelProps {
     onClose: () => void;
 }
 
-/**
- * Panel sắp xếp đa cột.
- * Khi "Automatic sorting" bật → áp dụng ngay.
- * Khi tắt → chờ nhấn Apply.
- */
+// panel sắp xếp đa cột
+// khi "Automatic sorting" bật -> áp dụng ngay; khi tắt -> chờ nhấn Apply
 export const SortPanel = ({ columns, sorting, onApply, onClose }: SortPanelProps) => {
     const sortableCols = columns.filter((c) => c.canSort && c.id !== '__select__');
     const [local, setLocal] = useState<SortingState>(sorting);
     const [autoSort, setAutoSort] = useState(false);
 
+    // cập nhật state cục bộ, áp dụng ngay nếu đang bật auto-sort
     const apply = (next: SortingState) => {
         setLocal(next);
         if (autoSort) onApply(next);
     };
 
+    // đổi hướng sắp xếp (hoặc thêm mới) của một cột
     const setDir = (id: string, desc: boolean) => {
         const exists = local.find((s) => s.id === id);
         const next = exists
@@ -33,11 +32,13 @@ export const SortPanel = ({ columns, sorting, onApply, onClose }: SortPanelProps
         apply(next);
     };
 
+    // thêm một cột vào danh sách sắp xếp
     const addField = (id: string) => {
         if (local.find((s) => s.id === id)) return;
         apply([...local, { id, desc: false }]);
     };
 
+    // bỏ một cột khỏi danh sách sắp xếp
     const removeField = (id: string) => {
         apply(local.filter((s) => s.id !== id));
     };

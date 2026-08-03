@@ -3,7 +3,7 @@ package vn.com.be_crm.infrastructure.product.mapper;
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.product.entity.Product;
 import vn.com.be_crm.domain.product.enums.ProductType;
-import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
+import vn.com.be_crm.core.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.product.entity.ProductHibernate;
 
 import java.math.BigDecimal;

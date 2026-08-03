@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import vn.com.be_crm.application.duplicate.dto.DuplicateMatch;
 import vn.com.be_crm.application.duplicate.query.CheckDuplicateUseCase;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

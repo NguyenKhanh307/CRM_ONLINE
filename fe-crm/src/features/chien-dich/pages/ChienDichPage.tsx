@@ -24,7 +24,7 @@ import { campaignExportColumns } from '../config/campaignExportColumns';
 import { CampaignEditModal } from '../components/CampaignEditModal';
 import type { CampaignResult } from '../types/campaignTypes';
 
-/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+// tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render
 const QUICK_FILTERS = [
     { id: 'draft',     label: 'Nháp',        field: 'status', value: 'draft' },
     { id: 'running',   label: 'Đang chạy',   field: 'status', value: 'running' },
@@ -38,7 +38,7 @@ const ChienDichPage = () => {
     const goCreate = () => navigate('/chien-dich/them-moi');
     usePageShortcuts({ onCreate: can('campaign', 'create') ? goCreate : undefined });
     const { showAlert } = useAlert();
-    // Server-side pagination + search + tag lọc nhanh
+    // server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');
@@ -72,7 +72,7 @@ const ChienDichPage = () => {
 
     const columns = useMemo<ColumnDef<CampaignResult>[]>(() => getCampaignColumns(), []);
 
-    /** Thao tác của một chiến dịch — hiện trong menu chuột phải. */
+    // thao tác của một chiến dịch — hiện trong menu chuột phải
     const rowActions = (c: CampaignResult): RowAction[] => [
         { key: 'detail', label: 'Chi tiết', onClick: () => navigate(`/chien-dich/${c.id}`) },
         ...((c.status === 'draft' || c.status === 'scheduled' || c.status === 'paused') && can('campaign', 'edit')
@@ -174,7 +174,7 @@ const ChienDichPage = () => {
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
                 onExport={async (keys, format) => {
-                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    // không tick dòng -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await campaignService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;

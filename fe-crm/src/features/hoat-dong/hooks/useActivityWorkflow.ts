@@ -1,13 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { activityService } from '../services/activityService';
 
-/** Loại hành động chuyển trạng thái hoạt động. */
+// loại hành động chuyển trạng thái hoạt động
 export type ActivityAction = 'start' | 'complete' | 'cancel';
 
-/**
- * Hook thực hiện hành động chuyển trạng thái hoạt động:
- * start (bắt đầu) / complete (hoàn thành) / cancel (hủy).
- */
+// chạy hành động chuyển trạng thái hoạt động: start (bắt đầu) / complete (hoàn thành) / cancel (hủy)
 export function useActivityWorkflow() {
     const qc = useQueryClient();
     return useMutation({

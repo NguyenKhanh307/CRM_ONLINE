@@ -33,17 +33,17 @@ export const orderService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/orders/handover-bulk', payload),
-    /** Bản ghi liên quan cho trang chi tiết (hóa đơn, hoạt động). */
+    // bản ghi liên quan cho trang chi tiết (hóa đơn, hoạt động)
     getRelated: (id: number) =>
         axiosInstance.get<ApiResponse<OrderRelatedResult>>(`/api/orders/${id}/related`),
-    /** Xác nhận đơn hàng (draft → confirmed). */
+    // xác nhận đơn hàng (draft -> confirmed)
     confirm: (id: number) => axiosInstance.post<ApiResponse<OrderResult>>(`/api/orders/${id}/confirm`),
-    /** Chuyển đơn hàng sang đang xử lý (confirmed → processing). */
+    // chuyển đơn hàng sang đang xử lý (confirmed -> processing)
     process: (id: number) => axiosInstance.post<ApiResponse<OrderResult>>(`/api/orders/${id}/process`),
-    /** Hoàn tất đơn hàng (→ completed). */
+    // hoàn tất đơn hàng (-> completed)
     complete: (id: number) => axiosInstance.post<ApiResponse<OrderResult>>(`/api/orders/${id}/complete`),
-    /** Hủy đơn hàng (→ cancelled). */
+    // hủy đơn hàng (-> cancelled)
     cancel: (id: number) => axiosInstance.post<ApiResponse<OrderResult>>(`/api/orders/${id}/cancel`),
-    /** Xuất hóa đơn từ đơn hàng (1-1). */
+    // xuất hóa đơn từ đơn hàng (1-1)
     createInvoice: (id: number) => axiosInstance.post<ApiResponse<unknown>>(`/api/orders/${id}/create-invoice`),
 };

@@ -33,7 +33,7 @@ const initialState = (assignedUserId: string): HeaderState => ({
     customerId: '', contactId: '', productId: '', invoiceId: '', assignedUserId, description: '',
 });
 
-/** Trang thêm phiếu hỗ trợ mới — hiện bảng dòng hàng trả/đổi khi loại là trả/đổi. */
+// trang thêm phiếu hỗ trợ mới — hiện bảng dòng hàng trả/đổi khi loại là trả/đổi
 const TicketAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
@@ -55,7 +55,7 @@ const TicketAddPage = () => {
     const isReturn = form.type === 'return' || form.type === 'exchange';
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    // hàm cập nhật form và xóa lỗi của đúng những field vừa gõ
     const set = (patch: Partial<HeaderState>) => {
         setForm((p) => ({ ...p, ...patch }));
         setErrors((e) => {
@@ -66,12 +66,12 @@ const TicketAddPage = () => {
     };
     const reset = () => { setForm(initialState(defaultUserId)); setReturnRows([emptyReturnRow()]); setPrefillFrom(null); };
 
-    /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
+    // tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
-    /** Chọn khách hàng → tự điền liên hệ chính (chỉ khi ô liên hệ còn trống). */
+    // hàm chọn khách hàng -> tự điền liên hệ chính (chỉ khi ô liên hệ còn trống)
     const onPickCustomer = async (v: string) => {
-        // Đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai.
+        // đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai
         const base = { ...form, customerId: v, contactId: '' };
         set({ customerId: v, contactId: '' });
         setPrefillFrom(null);
@@ -81,7 +81,7 @@ const TicketAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
     };
 
-    /** Chọn hóa đơn → tự điền khách hàng + liên hệ của hóa đơn đó (chỉ ô còn trống). */
+    // hàm chọn hóa đơn -> tự điền khách hàng + liên hệ của hóa đơn đó (chỉ ô còn trống)
     const onPickInvoice = async (v: string) => {
         set({ invoiceId: v });
         setPrefillFrom(null);
@@ -94,15 +94,16 @@ const TicketAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`hóa đơn «${inv.code}»`); }
     };
 
-    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    // hàm kiểm tra bắt buộc + biên (khớp ràng buộc backend) — trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
             code: !form.code.trim() ? 'Mã phiếu không được để trống' : null,
             subject: !form.subject.trim() ? 'Tiêu đề không được để trống' : null,
         });
 
+    // hàm lưu — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const submit = async (andNew: boolean) => {
-        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
@@ -122,6 +123,7 @@ const TicketAddPage = () => {
             assignedUserId: form.assignedUserId ? Number(form.assignedUserId) : null,
             returnItems: isReturn ? toReturnItemPayloads(returnRows) : [],
         };
+        // bước hỏi xác nhận rồi mới gọi api lưu
         if (!(await confirmCreate('phiếu hỗ trợ'))) return;
         mutate(payload, {
             onSuccess: () => {

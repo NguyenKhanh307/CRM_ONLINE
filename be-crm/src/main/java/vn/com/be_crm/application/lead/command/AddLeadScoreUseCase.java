@@ -3,22 +3,18 @@ package vn.com.be_crm.application.lead.command;
 import vn.com.be_crm.application.lead.dto.LeadResult;
 import vn.com.be_crm.application.lead.mapper.LeadCommandMapper;
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
-import vn.com.be_crm.application.shared.notify.IManagerResolver;
+import vn.com.be_crm.core.notify.port.IManagerResolver;
 import vn.com.be_crm.domain.lead.entity.Lead;
 import vn.com.be_crm.domain.lead.enums.LeadStatus;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
-import vn.com.be_crm.application.shared.tx.ITransactionRunner;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Use case dùng chung để cộng điểm cho tiềm năng (từ web tracking hoặc hoạt động).
- * Khi tổng điểm vượt mốc 50 (lần đầu): tự chuyển status sang qualified và gửi thông báo
- * cho người phụ trách + quản lý trực tiếp của người đó (KHÔNG broadcast toàn bộ nhân viên).
- */
+// cộng điểm cho tiềm năng (dùng chung cho web tracking + hoạt động); vượt mốc 50 lần đầu
+// thì tự chuyển qualified và báo cho người phụ trách + quản lý trực tiếp (không broadcast toàn bộ)
 public class AddLeadScoreUseCase {
-    /** Mốc điểm để đánh giá tiềm năng đủ điều kiện. */
     public static final int QUALIFY_THRESHOLD = 50;
 
     private final ILeadRepository leadRepo;
@@ -26,12 +22,6 @@ public class AddLeadScoreUseCase {
     private final IManagerResolver managerResolver;
     private final ITransactionRunner tx;
 
-    /**
-     * @param leadRepo             port lưu trữ Lead
-     * @param createNotificationUC use case tạo thông báo
-     * @param managerResolver      port tìm quản lý trực tiếp của người phụ trách
-     * @param tx                   bộ chạy transaction
-     */
     public AddLeadScoreUseCase(ILeadRepository leadRepo, CreateNotificationUseCase createNotificationUC,
                                IManagerResolver managerResolver, ITransactionRunner tx) {
         this.leadRepo = leadRepo;
@@ -40,17 +30,11 @@ public class AddLeadScoreUseCase {
         this.tx = tx;
     }
 
-    /**
-     * Cộng điểm cho tiềm năng và xử lý ngưỡng qualified.
-     * Cập nhật điểm + thông báo chạy trong MỘT transaction.
-     * @param leadId ID tiềm năng @param points số điểm cộng thêm
-     * @return LeadResult sau khi cập nhật, hoặc null nếu không tìm thấy tiềm năng
-     */
+    // trả null nếu không tìm thấy tiềm năng; cộng điểm + thông báo chạy trong 1 transaction
     public LeadResult execute(Long leadId, int points) {
         return tx.call(() -> executeInTx(leadId, points));
     }
 
-    /** Thân nghiệp vụ cộng điểm — luôn chạy bên trong transaction. */
     private LeadResult executeInTx(Long leadId, int points) {
         Lead lead = leadRepo.findById(leadId).orElse(null);
         if (lead == null) return null;
@@ -77,7 +61,6 @@ public class AddLeadScoreUseCase {
         return LeadCommandMapper.toResult(saved);
     }
 
-    /** Gửi thông báo "tiềm năng nóng" cho người phụ trách + quản lý trực tiếp của người đó. */
     private void notifyOwners(Lead lead, int score) {
         List<Long> recipients = new ArrayList<>();
         if (lead.getOwnerId() != null) {

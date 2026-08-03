@@ -1,8 +1,8 @@
 package vn.com.be_crm.domain.opportunity.repository;
 
-import vn.com.be_crm.application.shared.dto.DeletedItemResult;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.core.dto.delete.DeletedItemResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
 import vn.com.be_crm.domain.opportunity.entity.OpportunityItem;
 

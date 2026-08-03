@@ -3,41 +3,33 @@ package vn.com.be_crm.infrastructure.lead.repository;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
-import vn.com.be_crm.application.shared.dto.DeletedItemResult;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.core.dto.delete.DeletedItemResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.domain.lead.entity.Lead;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
-import vn.com.be_crm.infrastructure.shared.audit.CurrentUserHolder;
+import vn.com.be_crm.core.audit.CurrentUserHolder;
 import vn.com.be_crm.infrastructure.lead.entity.LeadHibernate;
 import vn.com.be_crm.infrastructure.lead.mapper.LeadHibernateMapper;
-import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
+import vn.com.be_crm.core.util.ListQueryUtils;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
-/**
- * Hibernate implementation của ILeadRepository.
- * Soft delete: deleteById set deleted_at = now().
- */
+// impl Hibernate của ILeadRepository — xóa mềm: deleteById set deleted_at = now()
 @Repository
 public class LeadRepositoryImpl implements ILeadRepository {
     private final SessionFactory sf;
     private final LeadHibernateMapper mapper;
 
-    /**
-     * @param sf     Hibernate SessionFactory
-     * @param mapper mapper domain ↔ hibernate
-     */
     public LeadRepositoryImpl(SessionFactory sf, LeadHibernateMapper mapper) {
         this.sf = sf; this.mapper = mapper;
     }
 
-    /** Lưu mới hoặc cập nhật Lead. @param l domain entity @return entity sau khi lưu */
     @Override public Lead save(Lead l) {
         return TxSupport.write(sf, s -> {
             LeadHibernate m = s.merge(mapper.toHibernate(l));
@@ -45,7 +37,6 @@ public class LeadRepositoryImpl implements ILeadRepository {
         });
     }
 
-    /** Tìm Lead theo ID — chỉ trả về nếu chưa xóa mềm. @param id ID @return Optional */
     @Override public Optional<Lead> findById(Long id) {
         return TxSupport.read(sf, s -> {
             LeadHibernate h = s.find(LeadHibernate.class, id);
@@ -54,7 +45,6 @@ public class LeadRepositoryImpl implements ILeadRepository {
         });
     }
 
-    /** Xóa mềm Lead, ghi nhận người xóa. @param id ID @param deletedBy userId người xóa */
     @Override public void deleteById(Long id, Long deletedBy) {
         TxSupport.writeVoid(sf, s -> {
             LeadHibernate h = s.find(LeadHibernate.class, id);
@@ -62,19 +52,17 @@ public class LeadRepositoryImpl implements ILeadRepository {
             });
     }
 
-    /** Lấy danh sách Lead trong thùng rác (30 ngày). @param userId ID người dùng @param isAdmin admin thấy tất cả @param req phân trang */
+    // thùng rác — chỉ bản ghi xóa mềm trong 30 ngày gần nhất, isAdmin=false thì chỉ của chính mình
     @Override public PageResult<DeletedItemResult> findDeleted(Long userId, boolean isAdmin, PageRequest req) {
         return TxSupport.read(sf, s -> {
-            // Mốc 30 ngày: chỉ hiện bản ghi đã xóa trong 30 ngày gần đây
             LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
-            // Không phải admin → chỉ xem bản ghi do chính mình xóa
             String userFilter = isAdmin ? "" : " AND l.deleted_by = :userId";
-            // Native query LEFT JOIN users để lấy tên người xóa
+            // LEFT JOIN users để lấy tên người xóa
             String sql = "SELECT l.id, l.name, l.deleted_at, u.full_name FROM leads l" +
                     " LEFT JOIN users u ON u.id = l.deleted_by" +
                     " WHERE l.deleted_at IS NOT NULL AND l.deleted_at >= :cutoff AND l.is_purged = 0" +
                     userFilter + " ORDER BY l.deleted_at DESC";
-            // Chạy query phân trang rồi map Object[] → DeletedItemResult (xử lý Timestamp của TiDB)
+            // map Object[] -> DeletedItemResult (TiDB trả java.sql.Timestamp cho cột DATETIME)
             var q = s.createNativeQuery(sql, Object[].class)
                     .setParameter("cutoff", cutoff)
                     .setFirstResult(req.getOffset()).setMaxResults(req.getSize());
@@ -85,7 +73,6 @@ public class LeadRepositoryImpl implements ILeadRepository {
                             row[2] instanceof Timestamp ts ? ts.toLocalDateTime() : (LocalDateTime) row[2],
                             (String) row[3]))
                     .collect(Collectors.toList());
-            // Query đếm tổng số bản ghi đã xóa để phân trang
             String countSql = "SELECT COUNT(*) FROM leads l WHERE l.deleted_at IS NOT NULL AND l.deleted_at >= :cutoff AND l.is_purged = 0" + userFilter;
             var cq = s.createNativeQuery(countSql, Object.class).setParameter("cutoff", cutoff);
             if (!isAdmin) cq.setParameter("userId", userId);
@@ -94,7 +81,6 @@ public class LeadRepositoryImpl implements ILeadRepository {
         });
     }
 
-    /** Khôi phục Lead từ thùng rác. @param id ID */
     @Override public void restoreById(Long id) {
         TxSupport.writeVoid(sf, s -> {
             LeadHibernate h = s.find(LeadHibernate.class, id);
@@ -102,7 +88,6 @@ public class LeadRepositoryImpl implements ILeadRepository {
             });
     }
 
-    /** Ẩn Lead khỏi thùng rác (is_purged = true). @param id ID */
     @Override public void purgeById(Long id) {
         TxSupport.writeVoid(sf, s -> {
             LeadHibernate h = s.find(LeadHibernate.class, id);
@@ -110,7 +95,6 @@ public class LeadRepositoryImpl implements ILeadRepository {
             });
     }
 
-    /** Tìm Lead theo số điện thoại (chưa xóa mềm). @param phone số điện thoại @return Optional */
     @Override public Optional<Lead> findByPhone(String phone) {
         return TxSupport.read(sf, s -> {
             return s.createQuery("FROM LeadHibernate WHERE phone = :phone AND deletedAt IS NULL", LeadHibernate.class)
@@ -119,7 +103,6 @@ public class LeadRepositoryImpl implements ILeadRepository {
         });
     }
 
-    /** Tìm Lead theo email (chưa xóa mềm). @param email email @return Optional */
     @Override public Optional<Lead> findByEmail(String email) {
         return TxSupport.read(sf, s -> {
             return s.createQuery("FROM LeadHibernate WHERE email = :email AND deletedAt IS NULL", LeadHibernate.class)
@@ -128,7 +111,6 @@ public class LeadRepositoryImpl implements ILeadRepository {
         });
     }
 
-    /** Tìm Lead theo mã (chưa xóa mềm) — web tracking. @param code mã @return Optional */
     @Override public Optional<Lead> findByCode(String code) {
         return TxSupport.read(sf, s -> {
             return s.createQuery("FROM LeadHibernate WHERE code = :code AND deletedAt IS NULL", LeadHibernate.class)
@@ -137,17 +119,16 @@ public class LeadRepositoryImpl implements ILeadRepository {
         });
     }
 
-    /** Bàn giao toàn bộ Lead của fromUserId sang toUserId. @param fromUserId @param toUserId */
+    // native SQL bypass Hibernate persistence context -> phải tự ghi updated_by/updated_at
     @Override public void handoverAll(Long fromUserId, Long toUserId) {
         TxSupport.writeVoid(sf, s -> {
-            // Bàn giao đi bằng native SQL (bypass Hibernate) → phải tự ghi updated_by/updated_at
             s.createNativeQuery("UPDATE leads SET owner_id = :toUserId, updated_by = :actor, updated_at = NOW() WHERE owner_id = :fromUserId AND deleted_at IS NULL")
                     .setParameter("toUserId", toUserId).setParameter("fromUserId", fromUserId)
                     .setParameter("actor", CurrentUserHolder.get()).executeUpdate();
             });
     }
 
-    /** Bàn giao hàng loạt Lead sang owner mới. @param ids IDs @param toUserId người nhận @param currentUserId người thực hiện @param isAdminOrManager quyền admin/manager */
+    // isAdminOrManager=false thì chỉ bàn giao được bản ghi currentUserId đang là owner
     @Override public void handoverBulk(List<Long> ids, Long toUserId, Long currentUserId, boolean isAdminOrManager) {
         if (ids == null || ids.isEmpty()) return;
         TxSupport.writeVoid(sf, s -> {
@@ -160,7 +141,6 @@ public class LeadRepositoryImpl implements ILeadRepository {
             });
     }
 
-    /** Lấy danh sách Lead chưa xóa có phân trang, lọc owner/trạng thái + tìm kiếm server-side. @param r phân trang @return PageResult */
     @Override public PageResult<Lead> findAll(PageRequest r) {
         return TxSupport.read(sf, s -> {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";

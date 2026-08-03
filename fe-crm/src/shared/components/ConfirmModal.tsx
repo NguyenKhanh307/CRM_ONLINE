@@ -12,11 +12,9 @@ interface ConfirmModalProps {
     isLoading?: boolean;
 }
 
-/**
- * Modal xác nhận dùng chung — thay thế window.confirm() để đồng nhất giao diện.
- * confirmDanger=true → nút xác nhận màu đỏ (cho hành động nguy hiểm).
- * 4 mũi tên đổi qua lại giữa Hủy và nút xác nhận; Enter kích hoạt nút đang focus.
- */
+// modal xác nhận dùng chung — thay thế window.confirm() để đồng nhất giao diện
+// confirmDanger=true -> nút xác nhận màu đỏ (cho hành động nguy hiểm)
+// 4 mũi tên đổi qua lại giữa Hủy và nút xác nhận; Enter kích hoạt nút đang focus
 export const ConfirmModal = ({
     message,
     onConfirm,

@@ -9,7 +9,7 @@ interface Props {
     lead: LeadResult;
 }
 
-/** Thông tin cột trái của trang chi tiết Tiềm năng. */
+// thông tin cột trái của trang chi tiết Tiềm năng
 export const LeadInfoPanel = ({ lead: l }: Props) => (
     <div>
         <InfoRow label="Mã" value={l.code} />

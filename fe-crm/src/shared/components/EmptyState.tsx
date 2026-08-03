@@ -10,10 +10,8 @@ interface EmptyStateProps {
     importLabel?: string;
 }
 
-/**
- * Empty state dùng chung cho các trang chưa có bản ghi.
- * Hiển thị ảnh minh họa, tiêu đề, mô tả và 2 nút hành động.
- */
+// empty state dùng chung cho các trang chưa có bản ghi
+// hiển thị ảnh minh họa, tiêu đề, mô tả và 2 nút hành động
 export const EmptyState = ({
     illustration,
     title,

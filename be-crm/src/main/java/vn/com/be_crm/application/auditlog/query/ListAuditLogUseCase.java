@@ -1,7 +1,7 @@
 package vn.com.be_crm.application.auditlog.query;
 
 import vn.com.be_crm.application.auditlog.dto.AuditLogEntry;
-import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.domain.auditlog.repository.IAuditLogRepository;
 
 /**

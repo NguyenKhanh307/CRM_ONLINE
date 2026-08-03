@@ -8,7 +8,7 @@ interface ChangeStageVars {
     winLossReason?: string | null;
 }
 
-/** Chuyển thẻ sang cột mới trong dữ liệu cache: cập nhật cả số lượng và tổng tiền của 2 cột. */
+// chuyển thẻ sang cột mới trong dữ liệu cache: cập nhật cả số lượng và tổng tiền của 2 cột
 function moveCard(columns: BoardColumn[], id: number, toStageId: number): BoardColumn[] {
     const card = columns.flatMap(c => c.cards).find(c => c.id === id);
     if (!card) return columns;
@@ -35,10 +35,8 @@ function moveCard(columns: BoardColumn[], id: number, toStageId: number): BoardC
     });
 }
 
-/**
- * Đổi giai đoạn của một cơ hội (kéo-thả trên Kanban), cập nhật lạc quan và tự rollback khi lỗi.
- * @param q Từ khóa tìm kiếm hiện tại của bảng — phải khớp queryKey đang hiển thị.
- */
+// đổi giai đoạn của một cơ hội (kéo-thả trên Kanban), cập nhật lạc quan và tự rollback khi lỗi
+// q: từ khóa tìm kiếm hiện tại của bảng — phải khớp queryKey đang hiển thị
 export function useChangeOpportunityStage(q?: string) {
     const qc = useQueryClient();
     const key = ['opportunities', 'board', q ?? ''];
@@ -55,7 +53,7 @@ export function useChangeOpportunityStage(q?: string) {
         onError: (_err, _vars, ctx) => {
             if (ctx?.previous) qc.setQueryData(key, ctx.previous);
         },
-        // Làm mới cả bảng Kanban lẫn danh sách cơ hội (queryKey ['opportunities'] khớp tiền tố) + trang chi tiết nếu đang mở
+        // làm mới cả bảng Kanban lẫn danh sách cơ hội (queryKey ['opportunities'] khớp tiền tố) + trang chi tiết nếu đang mở
         onSettled: (_d, _e, v) => {
             qc.invalidateQueries({ queryKey: ['opportunities'] });
             qc.invalidateQueries({ queryKey: ['opportunity', v.id] });

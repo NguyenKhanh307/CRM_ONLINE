@@ -10,10 +10,12 @@ interface Props {
 
 type TabKey = 'all' | 'mapped' | 'unmapped';
 
+// bỏ dấu tiếng Việt để so khớp tên cột không phân biệt dấu
 function stripDiacritics(s: string) {
     return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
 
+// tự ghép cột file với field CRM theo nhãn (bỏ dấu, không phân biệt hoa thường)
 function autoMap(headers: string[], fields: ImportField[]): ColumnMapping[] {
     return headers.map(h => {
         const match = fields.find(f => stripDiacritics(f.label) === stripDiacritics(h));
@@ -21,10 +23,12 @@ function autoMap(headers: string[], fields: ImportField[]): ColumnMapping[] {
     });
 }
 
+// dựng mapping ban đầu khi vừa đọc xong file (bước 1 xong -> chuyển bước 2)
 export function buildInitialMappings(fileData: ParsedFileData, fields: ImportField[]): ColumnMapping[] {
     return autoMap(fileData.headers, fields);
 }
 
+// bước 2 của wizard nhập file: ghép cột file với field CRM, có preview 3 dòng đầu
 export const StepMapColumns = ({ fileData, fields, mappings, onMappingsChange }: Props) => {
     const [tab, setTab] = useState<TabKey>('all');
 

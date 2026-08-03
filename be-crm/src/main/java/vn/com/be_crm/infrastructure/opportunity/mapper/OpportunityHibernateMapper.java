@@ -3,7 +3,7 @@ package vn.com.be_crm.infrastructure.opportunity.mapper;
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
 import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
-import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
+import vn.com.be_crm.core.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.opportunity.entity.OpportunityHibernate;
 
 import java.math.BigDecimal;

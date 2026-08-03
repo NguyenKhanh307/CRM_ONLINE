@@ -2,8 +2,8 @@ package vn.com.be_crm.application.opportunity.command;
 
 import vn.com.be_crm.application.opportunity.dto.ImportBulkOpportunityCommand;
 import vn.com.be_crm.application.opportunity.dto.ImportOpportunityRowCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.ImportRowError;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.dto.import_.ImportRowError;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
 import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;

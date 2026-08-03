@@ -2,7 +2,7 @@ package vn.com.be_crm.application.opportunity.query;
 
 import vn.com.be_crm.application.opportunity.dto.OpportunityItemResult;
 import vn.com.be_crm.application.opportunity.mapper.OpportunityItemCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityItemRepository;
 
 import java.util.List;

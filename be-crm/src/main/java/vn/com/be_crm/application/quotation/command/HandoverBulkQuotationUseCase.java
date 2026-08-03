@@ -1,7 +1,7 @@
 package vn.com.be_crm.application.quotation.command;
 
-import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
-import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
+import vn.com.be_crm.core.dto.handover.HandoverBulkCommand;
+import vn.com.be_crm.core.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 
 /**

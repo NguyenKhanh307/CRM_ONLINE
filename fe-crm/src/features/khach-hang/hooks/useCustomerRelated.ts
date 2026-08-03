@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { customerService } from '../services/customerService';
 
-/** Lấy toàn bộ bản ghi liên quan của một khách hàng (trang 360°). */
+// lấy toàn bộ bản ghi liên quan của một khách hàng (trang 360°)
 export function useCustomerRelated(id: number | undefined) {
     return useQuery({
         queryKey: ['customer', id, 'related'],

@@ -1,13 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { campaignService } from '../services/campaignService';
 
-/** Loại hành động chuyển trạng thái Chiến dịch. */
+// loại hành động chuyển trạng thái Chiến dịch
 export type CampaignAction = 'schedule' | 'start' | 'pause' | 'complete' | 'cancel';
 
-/**
- * Hook thực hiện hành động chuyển trạng thái Chiến dịch:
- * schedule / start / pause / complete / cancel.
- */
+// hook thực hiện hành động chuyển trạng thái Chiến dịch: schedule / start / pause / complete / cancel
 export function useCampaignWorkflow() {
     const qc = useQueryClient();
     return useMutation({

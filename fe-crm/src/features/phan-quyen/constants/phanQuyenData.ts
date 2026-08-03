@@ -1,4 +1,4 @@
-/** Ánh xạ module code (từ API) sang nhãn tiếng Việt. */
+// ánh xạ module code (từ API) sang nhãn tiếng Việt
 export const MODULE_LABELS: Record<string, string> = {
     customer: 'Khách hàng',
     lead: 'Tiềm năng',

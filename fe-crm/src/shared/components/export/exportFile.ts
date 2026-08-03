@@ -4,14 +4,14 @@
 import * as XLSX from 'xlsx-js-style';
 import type { ExportColumn, ExportFormat } from './exportTypes';
 
-/** Style tiêu đề khi xuất .xlsx: chữ đậm + nền xanh lá nhạt, theo yêu cầu định dạng xuất file. */
+// style tiêu đề khi xuất .xlsx: chữ đậm + nền xanh lá nhạt, theo yêu cầu định dạng xuất file
 const HEADER_STYLE = {
     font: { bold: true },
     fill: { fgColor: { rgb: 'E2EFDA' } },
     alignment: { vertical: 'center' },
 } as const;
 
-/** Trả về hậu tố ngày dạng yyyymmdd cho tên file. */
+// trả về hậu tố ngày dạng yyyymmdd cho tên file
 function dateSuffix(): string {
     const d = new Date();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -19,14 +19,14 @@ function dateSuffix(): string {
     return `${d.getFullYear()}${mm}${dd}`;
 }
 
-/** Lấy giá trị thuần của một ô từ cột (ưu tiên `format`, fallback `row[key]`). */
+// lấy giá trị thuần của một ô từ cột (ưu tiên `format`, fallback `row[key]`)
 function cellValue<T>(col: ExportColumn<T>, row: T): string | number {
     const raw = col.format ? col.format(row) : (row as Record<string, unknown>)[col.key];
     if (raw == null) return '';
     return typeof raw === 'number' ? raw : String(raw);
 }
 
-/** Tải nội dung text (CSV) xuống dưới dạng file qua Blob + thẻ <a>. */
+// tải nội dung text (CSV) xuống dưới dạng file qua Blob + thẻ <a>
 function downloadText(content: string, fileName: string): void {
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -37,15 +37,8 @@ function downloadText(content: string, fileName: string): void {
     URL.revokeObjectURL(url);
 }
 
-/**
- * Xuất danh sách bản ghi ra file Excel/CSV theo các cột đã chọn.
- *
- * @param rows         Các bản ghi cần xuất.
- * @param columns      Toàn bộ cột khả dụng của phân hệ.
- * @param selectedKeys Khóa các cột người dùng chọn xuất (giữ đúng thứ tự `columns`).
- * @param format       'xlsx' hoặc 'csv'.
- * @param fileName     Tên file (không kèm phần mở rộng); hậu tố ngày được tự thêm.
- */
+// xuất danh sách bản ghi ra file Excel/CSV theo các cột đã chọn
+// selectedKeys giữ đúng thứ tự `columns`; fileName không kèm phần mở rộng, hậu tố ngày được tự thêm
 export function exportRows<T>(
     rows: T[],
     columns: ExportColumn<T>[],
@@ -61,18 +54,18 @@ export function exportRows<T>(
     const name = `${fileName}_${dateSuffix()}`;
 
     if (format === 'csv') {
-        // Prepend BOM để Excel mở CSV UTF-8 (tiếng Việt) không bị lỗi font.
+        // prepend BOM để Excel mở CSV UTF-8 (tiếng Việt) không bị lỗi font
         const csv = '﻿' + XLSX.utils.sheet_to_csv(ws);
         downloadText(csv, `${name}.csv`);
         return;
     }
 
-    // Tiêu đề in đậm + nền xanh lá nhạt (chỉ .xlsx — CSV không có khái niệm style).
+    // tiêu đề in đậm + nền xanh lá nhạt (chỉ .xlsx — CSV không có khái niệm style)
     cols.forEach((_, i) => {
         const cell = ws[XLSX.utils.encode_cell({ r: 0, c: i })];
         if (cell) cell.s = HEADER_STYLE;
     });
-    // Độ rộng cột theo độ dài tiêu đề (tối thiểu 10 ký tự) — dễ đọc hơn mặc định.
+    // độ rộng cột theo độ dài tiêu đề (tối thiểu 10 ký tự) — dễ đọc hơn mặc định
     ws['!cols'] = cols.map((c) => ({ wch: Math.max(10, c.label.length + 2) }));
 
     const wb = XLSX.utils.book_new();

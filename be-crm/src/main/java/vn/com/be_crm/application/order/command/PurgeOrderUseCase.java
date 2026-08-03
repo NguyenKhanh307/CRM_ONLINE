@@ -1,6 +1,6 @@
 package vn.com.be_crm.application.order.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.order.repository.IOrderRepository;
 
 /** Use case ẩn đơn hàng khỏi thùng rác. */

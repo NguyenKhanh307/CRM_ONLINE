@@ -2,8 +2,8 @@ package vn.com.be_crm.application.product.command;
 
 import vn.com.be_crm.application.product.dto.ImportBulkProductCommand;
 import vn.com.be_crm.application.product.dto.ImportProductRowCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.ImportRowError;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.dto.import_.ImportRowError;
 import vn.com.be_crm.domain.product.entity.Product;
 import vn.com.be_crm.domain.product.enums.ProductType;
 import vn.com.be_crm.domain.product.repository.IProductRepository;

@@ -8,9 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-/**
- * Hibernate entity ánh xạ bảng lead_transfers.
- */
+// ánh xạ bảng lead_transfers
 @Entity
 @Table(name = "lead_transfers")
 @Getter @Setter @NoArgsConstructor

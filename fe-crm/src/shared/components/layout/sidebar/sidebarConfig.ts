@@ -22,11 +22,11 @@ export interface NavItem {
     label: string;
     path: string;
     icon: IconType;
-    /** Tên module permission (vd: 'lead', 'order'). Ẩn với ADMIN, hiện khi user có ít nhất 1 quyền trong module. */
+    // tên module permission (vd: 'lead', 'order'). Ẩn với ADMIN, hiện khi user có ít nhất 1 quyền trong module
     module?: string;
-    /** Chỉ hiện với ADMIN. */
+    // chỉ hiện với ADMIN
     adminOnly?: boolean;
-    /** Ẩn với ADMIN — dành cho nhân viên. */
+    // ẩn với ADMIN — dành cho nhân viên
     nonAdminOnly?: boolean;
 }
 
@@ -47,6 +47,6 @@ export const NAV_ITEMS: NavItem[] = [
     { label: 'Phân quyền',   path: '/phan-quyen',          icon: FiShield,       adminOnly: true },
     { label: 'Đăng ký NV',   path: '/dang-ky-nhan-vien',  icon: FiUserPlus,     adminOnly: true },
     { label: 'Nhật ký hệ thống', path: '/nhat-ky-he-thong', icon: FiList,       adminOnly: true },
-    // Thùng rác: mọi role thấy — admin xem/khôi phục toàn bộ, nhân viên chỉ thấy bản ghi mình xóa (BE đã hỗ trợ)
+    // thùng rác: mọi role thấy — admin xem/khôi phục toàn bộ, nhân viên chỉ thấy bản ghi mình xóa (BE đã hỗ trợ)
     { label: 'Thùng rác',    path: '/thung-rac',           icon: FiTrash2 },
 ];

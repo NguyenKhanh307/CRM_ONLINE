@@ -6,7 +6,7 @@ import vn.com.be_crm.application.quotation.command.RespondToQuotationUseCase;
 import vn.com.be_crm.application.quotation.dto.PublicQuotationView;
 import vn.com.be_crm.application.quotation.query.GetQuotationByTokenUseCase;
 import vn.com.be_crm.presentation.pub.request.QuotationRespondRequest;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 /**
  * REST controller công khai (không cần JWT) cho khách hàng xem + phản hồi báo

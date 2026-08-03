@@ -1,7 +1,7 @@
 import { createContext, useMemo, type ReactNode } from 'react';
 import { useAuth } from '@/core/auth/useAuth';
 
-/** Các thao tác có thể gate quyền trên UI. Khớp guard BE (@PreAuthorize). */
+// các thao tác có thể gate quyền trên UI, khớp guard BE (@PreAuthorize)
 export type PermAction =
     | 'view' | 'create' | 'edit' | 'delete'
     | 'import' | 'export' | 'handover'
@@ -15,11 +15,7 @@ interface PermissionContextValue {
     hasRole: (role: string) => boolean;
     hasPermission: (code: string) => boolean;
     hasModuleAccess: (module: string) => boolean;
-    /**
-     * Nguồn sự thật duy nhất cho việc ẩn/hiện nút thao tác — ánh xạ khớp guard BE.
-     * @param module key module (vd 'lead', 'quotation')
-     * @param action thao tác cần kiểm quyền
-     */
+    // nguồn sự thật duy nhất cho việc ẩn/hiện nút thao tác — ánh xạ khớp guard BE
     can: (module: string, action: PermAction) => boolean;
 }
 
@@ -29,10 +25,8 @@ interface PermissionProviderProps {
     children: ReactNode;
 }
 
-/**
- * Provider cung cấp danh sách role của user hiện tại.
- * Phụ thuộc vào AuthProvider — phải đặt bên trong AuthProvider.
- */
+// provider cung cấp danh sách role của user hiện tại
+// phụ thuộc vào AuthProvider — phải đặt bên trong AuthProvider
 export const PermissionProvider = ({ children }: PermissionProviderProps) => {
     const { user } = useAuth();
 

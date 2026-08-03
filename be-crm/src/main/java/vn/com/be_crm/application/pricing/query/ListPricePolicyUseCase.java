@@ -2,9 +2,9 @@ package vn.com.be_crm.application.pricing.query;
 
 import vn.com.be_crm.application.pricing.dto.PricePolicyResult;
 import vn.com.be_crm.application.pricing.mapper.PricePolicyCommandMapper;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyRepository;
 
 import java.util.stream.Collectors;

@@ -13,7 +13,7 @@ interface Props {
 
 interface Btn { action: TicketAction; label: string; icon: IconType; cls: string; }
 
-/** Tính danh sách hành động hợp lệ theo trạng thái + loại phiếu. */
+// tính danh sách hành động hợp lệ theo trạng thái + loại phiếu
 function actionsFor(t: TicketResult): Btn[] {
     const isReturn = t.type === 'return' || t.type === 'exchange';
     const primary = 'bg-primary text-white hover:opacity-90';
@@ -50,7 +50,7 @@ function actionsFor(t: TicketResult): Btn[] {
     }
 }
 
-/** Nút hành động luồng trạng thái phiếu — hiển thị theo status + type. */
+// nút hành động luồng trạng thái phiếu — hiển thị theo status + type
 export function TicketWorkflowButtons({ ticket, onAction }: Props) {
     const btns = actionsFor(ticket);
     if (btns.length === 0) return null;

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.contact.command.*;
 import vn.com.be_crm.application.contact.dto.*;
 import vn.com.be_crm.application.contact.query.ListContactPhoneUseCase;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

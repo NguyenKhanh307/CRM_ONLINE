@@ -38,6 +38,7 @@ const ORDER_STATUS_COLORS: Record<string, string> = {
     completed: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600',
 };
 
+// modal chỉnh sửa Đơn hàng — kèm bảng dòng hàng (diff create/update/delete khi lưu)
 export function OrderEditModal({ item, onClose }: Props) {
     const qc = useQueryClient();
     const { mutateAsync, isPending } = useUpdateOrder();
@@ -75,14 +76,14 @@ export function OrderEditModal({ item, onClose }: Props) {
     }, [item]);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
-    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    // xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
-    /** Tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Báo giá nguồn. */
+    // tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Báo giá nguồn
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
-    /** Đổi báo giá nguồn → tự điền cơ hội còn trống (không đè giá trị đã có). */
+    // đổi báo giá nguồn -> tự điền cơ hội còn trống (không đè giá trị đã có)
     const onPickQuotation = async (v: string) => {
         setForm(f => ({ ...f, quotationId: v ? Number(v) : null }));
         setPrefillFrom(null);
@@ -102,9 +103,11 @@ export function OrderEditModal({ item, onClose }: Props) {
 
     if (!item) return null;
 
+    // lưu đơn hàng + đồng bộ dòng hàng — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+
+        // bước kiểm tra dữ liệu
         const errs = collectErrors({
             deliveryDate: dateRangeError(form.orderDate, form.deliveryDate, 'ngày đặt hàng', 'Ngày giao hàng'),
             items: validateLineItems(rows),
@@ -112,14 +115,18 @@ export function OrderEditModal({ item, onClose }: Props) {
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
 
+        // bước hỏi xác nhận
         if (!(await confirmSave('đơn hàng'))) return;
         setSaving(true);
         try {
+            // bước lưu header (tổng tiền tính lại từ dòng hàng)
             const totals = computeTotals(rows);
             await mutateAsync({
                 id: item.id,
                 payload: { ...form, subtotal: totals.subtotal, discount: totals.discount, tax: totals.tax, total: totals.total },
             });
+
+            // bước đồng bộ dòng hàng theo diff rồi làm mới cache
             const { toCreate, toUpdate, toDelete } = diffLineItems(originalRows, rows);
             await Promise.all([
                 ...toCreate.map((r) => orderService.createItem(item.id, toItemPayload(r))),

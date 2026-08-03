@@ -3,17 +3,13 @@ package vn.com.be_crm.infrastructure.lead.mapper;
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.lead.entity.Lead;
 import vn.com.be_crm.domain.lead.enums.LeadStatus;
-import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
+import vn.com.be_crm.core.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.lead.entity.LeadHibernate;
 
-/** Chuyển đổi giữa Lead domain entity ↔ LeadHibernate. */
+// chuyển đổi giữa Lead domain entity <-> LeadHibernate
 @Component
 public class LeadHibernateMapper {
 
-    /**
-     * Chuyển domain entity sang Hibernate entity.
-     * @param d domain entity @return hibernate entity
-     */
     public LeadHibernate toHibernate(Lead d) {
         LeadHibernate h = new LeadHibernate();
         h.setId(d.getId()); h.setCode(d.getCode()); h.setName(d.getName());
@@ -31,14 +27,11 @@ public class LeadHibernateMapper {
         h.setDoNotCall(d.isDoNotCall()); h.setDoNotEmail(d.isDoNotEmail());
         h.setNote(d.getNote()); h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
-        // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
+        // đóng dấu người tạo/sửa ngay ở đây — cần cho body response của PUT (AuditInterceptor
+        // chỉ chạy lúc flush, response được build trước đó)
         return AuditStamper.stamp(h, d.getCreatedBy(), d.getUpdatedBy());
     }
 
-    /**
-     * Chuyển Hibernate entity sang domain entity.
-     * @param h hibernate entity @return domain entity
-     */
     public Lead toDomain(LeadHibernate h) {
         return Lead.builder()
                 .id(h.getId()).code(h.getCode()).name(h.getName())

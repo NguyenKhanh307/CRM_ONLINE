@@ -3,8 +3,8 @@ package vn.com.be_crm.application.customer.command;
 import vn.com.be_crm.application.customer.dto.CreateCustomerCommand;
 import vn.com.be_crm.application.customer.dto.CustomerResult;
 import vn.com.be_crm.application.customer.mapper.CustomerCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
-import vn.com.be_crm.domain.shared.exception.DomainException;
+import vn.com.be_crm.core.usecase.IUseCase;
+import vn.com.be_crm.core.error.frontend.DomainException;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 
 /** Use case tạo mới khách hàng. */

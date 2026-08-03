@@ -27,7 +27,7 @@ import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
-import { usePricePolicyList } from '@/features/chinh-sach-gia/hooks/usePricePolicyList';
+import { useEligiblePricePolicies } from '@/features/chinh-sach-gia/hooks/useEligiblePricePolicies';
 import { useCreateQuotation } from '../hooks/useCreateQuotation';
 import type { CreateQuotationPayload } from '../types/quotationTypes';
 
@@ -38,13 +38,13 @@ interface HeaderState {
     note: string;
 }
 
-/** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
+// state khởi tạo — người phụ trách mặc định là user đang đăng nhập
 const initialState = (ownerId: string): HeaderState => ({
     code: '', customerId: '', contactId: '', campaignId: '', pricePolicyId: '', opportunityId: '', ownerId, quoteDate: '', validUntil: '',
     currency: 'VND', exchangeRate: '1', note: '',
 });
 
-/** Trang thêm báo giá mới — header + bảng hàng hóa (layout AMIS). */
+// trang thêm báo giá mới — header + bảng hàng hóa (layout AMIS)
 const QuoteAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
@@ -59,7 +59,7 @@ const QuoteAddPage = () => {
     const { data: customers = [] } = useCustomerList();
     const { data: products = [] } = useProductList();
     const { data: campaigns = [] } = useCampaignList();
-    const { data: pricePolicies = [] } = usePricePolicyList();
+    const { data: pricePolicies = [] } = useEligiblePricePolicies(form.customerId ? Number(form.customerId) : undefined);
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
@@ -72,7 +72,7 @@ const QuoteAddPage = () => {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    // cập nhật form và xóa lỗi của đúng những field vừa gõ
     const set = (patch: Partial<HeaderState>) => {
         setForm((p) => ({ ...p, ...patch }));
         setErrors((e) => {
@@ -83,12 +83,12 @@ const QuoteAddPage = () => {
     };
     const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); setPrefillFrom(null); };
 
-    /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
+    // tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
-    /** Chọn khách hàng → tự điền liên hệ chính và người phụ trách (chỉ ô còn trống). */
+    // chọn khách hàng -> tự điền liên hệ chính và người phụ trách (chỉ ô còn trống)
     const onPickCustomer = async (v: string) => {
-        // Đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai.
+        // đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai
         const base = { ...form, customerId: v, contactId: '' };
         set({ customerId: v, contactId: '' });
         setPrefillFrom(null);
@@ -101,7 +101,7 @@ const QuoteAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
     };
 
-    /** Chọn cơ hội nguồn → tự điền bên mua, chiến dịch, chính sách giá (KHÔNG chép dòng hàng, xem README). */
+    // chọn cơ hội nguồn -> tự điền bên mua, chiến dịch, chính sách giá (KHÔNG chép dòng hàng, xem README)
     const onPickOpportunity = async (v: string) => {
         set({ opportunityId: v });
         setPrefillFrom(null);
@@ -117,7 +117,7 @@ const QuoteAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`cơ hội «${o.code}»`); }
     };
 
-    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    // kiểm tra bắt buộc + biên (khớp ràng buộc backend) - trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
             code: !form.code.trim() ? 'Mã báo giá không được để trống' : null,
@@ -127,8 +127,9 @@ const QuoteAddPage = () => {
             items: validateLineItems(rows),
         });
 
+    // lưu form — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const submit = async (andNew: boolean) => {
-        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
@@ -219,7 +220,8 @@ const QuoteAddPage = () => {
 
                 <FormSection title="Hàng hóa">
                     <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax
-                        pricePolicyId={form.pricePolicyId ? Number(form.pricePolicyId) : null} />
+                        pricePolicyId={form.pricePolicyId ? Number(form.pricePolicyId) : null}
+                        customerId={form.customerId ? Number(form.customerId) : null} />
                     {errors.items && <p className="text-xs text-danger mt-1">{errors.items}</p>}
                 </FormSection>
 

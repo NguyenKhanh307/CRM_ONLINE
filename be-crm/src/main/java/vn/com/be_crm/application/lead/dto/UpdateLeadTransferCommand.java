@@ -6,9 +6,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** Input DTO khi cập nhật bản ghi chuyển giao tiềm năng. */
+// input khi cập nhật bản ghi chuyển giao tiềm năng
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class UpdateLeadTransferCommand {
+    // id lấy từ path, KHÔNG @NotNull
     private Long id;
     private Long fromUserId;
     private Long toUserId;

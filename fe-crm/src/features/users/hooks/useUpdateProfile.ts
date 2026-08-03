@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '../services/userService';
 import type { UpdateProfilePayload } from '../types/userTypes';
 
-/** Cập nhật hồ sơ cá nhân (PUT /api/auth/me). */
+// cập nhật hồ sơ cá nhân (PUT /api/auth/me)
 export function useUpdateProfile() {
     const queryClient = useQueryClient();
     return useMutation({

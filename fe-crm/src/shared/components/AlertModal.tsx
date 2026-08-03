@@ -9,10 +9,8 @@ interface AlertModalProps {
     onClose: () => void;
 }
 
-/**
- * Modal thông báo dùng chung — hiển thị message + nút Đóng.
- * Được trigger qua useAlert() hook. Nút Đóng tự focus nên Enter/Esc đóng được ngay.
- */
+// modal thông báo dùng chung — hiển thị message + nút Đóng
+// được trigger qua useAlert() hook. Nút Đóng tự focus nên Enter/Esc đóng được ngay
 export const AlertModal = ({ message, onClose }: AlertModalProps) => {
     const ref = useRef<HTMLDivElement>(null);
     useDialogKeyboardNav(ref, { onCancel: onClose });

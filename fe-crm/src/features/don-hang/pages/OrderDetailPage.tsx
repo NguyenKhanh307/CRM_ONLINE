@@ -25,7 +25,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 type TabKey = 'invoices' | 'activities';
 
-/** Trang chi tiết Đơn hàng — 2 cột: thông tin + hóa đơn xuất ra + hoạt động. */
+// trang chi tiết Đơn hàng — 2 cột: thông tin + hóa đơn xuất ra + hoạt động
 const OrderDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const orderId = Number(id);

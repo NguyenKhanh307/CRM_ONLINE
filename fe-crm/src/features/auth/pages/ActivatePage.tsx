@@ -9,11 +9,9 @@ import { useActivateAccount } from '../hooks/useActivateAccount';
 const inputCls =
     'w-full pl-9 pr-10 py-2 border border-gray-300 rounded-btn text-md text-text-main placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors';
 
-/**
- * Trang kích hoạt tài khoản — standalone, không dùng MainLayout.
- * Nhân viên nhấn link từ email, đặt mật khẩu lần đầu.
- * Lỗi nhập liệu hiện đỏ dưới đúng ô; không dùng popup.
- */
+// trang kích hoạt tài khoản — standalone, không dùng MainLayout
+// nhân viên nhấn link từ email, đặt mật khẩu lần đầu
+// lỗi nhập liệu hiện đỏ dưới đúng ô; không dùng popup
 const ActivatePage = () => {
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token') ?? '';

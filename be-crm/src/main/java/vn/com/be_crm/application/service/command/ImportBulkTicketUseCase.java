@@ -2,8 +2,8 @@ package vn.com.be_crm.application.service.command;
 
 import vn.com.be_crm.application.service.dto.ImportBulkTicketCommand;
 import vn.com.be_crm.application.service.dto.ImportTicketRowCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.ImportRowError;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.dto.import_.ImportRowError;
 import vn.com.be_crm.domain.service.entity.Ticket;
 import vn.com.be_crm.domain.service.enums.ReturnReason;
 import vn.com.be_crm.domain.service.enums.TicketChannel;

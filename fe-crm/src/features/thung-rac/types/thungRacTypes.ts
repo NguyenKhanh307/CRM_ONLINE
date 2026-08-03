@@ -7,7 +7,8 @@ export type TrashModule =
     | 'bao-gia'
     | 'don-hang'
     | 'hoa-don'
-    | 'san-pham';
+    | 'san-pham'
+    | 'cham-soc';
 
 export interface DeletedItemRow {
     id: number;
@@ -31,4 +32,5 @@ export const TRASH_MODULE_LABELS: TrashModuleLabel[] = [
     { id: 'don-hang',   label: 'Đơn hàng' },
     { id: 'hoa-don',    label: 'Hóa đơn' },
     { id: 'san-pham',   label: 'Sản phẩm' },
+    { id: 'cham-soc',   label: 'Chăm sóc' },
 ];

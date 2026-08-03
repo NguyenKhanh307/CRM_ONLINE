@@ -3,20 +3,17 @@ import { formatCurrency, formatNumber } from '@/shared/utils/number';
 import type { ItemResultLike } from '@/shared/components/form/productLineItem';
 import type { ItemPanelColumn } from './RecordItemsPanel';
 
-/** Dòng hàng hiển thị ở panel dưới — như item backend trả về, kèm thành tiền. */
+// dòng hàng hiển thị ở panel dưới — như item backend trả về, kèm thành tiền
 export type LineItemPanelRow = ItemResultLike & { amount: number };
 
 interface Options {
-    /** Hiện cột Thuế (%) — Cơ hội không lưu taxRate trên dòng hàng. */
+    // hiện cột Thuế (%) — Cơ hội không lưu taxRate trên dòng hàng
     showTax?: boolean;
 }
 
-/**
- * Dựng cột cho bảng dòng hàng (chỉ-xem) dùng chung ở Cơ hội / Báo giá / Đơn hàng / Hóa đơn.
- * Mã hàng / Tên hàng / ĐVT được tra từ `productMap` vì item backend chỉ trả `productId`.
- * @param productMap Map productId → sản phẩm
- * @param options Bật/tắt cột Thuế (Cơ hội không có taxRate)
- */
+// dựng cột cho bảng dòng hàng (chỉ-xem) dùng chung ở Cơ hội / Báo giá / Đơn hàng / Hóa đơn
+// mã hàng / tên hàng / ĐVT được tra từ `productMap` vì item backend chỉ trả `productId`;
+// `options.showTax` bật/tắt cột Thuế (Cơ hội không có taxRate)
 export function getLineItemPanelColumns<T extends LineItemPanelRow>(
     productMap: Map<number, ProductResult>,
     options: Options = {},

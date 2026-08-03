@@ -9,22 +9,19 @@ import { BehaviorPanel } from '../components/BehaviorPanel';
 import { LeadContactForm } from '../components/LeadContactForm';
 import { CrmEffectPanel } from '../components/CrmEffectPanel';
 
-/**
- * Trang mô phỏng landing page có gắn web tracking (route công khai `/tracking-demo`).
- *
- * Kịch bản demo đi theo 4 bước đánh số: chọn chiến dịch → mở phiên → sinh hành vi → nộp form,
- * kèm bảng giải thích hệ quả tương ứng bên trong CRM.
- */
+// trang mô phỏng landing page có gắn web tracking (route công khai `/tracking-demo`)
+// kịch bản demo đi theo 4 bước đánh số: chọn chiến dịch -> mở phiên -> sinh hành vi -> nộp form,
+// kèm bảng giải thích hệ quả tương ứng bên trong CRM
 const TrackingDemoPage = () => {
     const [searchParams] = useSearchParams();
     const { data: campaigns = [], isLoading } = useTrackingCampaigns();
     const { lead, events, busy, message, restoring, start, track, submit, reset } = useTrackingSession();
 
     const [picked, setPicked] = useState<number | null>(null);
-    /** Chặn tự mở phiên nhiều lần khi vào bằng link có sẵn utm_campaign. */
+    // chặn tự mở phiên nhiều lần khi vào bằng link có sẵn utm_campaign
     const autoStartedRef = useRef(false);
 
-    /** Mã chiến dịch trên URL — mô phỏng khách bấm vào quảng cáo thật. */
+    // mã chiến dịch trên url — mô phỏng khách bấm vào quảng cáo thật
     const utmCode = searchParams.get(UTM_PARAM);
 
     // Vào bằng link quảng cáo: chọn sẵn chiến dịch và mở phiên luôn, không bắt bấm nút.
@@ -36,8 +33,7 @@ const TrackingDemoPage = () => {
         setPicked(match.id);
         void start(match.id);
     }, [restoring, lead, utmCode, campaigns, start]);
-
-    /** Chiến dịch thực sự đã gắn vào tiềm năng (đọc ngược từ dữ liệu backend trả về). */
+    // chiến dịch thực sự đã gắn vào tiềm năng (đọc ngược từ dữ liệu backend trả về)
     const attached = useMemo(
         () => (lead?.campaignId ? campaigns.find((c) => c.id === lead.campaignId) ?? null : null),
         [lead, campaigns],
@@ -45,6 +41,8 @@ const TrackingDemoPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 px-4 py-10">
+
+
             <div className="mx-auto max-w-3xl space-y-5">
                 <header className="text-center">
                     <h1 className="text-2xl font-bold text-gray-800">Landing page demo — Web Tracking</h1>

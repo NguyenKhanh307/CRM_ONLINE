@@ -84,14 +84,14 @@ export function InvoiceEditModal({ item, onClose }: Props) {
     }, [item]);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
-    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    // xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
-    /** Tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Đơn hàng. */
+    // tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Đơn hàng
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
-    /** Đổi đơn hàng → tự điền báo giá/cơ hội/chiến dịch/MST/địa chỉ còn trống (không đè giá trị đã có). */
+    // đổi đơn hàng -> tự điền báo giá/cơ hội/chiến dịch/MST/địa chỉ còn trống (không đè giá trị đã có)
     const onPickOrder = async (v: string) => {
         setForm(f => ({ ...f, orderId: v ? Number(v) : null }));
         setPrefillFrom(null);
@@ -119,7 +119,7 @@ export function InvoiceEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        // lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
         const errs = collectErrors({
             dueDate: dateRangeError(form.invoiceDate, form.dueDate, 'ngày hóa đơn', 'Hạn thanh toán'),
             items: validateLineItems(rows),

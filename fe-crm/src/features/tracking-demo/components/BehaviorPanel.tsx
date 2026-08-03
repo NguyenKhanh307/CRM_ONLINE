@@ -8,10 +8,8 @@ interface Props {
     onTrack: (action: string, label: string, points: number) => void;
 }
 
-/**
- * Bước 3 — hành vi trên website. Mỗi nút ghi một dòng `lead_tracking_events` ở backend
- * và cộng điểm; nhật ký bên dưới cho thấy đúng thứ tự đã xảy ra trong phiên.
- */
+// bước 3 — hành vi trên website, mỗi nút ghi một dòng `lead_tracking_events` ở backend
+// và cộng điểm; nhật ký bên dưới cho thấy đúng thứ tự đã xảy ra trong phiên
 export const BehaviorPanel = ({ events, busy, onTrack }: Props) => (
     <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
         <div className="flex items-baseline gap-2 mb-1">

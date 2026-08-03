@@ -10,11 +10,8 @@ interface Props {
     onCancel: () => void;
 }
 
-/**
- * Modal chọn nhân viên để giao xử lý phiếu.
- * Bản thân modal đã là bước xác nhận nên không chồng thêm popup; Esc đóng,
- * 4 mũi tên đổi qua lại giữa hai nút footer.
- */
+// modal chọn nhân viên để giao xử lý phiếu — bản thân modal đã là bước xác nhận nên không chồng
+// thêm popup; Esc đóng, 4 mũi tên đổi qua lại giữa hai nút footer
 export function AssignTicketModal({ userOptions, onConfirm, onCancel }: Props) {
     const [userId, setUserId] = useState('');
     const [error, setError] = useState<string | null>(null);

@@ -13,7 +13,7 @@ import vn.com.be_crm.domain.lead.enums.LeadStatus;
 
 import java.math.BigDecimal;
 
-/** Input DTO khi tạo mới tiềm năng. */
+// input khi tạo mới tiềm năng
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class CreateLeadCommand {
     @NotBlank(message = "Mã tiềm năng không được để trống") @Size(max = 20) private String code;

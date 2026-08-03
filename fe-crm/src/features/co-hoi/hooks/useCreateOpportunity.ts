@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { opportunityService } from '../services/opportunityService';
 import type { CreateOpportunityPayload } from '../types/opportunityTypes';
 
-/** Tạo mới cơ hội — invalidate danh sách sau khi thành công. */
+// tạo mới cơ hội — invalidate danh sách sau khi thành công
 export function useCreateOpportunity() {
     const qc = useQueryClient();
     return useMutation({

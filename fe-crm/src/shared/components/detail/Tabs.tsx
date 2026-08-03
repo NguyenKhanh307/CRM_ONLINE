@@ -1,4 +1,4 @@
-/** Một tab: khóa, nhãn, và số lượng bản ghi (tùy chọn) hiện dưới dạng badge. */
+// một tab: khóa, nhãn, và số lượng bản ghi (tùy chọn) hiện dưới dạng badge
 export interface TabDef<K extends string = string> {
     key: K;
     label: string;
@@ -11,10 +11,8 @@ interface TabsProps<K extends string> {
     onChange: (key: K) => void;
 }
 
-/**
- * Thanh tab dùng chung cho trang chi tiết (controlled).
- * Badge số lượng chỉ hiện khi `count` được truyền.
- */
+// thanh tab dùng chung cho trang chi tiết (controlled)
+// badge số lượng chỉ hiện khi `count` được truyền
 export const Tabs = <K extends string>({ tabs, active, onChange }: TabsProps<K>) => (
     <div className="flex border-b border-gray-200 px-4 overflow-x-auto">
         {tabs.map(tab => (

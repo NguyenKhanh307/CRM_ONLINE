@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { customerService } from '../services/customerService';
 
-/** Lấy chi tiết một khách hàng theo ID (trang 360°). */
+// lấy chi tiết một khách hàng theo ID (trang 360°)
 export function useCustomerDetail(id: number | undefined) {
     return useQuery({
         queryKey: ['customer', id],

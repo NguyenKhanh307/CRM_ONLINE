@@ -4,7 +4,7 @@ import vn.com.be_crm.application.service.dto.CreateTicketCommand;
 import vn.com.be_crm.application.service.dto.TicketResult;
 import vn.com.be_crm.application.service.mapper.TicketCommandMapper;
 import vn.com.be_crm.application.service.mapper.TicketReturnItemCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.service.entity.SlaPolicy;
 import vn.com.be_crm.domain.service.entity.Ticket;
 import vn.com.be_crm.domain.service.entity.TicketReturnItem;

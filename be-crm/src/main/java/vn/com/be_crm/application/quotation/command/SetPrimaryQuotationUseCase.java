@@ -4,8 +4,8 @@ import vn.com.be_crm.application.quotation.dto.QuotationResult;
 import vn.com.be_crm.application.quotation.mapper.QuotationCommandMapper;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
-import vn.com.be_crm.domain.shared.exception.DomainException;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.DomainException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Use case đặt một báo giá làm báo giá đồng bộ (primary) của cơ hội —

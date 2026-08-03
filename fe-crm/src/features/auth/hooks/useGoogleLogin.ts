@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/useAuth';
 import { authService, type GoogleLoginPayload } from '../services/authService';
 
-/** Đăng nhập bằng Google — gửi ID token lên BE, lưu session và điều hướng. */
+// đăng nhập bằng Google — gửi id token lên BE, lưu session và điều hướng
 export const useGoogleLogin = () => {
     const { login } = useAuth();
     const navigate = useNavigate();

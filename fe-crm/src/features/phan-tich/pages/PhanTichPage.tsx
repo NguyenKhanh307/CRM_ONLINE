@@ -15,15 +15,13 @@ import { FunnelChart } from '@/features/dashboard/components/FunnelChart';
 import { RankedList } from '@/features/dashboard/components/RankedList';
 import { useRevenueByCampaign } from '../hooks/useRevenueByCampaign';
 
-/** Ép giá trị query param về mã kỳ hợp lệ (mặc định quarter). */
+// ép giá trị query param về mã kỳ hợp lệ (mặc định quarter)
 const toPeriod = (v: string | null): DashboardPeriod =>
     v === 'month' || v === 'year' ? v : 'quarter';
 
-/**
- * Trang "Phân tích so sánh" — đích đến của link trong trợ lý AI Copilot (/phan-tich?period=...).
- * So sánh kỳ này vs kỳ trước (doanh thu/chi phí/lợi nhuận, tỷ lệ thắng, phễu) + so sánh theo
- * nhân viên (chỉ ADMIN/quản lý) và theo chiến dịch. Dữ liệu tái dùng API Dashboard → đồng nhất số liệu.
- */
+// trang "Phân tích so sánh" — đích đến của link trong trợ lý AI Copilot (/phan-tich?period=...)
+// so sánh kỳ này vs kỳ trước (doanh thu/chi phí/lợi nhuận, tỷ lệ thắng, phễu) + so sánh theo
+// nhân viên (chỉ ADMIN/quản lý) và theo chiến dịch; dữ liệu tái dùng API Dashboard -> đồng nhất số liệu
 const PhanTichPage = () => {
     const { hasRole } = usePermission();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -40,7 +38,7 @@ const PhanTichPage = () => {
     const periodLabel = PERIOD_LABEL[period];
     const fmt = (v: number) => formatMoney(v, unit);
 
-    /** Đổi kỳ → ghi lại query param để link chia sẻ được. */
+    // đổi kỳ -> ghi lại query param để link chia sẻ được
     const changePeriod = (p: DashboardPeriod) => setSearchParams({ period: p });
 
     return (

@@ -1,6 +1,6 @@
 package vn.com.be_crm.application.opportunity.command;
 
-import vn.com.be_crm.application.shared.util.LineItemTotals;
+import vn.com.be_crm.core.util.LineItemTotals;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
 import vn.com.be_crm.domain.opportunity.entity.OpportunityItem;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityItemRepository;

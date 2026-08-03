@@ -10,7 +10,7 @@ const STATUS_LABELS: Record<string, string> = {
     active: 'Hoạt động', inactive: 'Không hoạt động', prospect: 'Tiềm năng',
 };
 
-/** Các cột khả dụng khi xuất file phân hệ Khách hàng. */
+// các cột khả dụng khi xuất file phân hệ Khách hàng
 export const customerExportColumns: ExportColumn<CustomerResult>[] = [
     { key: 'code', label: 'Mã KH' },
     { key: 'name', label: 'Tên khách hàng' },

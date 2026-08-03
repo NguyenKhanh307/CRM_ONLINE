@@ -1,6 +1,6 @@
 package vn.com.be_crm.application.quotation.pdf;
 
-import vn.com.be_crm.application.shared.pdf.QuotationPdfData;
+import vn.com.be_crm.core.pdf.port.QuotationPdfData;
 import vn.com.be_crm.domain.customer.entity.Customer;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 import vn.com.be_crm.domain.product.entity.Product;

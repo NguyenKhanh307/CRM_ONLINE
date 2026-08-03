@@ -12,11 +12,8 @@ interface Props {
     onCancel: () => void;
 }
 
-/**
- * Modal chọn hình thức giải quyết + ghi chú (dùng cho resolve / complete).
- * Bản thân modal đã là bước xác nhận nên không chồng thêm popup; Esc đóng,
- * 4 mũi tên đổi qua lại giữa hai nút footer.
- */
+// modal chọn hình thức giải quyết + ghi chú (dùng cho resolve / complete) — bản thân modal đã là
+// bước xác nhận nên không chồng thêm popup; Esc đóng, 4 mũi tên đổi qua lại giữa hai nút footer
 export function ResolutionModal({ title, onConfirm, onCancel }: Props) {
     const [resolutionType, setResolutionType] = useState('');
     const [note, setNote] = useState('');

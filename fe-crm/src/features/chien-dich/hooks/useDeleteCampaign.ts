@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { campaignService } from '../services/campaignService';
 
-/** Xóa Chiến dịch — invalidate danh sách sau khi thành công. */
+// xóa Chiến dịch — invalidate danh sách sau khi thành công
 export function useDeleteCampaign() {
     const qc = useQueryClient();
     return useMutation({

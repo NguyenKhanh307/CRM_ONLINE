@@ -3,12 +3,13 @@ import type { ImportBulkResult, ImportRowError } from './importTypes';
 
 interface Props {
     result: ImportBulkResult;
-    /** Dòng có ngày sai định dạng — trường ngày đã bị bỏ qua (không tính vào successCount/failedCount của BE). */
+    // dòng có ngày sai định dạng — trường ngày đã bị bỏ qua (không tính vào successCount/failedCount của BE)
     dateWarnings?: ImportRowError[];
     backPath: string;
     onReset: () => void;
 }
 
+// bước 4 (cuối) của wizard nhập file: tóm tắt số dòng thành công/thất bại + chi tiết lỗi
 export const StepResult = ({ result, dateWarnings = [], backPath, onReset }: Props) => (
     <div className="max-w-2xl mx-auto space-y-6">
         {/* Summary */}
@@ -29,7 +30,7 @@ export const StepResult = ({ result, dateWarnings = [], backPath, onReset }: Pro
             </div>
         </div>
 
-        {/* Cảnh báo ngày sai định dạng — trường đó bị bỏ qua, dòng vẫn nhập các trường còn lại */}
+        {/* cảnh báo ngày sai định dạng — trường đó bị bỏ qua, dòng vẫn nhập các trường còn lại */}
         {dateWarnings.length > 0 && (
             <div className="bg-amber-50 rounded-card border border-amber-200 overflow-hidden">
                 <div className="px-4 py-3 border-b border-amber-200 bg-amber-100 flex items-center gap-2">

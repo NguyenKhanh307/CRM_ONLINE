@@ -8,7 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
 
-import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+import vn.com.be_crm.core.audit.IAuditable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

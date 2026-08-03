@@ -3,10 +3,10 @@ package vn.com.be_crm.application.activity.command;
 import vn.com.be_crm.application.activity.dto.ActivityResult;
 import vn.com.be_crm.application.activity.dto.UpdateActivityCommand;
 import vn.com.be_crm.application.activity.mapper.ActivityCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.activity.entity.Activity;
 import vn.com.be_crm.domain.activity.repository.IActivityRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case cập nhật hoạt động. */
 public class UpdateActivityUseCase implements IUseCase<UpdateActivityCommand, ActivityResult> {

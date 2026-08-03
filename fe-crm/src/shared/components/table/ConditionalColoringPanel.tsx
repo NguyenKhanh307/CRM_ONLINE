@@ -11,10 +11,7 @@ interface ConditionalColoringPanelProps {
 
 const DEFAULT_COLORS = ['#fadb14', '#ff7875', '#95de64', '#69b1ff', '#b37feb', '#ff9c6e'];
 
-/**
- * Panel tô màu có điều kiện cho cell hoặc row.
- * Thay đổi áp dụng ngay.
- */
+// panel tô màu có điều kiện cho cell hoặc row — thay đổi áp dụng ngay
 export const ConditionalColoringPanel = ({
     columns,
     rules,
@@ -23,6 +20,7 @@ export const ConditionalColoringPanel = ({
 }: ConditionalColoringPanelProps) => {
     const dataCols = columns.filter((c) => c.id !== '__select__');
 
+    // thêm quy tắc mới, tự gán màu kế tiếp trong bảng màu mặc định
     const addRule = () => {
         const colorIdx = rules.length % DEFAULT_COLORS.length;
         const newRule: ConditionalRule = {
@@ -36,10 +34,12 @@ export const ConditionalColoringPanel = ({
         onChange([...rules, newRule]);
     };
 
+    // sửa một quy tắc theo id
     const updateRule = (id: string, patch: Partial<ConditionalRule>) => {
         onChange(rules.map((r) => (r.id === id ? { ...r, ...patch } : r)));
     };
 
+    // xóa một quy tắc theo id
     const removeRule = (id: string) => {
         onChange(rules.filter((r) => r.id !== id));
     };

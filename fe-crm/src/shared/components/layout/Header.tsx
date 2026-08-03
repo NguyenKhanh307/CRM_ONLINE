@@ -8,6 +8,7 @@ interface HeaderProps {
     onToggleSidebar: () => void;
 }
 
+// header chung: hamburger toggle sidebar + slot tiêu đề trang + cụm icon hành động (thông báo/phím tắt/bàn giao/user menu)
 export const Header = ({ onToggleSidebar }: HeaderProps) => {
     return (
         <header className="flex items-center justify-between h-[50px] px-4 bg-white border-b border-gray-200 shrink-0 z-40">

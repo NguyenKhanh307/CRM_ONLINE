@@ -20,7 +20,7 @@ import { getTicketColumns } from '../config/ticketColumns';
 import { ticketExportColumns } from '../config/ticketExportColumns';
 import type { TicketResult } from '../types/ticketTypes';
 
-/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+// tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render
 const QUICK_FILTERS = [
     { id: 'support', label: 'Hỗ trợ', field: 'type', value: 'support' },
     { id: 'return', label: 'Trả hàng', field: 'type', value: 'return' },
@@ -35,7 +35,7 @@ const ChamSocPage = () => {
     usePageShortcuts({ onCreate: can('ticket', 'create') ? goCreate : undefined });
     const [searchParams] = useSearchParams();
     const focusId = searchParams.get('focus');
-    // Server-side pagination + search + tag lọc nhanh (tag Chăm sóc lọc theo `type` — BE map param status → type)
+    // server-side pagination + search + tag lọc nhanh (tag Chăm sóc lọc theo `type` — BE map param status -> type)
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');
@@ -55,7 +55,7 @@ const ChamSocPage = () => {
     const [handoverOpen, setHandoverOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
 
-    // Bấm thông báo (?focus=) → tra code phiếu rồi search theo code để phiếu hiện ra ở trang 1
+    // bấm thông báo (?focus=) -> tra code phiếu rồi search theo code để phiếu hiện ra ở trang 1
     useEffect(() => {
         if (!focusId) return;
         ticketService.getById(Number(focusId))
@@ -150,7 +150,7 @@ const ChamSocPage = () => {
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
                 onExport={async (keys, format) => {
-                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    // không tick dòng -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await ticketService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;

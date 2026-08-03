@@ -25,20 +25,17 @@ export const leadService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/leads/handover-bulk', payload),
-    /** Bản ghi liên quan cho trang chi tiết (cơ hội đã convert + hoạt động). */
+    // bản ghi liên quan cho trang chi tiết (cơ hội đã convert + hoạt động)
     getRelated: (id: number) =>
         axiosInstance.get<ApiResponse<LeadRelatedResult>>(`/api/leads/${id}/related`),
-    /**
-     * Chuyển đổi tiềm năng (qualified → converted).
-     * `customerId` = dùng khách hàng đã có thay vì tạo mới (chống trùng khi phát hiện KH trùng MST/email/SĐT).
-     */
+    // chuyển đổi tiềm năng (qualified -> converted); customerId = dùng khách hàng đã có thay vì
+    // tạo mới (chống trùng khi phát hiện KH trùng MST/email/SĐT)
     convert: (id: number, customerId?: number | null) =>
         axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/convert`, { customerId: customerId ?? null }),
-    /** Đánh dấu tiềm năng đủ điều kiện thủ công (new/contacting → qualified), không cần đủ 50 điểm. */
+    // đánh dấu đủ điều kiện thủ công (new/contacting -> qualified), không cần đủ 50 điểm
     qualify: (id: number) => axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/qualify`),
-    /** Đánh mất tiềm năng (→ lost). */
     lose: (id: number, reason?: string) =>
         axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/lose`, { reason }),
-    /** Nhân viên tự nhận chăm sóc tiềm năng chưa có người phụ trách (pool chung). */
+    // nhân viên tự nhận chăm sóc tiềm năng chưa có người phụ trách (pool chung)
     claim: (id: number) => axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/claim`),
 };

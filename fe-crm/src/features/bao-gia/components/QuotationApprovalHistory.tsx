@@ -14,7 +14,7 @@ const STATUS_CLASS: Record<string, string> = {
     rejected: 'bg-red-100 text-red-600',
 };
 
-/** Định dạng ngày giờ đầy đủ (dd/mm/yyyy HH:mm) từ chuỗi ISO. */
+// định dạng ngày giờ đầy đủ (dd/mm/yyyy HH:mm) từ chuỗi ISO
 function formatDateTime(iso: string | null): string {
     if (!iso) return '';
     const time = new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
@@ -25,10 +25,8 @@ interface Props {
     approvals: QuotationApprovalResult[] | undefined;
 }
 
-/**
- * Lịch sử phê duyệt báo giá — mỗi lần "Gửi duyệt" tạo một bước mới; ghi lại người duyệt,
- * trạng thái và ghi chú/lý do (kể cả lý do từ chối để nhân viên biết cần sửa gì).
- */
+// lịch sử phê duyệt báo giá — mỗi lần "Gửi duyệt" tạo một bước mới; ghi lại người duyệt,
+// trạng thái và ghi chú/lý do (kể cả lý do từ chối để nhân viên biết cần sửa gì)
 export const QuotationApprovalHistory = ({ approvals }: Props) => {
     const { data: users } = useActiveUsers();
     const userName = (id: number | null) => users?.find(u => u.id === id)?.fullName ?? (id ? `#${id}` : '—');

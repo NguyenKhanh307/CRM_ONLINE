@@ -3,13 +3,13 @@ package vn.com.be_crm.application.invoice.command;
 import vn.com.be_crm.application.invoice.dto.CreateInvoicePaymentScheduleCommand;
 import vn.com.be_crm.application.invoice.dto.InvoicePaymentScheduleResult;
 import vn.com.be_crm.application.invoice.mapper.InvoicePaymentScheduleCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.invoice.entity.Invoice;
 import vn.com.be_crm.domain.invoice.entity.InvoicePaymentSchedule;
 import vn.com.be_crm.domain.invoice.repository.IInvoicePaymentScheduleRepository;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
-import vn.com.be_crm.domain.shared.exception.DomainException;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.DomainException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 import java.math.BigDecimal;
 

@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.campaign.entity.Campaign;
 import vn.com.be_crm.domain.campaign.enums.CampaignStatus;
 import vn.com.be_crm.domain.campaign.enums.CampaignType;
-import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
+import vn.com.be_crm.core.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.campaign.entity.CampaignHibernate;
 
 /** Chuyển đổi giữa Campaign domain entity ↔ CampaignHibernate. */

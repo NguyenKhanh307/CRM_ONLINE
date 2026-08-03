@@ -2,7 +2,7 @@ package vn.com.be_crm.application.order.query;
 
 import vn.com.be_crm.application.order.dto.OrderItemResult;
 import vn.com.be_crm.application.order.mapper.OrderItemCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.order.repository.IOrderItemRepository;
 
 import java.util.List;

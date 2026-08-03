@@ -9,7 +9,7 @@ import vn.com.be_crm.application.service.dto.CreateTicketCommentCommand;
 import vn.com.be_crm.application.service.dto.TicketCommentResult;
 import vn.com.be_crm.application.service.query.ListTicketCommentUseCase;
 import vn.com.be_crm.presentation.service.request.CreateTicketCommentRequest;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { campaignService } from '../services/campaignService';
 import type { CreateCampaignPayload } from '../types/campaignTypes';
 
-/** Tạo mới Chiến dịch — invalidate danh sách sau khi thành công. */
+// tạo mới Chiến dịch — invalidate danh sách sau khi thành công
 export function useCreateCampaign() {
     const qc = useQueryClient();
     return useMutation({

@@ -28,7 +28,7 @@ import { invoiceExportColumns } from '../config/invoiceExportColumns';
 import { InvoiceEditModal } from '../components/InvoiceEditModal';
 import type { InvoiceItemResult, InvoiceResult } from '../types/invoiceTypes';
 
-/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+// tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render
 const QUICK_FILTERS = [
     { id: 'draft',          label: 'Nháp',                 field: 'status', value: 'draft' },
     { id: 'sent',           label: 'Đã gửi',               field: 'status', value: 'sent' },
@@ -70,7 +70,7 @@ const HoaDonPage = () => {
     const itemColumns = useMemo(() => getLineItemPanelColumns<InvoiceItemResult>(productMap, { showTax: true }), [productMap]);
 
 
-    /** Chạy một hành động chuyển trạng thái Hóa đơn, báo lỗi qua alert nếu bước chuyển không hợp lệ. */
+    // chạy một hành động chuyển trạng thái Hóa đơn, báo lỗi qua alert nếu bước chuyển không hợp lệ
     const runAction = (id: number, action: InvoiceAction) =>
         workflowFn({ id, action }, {
             onError: (err: unknown) => {
@@ -82,7 +82,7 @@ const HoaDonPage = () => {
 
     const columns = useMemo<ColumnDef<InvoiceResult>[]>(() => getInvoiceColumns(), []);
 
-    /** Thao tác của một hóa đơn — hiện trong menu chuột phải. */
+    // thao tác của một hóa đơn — hiện trong menu chuột phải
     const rowActions = (o: InvoiceResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/hoa-don/${o.id}`) },
         ...(o.status === 'draft' && can('invoice', 'approve')
@@ -197,7 +197,7 @@ const HoaDonPage = () => {
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
                 onExport={async (keys, format) => {
-                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    // không tick dòng -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await invoiceService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;

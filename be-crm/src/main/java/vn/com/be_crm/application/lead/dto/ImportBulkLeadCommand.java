@@ -2,7 +2,7 @@ package vn.com.be_crm.application.lead.dto;
 
 import java.util.List;
 
-/** Lệnh nhập hàng loạt Lead từ file Excel/CSV. */
+// lệnh nhập hàng loạt Lead từ file Excel/CSV
 public record ImportBulkLeadCommand(
         String importType,
         String ownerMode,

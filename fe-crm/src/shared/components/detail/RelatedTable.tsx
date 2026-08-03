@@ -6,26 +6,26 @@ import { formatISODate } from '../../utils/date';
 import { formatCurrency } from '../../utils/number';
 import { ScrollFrame } from '../table/ScrollFrame';
 
-/** Cột hiển thị của bảng bản ghi liên quan — mỗi tab tự chọn cột và nhãn phù hợp. */
+// cột hiển thị của bảng bản ghi liên quan — mỗi tab tự chọn cột và nhãn phù hợp
 export interface RelatedColumn {
     key: keyof RelatedRecord;
     label: string;
     align?: 'left' | 'right';
-    /** Ghi đè cách render (mặc định: date → dd/mm/yyyy, amount → tiền tệ, còn lại → chuỗi). */
+    // ghi đè cách render (mặc định: date -> dd/mm/yyyy, amount -> tiền tệ, còn lại -> chuỗi)
     render?: (row: RelatedRecord) => ReactNode;
 }
 
 interface RelatedTableProps {
     group: RelatedGroup | undefined;
     columns: RelatedColumn[];
-    /** Phân hệ — dùng cho link "xem trong danh sách" khi số bản ghi vượt quá số dòng đã nạp. */
+    // phân hệ — dùng cho link "xem trong danh sách" khi số bản ghi vượt quá số dòng đã nạp
     module: RelatedModule;
     emptyText: string;
-    /** Số dòng thấy được mà không cần cuộn; phần dư cuộn trong khung riêng của bảng. */
+    // số dòng thấy được mà không cần cuộn; phần dư cuộn trong khung riêng của bảng
     visibleRows?: number;
 }
 
-/** Giá trị mặc định của một ô theo kiểu dữ liệu. */
+// giá trị mặc định của một ô theo kiểu dữ liệu
 const defaultCell = (row: RelatedRecord, key: keyof RelatedRecord): ReactNode => {
     const v = row[key];
     if (v === null || v === undefined || v === '') return '—';
@@ -34,10 +34,8 @@ const defaultCell = (row: RelatedRecord, key: keyof RelatedRecord): ReactNode =>
     return String(v);
 };
 
-/**
- * Bảng bản ghi liên quan (chỉ đọc) trên trang chi tiết 360°.
- * Bấm một dòng → mở bản ghi đó (trang chi tiết nếu có, ngược lại nhảy về danh sách + focus dòng).
- */
+// bảng bản ghi liên quan (chỉ đọc) trên trang chi tiết 360°
+// bấm một dòng -> mở bản ghi đó (trang chi tiết nếu có, ngược lại nhảy về danh sách + focus dòng)
 export const RelatedTable = ({ group, columns, module, emptyText, visibleRows = 10 }: RelatedTableProps) => {
     const navigate = useNavigate();
     const items = group?.items ?? [];

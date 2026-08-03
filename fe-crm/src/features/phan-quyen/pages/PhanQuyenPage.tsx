@@ -22,13 +22,13 @@ type ModalState =
     | { type: 'create' }
     | { type: 'edit'; group: RoleGroup };
 
-/** Trang quản lý nhóm người dùng và phân quyền. */
+// trang quản lý nhóm người dùng và phân quyền
 const PhanQuyenPage = () => {
     const { showAlert } = useAlert();
     const { confirm } = useConfirm();
     const [selectedGroup, setSelectedGroup] = useState<RoleGroup | null>(null);
     const [deleteConfirmGroup, setDeleteConfirmGroup] = useState<RoleGroup | null>(null);
-    /** Tab Phân quyền đang có thay đổi chưa lưu — chặn rời đi làm mất dữ liệu. */
+    // tab Phân quyền đang có thay đổi chưa lưu — chặn rời đi làm mất dữ liệu
     const [permissionsDirty, setPermissionsDirty] = useState(false);
 
     const getErrorMsg = (err: unknown): string => {
@@ -44,7 +44,7 @@ const PhanQuyenPage = () => {
     const updateMutation = useUpdateGroup();
     const deleteMutation = useDeleteGroup();
 
-    /** Hỏi trước khi bỏ các thay đổi quyền chưa lưu. Trả true nếu được phép rời đi. */
+    // hỏi trước khi bỏ các thay đổi quyền chưa lưu, trả true nếu được phép rời đi
     const canLeavePermissions = useCallback(async () => {
         if (!permissionsDirty) return true;
         const ok = await confirm({

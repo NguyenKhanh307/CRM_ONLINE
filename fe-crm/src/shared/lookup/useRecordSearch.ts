@@ -9,19 +9,16 @@ import { invoiceService } from '@/features/hoa-don/services/invoiceService';
 import type { PageParams } from '@/shared/types/api';
 import type { SelectOption } from '@/shared/components/SearchableSelect';
 
-/** Phân hệ có thể chọn bằng ô tìm kiếm bản ghi. */
+// phân hệ có thể chọn bằng ô tìm kiếm bản ghi
 export type RecordModule =
     | 'customer' | 'contact' | 'lead' | 'opportunity' | 'quotation' | 'order' | 'invoice';
 
-/** Số bản ghi trả về mỗi lần tìm — vừa đủ một danh sách thả xuống. */
+// số bản ghi trả về mỗi lần tìm — vừa đủ một danh sách thả xuống
 const PAGE_SIZE = 20;
 
-/**
- * Cách tìm + cách dựng nhãn của từng phân hệ.
- *
- * Cột backend tìm được (`ListQueryUtils.likeClause`) khác nhau nên `hint` nói rõ cho người dùng:
- * quotation/order/invoice **chỉ tìm theo mã**, còn lead/customer/opportunity tìm cả tên.
- */
+// cách tìm + cách dựng nhãn của từng phân hệ
+// cột backend tìm được (ListQueryUtils.likeClause) khác nhau nên hint nói rõ cho người dùng:
+// quotation/order/invoice CHỈ tìm theo mã, còn lead/customer/opportunity tìm cả tên
 const SOURCES: Record<RecordModule, {
     hint: string;
     fetch: (params: PageParams) => Promise<SelectOption[]>;
@@ -72,21 +69,13 @@ const SOURCES: Record<RecordModule, {
     },
 };
 
-/** Gợi ý đặt trong ô tìm kiếm của từng phân hệ. */
+// gợi ý đặt trong ô tìm kiếm của từng phân hệ
 export const searchHintOf = (module: RecordModule) => SOURCES[module].hint;
 
-/**
- * Tìm bản ghi phía server cho ô chọn khóa ngoại trong form.
- *
- * Dùng thay cho các hook `use*List` nạp sẵn một trang khi bảng nguồn lớn (liên hệ / tiềm năng /
- * cơ hội / báo giá / đơn hàng / hóa đơn đều hàng chục nghìn dòng): nạp 500 dòng rồi lọc tại chỗ thì
- * bản ghi cần tìm gần như chắc chắn nằm ngoài trang đó, người dùng gõ gì cũng "Không tìm thấy".
- *
- * @param module  phân hệ cần tìm
- * @param q       từ khóa (đã debounce bởi `SearchableSelect`)
- * @param params  tham số thu hẹp thêm, vd `{ customerId }` cho liên hệ
- * @param enabled tắt hẳn truy vấn khi chưa cần (vd chưa chọn loại đối tượng)
- */
+// tìm bản ghi phía server cho ô chọn khóa ngoại trong form
+// dùng thay cho các hook use*List nạp sẵn một trang khi bảng nguồn lớn (liên hệ / tiềm năng /
+// cơ hội / báo giá / đơn hàng / hóa đơn đều hàng chục nghìn dòng): nạp 500 dòng rồi lọc tại chỗ thì
+// bản ghi cần tìm gần như chắc chắn nằm ngoài trang đó, người dùng gõ gì cũng "Không tìm thấy"
 export function useRecordSearch(
     module: RecordModule | '',
     q: string,

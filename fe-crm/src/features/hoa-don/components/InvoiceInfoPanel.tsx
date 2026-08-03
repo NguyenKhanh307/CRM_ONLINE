@@ -11,7 +11,7 @@ interface Props {
     invoice: InvoiceResult;
 }
 
-/** Thông tin cột trái của trang chi tiết Hóa đơn. */
+// thông tin cột trái của trang chi tiết Hóa đơn
 export const InvoiceInfoPanel = ({ invoice: i }: Props) => (
     <div>
         <InfoRow label="Mã" value={i.code} />

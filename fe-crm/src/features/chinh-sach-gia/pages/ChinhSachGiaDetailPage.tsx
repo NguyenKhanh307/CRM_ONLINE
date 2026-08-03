@@ -6,6 +6,7 @@ import { PricePolicyFormModal } from '../components/PricePolicyFormModal';
 import { PolicyProductsTab } from '../components/tabs/PolicyProductsTab';
 import { PolicyProductCategoriesTab } from '../components/tabs/PolicyProductCategoriesTab';
 import { PolicyCustomersTab } from '../components/tabs/PolicyCustomersTab';
+import { PolicyEmployeesTab } from '../components/tabs/PolicyEmployeesTab';
 import type { PricePolicyStatus } from '../types/pricingTypes';
 
 const STATUS_LABEL: Record<PricePolicyStatus, string> = {
@@ -23,6 +24,7 @@ const TABS = [
     { key: 'products',         label: 'Sản phẩm' },
     { key: 'productCategories', label: 'Danh mục sản phẩm' },
     { key: 'customers',        label: 'Khách hàng' },
+    { key: 'employees',        label: 'Nhân viên áp dụng' },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -97,6 +99,7 @@ const ChinhSachGiaDetailPage = () => {
                     {activeTab === 'products'          && <PolicyProductsTab policyId={policyId} />}
                     {activeTab === 'productCategories' && <PolicyProductCategoriesTab policyId={policyId} />}
                     {activeTab === 'customers'         && <PolicyCustomersTab policyId={policyId} />}
+                    {activeTab === 'employees'         && <PolicyEmployeesTab policyId={policyId} />}
                 </div>
             </div>
 

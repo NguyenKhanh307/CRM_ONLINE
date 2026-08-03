@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ticketService } from '../services/ticketService';
 
-/** Lấy danh sách ghi chú / lịch sử của một phiếu. */
+// lấy danh sách ghi chú / lịch sử của một phiếu
 export function useTicketComments(ticketId: number | undefined) {
     return useQuery({
         queryKey: ['ticket-comments', ticketId],
@@ -10,7 +10,7 @@ export function useTicketComments(ticketId: number | undefined) {
     });
 }
 
-/** Thêm ghi chú (note) cho phiếu — invalidate danh sách ghi chú. */
+// thêm ghi chú (note) cho phiếu — invalidate danh sách ghi chú
 export function useCreateTicketComment(ticketId: number) {
     const qc = useQueryClient();
     return useMutation({

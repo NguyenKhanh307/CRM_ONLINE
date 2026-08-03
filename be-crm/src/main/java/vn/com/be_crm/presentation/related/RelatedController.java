@@ -23,8 +23,8 @@ import vn.com.be_crm.application.related.query.GetLeadRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetOpportunityRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetOrderRelatedUseCase;
 import vn.com.be_crm.application.related.query.GetQuotationRelatedUseCase;
-import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.util.SecurityUtils;
+import vn.com.be_crm.core.response.ApiResponse;
 
 /**
  * REST controller cho trang chi tiết 360° — trả bản ghi liên quan của một bản ghi cha.

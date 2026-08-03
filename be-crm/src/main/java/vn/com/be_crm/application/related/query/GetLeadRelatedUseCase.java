@@ -4,8 +4,8 @@ import vn.com.be_crm.application.related.dto.LeadRelatedResult;
 import vn.com.be_crm.domain.lead.entity.Lead;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.domain.related.repository.IRelatedRepository;
-import vn.com.be_crm.domain.shared.exception.ForbiddenException;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.ForbiddenException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Lấy bản ghi liên quan của một tiềm năng cho trang chi tiết 360°.

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/** Output DTO cho LeadTransfer. */
+// output cho LeadTransfer
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class LeadTransferResult {
     private Long id;

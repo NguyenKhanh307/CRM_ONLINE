@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { trashService } from '../services/trashService';
 import type { TrashModule } from '../types/thungRacTypes';
 
-/** Map route-slug của thùng rác sang queryKey danh sách chính của module (dùng khi khôi phục). */
+// map route-slug của thùng rác sang queryKey danh sách chính của module (dùng khi khôi phục)
 const TRASH_TO_LIST_KEY: Record<TrashModule, string> = {
     'chien-dich': 'campaigns',
     'tiem-nang': 'leads',
@@ -13,9 +13,10 @@ const TRASH_TO_LIST_KEY: Record<TrashModule, string> = {
     'don-hang': 'orders',
     'hoa-don': 'invoices',
     'san-pham': 'products',
+    'cham-soc': 'tickets',
 };
 
-/** Lấy danh sách bản ghi đã xóa của một module (phân trang). */
+// lấy danh sách bản ghi đã xóa của một module (phân trang)
 export function useDeletedItems(module: TrashModule, page = 0, size = 20) {
     return useQuery({
         queryKey: ['trash', module, page, size],
@@ -24,7 +25,7 @@ export function useDeletedItems(module: TrashModule, page = 0, size = 20) {
     });
 }
 
-/** Khôi phục bản ghi đã xóa từ thùng rác — làm mới cả tab thùng rác lẫn danh sách chính (bản ghi hiện lại). */
+// khôi phục bản ghi đã xóa từ thùng rác — làm mới cả tab thùng rác lẫn danh sách chính (bản ghi hiện lại)
 export function useRestore(module: TrashModule) {
     const qc = useQueryClient();
     return useMutation({
@@ -36,7 +37,7 @@ export function useRestore(module: TrashModule) {
     });
 }
 
-/** Xóa vĩnh viễn bản ghi khỏi thùng rác. */
+// xóa vĩnh viễn bản ghi khỏi thùng rác
 export function usePurge(module: TrashModule) {
     const qc = useQueryClient();
     return useMutation({

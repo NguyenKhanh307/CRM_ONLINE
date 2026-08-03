@@ -15,7 +15,7 @@ interface Props {
     isLoading: boolean;
 }
 
-/** Modal tạo mới hoặc chỉnh sửa tên/mô tả nhóm. */
+// modal tạo mới hoặc chỉnh sửa tên/mô tả nhóm
 const GroupFormModal = ({ mode, group, onClose, onSubmit, isLoading }: Props) => {
     const [code, setCode] = useState('');
     const [name, setName] = useState('');

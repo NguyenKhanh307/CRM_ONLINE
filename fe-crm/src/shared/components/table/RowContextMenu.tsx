@@ -3,27 +3,25 @@ import { createPortal } from 'react-dom';
 import type { RowAction } from '@/shared/types/table';
 
 interface Props {
-    /** Toạ độ con trỏ lúc chuột phải (clientX/clientY). */
+    // toạ độ con trỏ lúc chuột phải (clientX/clientY)
     x: number;
     y: number;
     actions: RowAction[];
     onClose: () => void;
 }
 
-/** Khoảng cách tối thiểu tới mép màn hình khi phải lật menu vào trong. */
+// khoảng cách tối thiểu tới mép màn hình khi phải lật menu vào trong
 const EDGE_GAP = 8;
 
-/**
- * Menu chuột phải cho một dòng bảng — thay cho cột "Thao tác" cũ.
- * Render qua portal + `position: fixed` (giống SearchableSelect) để không bị
- * container `overflow-auto` của bảng cắt mất. Tự lật vào trong khi chạm mép màn hình.
- * Đóng khi: click ngoài, phím Escape, cuộn trang, resize, hoặc sau khi chọn một mục.
- */
+// menu chuột phải cho một dòng bảng — thay cho cột "Thao tác" cũ
+// render qua portal + `position: fixed` (giống SearchableSelect) để không bị
+// container `overflow-auto` của bảng cắt mất. Tự lật vào trong khi chạm mép màn hình
+// đóng khi: click ngoài, phím Escape, cuộn trang, resize, hoặc sau khi chọn một mục
 export const RowContextMenu = ({ x, y, actions, onClose }: Props) => {
     const panelRef = useRef<HTMLDivElement>(null);
     const [pos, setPos] = useState({ top: y, left: x });
 
-    // Lật vào trong nếu tràn mép phải/dưới — đo sau khi menu đã render (trước khi trình duyệt vẽ).
+    // lật vào trong nếu tràn mép phải/dưới — đo sau khi menu đã render (trước khi trình duyệt vẽ)
     useLayoutEffect(() => {
         const el = panelRef.current;
         if (!el) return;
@@ -56,7 +54,7 @@ export const RowContextMenu = ({ x, y, actions, onClose }: Props) => {
         };
     }, [onClose]);
 
-    /** Chèn đường kẻ ngay trước mục danger đầu tiên (tách "Xóa" khỏi nhóm còn lại). */
+    // chèn đường kẻ ngay trước mục danger đầu tiên (tách "Xóa" khỏi nhóm còn lại)
     const firstDangerIndex = actions.findIndex((a) => a.danger);
 
     return createPortal(

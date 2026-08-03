@@ -10,7 +10,7 @@ import vn.com.be_crm.application.notification.dto.NotificationResult;
 import vn.com.be_crm.application.notification.query.CountUnreadNotificationsUseCase;
 import vn.com.be_crm.application.notification.query.ListMyNotificationsUseCase;
 import vn.com.be_crm.presentation.notification.request.DeleteNotificationsRequest;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

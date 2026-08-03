@@ -55,7 +55,7 @@ const CONFIRM_CONFIG: Record<ConfirmType, { message: (name: string) => string; l
     },
 };
 
-/** Tab danh sách thành viên của nhóm. */
+// tab danh sách thành viên của nhóm
 const MembersTab = ({ roleId }: Props) => {
     const [showModal, setShowModal] = useState(false);
     const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
@@ -74,7 +74,7 @@ const MembersTab = ({ roleId }: Props) => {
     const reactivateMutation = useReactivateUser(roleId);
     const updateYearMutation = useUpdateDataAccess(roleId);
 
-    // Mỗi người chỉ thuộc một nhóm — loại người đã có nhóm (bất kỳ) khỏi modal thêm thành viên.
+    // mỗi người chỉ thuộc một nhóm — loại người đã có nhóm (bất kỳ) khỏi modal thêm thành viên
     const assignedUserIds = useMemo(() => new Set(userRoleAssignments.map(ur => ur.userId)), [userRoleAssignments]);
 
     const activeMutation = confirmState?.type === 'remove' ? removeMutation
@@ -118,7 +118,7 @@ const MembersTab = ({ roleId }: Props) => {
 
     const confirmEditYear = async (userId: number) => {
         const year = yearInput ? parseInt(yearInput, 10) : null;
-        // Lỗi nhập liệu hiện đỏ ngay dưới ô, không dùng popup.
+        // lỗi nhập liệu hiện đỏ ngay dưới ô, không dùng popup
         if (yearInput && (isNaN(year!) || year! < 2000 || year! > 2100)) {
             setYearError('Năm phải từ 2000 đến 2100');
             return;

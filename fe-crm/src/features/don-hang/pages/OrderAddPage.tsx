@@ -39,7 +39,7 @@ interface HeaderState {
     billingAddress: string; taxCode: string; note: string;
 }
 
-/** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
+// state khởi tạo — người phụ trách mặc định là user đang đăng nhập
 const initialState = (ownerId: string): HeaderState => ({
     code: '', orderDate: '', deliveryDate: '', customerId: '', contactId: '', campaignId: '',
     quotationId: '', opportunityId: '',
@@ -47,7 +47,7 @@ const initialState = (ownerId: string): HeaderState => ({
     billingAddress: '', taxCode: '', note: '',
 });
 
-/** Trang thêm Đơn hàng mới — header + bảng hàng hóa (layout AMIS). */
+// trang thêm Đơn hàng mới — header + bảng hàng hóa (layout AMIS)
 const OrderAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
@@ -73,7 +73,7 @@ const OrderAddPage = () => {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    // cập nhật form và xóa lỗi của đúng những field vừa gõ
     const set = (patch: Partial<HeaderState>) => {
         setForm((p) => ({ ...p, ...patch }));
         setErrors((e) => {
@@ -84,12 +84,12 @@ const OrderAddPage = () => {
     };
     const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); setPrefillFrom(null); };
 
-    /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
+    // tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
-    /** Chọn khách hàng → tự điền liên hệ chính, MST, địa chỉ xuất HĐ, người phụ trách (chỉ ô còn trống). */
+    // chọn khách hàng -> tự điền liên hệ chính, MST, địa chỉ xuất HĐ, người phụ trách (chỉ ô còn trống)
     const onPickCustomer = async (v: string) => {
-        // Đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai.
+        // đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai
         const base = { ...form, customerId: v, contactId: '' };
         set({ customerId: v, contactId: '' });
         setPrefillFrom(null);
@@ -104,7 +104,7 @@ const OrderAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
     };
 
-    /** Chọn báo giá nguồn → tự điền bên mua + cơ hội + chiến dịch (KHÔNG chép dòng hàng, xem README). */
+    // chọn báo giá nguồn -> tự điền bên mua + cơ hội + chiến dịch (KHÔNG chép dòng hàng, xem README)
     const onPickQuotation = async (v: string) => {
         set({ quotationId: v });
         setPrefillFrom(null);
@@ -120,7 +120,7 @@ const OrderAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`báo giá «${q.code}»`); }
     };
 
-    /** Chọn cơ hội → tự điền bên mua + chiến dịch. */
+    // chọn cơ hội -> tự điền bên mua + chiến dịch
     const onPickOpportunity = async (v: string) => {
         set({ opportunityId: v });
         setPrefillFrom(null);
@@ -135,7 +135,7 @@ const OrderAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`cơ hội «${o.code}»`); }
     };
 
-    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    // kiểm tra bắt buộc + biên (khớp ràng buộc backend) - trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
             code: !form.code.trim() ? 'Mã Đơn hàng không được để trống' : null,
@@ -145,12 +145,14 @@ const OrderAddPage = () => {
             items: validateLineItems(rows),
         });
 
+    // hàm lưu — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const submit = async (andNew: boolean) => {
-        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
 
+        // bước dựng payload (tổng tiền tính từ dòng hàng)
         const totals = computeTotals(rows);
         const payload: CreateOrderPayload = {
             code: form.code.trim(),
@@ -173,6 +175,7 @@ const OrderAddPage = () => {
             note: form.note || null,
             items: toItemPayloads(rows),
         };
+        // bước hỏi xác nhận rồi gọi api lưu
         if (!(await confirmCreate('đơn hàng'))) return;
         mutate(payload, {
             onSuccess: () => {

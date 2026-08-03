@@ -21,7 +21,7 @@ export interface UpdateCustomerPayload {
     ownerId: number | null;
 }
 
-/** Payload tạo mới khách hàng — POST /api/customers. */
+// payload tạo mới khách hàng — POST /api/customers
 export interface CreateCustomerPayload {
     code: string;
     name: string;
@@ -78,4 +78,23 @@ export interface CustomerResult {
     ownerName: string | null;
     createdByName: string | null;
     updatedByName: string | null;
+}
+
+export type CustomerSharePermission = 'view' | 'edit';
+
+// một lượt chia sẻ khách hàng cho user khác xem/sửa — GET /api/customers/{id}/shares
+export interface CustomerShareResult {
+    id: number;
+    customerId: number;
+    userId: number;
+    permission: CustomerSharePermission | null;
+    sharedBy: number | null;
+    createdAt: string;
+}
+
+// payload gán chia sẻ mới — POST /api/customers/{id}/shares
+export interface AssignCustomerSharePayload {
+    userId: number;
+    permission: CustomerSharePermission | null;
+    sharedBy: number | null;
 }

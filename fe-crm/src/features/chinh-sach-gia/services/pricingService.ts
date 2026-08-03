@@ -20,10 +20,13 @@ import type {
 export const pricingService = {
     getList: (params?: PageParams) =>
         axiosInstance.get<ApiResponse<PageResult<PricePolicyResult>>>('/api/price-policies', { params }),
-    /** Tra cứu đơn giá & chiết khấu theo chính sách giá cho một sản phẩm + số lượng. */
-    resolve: (pricePolicyId: number, productId: number, quantity: number) =>
+    // chính sách giá mà người dùng hiện tại (và khách hàng đang chọn, nếu có) được phép sử dụng — dùng cho dropdown form
+    getEligibleList: (params?: { customerId?: number }) =>
+        axiosInstance.get<ApiResponse<PricePolicyResult[]>>('/api/price-policies/eligible', { params }),
+    // tra cứu đơn giá & chiết khấu theo chính sách giá cho một sản phẩm + số lượng
+    resolve: (pricePolicyId: number, productId: number, quantity: number, customerId?: number | null) =>
         axiosInstance.get<ApiResponse<ResolvePriceResult>>('/api/pricing/resolve', {
-            params: { pricePolicyId, productId, quantity },
+            params: { pricePolicyId, productId, quantity, customerId: customerId ?? undefined },
         }),
     getById: (id: number) =>
         axiosInstance.get<ApiResponse<PricePolicyResult>>(`/api/price-policies/${id}`),
@@ -57,7 +60,7 @@ export const pricingService = {
 
     getProductCategories: (policyId: number) =>
         axiosInstance.get<ApiResponse<PricePolicyProductCategoryResult[]>>(`/api/price-policies/${policyId}/product-categories`),
-    /** Thêm danh mục — BE tự bulk-seed sản phẩm thuộc danh mục vào tab "Sản phẩm" (giá để trống). */
+    // thêm danh mục — be tự bulk-seed sản phẩm thuộc danh mục vào tab "Sản phẩm" (giá để trống)
     createProductCategory: (policyId: number, payload: CreatePricePolicyProductCategoryPayload) =>
         axiosInstance.post<ApiResponse<PricePolicyProductCategoryResult>>(`/api/price-policies/${policyId}/product-categories`, payload),
     removeProductCategory: (policyId: number, id: number) =>

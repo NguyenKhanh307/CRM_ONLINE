@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { opportunityService } from '../services/opportunityService';
 
-/** Lấy toàn bộ bản ghi liên quan của một cơ hội (trang 360°). */
+// lấy toàn bộ bản ghi liên quan của một cơ hội (trang 360°)
 export function useOpportunityRelated(id: number | undefined) {
     return useQuery({
         queryKey: ['opportunity', id, 'related'],

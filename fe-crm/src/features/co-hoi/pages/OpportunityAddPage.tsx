@@ -25,7 +25,7 @@ import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
-import { usePricePolicyList } from '@/features/chinh-sach-gia/hooks/usePricePolicyList';
+import { useEligiblePricePolicies } from '@/features/chinh-sach-gia/hooks/useEligiblePricePolicies';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { useCreateOpportunity } from '../hooks/useCreateOpportunity';
 import { useOpportunityStages } from '../hooks/useOpportunityStages';
@@ -46,7 +46,7 @@ interface HeaderState {
     description: string; winLossReason: string;
 }
 
-/** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
+// state khởi tạo — người phụ trách mặc định là user đang đăng nhập
 const initialState = (ownerId: string): HeaderState => ({
     code: '', name: '', opportunityType: '', customerId: '', contactId: '', ownerId, stageId: '',
     campaignId: '', pricePolicyId: '', source: '', amount: '', expectedRevenue: '', expectedCloseDate: '',
@@ -55,7 +55,7 @@ const initialState = (ownerId: string): HeaderState => ({
 
 const num = (s: string): number | null => (s.trim() ? Number(s) : null);
 
-/** Trang thêm cơ hội mới — header + bảng hàng hóa (layout AMIS). */
+// trang thêm cơ hội mới — header + bảng hàng hóa (layout AMIS)
 const OpportunityAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
@@ -70,14 +70,14 @@ const OpportunityAddPage = () => {
     const { data: customers = [] } = useCustomerList();
     const { data: products = [] } = useProductList();
     const { data: stages = [] } = useOpportunityStages();
-    const { data: pricePolicies = [] } = usePricePolicyList();
+    const { data: pricePolicies = [] } = useEligiblePricePolicies(form.customerId ? Number(form.customerId) : undefined);
     const { data: campaigns = [] } = useCampaignList();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
     const stageOptions = useMemo(() => stages.map((s) => ({ value: String(s.id), label: s.name })), [stages]);
-    /** Giai đoạn đang chọn — nguồn của xác suất thắng (BE cũng suy ra từ đúng bản ghi này). */
+    // giai đoạn đang chọn — nguồn của xác suất thắng (BE cũng suy ra từ đúng bản ghi này)
     const selectedStage = useMemo(() => stages.find((s) => String(s.id) === form.stageId), [stages, form.stageId]);
     const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
     const productOptions = useMemo<ProductOption[]>(
@@ -87,7 +87,7 @@ const OpportunityAddPage = () => {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    // hàm cập nhật form và xóa lỗi của đúng những field vừa gõ
     const set = (patch: Partial<HeaderState>) => {
         setForm((p) => ({ ...p, ...patch }));
         setErrors((e) => {
@@ -98,12 +98,12 @@ const OpportunityAddPage = () => {
     };
     const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); setPrefillFrom(null); };
 
-    /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
+    // tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
-    /** Chọn khách hàng → tự điền liên hệ chính, người phụ trách, nguồn (chỉ ô còn trống). */
+    // hàm chọn khách hàng -> tự điền liên hệ chính, người phụ trách, nguồn (chỉ ô còn trống)
     const onPickCustomer = async (v: string) => {
-        // Đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai.
+        // đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai
         const base = { ...form, customerId: v, contactId: '' };
         set({ customerId: v, contactId: '' });
         setPrefillFrom(null);
@@ -117,7 +117,7 @@ const OpportunityAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
     };
 
-    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    // hàm kiểm tra bắt buộc + biên (khớp ràng buộc backend) — trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
             code: !form.code.trim() ? 'Mã cơ hội không được để trống' : null,
@@ -126,8 +126,9 @@ const OpportunityAddPage = () => {
             items: validateLineItems(rows),
         });
 
+    // hàm lưu — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const submit = async (andNew: boolean) => {
-        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
@@ -150,6 +151,7 @@ const OpportunityAddPage = () => {
             description: form.description || null,
             items: toItemPayloads(rows),
         };
+        // bước hỏi xác nhận rồi mới gọi api lưu
         if (!(await confirmCreate('cơ hội'))) return;
         mutate(payload, {
             onSuccess: () => {
@@ -225,7 +227,7 @@ const OpportunityAddPage = () => {
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
-                            {/* Xác suất do giai đoạn pipeline định nghĩa (opportunity_stages.probability) — chỉ hiển thị */}
+                            {/* xác suất do giai đoạn pipeline định nghĩa (opportunity_stages.probability) — chỉ hiển thị */}
                             <FieldRow label="Xác suất (%)">
                                 <div className="flex items-center gap-2">
                                     <span className="text-md font-medium text-text-main">
@@ -242,7 +244,7 @@ const OpportunityAddPage = () => {
                 </FormSection>
 
                 <FormSection title="Hàng hóa">
-                    <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} pricePolicyId={form.pricePolicyId ? Number(form.pricePolicyId) : null} />
+                    <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} pricePolicyId={form.pricePolicyId ? Number(form.pricePolicyId) : null} customerId={form.customerId ? Number(form.customerId) : null} />
                     {errors.items && <p className="text-xs text-danger mt-1">{errors.items}</p>}
                 </FormSection>
 

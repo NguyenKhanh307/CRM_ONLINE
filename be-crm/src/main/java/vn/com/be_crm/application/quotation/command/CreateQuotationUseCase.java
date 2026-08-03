@@ -1,13 +1,13 @@
 package vn.com.be_crm.application.quotation.command;
 
-import vn.com.be_crm.application.shared.util.CrossFieldRules;
+import vn.com.be_crm.core.util.CrossFieldRules;
 import vn.com.be_crm.application.quotation.dto.CreateQuotationCommand;
 import vn.com.be_crm.application.quotation.dto.QuotationResult;
 import vn.com.be_crm.application.quotation.mapper.QuotationCommandMapper;
 import vn.com.be_crm.application.quotation.mapper.QuotationItemCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
-import vn.com.be_crm.domain.shared.exception.DomainException;
-import vn.com.be_crm.application.shared.util.LineItemTotals;
+import vn.com.be_crm.core.usecase.IUseCase;
+import vn.com.be_crm.core.error.frontend.DomainException;
+import vn.com.be_crm.core.util.LineItemTotals;
 import vn.com.be_crm.domain.quotation.entity.QuotationItem;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 

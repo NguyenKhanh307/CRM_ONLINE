@@ -9,7 +9,7 @@ import vn.com.be_crm.application.copilot.intent.CopilotRangeParser.Range;
 import vn.com.be_crm.application.dashboard.query.PeriodRanges;
 import vn.com.be_crm.domain.copilot.repository.ICopilotContextRepository;
 import vn.com.be_crm.domain.dashboard.model.DateRange;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

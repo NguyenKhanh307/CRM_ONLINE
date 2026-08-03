@@ -1,10 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { phanQuyenService } from '../services/phanQuyenService';
 
-/**
- * Lấy danh sách quyền đã gán cho một nhóm.
- * @param roleId ID nhóm đang chọn
- */
+// lấy danh sách quyền đã gán cho một nhóm theo roleId đang chọn
 export const useRolePermissions = (roleId: number | null) => {
     return useQuery({
         queryKey: ['rolePermissions', roleId],

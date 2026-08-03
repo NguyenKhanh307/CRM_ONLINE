@@ -5,7 +5,7 @@ import vn.com.be_crm.application.campaign.mapper.CampaignCommandMapper;
 import vn.com.be_crm.domain.campaign.entity.Campaign;
 import vn.com.be_crm.domain.campaign.enums.CampaignStatus;
 import vn.com.be_crm.domain.campaign.repository.ICampaignRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Use case điều phối trạng thái chiến dịch (theo hành động, không sửa tay):

@@ -2,27 +2,23 @@ package vn.com.be_crm.application.lead.query;
 
 import vn.com.be_crm.application.lead.dto.LeadResult;
 import vn.com.be_crm.application.lead.mapper.LeadCommandMapper;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
-import vn.com.be_crm.application.shared.lookup.INameResolver;
-import vn.com.be_crm.application.shared.lookup.NameEnricher;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
+import vn.com.be_crm.core.lookup.port.INameResolver;
+import vn.com.be_crm.core.lookup.NameEnricher;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** Use case lấy danh sách tiềm năng có phân trang. */
+// lấy danh sách tiềm năng có phân trang, kèm tên khóa ngoại (owner, khách hàng, liên hệ, chiến dịch)
 public class ListLeadUseCase implements IUseCase<PageRequest, PageResult<LeadResult>> {
     private final ILeadRepository repo;
     private final INameResolver names;
-    /** @param repo port lưu trữ @param names port tra tên khóa ngoại */
+
     public ListLeadUseCase(ILeadRepository repo, INameResolver names) { this.repo = repo; this.names = names; }
 
-    /**
-     * Lấy danh sách Lead có phân trang, kèm tên khóa ngoại (owner, khách hàng, liên hệ, chiến dịch).
-     * @param r tham số phân trang @return PageResult
-     */
     @Override
     public PageResult<LeadResult> execute(PageRequest r) {
         var page = repo.findAll(r);

@@ -1,8 +1,8 @@
 package vn.com.be_crm.application.order.query;
 
-import vn.com.be_crm.application.shared.dto.DeletedItemResult;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.core.dto.delete.DeletedItemResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.domain.order.repository.IOrderRepository;
 
 /** Use case lấy danh sách đơn hàng đã xóa (thùng rác). */

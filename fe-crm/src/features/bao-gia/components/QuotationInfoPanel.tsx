@@ -7,14 +7,14 @@ interface Props {
     quotation: QuotationResult;
 }
 
-/** Nhãn phản hồi của khách hàng qua trang công khai. */
+// nhãn phản hồi của khách hàng qua trang công khai
 const CUSTOMER_RESPONSE_LABEL: Record<string, string> = {
     accepted: 'Đồng ý',
     adjust: 'Yêu cầu điều chỉnh',
     rejected: 'Không đồng ý',
 };
 
-/** Thông tin cột trái của trang chi tiết Báo giá. */
+// thông tin cột trái của trang chi tiết Báo giá
 export const QuotationInfoPanel = ({ quotation: q }: Props) => (
     <div>
         <InfoRow label="Mã" value={q.code} />

@@ -1,7 +1,7 @@
 package vn.com.be_crm.application.campaign.query;
 
 import vn.com.be_crm.application.campaign.dto.CampaignStatsResult;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.campaign.repository.ICampaignRepository;
 
 /** Use case tính chỉ số hiệu quả (ROI) của chiến dịch. */

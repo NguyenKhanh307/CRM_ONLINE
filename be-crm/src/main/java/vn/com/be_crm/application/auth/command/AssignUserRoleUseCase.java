@@ -1,7 +1,7 @@
 package vn.com.be_crm.application.auth.command;
 
 import vn.com.be_crm.application.auth.dto.AssignUserRoleCommand;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.auth.entity.UserRole;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
 

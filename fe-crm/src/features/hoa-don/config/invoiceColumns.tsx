@@ -25,7 +25,7 @@ const PAYMENT_LABELS: Record<string, string> = {
     unpaid: 'Chưa thanh toán', partial: 'Thanh toán một phần', paid: 'Đã thanh toán',
 };
 
-/** Tạo danh sách cột Hóa đơn — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+// tạo danh sách cột Hóa đơn — hiển thị đầy đủ trường + tên khóa ngoại (do be resolve sẵn)
 export const getInvoiceColumns = (): ColumnDef<InvoiceResult>[] => [
     { accessorKey: 'code', header: 'Mã Hóa đơn', size: 140, enableSorting: true },
     { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },

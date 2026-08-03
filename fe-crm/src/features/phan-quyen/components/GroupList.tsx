@@ -10,7 +10,7 @@ interface Props {
     isError: boolean;
 }
 
-/** Panel trái — danh sách nhóm người dùng. */
+// panel trái — danh sách nhóm người dùng
 const GroupList = ({ groups, selectedId, onSelect, onCreateClick, isLoading, isError }: Props) => {
     return (
         <div className="w-64 shrink-0 bg-white border-r border-gray-200 flex flex-col h-full">

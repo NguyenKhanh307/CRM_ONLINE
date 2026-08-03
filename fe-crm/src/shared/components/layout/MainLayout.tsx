@@ -5,6 +5,8 @@ import { Sidebar } from './Sidebar';
 import { CopilotWidget } from '@/shared/copilot/CopilotWidget';
 import { PageShortcutsProvider } from '@/shared/keyboard/PageShortcutsProvider';
 
+// layout khung chính (header + sidebar + main + copilot widget) cho mọi trang sau đăng nhập
+// h-screen overflow-hidden: <main> là vùng cuộn duy nhất, trang con không được tự thêm min-h-screen
 export const MainLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const toggle = () => setSidebarOpen(v => !v);

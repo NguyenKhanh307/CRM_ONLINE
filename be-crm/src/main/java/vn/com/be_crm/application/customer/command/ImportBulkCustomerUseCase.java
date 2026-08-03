@@ -2,8 +2,8 @@ package vn.com.be_crm.application.customer.command;
 
 import vn.com.be_crm.application.customer.dto.ImportBulkCustomerCommand;
 import vn.com.be_crm.application.customer.dto.ImportCustomerRowCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.ImportRowError;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.dto.import_.ImportRowError;
 import vn.com.be_crm.domain.customer.entity.Customer;
 import vn.com.be_crm.domain.customer.enums.CustomerStatus;
 import vn.com.be_crm.domain.customer.enums.CustomerType;

@@ -6,7 +6,7 @@ import vn.com.be_crm.application.service.command.SubmitCsatByCodeUseCase;
 import vn.com.be_crm.application.service.dto.PublicTicketView;
 import vn.com.be_crm.application.service.query.GetTicketByCodePublicUseCase;
 import vn.com.be_crm.presentation.pub.request.CsatRequest;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 /**
  * REST controller công khai (không cần JWT) cho khách xem trạng thái phiếu chăm sóc + tự

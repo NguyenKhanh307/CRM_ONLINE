@@ -1,8 +1,4 @@
-/**
- * Chuyển chuỗi ISO yyyy-mm-dd (từ API/DB) thành dd/mm/yyyy để hiển thị.
- * Nếu chuỗi không đúng định dạng, trả về nguyên bản.
- * @param iso - Chuỗi ISO, vd "2024-01-05"
- */
+// chuyển chuỗi ISO yyyy-mm-dd (từ API/DB) thành dd/mm/yyyy để hiển thị, không đúng định dạng thì trả nguyên bản
 export function formatISODate(iso: string): string {
     if (!iso) return '';
     const parts = iso.split('T')[0].split('-');   // bỏ phần giờ nếu có
@@ -11,11 +7,8 @@ export function formatISODate(iso: string): string {
     return `${dd}/${mm}/${yyyy}`;
 }
 
-/**
- * Chuyển chuỗi dd/mm/yyyy (người dùng gõ) thành ISO yyyy-mm-dd để lưu/gửi API.
- * Kiểm tra ngày có thật (loại 31/02, 32/01…). Trả về null nếu không hợp lệ.
- * @param str - Chuỗi dd/mm/yyyy, vd "05/01/2024"
- */
+// chuyển chuỗi dd/mm/yyyy (người dùng gõ) thành ISO yyyy-mm-dd để lưu/gửi API
+// kiểm tra ngày có thật (loại 31/02, 32/01...), trả về null nếu không hợp lệ
 export function parseVNDate(str: string): string | null {
     if (!str) return null;
     const m = str.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);

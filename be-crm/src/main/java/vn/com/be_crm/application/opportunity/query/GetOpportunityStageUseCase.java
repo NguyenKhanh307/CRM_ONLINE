@@ -2,9 +2,9 @@ package vn.com.be_crm.application.opportunity.query;
 
 import vn.com.be_crm.application.opportunity.dto.OpportunityStageResult;
 import vn.com.be_crm.application.opportunity.mapper.OpportunityStageCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityStageRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case lấy giai đoạn pipeline theo ID. */
 public class GetOpportunityStageUseCase implements IUseCase<Long, OpportunityStageResult> {

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ticketService } from '../services/ticketService';
 
-/** Lấy chi tiết một phiếu theo ID. */
+// lấy chi tiết một phiếu theo ID
 export function useTicket(id: number | undefined) {
     return useQuery({
         queryKey: ['ticket', id],

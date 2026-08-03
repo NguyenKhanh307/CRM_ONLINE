@@ -1,6 +1,6 @@
 package vn.com.be_crm.application.product.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.product.repository.IProductRepository;
 
 /** Use case khôi phục hàng hóa từ thùng rác. */

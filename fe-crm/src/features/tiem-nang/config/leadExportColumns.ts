@@ -7,7 +7,7 @@ const STATUS_LABELS: Record<string, string> = {
     converted: 'Đã chuyển đổi', lost: 'Thất bại',
 };
 
-/** Các cột khả dụng khi xuất file phân hệ Tiềm năng. */
+// các cột khả dụng khi xuất file phân hệ Tiềm năng
 export const leadExportColumns: ExportColumn<LeadResult>[] = [
     { key: 'code', label: 'Mã' },
     { key: 'name', label: 'Tên tiềm năng' },

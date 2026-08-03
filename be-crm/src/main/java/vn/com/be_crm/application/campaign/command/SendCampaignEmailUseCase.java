@@ -1,8 +1,8 @@
 package vn.com.be_crm.application.campaign.command;
 
 import vn.com.be_crm.application.campaign.dto.SendCampaignEmailCommand;
-import vn.com.be_crm.application.shared.email.IEmailService;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.email.port.IEmailService;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.campaign.entity.CampaignMember;
 import vn.com.be_crm.domain.campaign.enums.CampaignMemberStatus;
 import vn.com.be_crm.domain.campaign.repository.ICampaignMemberRepository;

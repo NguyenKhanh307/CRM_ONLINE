@@ -12,7 +12,7 @@ import { usePermission } from '@/core/permissions/usePermission';
 
 type ConfirmState = { type: 'restore' | 'purge'; id: number } | null;
 
-/** Map slug tab thùng rác → key module permission (để gate Khôi phục/Xóa vĩnh viễn theo `<m>.delete`). */
+// map slug tab thùng rác -> key module permission (để gate Khôi phục/Xóa vĩnh viễn theo `<m>.delete`)
 const TRASH_TO_PERM: Record<TrashModule, string> = {
     'chien-dich': 'campaign',
     'tiem-nang': 'lead',
@@ -23,9 +23,10 @@ const TRASH_TO_PERM: Record<TrashModule, string> = {
     'don-hang': 'order',
     'hoa-don': 'invoice',
     'san-pham': 'product',
+    'cham-soc': 'ticket',
 };
 
-/** Nội dung tab — load data theo module đang chọn. */
+// nội dung tab — load data theo module đang chọn
 const TrashTabContent = ({
     module,
     onAction,
@@ -38,7 +39,7 @@ const TrashTabContent = ({
     const { can } = usePermission();
     const canManage = can(TRASH_TO_PERM[module], 'delete');
 
-    /** Thao tác của một bản ghi đã xóa — hiện trong menu chuột phải (theo quyền xóa của phân hệ). */
+    // thao tác của một bản ghi đã xóa — hiện trong menu chuột phải (theo quyền xóa của phân hệ)
     const rowActions = (row: DeletedItemRow): RowAction[] => canManage
         ? [
             { key: 'restore', label: 'Khôi phục', onClick: () => onAction('restore', row.id) },
@@ -64,7 +65,7 @@ const TrashTabContent = ({
     );
 };
 
-/** Trang thùng rác — hiển thị bản ghi đã xóa theo từng phân hệ, hỗ trợ khôi phục và xóa vĩnh viễn. */
+// trang thùng rác — hiển thị bản ghi đã xóa theo từng phân hệ, hỗ trợ khôi phục và xóa vĩnh viễn
 const ThungRacPage = () => {
     const [activeModule, setActiveModule] = useState<TrashModule>('tiem-nang');
     const [confirm, setConfirm] = useState<ConfirmState>(null);

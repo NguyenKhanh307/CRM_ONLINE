@@ -10,7 +10,7 @@ import vn.com.be_crm.domain.lead.enums.LeadStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/** Output DTO cho Lead. */
+// output cho Lead
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class LeadResult {
     private Long id;

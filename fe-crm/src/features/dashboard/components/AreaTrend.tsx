@@ -9,9 +9,7 @@ interface Props {
     height?: number;
 }
 
-/**
- * Biểu đồ vùng (area) một chuỗi theo tháng — dùng cho doanh số kỳ vọng và các trend.
- */
+// biểu đồ vùng (area) một chuỗi theo tháng — dùng cho doanh số kỳ vọng và các trend
 export const AreaTrend = ({ data, color = COLORS.primary, format, height = 240 }: Props) => {
     const rows = data.map((d) => ({ name: shortMonth(d.period), value: d.value }));
     const gid = `area-${color.replace(/[^a-zA-Z0-9]/g, '')}`;

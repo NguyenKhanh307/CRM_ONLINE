@@ -27,7 +27,7 @@ import { opportunityExportColumns } from '../config/opportunityExportColumns';
 import { OpportunityEditModal } from '../components/OpportunityEditModal';
 import type { OpportunityItemResult, OpportunityResult } from '../types/opportunityTypes';
 
-/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+// tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render
 const QUICK_FILTERS = [
     { id: 'open', label: 'Đang mở',  field: 'status', value: 'open' },
     { id: 'won',  label: 'Đã thắng', field: 'status', value: 'won' },
@@ -40,7 +40,7 @@ const CoHoiPage = () => {
     const goCreate = () => navigate('/co-hoi/them-moi');
     usePageShortcuts({ onCreate: can('opportunity', 'create') ? goCreate : undefined });
     const { showAlert } = useAlert();
-    // Server-side pagination + search + tag lọc nhanh
+    // server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');
@@ -68,7 +68,7 @@ const CoHoiPage = () => {
     const itemColumns = useMemo(() => getLineItemPanelColumns<OpportunityItemResult>(productMap), [productMap]);
 
 
-    /** Tạo báo giá từ cơ hội (clone) rồi điều hướng sang danh sách báo giá. */
+    // hàm tạo báo giá từ cơ hội (clone) rồi điều hướng sang danh sách báo giá
     const createQuote = async (opportunityId: number) => {
         try {
             await createQuoteFn(opportunityId);
@@ -198,7 +198,7 @@ const CoHoiPage = () => {
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
                 onExport={async (keys, format) => {
-                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    // không tick dòng -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await opportunityService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;

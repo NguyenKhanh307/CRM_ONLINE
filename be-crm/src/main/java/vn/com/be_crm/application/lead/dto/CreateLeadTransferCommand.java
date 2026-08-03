@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** Input DTO khi tạo mới bản ghi chuyển giao tiềm năng. */
+// input khi tạo mới bản ghi chuyển giao tiềm năng
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class CreateLeadTransferCommand {
     private Long leadId;

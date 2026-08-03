@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { orderService } from '../services/orderService';
 
-/** Lấy danh sách dòng hàng của một đơn hàng (bảng dưới ở bố cục 2 bảng). */
+// lấy danh sách dòng hàng của một đơn hàng (bảng dưới ở bố cục 2 bảng)
 export function useOrderItems(orderId: number | null) {
     return useQuery({
         queryKey: ['order-items', orderId],

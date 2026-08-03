@@ -1,21 +1,21 @@
-/** Loại yêu cầu sau bán. */
+// loại yêu cầu sau bán
 export type TicketType = 'support' | 'return' | 'exchange' | 'complaint';
-/** Kênh tiếp nhận. */
+// kênh tiếp nhận
 export type TicketChannel = 'phone' | 'email' | 'web' | 'zalo' | 'other';
-/** Độ ưu tiên. */
+// độ ưu tiên
 export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
-/** Trạng thái xử lý. */
+// trạng thái xử lý
 export type TicketStatus =
     | 'new' | 'assigned' | 'in_progress' | 'approved' | 'rejected'
     | 'received' | 'inspected' | 'resolved' | 'closed' | 'reopened';
-/** Lý do trả/đổi/khiếu nại. */
+// lý do trả/đổi/khiếu nại
 export type ReturnReason =
     | 'defective' | 'wrong_item' | 'not_as_described' | 'changed_mind' | 'late_delivery' | 'other';
-/** Hình thức giải quyết. */
+// hình thức giải quyết
 export type ResolutionType =
     | 'refund' | 'replacement' | 'repair' | 'store_credit' | 'answered' | 'rejected';
 
-/** Phiếu hỗ trợ trả về từ GET /api/tickets/{id}. */
+// phiếu hỗ trợ trả về từ GET /api/tickets/{id}
 export interface TicketResult {
     id: number;
     code: string;
@@ -40,7 +40,7 @@ export interface TicketResult {
     closedAt: string | null;
     satisfactionScore: number | null;
     satisfactionComment: string | null;
-    /** Suy ra từ BE: quá hạn SLA. */
+    // suy ra từ BE: quá hạn SLA
     isOverdue: boolean;
     createdAt: string;
     updatedAt: string;
@@ -56,7 +56,7 @@ export interface TicketResult {
     updatedByName: string | null;
 }
 
-/** Một dòng hàng trả/đổi gửi kèm khi tạo phiếu. */
+// một dòng hàng trả/đổi gửi kèm khi tạo phiếu
 export interface TicketReturnItemPayload {
     invoiceItemId: number | null;
     productId: number | null;
@@ -67,7 +67,7 @@ export interface TicketReturnItemPayload {
     conditionNote: string | null;
 }
 
-/** Dòng hàng trả/đổi trả về từ GET /api/tickets/{id}/return-items. */
+// dòng hàng trả/đổi trả về từ GET /api/tickets/{id}/return-items
 export interface TicketReturnItemResult {
     id: number;
     ticketId: number;
@@ -80,7 +80,7 @@ export interface TicketReturnItemResult {
     conditionNote: string | null;
 }
 
-/** Payload tạo mới phiếu — POST /api/tickets (kèm returnItems[] nếu trả/đổi). */
+// payload tạo mới phiếu — POST /api/tickets (kèm returnItems[] nếu trả/đổi)
 export interface CreateTicketPayload {
     code: string;
     type: TicketType;
@@ -97,7 +97,7 @@ export interface CreateTicketPayload {
     returnItems: TicketReturnItemPayload[];
 }
 
-/** Payload cập nhật phiếu — KHÔNG gửi status (đổi qua hành động). */
+// payload cập nhật phiếu — KHÔNG gửi status (đổi qua hành động)
 export interface UpdateTicketPayload {
     type: TicketType;
     subject: string;
@@ -112,7 +112,7 @@ export interface UpdateTicketPayload {
     assignedUserId: number | null;
 }
 
-/** Ghi chú / lịch sử phiếu. */
+// ghi chú / lịch sử phiếu
 export interface TicketComment {
     id: number;
     ticketId: number;

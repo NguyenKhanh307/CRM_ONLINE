@@ -11,7 +11,7 @@ interface Props {
 const MAX_SIZE_MB = 20;
 const MAX_ROWS = 5000;
 
-/** Sinh giá trị mẫu theo kiểu field, để người dùng hình dung định dạng cần nhập (dòng thứ 0/1). */
+// sinh giá trị mẫu theo kiểu field, để người dùng hình dung định dạng cần nhập (dòng thứ 0/1)
 function sampleValue(field: ImportField, rowIndex: 0 | 1): string {
     switch (field.type) {
         case 'number':
@@ -25,6 +25,7 @@ function sampleValue(field: ImportField, rowIndex: 0 | 1): string {
     }
 }
 
+// tải file mẫu .xlsx: header đầy đủ field + 2 dòng dữ liệu mẫu
 function downloadTemplate(fields: ImportField[]) {
     const headers = fields.map(f => f.label);
     const sampleRow1 = fields.map(f => sampleValue(f, 0));
@@ -35,12 +36,14 @@ function downloadTemplate(fields: ImportField[]) {
     XLSX.writeFile(wb, 'template.xlsx');
 }
 
+// bước 1 của wizard nhập file: kéo-thả/chọn file, đọc bằng SheetJS, tải file mẫu
 export const StepUploadFile = ({ fields, onParsed }: Props) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [dragging, setDragging] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [parsed, setParsed] = useState<ParsedFileData | null>(null);
 
+    // đọc file bằng SheetJS, kiểm tra định dạng/dung lượng/số dòng rồi báo ra ngoài
     const processFile = (file: File) => {
         setError(null);
         const ext = file.name.split('.').pop()?.toLowerCase();

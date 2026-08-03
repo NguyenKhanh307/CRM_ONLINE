@@ -7,16 +7,14 @@ interface Props {
     onReset: () => void;
 }
 
-/** Nhãn trạng thái tiềm năng — khớp enum `LeadStatus` phía backend. */
+// nhãn trạng thái tiềm năng — khớp enum `LeadStatus` phía backend
 const STATUS_LABELS: Record<string, string> = {
     new: 'Mới', contacting: 'Đang liên hệ', qualified: 'Đủ điều kiện',
     converted: 'Đã chuyển đổi', lost: 'Thất bại',
 };
 
-/**
- * Bước 2 — phiên truy cập hiện tại: mã tiềm năng, điểm, tiến độ tới ngưỡng qualified.
- * Thanh tiến trình cho thấy trực quan còn bao nhiêu điểm nữa thì backend tự chuyển trạng thái.
- */
+// bước 2 — phiên truy cập hiện tại: mã tiềm năng, điểm, tiến độ tới ngưỡng qualified
+// thanh tiến trình cho thấy trực quan còn bao nhiêu điểm nữa thì backend tự chuyển trạng thái
 export const SessionCard = ({ lead, onReset }: Props) => {
     const pct = Math.min(100, Math.round((lead.score / QUALIFY_THRESHOLD) * 100));
     const qualified = lead.status === 'qualified';

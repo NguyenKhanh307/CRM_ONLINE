@@ -8,7 +8,7 @@ import type { GroupMember } from '../types/phanQuyenTypes';
 
 interface Props {
     allUsers: GroupMember[];
-    /** userId đã thuộc một nhóm bất kỳ — mỗi người chỉ thuộc một nhóm nên bị loại khỏi danh sách. */
+    // userId đã thuộc một nhóm bất kỳ — mỗi người chỉ thuộc một nhóm nên bị loại khỏi danh sách
     assignedUserIds: Set<number>;
     onClose: () => void;
     onAdd: (userId: number) => void;
@@ -21,11 +21,9 @@ const STATUS_LABEL: Record<string, string> = {
     locked: 'Đã khóa',
 };
 
-/**
- * Modal chọn thành viên để thêm vào nhóm.
- * Ô tìm kiếm là form tra cứu — không nằm trong `<form>` nên Enter vô hại, không có popup lỗi.
- * Nút "Thêm" mới là hành động ghi nên phải qua popup xác nhận.
- */
+// modal chọn thành viên để thêm vào nhóm
+// ô tìm kiếm là form tra cứu — không nằm trong `<form>` nên Enter vô hại, không có popup lỗi
+// nút "Thêm" mới là hành động ghi nên phải qua popup xác nhận
 const AddMemberModal = ({ allUsers, assignedUserIds, onClose, onAdd, isLoading }: Props) => {
     const [search, setSearch] = useState('');
     const { confirmCreate } = useConfirm();

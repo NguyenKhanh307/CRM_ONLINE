@@ -2,8 +2,8 @@ package vn.com.be_crm.application.quotation.command;
 
 import vn.com.be_crm.application.quotation.dto.ImportBulkQuotationCommand;
 import vn.com.be_crm.application.quotation.dto.ImportQuotationRowCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.ImportRowError;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.dto.import_.ImportRowError;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.enums.QuotationStatus;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;

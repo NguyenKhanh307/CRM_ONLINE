@@ -25,7 +25,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 type TabKey = 'activities' | 'opportunities';
 
-/** Trang chi tiết Tiềm năng — 2 cột: thông tin + hoạt động/cơ hội đã chuyển đổi. */
+// trang chi tiết Tiềm năng — 2 cột: thông tin + hoạt động/cơ hội đã chuyển đổi
 const LeadDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const leadId = Number(id);

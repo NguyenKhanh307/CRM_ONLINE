@@ -1,16 +1,18 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { leadService } from '../services/leadService';
 import type { UpdateLeadPayload } from '../types/leadTypes';
 
-/** Cập nhật tiềm năng — invalidate danh sách sau khi thành công. */
+// cập nhật tiềm năng — báo danh sách VÀ trang chi tiết đang mở làm mới sau khi thành công
 export function useUpdateLead() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, payload }: { id: number; payload: UpdateLeadPayload }) =>
-            leadService.update(id, payload),
-        onSuccess: (_d, v) => {
-            qc.invalidateQueries({ queryKey: ['leads'] });
-            qc.invalidateQueries({ queryKey: ['lead', v.id] });
-        },
-    });
+    const { mutate: run, isPending } = useLiveMutation(
+        ({ id, payload }: { id: number; payload: UpdateLeadPayload }) => leadService.update(id, payload));
+
+    const mutate: typeof run = (input, callbacks) =>
+        run(input, {
+            ...callbacks,
+            onSuccess: (data) => { notify('leads'); notify(`lead:${input.id}`); callbacks?.onSuccess?.(data); },
+        });
+
+    return { mutate, isPending };
 }

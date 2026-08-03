@@ -11,10 +11,8 @@ import { useRoleGroups } from '@/features/phan-quyen/hooks/useRoleGroups';
 const inputCls =
     'w-full pl-9 pr-3 py-2 border border-gray-300 rounded-btn text-md text-text-main placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors';
 
-/**
- * Trang đăng ký tài khoản nhân viên mới — admin tạo tài khoản, hệ thống gửi email kích hoạt.
- * Lỗi nhập liệu hiện đỏ dưới từng ô; tạo tài khoản là hành động ghi nên phải qua popup xác nhận.
- */
+// trang đăng ký tài khoản nhân viên mới — admin tạo tài khoản, hệ thống gửi email kích hoạt
+// lỗi nhập liệu hiện đỏ dưới từng ô; tạo tài khoản là hành động ghi nên phải qua popup xác nhận
 const RegisterEmployeePage = () => {
     const [email, setEmail] = useState('');
     const [fullName, setFullName] = useState('');

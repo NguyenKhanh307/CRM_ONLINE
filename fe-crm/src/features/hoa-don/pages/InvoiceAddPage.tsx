@@ -41,7 +41,7 @@ interface HeaderState {
     billingAddress: string; taxCode: string; note: string;
 }
 
-/** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
+// state khởi tạo — người phụ trách mặc định là user đang đăng nhập
 const initialState = (ownerId: string): HeaderState => ({
     code: '', invoiceDate: '', dueDate: '', customerId: '', contactId: '', campaignId: '',
     orderId: '', quotationId: '', opportunityId: '',
@@ -49,7 +49,7 @@ const initialState = (ownerId: string): HeaderState => ({
     billingAddress: '', taxCode: '', note: '',
 });
 
-/** Trang thêm Hóa đơn mới — header + bảng hàng hóa (layout AMIS). */
+// trang thêm Hóa đơn mới — header + bảng hàng hóa (layout AMIS)
 const InvoiceAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
@@ -75,7 +75,7 @@ const InvoiceAddPage = () => {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    // cập nhật form và xóa lỗi của đúng những field vừa gõ
     const set = (patch: Partial<HeaderState>) => {
         setForm((p) => ({ ...p, ...patch }));
         setErrors((e) => {
@@ -86,12 +86,12 @@ const InvoiceAddPage = () => {
     };
     const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); setPrefillFrom(null); };
 
-    /** Tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng. */
+    // tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
-    /** Chọn khách hàng → tự điền liên hệ chính, MST, địa chỉ xuất HĐ, người phụ trách (chỉ ô còn trống). */
+    // chọn khách hàng -> tự điền liên hệ chính, MST, địa chỉ xuất HĐ, người phụ trách (chỉ ô còn trống)
     const onPickCustomer = async (v: string) => {
-        // Đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai.
+        // đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai
         const base = { ...form, customerId: v, contactId: '' };
         set({ customerId: v, contactId: '' });
         setPrefillFrom(null);
@@ -106,7 +106,7 @@ const InvoiceAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
     };
 
-    /** Chọn đơn hàng → tự điền thông tin bên mua + chép dòng hàng (nếu bảng còn trống). */
+    // chọn đơn hàng -> tự điền thông tin bên mua + chép dòng hàng (nếu bảng còn trống)
     const onPickOrder = async (v: string) => {
         set({ orderId: v });
         setPrefillFrom(null);
@@ -125,11 +125,11 @@ const InvoiceAddPage = () => {
         const filled = hasFilled(patch);
         if (filled) set(patch);
 
-        // Chép dòng hàng của đơn — CHỈ khi bảng chưa chọn sản phẩm nào, để không xóa thứ đang gõ dở.
+        // chép dòng hàng của đơn — CHỈ khi bảng chưa chọn sản phẩm nào, để không xóa thứ đang gõ dở
         const emptyTable = rows.every((r) => !r.productId);
         if (emptyTable) {
             const items = (await orderService.getItems(order.id)).data.data;
-            // Bỏ backendId: đó là id dòng hàng của ĐƠN HÀNG, mang sang hóa đơn mới là id lạ.
+            // bỏ backendId: đó là id dòng hàng của ĐƠN HÀNG, mang sang hóa đơn mới là id lạ
             setRows(items.map((it) => ({ ...fromItemResult(it), backendId: undefined })));
         }
         if (filled || emptyTable) {
@@ -139,7 +139,7 @@ const InvoiceAddPage = () => {
         }
     };
 
-    /** Chọn báo giá nguồn → tự điền bên mua + cơ hội + chiến dịch. */
+    // chọn báo giá nguồn -> tự điền bên mua + cơ hội + chiến dịch
     const onPickQuotation = async (v: string) => {
         set({ quotationId: v });
         setPrefillFrom(null);
@@ -155,7 +155,7 @@ const InvoiceAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`báo giá «${q.code}»`); }
     };
 
-    /** Chọn cơ hội → tự điền bên mua + chiến dịch. */
+    // chọn cơ hội -> tự điền bên mua + chiến dịch
     const onPickOpportunity = async (v: string) => {
         set({ opportunityId: v });
         setPrefillFrom(null);
@@ -170,7 +170,7 @@ const InvoiceAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`cơ hội «${o.code}»`); }
     };
 
-    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    // kiểm tra bắt buộc + biên (khớp ràng buộc backend) - trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
             code: !form.code.trim() ? 'Mã Hóa đơn không được để trống' : null,
@@ -181,7 +181,7 @@ const InvoiceAddPage = () => {
         });
 
     const submit = async (andNew: boolean) => {
-        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        // lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
         const errs = validate();
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;

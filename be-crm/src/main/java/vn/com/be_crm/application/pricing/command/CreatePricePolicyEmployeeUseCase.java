@@ -3,7 +3,7 @@ package vn.com.be_crm.application.pricing.command;
 import vn.com.be_crm.application.pricing.dto.CreatePricePolicyEmployeeCommand;
 import vn.com.be_crm.application.pricing.dto.PricePolicyEmployeeResult;
 import vn.com.be_crm.application.pricing.mapper.PricePolicySubEntityCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyEmployeeRepository;
 
 /** Use case tạo mới nhân viên trong chính sách giá. */

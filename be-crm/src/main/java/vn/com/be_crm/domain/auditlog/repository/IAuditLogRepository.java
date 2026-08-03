@@ -1,7 +1,7 @@
 package vn.com.be_crm.domain.auditlog.repository;
 
 import vn.com.be_crm.application.auditlog.dto.AuditLogEntry;
-import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.core.page.PageResult;
 
 /**
  * Port đọc nhật ký sự kiện thao tác người dùng — gộp từ các bảng đã có sẵn trong DB.

@@ -26,7 +26,7 @@ import vn.com.be_crm.presentation.auth.request.GoogleLoginRequest;
 import vn.com.be_crm.presentation.auth.request.LoginRequest;
 import vn.com.be_crm.presentation.auth.request.RegisterEmployeeRequest;
 import vn.com.be_crm.presentation.auth.request.UpdateProfileRequest;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 /**
  * Endpoint xác thực — đăng nhập, đăng ký nhân viên, kích hoạt tài khoản.

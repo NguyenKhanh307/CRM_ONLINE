@@ -33,46 +33,46 @@ export const quotationService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/quotations/handover-bulk', payload),
-    /** Bản ghi liên quan cho trang chi tiết (đơn hàng, hóa đơn, hoạt động). */
+    // bản ghi liên quan cho trang chi tiết (đơn hàng, hóa đơn, hoạt động)
     getRelated: (id: number) =>
         axiosInstance.get<ApiResponse<QuotationRelatedResult>>(`/api/quotations/${id}/related`),
-    /** Nhân viên gửi báo giá lên quản lý duyệt (draft → pending). */
+    // nhân viên gửi báo giá lên quản lý duyệt (draft -> pending)
     submit: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/submit`),
-    /** Quản lý duyệt báo giá (pending → approved). */
+    // quản lý duyệt báo giá (pending -> approved)
     approve: (id: number, comment?: string) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/approve`, { comment }),
-    /** Quản lý từ chối báo giá (pending → draft). */
+    // quản lý từ chối báo giá (pending -> draft)
     reject: (id: number, comment?: string) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/reject`, { comment }),
-    /** Lấy nội dung email báo giá mặc định để soạn trước khi gửi. */
+    // lấy nội dung email báo giá mặc định để soạn trước khi gửi
     getEmailDraft: (id: number) =>
         axiosInstance.get<ApiResponse<QuotationEmailDraft>>(`/api/quotations/${id}/email-draft`),
-    /** Nhân viên gửi email báo giá cho khách (approved → sent) kèm tiêu đề/nội dung tùy biến. */
+    // nhân viên gửi email báo giá cho khách (approved -> sent) kèm tiêu đề/nội dung tùy biến
     send: (id: number, payload?: SendQuotationPayload) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/send`, payload),
-    /** Đánh dấu đã gửi mà không gửi email (approved → sent) — báo giá gửi qua Zalo/in giấy. */
+    // đánh dấu đã gửi mà không gửi email (approved -> sent) — báo giá gửi qua Zalo/in giấy
     markSent: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/mark-sent`),
-    /** Khách chấp nhận báo giá (sent → accepted). */
+    // khách chấp nhận báo giá (sent -> accepted)
     accept: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/accept`),
-    /** Đặt báo giá làm báo giá đồng bộ (primary) của cơ hội. */
+    // đặt báo giá làm báo giá đồng bộ (primary) của cơ hội
     setPrimary: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/set-primary`),
-    /** Chuyển báo giá thành đơn hàng (khóa báo giá + cơ hội Chốt Thắng). */
+    // chuyển báo giá thành đơn hàng (khóa báo giá + cơ hội Chốt Thắng)
     convertToOrder: (id: number) =>
         axiosInstance.post<ApiResponse<unknown>>(`/api/quotations/${id}/convert-to-order`),
-    /** Clone báo giá từ cơ hội (sao chép sâu KH/LH/chính sách giá + dòng hàng). */
+    // clone báo giá từ cơ hội (sao chép sâu KH/LH/chính sách giá + dòng hàng)
     fromOpportunity: (opportunityId: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/from-opportunity/${opportunityId}`),
-    /** Cập nhật lại dòng hàng báo giá theo cơ hội nguồn (xóa + clone lại, giữ liên kết). */
+    // cập nhật lại dòng hàng báo giá theo cơ hội nguồn (xóa + clone lại, giữ liên kết)
     syncItemsFromOpportunity: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/sync-items-from-opportunity`),
-    /** Lịch sử phê duyệt báo giá (mỗi lần gửi duyệt tạo một bước mới). */
+    // lịch sử phê duyệt báo giá (mỗi lần gửi duyệt tạo một bước mới)
     getApprovals: (id: number) =>
         axiosInstance.get<ApiResponse<QuotationApprovalResult[]>>(`/api/quotations/${id}/approvals`),
-    /** Xem trước PDF báo giá (khi soạn email) — trả về blob PDF, không đổi trạng thái. */
+    // xem trước PDF báo giá (khi soạn email) — trả về blob PDF, không đổi trạng thái
     getPdfPreview: (id: number) =>
         axiosInstance.get<Blob>(`/api/quotations/${id}/pdf-preview`, { responseType: 'blob' }),
 };

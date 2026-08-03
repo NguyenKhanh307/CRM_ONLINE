@@ -9,14 +9,12 @@ import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.lead.enums.LeadStatus;
 import vn.com.be_crm.infrastructure.lead.converter.LeadStatusConverter;
 
-import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+import vn.com.be_crm.core.audit.IAuditable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Hibernate entity ánh xạ bảng leads.
- */
+// ánh xạ bảng leads
 @Entity
 @Table(name = "leads")
 @Getter @Setter @NoArgsConstructor

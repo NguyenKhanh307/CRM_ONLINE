@@ -3,10 +3,10 @@ package vn.com.be_crm.application.contact.command;
 import vn.com.be_crm.application.contact.dto.ContactResult;
 import vn.com.be_crm.application.contact.dto.UpdateContactCommand;
 import vn.com.be_crm.application.contact.mapper.ContactCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.contact.entity.Contact;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case cập nhật liên hệ. */
 public class UpdateContactUseCase implements IUseCase<UpdateContactCommand, ContactResult> {

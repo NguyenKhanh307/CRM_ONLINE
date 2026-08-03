@@ -10,11 +10,9 @@ import { GoogleLoginButton } from '../components/GoogleLoginButton';
 const inputCls =
     'w-full pl-9 pr-3 py-2 border border-gray-300 rounded-btn text-md text-text-main placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors';
 
-/**
- * Trang đăng nhập — standalone, không dùng MainLayout.
- * Lỗi nhập liệu hiện đỏ ngay dưới ô tương ứng; cố ý KHÔNG có popup xác nhận (không phải
- * thao tác thêm/sửa/xóa bản ghi). Lỗi trả về từ API là lỗi cấp form nên vẫn hiện banner.
- */
+// trang đăng nhập — standalone, không dùng MainLayout
+// lỗi nhập liệu hiện đỏ ngay dưới ô tương ứng; cố ý KHÔNG có popup xác nhận (không phải
+// thao tác thêm/sửa/xóa bản ghi); lỗi trả về từ api là lỗi cấp form nên vẫn hiện banner
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -35,7 +33,7 @@ const LoginPage = () => {
     // Không truyền onCancel: Esc không được xóa dữ liệu người dùng đang nhập.
     useFormKeyboardNav(formRef, { onSubmit: () => formRef.current?.requestSubmit() });
 
-    /** Xóa lỗi của một ô ngay khi người dùng gõ lại. */
+    // xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 

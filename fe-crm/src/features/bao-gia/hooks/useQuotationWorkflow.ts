@@ -2,22 +2,19 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { quotationService } from '../services/quotationService';
 import type { SendQuotationPayload } from '../types/quotationTypes';
 
-/** Loại hành động chuyển trạng thái báo giá. */
+// loại hành động chuyển trạng thái báo giá
 export type QuotationAction = 'submit' | 'approve' | 'reject' | 'send' | 'markSent' | 'accept' | 'setPrimary' | 'convertToOrder';
 
 interface ActionArgs {
     id: number;
     action: QuotationAction;
     comment?: string;
-    /** Tiêu đề/nội dung email tùy biến — chỉ dùng cho action 'send'. */
+    // tiêu đề/nội dung email tùy biến — chỉ dùng cho action 'send'
     emailPayload?: SendQuotationPayload;
 }
 
-/**
- * Hook thực hiện các hành động chuyển trạng thái báo giá:
- * submit / approve / reject / send / accept (khách chấp nhận) /
- * setPrimary (đặt đồng bộ) / convertToOrder (chuyển thành đơn hàng).
- */
+// hook thực hiện các hành động chuyển trạng thái báo giá: submit / approve / reject / send /
+// accept (khách chấp nhận) / setPrimary (đặt đồng bộ) / convertToOrder (chuyển thành đơn hàng)
 export function useQuotationWorkflow() {
     const qc = useQueryClient();
     return useMutation({

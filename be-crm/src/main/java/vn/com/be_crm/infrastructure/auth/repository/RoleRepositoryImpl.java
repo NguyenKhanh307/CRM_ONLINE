@@ -3,8 +3,8 @@ package vn.com.be_crm.infrastructure.auth.repository;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.domain.auth.entity.Role;
 import vn.com.be_crm.domain.auth.repository.IRoleRepository;
 import vn.com.be_crm.infrastructure.auth.entity.RoleHibernate;
@@ -13,7 +13,7 @@ import vn.com.be_crm.infrastructure.auth.mapper.RoleHibernateMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
 /**
  * Hibernate implementation của IRoleRepository.

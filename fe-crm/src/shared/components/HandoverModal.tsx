@@ -13,6 +13,7 @@ interface HandoverModalProps {
     isLoading?: boolean;
 }
 
+// modal chọn người nhận bàn giao + lý do, dùng chung cho bulk handover và "bàn giao toàn bộ"
 export const HandoverModal = ({ open, count, onClose, onConfirm, isLoading }: HandoverModalProps) => {
     const [toUserId, setToUserId] = useState<number | ''>('');
     const [reason, setReason] = useState('');
@@ -24,7 +25,7 @@ export const HandoverModal = ({ open, count, onClose, onConfirm, isLoading }: Ha
     });
 
     const ref = useRef<HTMLDivElement>(null);
-    // Không tự focus nút — người dùng phải chọn người nhận trước.
+    // không tự focus nút — người dùng phải chọn người nhận trước
     useDialogKeyboardNav(ref, { onCancel: onClose, autoFocus: 'none', enabled: open });
 
     if (!open) return null;

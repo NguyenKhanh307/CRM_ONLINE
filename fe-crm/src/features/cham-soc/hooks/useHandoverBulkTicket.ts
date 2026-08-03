@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ticketService } from '../services/ticketService';
 
-/** Bàn giao hàng loạt phiếu sang người xử lý khác. */
+// bàn giao hàng loạt phiếu sang người xử lý khác
 export function useHandoverBulkTicket() {
     const qc = useQueryClient();
     return useMutation({

@@ -8,6 +8,7 @@ interface Props {
     onClose: () => void;
 }
 
+// popup liệt kê phím tắt toàn cục + phím tắt trong form, sinh từ GLOBAL_SHORTCUTS/FORM_SHORTCUTS
 const ShortcutsPopup = ({ onClose }: Props) => {
     const ref = useRef<HTMLDivElement>(null);
 
@@ -21,13 +22,14 @@ const ShortcutsPopup = ({ onClose }: Props) => {
         return () => document.removeEventListener('mousedown', handler);
     }, [onClose]);
 
-    // Esc đóng popup — khớp với dòng "Đóng popup" trong chính bảng này.
+    // Esc đóng popup — khớp với dòng "Đóng popup" trong chính bảng này
     useEffect(() => {
         const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
         document.addEventListener('keydown', handler);
         return () => document.removeEventListener('keydown', handler);
     }, [onClose]);
 
+    // render một dòng "mô tả — tổ hợp phím"
     const row = ({ keys, description }: ShortcutDef) => (
         <li
             key={`${description}-${keys.join('')}`}
@@ -55,6 +57,7 @@ const ShortcutsPopup = ({ onClose }: Props) => {
     );
 };
 
+// icon dấu hỏi trên header, mở ShortcutsPopup (Ctrl+/)
 export const ShortcutsButton = () => {
     const { shortcutsOpen, setShortcutsOpen } = useShortcutsPopup();
 

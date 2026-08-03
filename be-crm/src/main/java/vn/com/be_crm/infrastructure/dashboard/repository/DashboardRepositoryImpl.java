@@ -12,7 +12,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
 /**
  * Hibernate implementation của IDashboardRepository — thống kê tổng hợp bằng native COUNT/SUM.

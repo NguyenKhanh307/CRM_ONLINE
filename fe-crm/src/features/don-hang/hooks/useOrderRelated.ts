@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { orderService } from '../services/orderService';
 
-/** Lấy bản ghi liên quan của một đơn hàng (trang chi tiết). */
+// lấy bản ghi liên quan của một đơn hàng (trang chi tiết)
 export function useOrderRelated(id: number | undefined) {
     return useQuery({
         queryKey: ['order', id, 'related'],

@@ -28,7 +28,7 @@ import { orderExportColumns } from '../config/orderExportColumns';
 import { OrderEditModal } from '../components/OrderEditModal';
 import type { OrderItemResult, OrderResult } from '../types/orderTypes';
 
-/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+// tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render
 const QUICK_FILTERS = [
     { id: 'draft',      label: 'Nháp',        field: 'status', value: 'draft' },
     { id: 'confirmed',  label: 'Đã xác nhận', field: 'status', value: 'confirmed' },
@@ -42,7 +42,7 @@ const DonHangPage = () => {
     const goCreate = () => navigate('/don-hang/them-moi');
     usePageShortcuts({ onCreate: can('order', 'create') ? goCreate : undefined });
     const { showAlert } = useAlert();
-    // Server-side pagination + search + tag lọc nhanh
+    // server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');
@@ -70,8 +70,8 @@ const DonHangPage = () => {
     const itemColumns = useMemo(() => getLineItemPanelColumns<OrderItemResult>(productMap, { showTax: true }), [productMap]);
 
 
-    /** Chạy một hành động trên Đơn hàng, báo lỗi qua alert nếu bước chuyển không hợp lệ.
-     *  Xuất hóa đơn thành công → điều hướng sang Hóa đơn (hóa đơn vừa tạo). */
+    // chạy một hành động trên Đơn hàng, báo lỗi qua alert nếu bước chuyển không hợp lệ
+    // xuất hóa đơn thành công -> điều hướng sang Hóa đơn (hóa đơn vừa tạo)
     const runAction = (id: number, action: OrderAction) =>
         workflowFn({ id, action }, {
             onSuccess: () => {
@@ -89,7 +89,7 @@ const DonHangPage = () => {
 
     const columns = useMemo<ColumnDef<OrderResult>[]>(() => getOrderColumns(), []);
 
-    /** Thao tác của một đơn hàng — hiện trong menu chuột phải. */
+    // thao tác của một đơn hàng — hiện trong menu chuột phải
     const rowActions = (o: OrderResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/don-hang/${o.id}`) },
         ...(o.status === 'draft' && can('order', 'process')
@@ -213,7 +213,7 @@ const DonHangPage = () => {
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
                 onExport={async (keys, format) => {
-                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    // không tick dòng -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await orderService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;

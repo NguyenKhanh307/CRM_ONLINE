@@ -2,22 +2,18 @@ import type { ReactNode } from 'react';
 import { FiRefreshCw, FiMaximize2, FiSettings } from 'react-icons/fi';
 
 interface DashCardProps {
-    /** Tiêu đề thẻ. */
     title: string;
-    /** Nhãn kỳ hiển thị góc phải (vd "Năm nay"). */
+    // nhãn kỳ hiển thị góc phải (vd "Năm nay")
     periodLabel?: string;
-    /** Callback khi bấm nút làm mới. */
     onRefresh?: () => void;
-    /** Chú thích nhỏ dưới đáy thẻ (vd "Số liệu tính đến …"). */
+    // chú thích nhỏ dưới đáy thẻ (vd "Số liệu tính đến …")
     footNote?: string;
-    /** Cho phép mở rộng chiếm 2 cột grid. */
+    // cho phép mở rộng chiếm 2 cột grid
     className?: string;
     children: ReactNode;
 }
 
-/**
- * Thẻ dashboard chuẩn AMIS: header (tiêu đề + kỳ + nút làm mới + icon trang trí) + nội dung.
- */
+// thẻ dashboard chuẩn AMIS: header (tiêu đề + kỳ + nút làm mới + icon trang trí) + nội dung
 export const DashCard = ({ title, periodLabel, onRefresh, footNote, className = '', children }: DashCardProps) => (
     <div className={`bg-white rounded-card p-4 shadow-sm flex flex-col ${className}`}>
         <div className="flex items-start justify-between mb-3">

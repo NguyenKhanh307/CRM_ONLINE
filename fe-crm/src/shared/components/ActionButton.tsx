@@ -12,7 +12,7 @@ const VARIANT_CLS: Record<Variant, string> = {
     dangerSolid: 'bg-danger text-white hover:bg-red-600',
 };
 
-/** Nền của khối phím tắt — đậm hơn nền nút để tách bạch mà vẫn cùng tông. */
+// nền của khối phím tắt — đậm hơn nền nút để tách bạch mà vẫn cùng tông
 const SHORTCUT_CLS: Record<Variant, string> = {
     primary: 'bg-black/15 text-white',
     secondary: 'bg-gray-100 text-gray-500 border-l border-gray-300',
@@ -29,19 +29,17 @@ interface Props {
     onClick?: () => void;
     variant?: Variant;
     icon?: IconType;
-    /** Tổ hợp phím hiển thị thành khối liền sát mép phải, ví dụ ['Alt','N']. */
+    // tổ hợp phím hiển thị thành khối liền sát mép phải, ví dụ ['Alt','N']
     shortcut?: string[];
     disabled?: boolean;
     title?: string;
     type?: 'button' | 'submit';
-    /** Đánh dấu `data-dialog-button` để useDialogKeyboardNav dò được nút này. */
+    // đánh dấu `data-dialog-button` để useDialogKeyboardNav dò được nút này
     dialogButton?: boolean;
 }
 
-/**
- * Nút hành động dùng chung: header trang danh sách, header form, footer popup.
- * Phím tắt render thành khối liền bên phải, không phải chip <kbd> nằm giữa nút.
- */
+// nút hành động dùng chung: header trang danh sách, header form, footer popup
+// phím tắt render thành khối liền bên phải, không phải chip <kbd> nằm giữa nút
 export const ActionButton = ({
     children,
     onClick,

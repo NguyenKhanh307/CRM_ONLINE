@@ -16,7 +16,7 @@ const FIELD_LABELS: Record<string, string> = {
     taxCode: 'mã số thuế',
 };
 
-/** Route bản ghi trùng; tiềm năng chưa có trang chi tiết → nhảy về danh sách + focus dòng. */
+// route bản ghi trùng; tiềm năng chưa có trang chi tiết -> nhảy về danh sách + focus dòng
 const pathOf = (m: DuplicateMatch): string =>
     m.module === 'lead' ? `/tiem-nang?focus=${m.id}` : recordPath(m.module as RelatedModule, m.id);
 
@@ -24,10 +24,8 @@ interface DuplicateWarningProps {
     matches: DuplicateMatch[] | undefined;
 }
 
-/**
- * Banner cảnh báo bản ghi trùng email/SĐT/MST.
- * KHÔNG chặn lưu — khách hàng có thể dùng chung số tổng đài hay email công ty.
- */
+// banner cảnh báo bản ghi trùng email/SĐT/MST
+// KHÔNG chặn lưu — khách hàng có thể dùng chung số tổng đài hay email công ty
 export const DuplicateWarning = ({ matches }: DuplicateWarningProps) => {
     const navigate = useNavigate();
     if (!matches || matches.length === 0) return null;

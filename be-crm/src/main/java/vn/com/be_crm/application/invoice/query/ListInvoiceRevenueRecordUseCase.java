@@ -2,7 +2,7 @@ package vn.com.be_crm.application.invoice.query;
 
 import vn.com.be_crm.application.invoice.dto.InvoiceRevenueRecordResult;
 import vn.com.be_crm.application.invoice.mapper.InvoiceRevenueRecordCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRevenueRecordRepository;
 
 import java.util.List;

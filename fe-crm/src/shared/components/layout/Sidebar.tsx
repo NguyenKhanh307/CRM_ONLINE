@@ -10,23 +10,22 @@ interface SidebarProps {
     onToggle: () => void;
 }
 
-/** Loại thông báo mang tính "cập nhật/thay đổi" → chấm vàng; còn lại (tạo mới/cần hành động) → chấm đỏ. */
+// loại thông báo mang tính "cập nhật/thay đổi" -> chấm vàng; còn lại (tạo mới/cần hành động) -> chấm đỏ
 const UPDATE_NOTIFICATION_TYPES = new Set<string>([
     'quotation_approved', 'quotation_rejected', 'quotation_accepted',
     'quotation_customer_response', 'ticket_resolved',
 ]);
 
+// sidebar điều hướng chính — lọc mục theo quyền, hiện chấm thông báo chưa đọc theo module
 export const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
     const { hasRole, hasModuleAccess } = usePermission();
     const isAdmin = hasRole('ADMIN');
     const { data: notifications } = useNotificationList();
 
-    /**
-     * Màu chấm theo module dựa trên thông báo CHƯA ĐỌC (đọc xong → hết chấm).
-     * Tiền tố `type` trùng module key (lead_*, quotation_*, ticket_*…) nên tách trước dấu `_` ra module.
-     * Đỏ = tạo mới/cần hành động, Vàng = cập nhật/thay đổi; đỏ ưu tiên hơn vàng nếu module có cả hai.
-     * Màu KHÔNG phụ thuộc mục có đang được chọn hay không.
-     */
+    // màu chấm theo module dựa trên thông báo CHƯA ĐỌC (đọc xong -> hết chấm)
+    // tiền tố `type` trùng module key (lead_*, quotation_*, ticket_*…) nên tách trước dấu `_` ra module
+    // đỏ = tạo mới/cần hành động, vàng = cập nhật/thay đổi; đỏ ưu tiên hơn vàng nếu module có cả hai
+    // màu KHÔNG phụ thuộc mục có đang được chọn hay không
     const moduleDot = useMemo(() => {
         const map = new Map<string, 'red' | 'yellow'>();
         for (const n of notifications ?? []) {
@@ -59,7 +58,7 @@ export const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
             <nav className="flex-1 overflow-y-auto py-2 px-2">
                 <ul className="space-y-0.5">
                     {visibleItems.map(({ label, path, icon: Icon, module }) => {
-                        // Chấm báo thông báo chưa đọc thuộc module này — đỏ (cần đọc) / vàng (mới cập nhật); hết khi đã đọc.
+                        // chấm báo thông báo chưa đọc thuộc module này — đỏ (cần đọc) / vàng (mới cập nhật); hết khi đã đọc
                         const dot = module ? moduleDot.get(module) : undefined;
                         return (
                             <li key={path}>

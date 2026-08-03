@@ -1,7 +1,7 @@
 package vn.com.be_crm.application.handover;
 
-import vn.com.be_crm.application.shared.dto.HandoverAllCommand;
-import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
+import vn.com.be_crm.core.dto.handover.HandoverAllCommand;
+import vn.com.be_crm.core.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;

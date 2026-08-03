@@ -1,8 +1,8 @@
 package vn.com.be_crm.application.pricing.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyEmployeeRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case xóa nhân viên trong chính sách giá. */
 public class DeletePricePolicyEmployeeUseCase implements IUseCase<Long, Void> {

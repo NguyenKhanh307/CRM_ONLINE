@@ -13,7 +13,7 @@ interface Props {
     onTogglePermission: (permId: number, currentlyChecked: boolean) => void;
 }
 
-/** Accordion section cho 1 phân hệ trong tab phân quyền. */
+// accordion section cho 1 phân hệ trong tab phân quyền
 const PhanHeSection = ({
     moduleId, label, isOpen, permissions, assignedIds,
     onToggleOpen, onToggleAll, onTogglePermission,

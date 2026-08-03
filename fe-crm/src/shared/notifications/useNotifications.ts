@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notificationService } from './notificationService';
 
-/** Lấy danh sách thông báo của tôi (tự refetch mỗi 30s). */
+// lấy danh sách thông báo của tôi (tự refetch mỗi 30s)
 export function useNotificationList() {
     return useQuery({
         queryKey: ['notifications'],
@@ -10,7 +10,7 @@ export function useNotificationList() {
     });
 }
 
-/** Lấy số thông báo chưa đọc (tự refetch mỗi 30s). */
+// lấy số thông báo chưa đọc (tự refetch mỗi 30s)
 export function useUnreadCount() {
     return useQuery({
         queryKey: ['notifications', 'unread-count'],
@@ -19,7 +19,7 @@ export function useUnreadCount() {
     });
 }
 
-/** Đánh dấu đã đọc (một hoặc tất cả) và làm mới danh sách + badge. */
+// đánh dấu đã đọc (một hoặc tất cả) và làm mới danh sách + badge
 export function useMarkNotifications() {
     const qc = useQueryClient();
     const invalidate = () => qc.invalidateQueries({ queryKey: ['notifications'] });
@@ -34,7 +34,7 @@ export function useMarkNotifications() {
     return { markOne, markAll };
 }
 
-/** Xóa mềm thông báo (các dòng được chọn hoặc tất cả) và làm mới danh sách + badge. */
+// xóa mềm thông báo (các dòng được chọn hoặc tất cả) và làm mới danh sách + badge
 export function useDeleteNotifications() {
     const qc = useQueryClient();
     const invalidate = () => qc.invalidateQueries({ queryKey: ['notifications'] });

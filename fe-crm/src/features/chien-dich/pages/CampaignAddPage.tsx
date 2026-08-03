@@ -30,7 +30,7 @@ const initialState = (ownerId: string): HeaderState => ({
     budget: '', actualCost: '', targetSize: '', expectedRevenue: '', ownerId, description: '',
 });
 
-/** Trang thêm Chiến dịch mới (layout AMIS). */
+// trang thêm Chiến dịch mới (layout AMIS)
 const CampaignAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
@@ -44,7 +44,7 @@ const CampaignAddPage = () => {
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    // cập nhật form và xóa lỗi của đúng những field vừa gõ
     const set = (patch: Partial<HeaderState>) => {
         setForm((p) => ({ ...p, ...patch }));
         setErrors((e) => {
@@ -56,7 +56,7 @@ const CampaignAddPage = () => {
     const reset = () => setForm(initialState(defaultOwnerId));
     const num = (v: string): number | null => (v === '' ? null : Number(v));
 
-    /** Kiem tra bat buoc + bien (khop rang buoc backend) - tra map field->loi. */
+    // kiểm tra bắt buộc + biên (khớp ràng buộc backend) - trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
             code: !form.code.trim() ? 'Mã Chiến dịch không được để trống' : null,
@@ -66,12 +66,14 @@ const CampaignAddPage = () => {
                 ?? dateRangeError(form.startDate, form.endDate, 'ngày bắt đầu', 'Ngày kết thúc'),
         });
 
+    // hàm lưu — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const submit = async (andNew: boolean) => {
-        // Loi nhap lieu hien do duoi o; popup xac nhan chi mo khi du lieu da hop le.
+        // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
 
+        // bước dựng payload
         const payload: CreateCampaignPayload = {
             code: form.code.trim(),
             name: form.name.trim(),
@@ -86,6 +88,7 @@ const CampaignAddPage = () => {
             ownerId: form.ownerId ? Number(form.ownerId) : null,
             description: form.description || null,
         };
+        // bước hỏi xác nhận rồi gọi api lưu
         if (!(await confirmCreate('chiến dịch'))) return;
         mutate(payload, {
             onSuccess: () => {

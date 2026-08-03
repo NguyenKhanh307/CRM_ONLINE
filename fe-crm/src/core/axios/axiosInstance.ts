@@ -7,7 +7,7 @@ const axiosInstance = axios.create({
     headers: { 'Content-Type': 'application/json' },
 });
 
-/** Đính kèm Bearer token vào mỗi request nếu có. */
+// đính kèm Bearer token vào mỗi request nếu có
 axiosInstance.interceptors.request.use((config) => {
     const token = getToken();
     if (token) {
@@ -16,10 +16,7 @@ axiosInstance.interceptors.request.use((config) => {
     return config;
 });
 
-/**
- * Xử lý response lỗi toàn cục.
- * 401 → xóa session và chuyển về trang login.
- */
+// xử lý response lỗi toàn cục — 401 -> xóa session và chuyển về trang login
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error: unknown) => {

@@ -5,13 +5,11 @@ interface FormPageHeaderProps {
     saving?: boolean;
     onCancel: () => void;
     onSave: () => void;
-    /** Nếu truyền thì hiện nút "Lưu và thêm". */
+    // nếu truyền thì hiện nút "Lưu và thêm"
     onSaveAndNew?: () => void;
 }
 
-/**
- * Header của form thêm mới full-page: tiêu đề + Hủy / Lưu và thêm / Lưu.
- */
+// header của form thêm mới full-page: tiêu đề + Hủy / Lưu và thêm / Lưu
 export const FormPageHeader = ({
     title,
     saving,

@@ -12,7 +12,7 @@ import { quotationService } from '../services/quotationService';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
-import { usePricePolicyList } from '@/features/chinh-sach-gia/hooks/usePricePolicyList';
+import { useEligiblePricePolicies } from '@/features/chinh-sach-gia/hooks/useEligiblePricePolicies';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
@@ -47,7 +47,6 @@ export function QuotationEditModal({ item, onClose }: Props) {
     const { mutateAsync, isPending } = useUpdateQuotation();
     const { data: products = [] } = useProductList();
     const { data: campaigns = [] } = useCampaignList();
-    const { data: pricePolicies = [] } = usePricePolicyList();
     const [pulling, setPulling] = useState(false);
     const [form, setForm] = useState<UpdateQuotationPayload>({
         customerId: null, contactId: null, campaignId: null, pricePolicyId: null, ownerId: null, quoteDate: null,
@@ -57,6 +56,7 @@ export function QuotationEditModal({ item, onClose }: Props) {
     const [rows, setRows] = useState<LineItemRow[]>([]);
     const [originalRows, setOriginalRows] = useState<LineItemRow[]>([]);
     const [saving, setSaving] = useState(false);
+    const { data: pricePolicies = [] } = useEligiblePricePolicies(form.customerId ?? undefined);
 
     const productOptions = useMemo<ProductOption[]>(
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
@@ -82,14 +82,14 @@ export function QuotationEditModal({ item, onClose }: Props) {
     }, [item]);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
-    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    // xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
-    /** Tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Cơ hội. */
+    // tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Cơ hội
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
-    /** Đổi cơ hội → tự điền chiến dịch/chính sách giá còn trống (không đè giá trị đã có). */
+    // đổi cơ hội -> tự điền chiến dịch/chính sách giá còn trống (không đè giá trị đã có)
     const onPickOpportunity = async (v: string) => {
         setForm(f => ({ ...f, opportunityId: v ? Number(v) : null }));
         setPrefillFrom(null);
@@ -112,9 +112,10 @@ export function QuotationEditModal({ item, onClose }: Props) {
 
     if (!item) return null;
 
+    // lưu form + diff dòng hàng — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        // bước kiểm tra dữ liệu
         const errs = collectErrors({
             validUntil: dateRangeError(form.quoteDate, form.validUntil, 'ngày báo giá', 'Ngày hiệu lực'),
             items: validateLineItems(rows),
@@ -122,6 +123,7 @@ export function QuotationEditModal({ item, onClose }: Props) {
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
 
+        // bước hỏi xác nhận rồi lưu header + diff dòng hàng
         if (!(await confirmSave('báo giá'))) return;
         setSaving(true);
         try {
@@ -136,7 +138,7 @@ export function QuotationEditModal({ item, onClose }: Props) {
                 ...toUpdate.map((r) => quotationService.updateItem(item.id, r.backendId as number, toItemPayload(r))),
                 ...toDelete.map((id) => quotationService.deleteItem(item.id, id)),
             ]);
-            // Sửa dòng hàng báo giá primary đồng bộ ngược về cơ hội (amount roll-up) → làm mới cơ hội + báo giá
+            // sửa dòng hàng báo giá primary đồng bộ ngược về cơ hội (amount roll-up) -> làm mới cơ hội + báo giá
             ['quotations', 'opportunities'].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
             qc.invalidateQueries({ queryKey: ['quotation', item.id] });
             qc.invalidateQueries({ queryKey: ['quotation-items', item.id] });
@@ -147,7 +149,7 @@ export function QuotationEditModal({ item, onClose }: Props) {
         }
     };
 
-    /** Cập nhật lại danh sách dòng hàng theo cơ hội nguồn (áp dụng ngay ở backend, giữ liên kết). */
+    // cập nhật lại danh sách dòng hàng theo cơ hội nguồn (áp dụng ngay ở backend, giữ liên kết)
     const handleSyncFromOpportunity = async () => {
         if (!item) return;
         setPulling(true);
@@ -255,7 +257,7 @@ export function QuotationEditModal({ item, onClose }: Props) {
                             )}
                         </div>
                         <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax
-                            pricePolicyId={form.pricePolicyId} />
+                            pricePolicyId={form.pricePolicyId} customerId={form.customerId} />
                         {errors.items && <p className="text-xs text-danger mt-1">{errors.items}</p>}
                     </div>
                     {item.customerResponse && (

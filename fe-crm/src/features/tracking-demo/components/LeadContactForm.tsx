@@ -12,12 +12,9 @@ interface Props {
 
 const inputCls = 'w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none';
 
-/**
- * Bước 4 — form liên hệ: biến khách ẩn danh thành tiềm năng có tên/email/SĐT.
- *
- * Đây là form khách tự điền trên website, KHÔNG phải thao tác thêm/sửa trong CRM,
- * nên cố ý chỉ báo lỗi đỏ dưới ô — không có popup xác nhận.
- */
+// bước 4 — form liên hệ: biến khách ẩn danh thành tiềm năng có tên/email/sđt
+// đây là form khách tự điền trên website, KHÔNG phải thao tác thêm/sửa trong CRM,
+// nên cố ý chỉ báo lỗi đỏ dưới ô — không có popup xác nhận
 export const LeadContactForm = ({ busy, onSubmit }: Props) => {
     const [form, setForm] = useState<LeadFormState>(EMPTY_FORM);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -26,7 +23,7 @@ export const LeadContactForm = ({ busy, onSubmit }: Props) => {
     // autoFocus tắt: trang mô phỏng website, không cướp focus của khách khi vừa mở.
     useFormKeyboardNav(formRef, { onSubmit: () => formRef.current?.requestSubmit(), autoFocus: false });
 
-    /** Cập nhật form và xóa lỗi của đúng những ô vừa gõ. */
+    // cập nhật form và xóa lỗi của đúng những ô vừa gõ
     const set = (patch: Partial<LeadFormState>) => {
         setForm((f) => ({ ...f, ...patch }));
         setErrors((e) => {

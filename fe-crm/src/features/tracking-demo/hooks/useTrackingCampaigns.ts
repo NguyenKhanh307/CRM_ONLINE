@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { trackingService } from '../services/trackingService';
 
-/** Danh sách chiến dịch đang chạy để landing page gắn nguồn (endpoint công khai). */
+// danh sách chiến dịch đang chạy để landing page gắn nguồn (endpoint công khai)
 export function useTrackingCampaigns() {
     return useQuery({
         queryKey: ['tracking', 'campaigns'],

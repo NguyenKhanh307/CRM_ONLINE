@@ -1,10 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { quotationService } from '@/features/bao-gia/services/quotationService';
 
-/**
- * Hook clone báo giá từ cơ hội (POST /api/quotations/from-opportunity/{id}).
- * Tạo báo giá mới → làm mới danh sách báo giá + cơ hội (báo giá đầu tiên đặt primary).
- */
+// clone báo giá từ cơ hội (POST /api/quotations/from-opportunity/{id}) — tạo báo giá mới thì làm
+// mới danh sách báo giá + cơ hội (báo giá đầu tiên đặt primary)
 export function useCreateQuotationFromOpportunity() {
     const qc = useQueryClient();
     return useMutation({

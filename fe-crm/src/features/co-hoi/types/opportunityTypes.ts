@@ -17,7 +17,7 @@ export interface UpdateOpportunityPayload {
     // status: KHÔNG gửi — backend suy ra từ giai đoạn pipeline.
 }
 
-/** Một dòng hàng gửi kèm khi tạo cơ hội. */
+// một dòng hàng gửi kèm khi tạo cơ hội
 export interface OpportunityItemPayload {
     productId: number;
     quantity: number;
@@ -27,7 +27,7 @@ export interface OpportunityItemPayload {
     note: string | null;
 }
 
-/** Payload tạo mới cơ hội — POST /api/opportunities (kèm items[]). */
+// payload tạo mới cơ hội — POST /api/opportunities (kèm items[])
 export interface CreateOpportunityPayload {
     code: string;
     name: string;
@@ -49,7 +49,7 @@ export interface CreateOpportunityPayload {
     items: OpportunityItemPayload[];
 }
 
-/** Dòng hàng trả về từ GET /api/opportunities/{id}/items. */
+// dòng hàng trả về từ GET /api/opportunities/{id}/items
 export interface OpportunityItemResult {
     id: number;
     opportunityId: number;

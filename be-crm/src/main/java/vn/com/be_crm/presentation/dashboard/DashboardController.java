@@ -15,7 +15,7 @@ import vn.com.be_crm.application.dashboard.query.GetAdminDashboardUseCase;
 import vn.com.be_crm.application.dashboard.query.GetRevenueByCampaignUseCase;
 import vn.com.be_crm.application.dashboard.query.GetSalesDashboardUseCase;
 import vn.com.be_crm.application.dashboard.query.SalesDashboardQuery;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

@@ -3,23 +3,20 @@ import { QUALIFY_THRESHOLD, STORAGE_KEY, SUBMIT_POINTS } from '../config/trackin
 import { trackingService, type SubmitTrackingPayload } from '../services/trackingService';
 import type { LeadFormState, SessionEvent, TrackedLead } from '../types/trackingTypes';
 
-/** Giờ phút hiện tại cho nhật ký hành vi. */
+// giờ phút hiện tại cho nhật ký hành vi
 const now = () => new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-/**
- * Quản lý một phiên truy cập web tracking: mở phiên, ghi hành vi, nộp form, đặt lại.
- *
- * Mã tiềm năng lưu ở `localStorage` — đóng tab mở lại vẫn là cùng một khách,
- * đúng như cookie tracking thật. Muốn demo lại từ đầu thì gọi `reset()`.
- */
+// quản lý một phiên truy cập web tracking: mở phiên, ghi hành vi, nộp form, đặt lại
+// mã tiềm năng lưu ở `localStorage` — đóng tab mở lại vẫn là cùng một khách, đúng như
+// cookie tracking thật; muốn demo lại từ đầu thì gọi `reset()`
 export function useTrackingSession() {
     const [lead, setLead] = useState<TrackedLead | null>(null);
     const [events, setEvents] = useState<SessionEvent[]>([]);
     const [busy, setBusy] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
-    /** Đã thử khôi phục phiên cũ từ localStorage hay chưa (tránh nháy giao diện lúc mới tải). */
+    // đã thử khôi phục phiên cũ từ localStorage hay chưa (tránh nháy giao diện lúc mới tải)
     const [restoring, setRestoring] = useState(true);
-    /** Chặn StrictMode gọi effect 2 lần → tránh tạo 2 tiềm năng song song. */
+    // chặn StrictMode gọi effect 2 lần -> tránh tạo 2 tiềm năng song song
     const restoredRef = useRef(false);
 
     const apply = useCallback((data: TrackedLead | null) => {
@@ -47,7 +44,7 @@ export function useTrackingSession() {
             .finally(() => setRestoring(false));
     }, [apply]);
 
-    /** Mở phiên mới, gắn chiến dịch nguồn đọc từ `utm_campaign`. */
+    // mở phiên mới, gắn chiến dịch nguồn đọc từ `utm_campaign`
     const start = useCallback(async (campaignId: number | null) => {
         setBusy(true);
         try {
@@ -58,7 +55,7 @@ export function useTrackingSession() {
         }
     }, [apply]);
 
-    /** Ghi một hành vi và cộng điểm. */
+    // ghi một hành vi và cộng điểm
     const track = useCallback(async (action: string, label: string, points: number) => {
         if (!lead) return;
         setBusy(true);
@@ -71,7 +68,7 @@ export function useTrackingSession() {
         }
     }, [lead, apply]);
 
-    /** Nộp form liên hệ: điền thông tin thật vào tiềm năng ẩn danh. */
+    // nộp form liên hệ: điền thông tin thật vào tiềm năng ẩn danh
     const submit = useCallback(async (form: LeadFormState) => {
         if (!lead) return;
         setBusy(true);
@@ -88,7 +85,7 @@ export function useTrackingSession() {
         }
     }, [lead, apply]);
 
-    /** Quên khách hiện tại để demo lại từ đầu với chiến dịch khác. */
+    // quên khách hiện tại để demo lại từ đầu với chiến dịch khác
     const reset = useCallback(() => {
         localStorage.removeItem(STORAGE_KEY);
         setLead(null);

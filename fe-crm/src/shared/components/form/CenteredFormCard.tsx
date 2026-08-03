@@ -6,19 +6,16 @@ interface Props {
     icon: IconType;
     title: string;
     subtitle?: string;
-    /** Có giá trị thì hiện nút quay lại bên trái tiêu đề. */
+    // có giá trị thì hiện nút quay lại bên trái tiêu đề
     onBack?: () => void;
-    /** Bề rộng tối đa của cả khối tiêu đề lẫn thẻ. */
+    // bề rộng tối đa của cả khối tiêu đề lẫn thẻ
     maxWidth?: string;
     children: ReactNode;
 }
 
-/**
- * Khung trang cho form một cột: khối tiêu đề + thẻ trắng, cả hai cùng căn giữa màn hình.
- *
- * Root cố ý KHÔNG `min-h-screen` — `MainLayout` đã `h-screen overflow-hidden` và `<main>` là
- * vùng cuộn duy nhất, thêm chiều cao tối thiểu ở đây sẽ đẻ ra thanh cuộn dọc thừa.
- */
+// khung trang cho form một cột: khối tiêu đề + thẻ trắng, cả hai cùng căn giữa màn hình
+// root cố ý KHÔNG `min-h-screen` — `MainLayout` đã `h-screen overflow-hidden` và `<main>` là
+// vùng cuộn duy nhất, thêm chiều cao tối thiểu ở đây sẽ đẻ ra thanh cuộn dọc thừa
 export const CenteredFormCard = ({
     icon: Icon,
     title,

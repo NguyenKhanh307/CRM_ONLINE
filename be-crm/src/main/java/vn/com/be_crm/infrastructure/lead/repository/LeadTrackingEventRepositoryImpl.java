@@ -7,25 +7,18 @@ import vn.com.be_crm.domain.lead.entity.LeadTrackingEvent;
 import vn.com.be_crm.domain.lead.repository.ILeadTrackingEventRepository;
 import vn.com.be_crm.infrastructure.lead.entity.LeadTrackingEventHibernate;
 import vn.com.be_crm.infrastructure.lead.mapper.LeadTrackingEventHibernateMapper;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
-/**
- * Hibernate implementation của ILeadTrackingEventRepository.
- */
+// impl Hibernate của ILeadTrackingEventRepository
 @Repository
 public class LeadTrackingEventRepositoryImpl implements ILeadTrackingEventRepository {
     private final SessionFactory sf;
     private final LeadTrackingEventHibernateMapper mapper;
 
-    /**
-     * @param sf     Hibernate SessionFactory
-     * @param mapper mapper domain ↔ hibernate
-     */
     public LeadTrackingEventRepositoryImpl(SessionFactory sf, LeadTrackingEventHibernateMapper mapper) {
         this.sf = sf; this.mapper = mapper;
     }
 
-    /** Lưu một sự kiện tracking. @param e domain entity @return entity sau khi lưu */
     @Override public LeadTrackingEvent save(LeadTrackingEvent e) {
         return TxSupport.write(sf, s -> {
             LeadTrackingEventHibernate m = s.merge(mapper.toHibernate(e));

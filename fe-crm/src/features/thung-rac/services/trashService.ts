@@ -12,6 +12,7 @@ const ENDPOINTS: Record<TrashModule, string> = {
     'don-hang':   '/api/orders',
     'hoa-don':    '/api/invoices',
     'san-pham':   '/api/products',
+    'cham-soc':   '/api/tickets',
 };
 
 export const trashService = {

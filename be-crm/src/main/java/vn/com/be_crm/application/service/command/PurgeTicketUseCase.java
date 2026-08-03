@@ -1,6 +1,6 @@
 package vn.com.be_crm.application.service.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.service.repository.ITicketRepository;
 
 /** Use case xóa vĩnh viễn phiếu khỏi thùng rác (ẩn khỏi danh sách). */

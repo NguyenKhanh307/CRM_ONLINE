@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { PageParams } from '@/shared/types/api';
 import { quotationService } from '../services/quotationService';
 
-/** Danh sách báo giá phân trang server-side (search `q` + tag lọc `status` trong PageParams). */
+// danh sách báo giá phân trang server-side (search `q` + tag lọc `status` trong PageParams)
 export function usePagedQuotationList(params: PageParams) {
     return useQuery({
         queryKey: ['quotations', 'paged', params],

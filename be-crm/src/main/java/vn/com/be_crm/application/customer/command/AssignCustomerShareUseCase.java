@@ -3,7 +3,7 @@ package vn.com.be_crm.application.customer.command;
 import vn.com.be_crm.application.customer.dto.AssignCustomerShareCommand;
 import vn.com.be_crm.application.customer.dto.CustomerShareResult;
 import vn.com.be_crm.application.customer.mapper.CustomerShareCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.customer.repository.ICustomerShareRepository;
 
 /** Use case gán chia sẻ khách hàng với người dùng. */

@@ -2,8 +2,8 @@ package vn.com.be_crm.application.activity.command;
 
 import vn.com.be_crm.application.activity.dto.ImportActivityRowCommand;
 import vn.com.be_crm.application.activity.dto.ImportBulkActivityCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.ImportRowError;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.dto.import_.ImportRowError;
 import vn.com.be_crm.domain.activity.entity.Activity;
 import vn.com.be_crm.domain.activity.enums.ActivityStatus;
 import vn.com.be_crm.domain.activity.enums.ActivityType;
@@ -19,10 +19,13 @@ public class ImportBulkActivityUseCase {
     private final IActivityRepository repo;
 
     /** @param repo port lưu trữ */
-    public ImportBulkActivityUseCase(IActivityRepository repo) { this.repo = repo; }
+    public ImportBulkActivityUseCase(IActivityRepository repo) {
+        this.repo = repo;
+    }
 
     /**
      * Xử lý nhập hàng loạt Activity.
+     * 
      * @param cmd dữ liệu import @return kết quả nhập
      */
     public ImportBulkResult execute(ImportBulkActivityCommand cmd) {
@@ -61,31 +64,46 @@ public class ImportBulkActivityUseCase {
                 success++;
             } catch (Exception ex) {
                 // Gom lỗi theo từng dòng, không hủy cả lô — các dòng hợp lệ vẫn được lưu
-                errors.add(new ImportRowError(rowNum, ex.getMessage() != null ? ex.getMessage() : "Lỗi không xác định"));
+                errors.add(
+                        new ImportRowError(rowNum, ex.getMessage() != null ? ex.getMessage() : "Lỗi không xác định"));
             }
         }
         return new ImportBulkResult(success, errors.size(), errors);
     }
 
+    // Các hàm parse enum/dateTime, trả về null nếu rỗng/không hợp lệ
     private ActivityType parseType(String s) {
-        if (s == null || s.isBlank()) return null;
-        try { return ActivityType.valueOf(s.trim().toLowerCase()); }
-        catch (Exception e) { return null; }
+        if (s == null || s.isBlank())
+            return null;
+        try {
+            return ActivityType.valueOf(s.trim().toLowerCase());
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private ActivityStatus parseStatus(String s) {
-        if (s == null || s.isBlank()) return null;
-        try { return ActivityStatus.valueOf(s.trim().toLowerCase()); }
-        catch (Exception e) { return null; }
+        if (s == null || s.isBlank())
+            return null;
+        try {
+            return ActivityStatus.valueOf(s.trim().toLowerCase());
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private LocalDateTime parseDateTime(String s) {
-        if (s == null || s.isBlank()) return null;
+        if (s == null || s.isBlank())
+            return null;
         // Wizard gửi ISO date thuần (yyyy-MM-dd); chấp nhận cả datetime đầy đủ nếu có
-        try { return java.time.LocalDate.parse(s.trim()).atStartOfDay(); }
-        catch (DateTimeParseException e1) {
-            try { return LocalDateTime.parse(s.trim()); }
-            catch (DateTimeParseException e2) { return null; }
+        try {
+            return java.time.LocalDate.parse(s.trim()).atStartOfDay();
+        } catch (DateTimeParseException e1) {
+            try {
+                return LocalDateTime.parse(s.trim());
+            } catch (DateTimeParseException e2) {
+                return null;
+            }
         }
     }
 }

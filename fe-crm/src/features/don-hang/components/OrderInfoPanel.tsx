@@ -7,7 +7,7 @@ interface Props {
     order: OrderResult;
 }
 
-/** Thông tin cột trái của trang chi tiết Đơn hàng. */
+// thông tin cột trái của trang chi tiết Đơn hàng
 export const OrderInfoPanel = ({ order: o }: Props) => (
     <div>
         <InfoRow label="Mã" value={o.code} />

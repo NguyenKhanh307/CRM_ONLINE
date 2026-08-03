@@ -13,7 +13,7 @@ interface Props {
     onCancel: () => void;
 }
 
-/** Modal nhập một lý do/ý kiến dùng chung (từ chối báo giá, đánh mất tiềm năng...). */
+// modal nhập một lý do/ý kiến dùng chung (từ chối báo giá, đánh mất tiềm năng...)
 export function ReasonModal({
     title,
     label = 'Lý do',

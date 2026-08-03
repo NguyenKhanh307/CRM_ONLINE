@@ -24,7 +24,7 @@ import { customerExportColumns } from '../config/customerExportColumns';
 import { CustomerEditModal } from '../components/CustomerEditModal';
 import type { CustomerResult } from '../types/customerTypes';
 
-/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+// tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render
 const QUICK_FILTERS = [
     { id: 'active',   label: 'Hoạt động',       field: 'status', value: 'active' },
     { id: 'inactive', label: 'Không hoạt động',  field: 'status', value: 'inactive' },
@@ -59,7 +59,7 @@ const KhachHangPage = () => {
     const [exportOpen, setExportOpen] = useState(false);
 
 
-    /** Chạy hành động kích hoạt/ngừng khách hàng, báo lỗi qua alert nếu không hợp lệ. */
+    // chạy hành động kích hoạt/ngừng khách hàng, báo lỗi qua alert nếu không hợp lệ
     const runAction = (id: number, action: CustomerAction) =>
         workflowFn({ id, action }, {
             onError: (err: unknown) => {
@@ -71,7 +71,7 @@ const KhachHangPage = () => {
 
     const columns = useMemo<ColumnDef<CustomerResult>[]>(() => getCustomerColumns(), []);
 
-    /** Thao tác của một khách hàng — hiện trong menu chuột phải. */
+    // thao tác của một khách hàng — hiện trong menu chuột phải
     const rowActions = (c: CustomerResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/khach-hang/${c.id}`) },
         ...(can('customer', 'activate')

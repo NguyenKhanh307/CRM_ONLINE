@@ -6,9 +6,7 @@ interface Props {
     stages: FunnelStage[];
 }
 
-/**
- * Phễu chuyển đổi: mỗi giai đoạn là một thanh ngang có bề rộng tỉ lệ với % so giai đoạn đầu.
- */
+// phễu chuyển đổi: mỗi giai đoạn là một thanh ngang có bề rộng tỉ lệ với % so giai đoạn đầu
 export const FunnelChart = ({ stages }: Props) => {
     if (stages.length === 0) return <p className="text-sm text-gray-400 py-8 text-center">Chưa có dữ liệu</p>;
     return (

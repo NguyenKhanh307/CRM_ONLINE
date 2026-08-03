@@ -14,19 +14,19 @@ import vn.com.be_crm.application.service.dto.UpdateTicketCommand;
 import vn.com.be_crm.application.service.query.GetTicketUseCase;
 import vn.com.be_crm.application.service.query.ListDeletedTicketsUseCase;
 import vn.com.be_crm.application.service.query.ListTicketUseCase;
-import vn.com.be_crm.application.shared.dto.DeleteCommand;
-import vn.com.be_crm.application.shared.dto.DeletedItemResult;
-import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
+import vn.com.be_crm.core.dto.delete.DeleteCommand;
+import vn.com.be_crm.core.dto.delete.DeletedItemResult;
+import vn.com.be_crm.core.dto.handover.HandoverBulkCommand;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.util.SecurityUtils;
 import vn.com.be_crm.presentation.service.request.AssignTicketRequest;
 import vn.com.be_crm.presentation.service.request.CsatRequest;
 import vn.com.be_crm.presentation.service.request.RejectTicketRequest;
 import vn.com.be_crm.presentation.service.request.ResolveTicketRequest;
-import vn.com.be_crm.presentation.shared.ApiResponse;
-import vn.com.be_crm.presentation.shared.HandoverBulkRequest;
-import vn.com.be_crm.presentation.shared.PageResponse;
+import vn.com.be_crm.core.response.ApiResponse;
+import vn.com.be_crm.core.dto.handover.HandoverBulkRequest;
+import vn.com.be_crm.core.page.PageResponse;
 
 /**
  * REST controller cho nghiệp vụ phiếu hỗ trợ / dịch vụ sau bán.

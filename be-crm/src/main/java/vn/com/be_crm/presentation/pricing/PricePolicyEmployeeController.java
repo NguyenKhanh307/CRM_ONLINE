@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.pricing.command.*;
 import vn.com.be_crm.application.pricing.dto.*;
 import vn.com.be_crm.application.pricing.query.ListPricePolicyEmployeeUseCase;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

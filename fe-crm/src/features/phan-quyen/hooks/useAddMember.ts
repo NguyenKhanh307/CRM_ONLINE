@@ -1,9 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { phanQuyenService } from '../services/phanQuyenService';
 
-/**
- * Thêm người dùng vào nhóm.
- */
+// thêm người dùng vào nhóm
 export const useAddMember = (roleId: number) => {
     const queryClient = useQueryClient();
     return useMutation({

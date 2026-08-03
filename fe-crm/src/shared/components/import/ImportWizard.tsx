@@ -23,7 +23,7 @@ const STEPS = [
     { num: 4, label: 'Hoàn tất',           desc: '' },
 ];
 
-/** Ô ngày sau khi đọc bằng `cellDates:true` có thể là Date object (Excel) hoặc chuỗi dd/mm/yyyy (CSV/gõ tay). */
+// ô ngày sau khi đọc bằng `cellDates:true` có thể là Date object (Excel) hoặc chuỗi dd/mm/yyyy (CSV/gõ tay)
 function dateCellToVNString(raw: unknown): string {
     if (raw instanceof Date) {
         const pad = (n: number) => String(n).padStart(2, '0');
@@ -32,10 +32,8 @@ function dateCellToVNString(raw: unknown): string {
     return String(raw ?? '');
 }
 
-/**
- * Ghép dữ liệu file theo mapping cột → field. Ngày được parse dd/mm/yyyy → ISO để gửi BE;
- * ngày sai định dạng bị bỏ qua (null) và ghi vào `dateErrors` để cảnh báo người dùng thay vì âm thầm mất dữ liệu.
- */
+// ghép dữ liệu file theo mapping cột -> field. Ngày được parse dd/mm/yyyy -> ISO để gửi BE;
+// ngày sai định dạng bị bỏ qua (null) và ghi vào `dateErrors` để cảnh báo người dùng thay vì âm thầm mất dữ liệu
 function buildRows(
     fileRows: Record<string, string>[],
     mappings: ColumnMapping[],
@@ -77,6 +75,7 @@ function buildRows(
     return { rows, dateErrors };
 }
 
+// wizard nhập file 4 bước dùng chung cho mọi phân hệ: tải file -> ghép cột -> tùy chọn -> kết quả
 export const ImportWizard = ({ title, fields, onImport, backPath }: Props) => {
     const navigate = useNavigate();
     const { confirm } = useConfirm();
@@ -94,10 +93,10 @@ export const ImportWizard = ({ title, fields, onImport, backPath }: Props) => {
         setMappings(buildInitialMappings(data, fields));
     };
 
+    // bước xác nhận rồi gọi api nhập file — ghi hàng loạt bản ghi nên phải hỏi trước, nêu rõ số dòng và phân hệ
     const handleImport = async () => {
         if (!fileData) return;
 
-        // Nhập file ghi hàng loạt bản ghi — phải xác nhận, nêu rõ số dòng và phân hệ.
         const ok = await confirm({
             message: `Nhập ${fileData.rows.length} dòng vào phân hệ ${title}?`,
             confirmLabel: 'Bắt đầu nhập',

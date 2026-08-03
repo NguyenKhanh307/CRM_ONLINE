@@ -32,10 +32,8 @@ interface AuthProviderProps {
     children: ReactNode;
 }
 
-/**
- * Provider quản lý trạng thái xác thực toàn app.
- * Khởi tạo state từ localStorage để giữ session qua reload.
- */
+// provider quản lý trạng thái xác thực toàn app
+// khởi tạo state từ localStorage để giữ session qua reload
 export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [token, setTokenState] = useState<string | null>(() => {
         const stored = getToken();
@@ -58,7 +56,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(newUser);
     }, []);
 
-    /** Cập nhật một phần thông tin user đang lưu (vd sau khi sửa hồ sơ) — đồng bộ cả state lẫn localStorage. */
+    // cập nhật một phần thông tin user đang lưu (vd sau khi sửa hồ sơ) — đồng bộ cả state lẫn localStorage
     const updateUser = useCallback((patch: Partial<AuthUser>) => {
         setUser((prev) => {
             if (!prev) return prev;

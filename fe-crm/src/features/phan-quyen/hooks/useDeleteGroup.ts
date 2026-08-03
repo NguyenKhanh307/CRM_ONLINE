@@ -1,9 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { phanQuyenService } from '../services/phanQuyenService';
 
-/**
- * Xóa nhóm người dùng (chỉ áp dụng với non-system roles).
- */
+// xóa nhóm người dùng (chỉ áp dụng với non-system roles)
 export const useDeleteGroup = () => {
     const queryClient = useQueryClient();
     return useMutation({

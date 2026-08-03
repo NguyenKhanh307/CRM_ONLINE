@@ -13,10 +13,8 @@ interface TablePaginationProps {
     onPageSizeChange: (size: number) => void;
 }
 
-/**
- * Thanh phân trang: điều hướng trang và chọn số dòng mỗi trang.
- * Số trang có thể nhập trực tiếp, nhấn Enter hoặc blur để chuyển trang.
- */
+// thanh phân trang: điều hướng trang và chọn số dòng mỗi trang
+// số trang có thể nhập trực tiếp, nhấn Enter hoặc blur để chuyển trang
 export const TablePagination = ({
     pageIndex,
     pageCount,
@@ -32,11 +30,12 @@ export const TablePagination = ({
 
     const [inputValue, setInputValue] = useState(String(pageIndex + 1));
 
-    /** Đồng bộ khi trang thay đổi từ bên ngoài (nút điều hướng, filter...). */
+    // đồng bộ khi trang thay đổi từ bên ngoài (nút điều hướng, filter...)
     useEffect(() => {
         setInputValue(String(pageIndex + 1));
     }, [pageIndex]);
 
+    // xác nhận số trang đã gõ; sai/ngoài phạm vi thì khôi phục về trang hiện tại
     const commitPage = () => {
         const parsed = parseInt(inputValue, 10);
         const total = pageCount || 1;
@@ -134,7 +133,7 @@ interface NavButtonProps {
     title: string;
 }
 
-/** Nút điều hướng trang với trạng thái disabled. */
+// nút điều hướng trang với trạng thái disabled
 const NavButton = ({ onClick, disabled, label, title }: NavButtonProps) => (
     <button
         onClick={onClick}

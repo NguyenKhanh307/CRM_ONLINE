@@ -7,15 +7,15 @@ import { Calendar } from './Calendar';
 import { useAnchoredPanel } from './useAnchoredPanel';
 
 interface DateTimeInputProps {
-    /** Giá trị ISO yyyy-mm-ddTHH:mm (khớp form state). Rỗng nếu chưa chọn. */
+    // giá trị ISO yyyy-mm-ddTHH:mm (khớp form state). Rỗng nếu chưa chọn
     value: string;
-    /** Phát ISO yyyy-mm-ddTHH:mm khi có ngày, hoặc '' khi trống. */
+    // phát ISO yyyy-mm-ddTHH:mm khi có ngày, hoặc '' khi trống
     onChange: (iso: string) => void;
     className?: string;
     placeholder?: string;
 }
 
-/** Ghép chuỗi số thành mặt nạ dd/mm/yyyy (tự chèn dấu '/'). */
+// ghép chuỗi số thành mặt nạ dd/mm/yyyy (tự chèn dấu '/')
 function maskDate(raw: string): string {
     const digits = raw.replace(/\D/g, '').slice(0, 8);
     const dd = digits.slice(0, 2);
@@ -27,17 +27,15 @@ function maskDate(raw: string): string {
     return out;
 }
 
-/** Tách ISO datetime "yyyy-mm-ddTHH:mm" thành phần ngày ISO và phần giờ. */
+// tách ISO datetime "yyyy-mm-ddTHH:mm" thành phần ngày ISO và phần giờ
 function splitDateTime(value: string): { dateISO: string; time: string } {
     if (!value) return { dateISO: '', time: '' };
     const [datePart, timePart = ''] = value.split('T');
     return { dateISO: datePart, time: timePart.slice(0, 5) };
 }
 
-/**
- * Ô nhập ngày giờ: hiển thị & nhập ngày theo dd/mm/yyyy (kèm lịch popup) + ô giờ HH:mm,
- * nhưng lưu/emit ISO yyyy-mm-ddTHH:mm. Thay thế native <input type="datetime-local">.
- */
+// ô nhập ngày giờ: hiển thị & nhập ngày theo dd/mm/yyyy (kèm lịch popup) + ô giờ HH:mm,
+// nhưng lưu/emit ISO yyyy-mm-ddTHH:mm. Thay thế native <input type="datetime-local">
 export const DateTimeInput = ({
     value,
     onChange,
@@ -49,14 +47,14 @@ export const DateTimeInput = ({
     const [dateText, setDateText] = useState(formatISODate(init.dateISO));
     const [time, setTime] = useState(init.time);
 
-    // Đồng bộ khi value đổi từ ngoài.
+    // đồng bộ khi value đổi từ ngoài
     useEffect(() => {
         const s = splitDateTime(value);
         setDateText(formatISODate(s.dateISO));
         setTime(s.time);
     }, [value]);
 
-    /** Phát ISO ghép từ ngày (ISO) + giờ; nếu không có ngày → ''. */
+    // phát ISO ghép từ ngày (ISO) + giờ; nếu không có ngày -> ''
     const emit = (dateISO: string, t: string) => {
         if (!dateISO) { onChange(''); return; }
         onChange(t ? `${dateISO}T${t}` : `${dateISO}T00:00`);

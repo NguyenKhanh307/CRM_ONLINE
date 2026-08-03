@@ -8,7 +8,7 @@ import vn.com.be_crm.application.customer.command.RevokeCustomerShareUseCase;
 import vn.com.be_crm.application.customer.dto.AssignCustomerShareCommand;
 import vn.com.be_crm.application.customer.dto.CustomerShareResult;
 import vn.com.be_crm.application.customer.query.ListCustomerShareUseCase;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

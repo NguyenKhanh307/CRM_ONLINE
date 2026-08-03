@@ -1,8 +1,8 @@
 package vn.com.be_crm.domain.order.repository;
 
-import vn.com.be_crm.application.shared.dto.DeletedItemResult;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.core.dto.delete.DeletedItemResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.domain.order.entity.Order;
 import vn.com.be_crm.domain.order.entity.OrderItem;
 

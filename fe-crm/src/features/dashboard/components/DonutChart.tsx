@@ -4,15 +4,12 @@ import { colorAt } from './chartTheme';
 import { formatNumber } from '@/shared/utils/number';
 
 interface DonutChartProps {
-    /** Các phần của biểu đồ. */
     segments: DonutSegment[];
-    /** Nhãn tổng ở giữa (mặc định "Tổng"). */
+    // nhãn tổng ở giữa (mặc định "Tổng")
     centerLabel?: string;
 }
 
-/**
- * Biểu đồ tròn có tổng ở giữa + chú thích liệt kê nhãn · số · %.
- */
+// biểu đồ tròn có tổng ở giữa + chú thích liệt kê nhãn · số · %
 export const DonutChart = ({ segments, centerLabel = 'Tổng' }: DonutChartProps) => {
     const total = segments.reduce((s, x) => s + x.count, 0);
     if (total === 0) return <p className="text-sm text-gray-400 py-8 text-center">Chưa có dữ liệu</p>;

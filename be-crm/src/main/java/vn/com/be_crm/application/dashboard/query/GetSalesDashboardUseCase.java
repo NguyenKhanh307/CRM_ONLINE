@@ -1,7 +1,7 @@
 package vn.com.be_crm.application.dashboard.query;
 
 import vn.com.be_crm.application.dashboard.dto.SalesDashboardResult;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.dashboard.repository.IDashboardRepository;
 
 /**

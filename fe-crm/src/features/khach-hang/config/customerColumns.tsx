@@ -16,7 +16,7 @@ const STATUS_LABELS: Record<string, string> = {
     active: 'Hoạt động', inactive: 'Không hoạt động', prospect: 'Tiềm năng',
 };
 
-/** Tạo danh sách cột Khách hàng — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+// tạo danh sách cột Khách hàng — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn)
 export const getCustomerColumns = (): ColumnDef<CustomerResult>[] => [
     { accessorKey: 'code', header: 'Mã KH', size: 100, enableSorting: true },
     { accessorKey: 'name', header: 'Tên khách hàng', size: 200, enableSorting: true },

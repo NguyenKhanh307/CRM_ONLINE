@@ -1,6 +1,6 @@
 package vn.com.be_crm.application.customer.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.customer.repository.ICustomerShareRepository;
 
 /** Use case thu hồi chia sẻ khách hàng. */

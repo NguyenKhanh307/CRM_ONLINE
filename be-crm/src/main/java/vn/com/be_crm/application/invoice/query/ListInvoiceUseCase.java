@@ -2,11 +2,11 @@ package vn.com.be_crm.application.invoice.query;
 
 import vn.com.be_crm.application.invoice.dto.InvoiceResult;
 import vn.com.be_crm.application.invoice.mapper.InvoiceCommandMapper;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
-import vn.com.be_crm.application.shared.lookup.INameResolver;
-import vn.com.be_crm.application.shared.lookup.NameEnricher;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
+import vn.com.be_crm.core.lookup.port.INameResolver;
+import vn.com.be_crm.core.lookup.NameEnricher;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
 
 import java.util.List;

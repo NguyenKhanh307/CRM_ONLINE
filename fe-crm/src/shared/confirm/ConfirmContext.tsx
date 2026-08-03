@@ -8,22 +8,20 @@ export interface ConfirmOptions {
 }
 
 interface ConfirmContextValue {
-    /** Mở popup xác nhận, trả về true nếu người dùng đồng ý. */
+    // mở popup xác nhận, trả về true nếu người dùng đồng ý
     confirm: (options: ConfirmOptions) => Promise<boolean>;
-    /** Xác nhận trước khi thêm mới một bản ghi. `noun` là danh từ phân hệ, ví dụ 'tiềm năng'. */
+    // xác nhận trước khi thêm mới một bản ghi — noun là danh từ phân hệ, ví dụ 'tiềm năng'
     confirmCreate: (noun: string) => Promise<boolean>;
-    /** Xác nhận trước khi lưu thay đổi một bản ghi. */
+    // xác nhận trước khi lưu thay đổi một bản ghi
     confirmSave: (noun: string) => Promise<boolean>;
-    /** Xác nhận trước khi xóa một bản ghi — nút xác nhận màu đỏ, focus sẵn nút Hủy. */
+    // xác nhận trước khi xóa một bản ghi — nút xác nhận màu đỏ, focus sẵn nút Hủy
     confirmDelete: (noun: string) => Promise<boolean>;
 }
 
 export const ConfirmContext = createContext<ConfirmContextValue | null>(null);
 
-/**
- * Provider bọc toàn app — cung cấp confirm() dạng Promise cho mọi component con.
- * Dùng lại ConfirmModal sẵn có, để luồng submit chờ được câu trả lời của người dùng.
- */
+// provider bọc toàn app — cung cấp confirm() dạng Promise cho mọi component con
+// dùng lại ConfirmModal sẵn có, để luồng submit chờ được câu trả lời của người dùng
 export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
     const [options, setOptions] = useState<ConfirmOptions | null>(null);
     const resolveRef = useRef<((value: boolean) => void) | null>(null);
@@ -41,7 +39,7 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
         (noun: string) => confirm({ message: `Xác nhận xóa ${noun}?`, confirmLabel: 'Xóa', confirmDanger: true }),
         [confirm]);
 
-    /** Đóng popup và trả kết quả cho lời gọi confirm() đang chờ. */
+    // đóng popup và trả kết quả cho lời gọi confirm() đang chờ
     const settle = useCallback((accepted: boolean) => {
         setOptions(null);
         resolveRef.current?.(accepted);

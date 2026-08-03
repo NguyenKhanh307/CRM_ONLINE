@@ -1,9 +1,9 @@
 package vn.com.be_crm.application.order.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.order.entity.OrderItem;
 import vn.com.be_crm.domain.order.repository.IOrderItemRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case xóa dòng hàng đơn hàng. Tổng chứng từ được tính lại sau khi xóa. */
 public class DeleteOrderItemUseCase implements IUseCase<Long, Void> {

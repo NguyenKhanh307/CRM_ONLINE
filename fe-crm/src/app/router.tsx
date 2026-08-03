@@ -11,7 +11,7 @@ const ActivatePage            = lazy(() => import('@/features/auth/pages/Activat
 const DashboardPage   = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
 const PhanTichPage    = lazy(() => import('@/features/phan-tich/pages/PhanTichPage'));
 const TiemNangPage    = lazy(() => import('@/features/tiem-nang/pages/TiemNangPage'));
-const LeadAddPage     = lazy(() => import('@/features/tiem-nang/pages/LeadAddPage'));
+const NewLeadPage     = lazy(() => import('@/features/tiem-nang/pages/NewLeadPage'));
 const LeadImportPage  = lazy(() => import('@/features/tiem-nang/pages/LeadImportPage'));
 const LeadDetailPage  = lazy(() => import('@/features/tiem-nang/pages/LeadDetailPage'));
 const LienHePage      = lazy(() => import('@/features/lien-he/pages/LienHePage'));
@@ -77,7 +77,7 @@ export const router = createBrowserRouter([
             { path: '/dashboard',            element: <Suspense fallback={fallback}><DashboardPage /></Suspense> },
             { path: '/phan-tich',            element: <Suspense fallback={fallback}><PhanTichPage /></Suspense> },
             { path: '/tiem-nang',              element: <Suspense fallback={fallback}><TiemNangPage /></Suspense> },
-            { path: '/tiem-nang/them-moi',    element: <RequirePermission module="lead"><Suspense fallback={fallback}><LeadAddPage /></Suspense></RequirePermission> },
+            { path: '/tiem-nang/them-moi',    element: <RequirePermission module="lead"><Suspense fallback={fallback}><NewLeadPage /></Suspense></RequirePermission> },
             { path: '/tiem-nang/nhap-file',   element: <RequirePermission module="lead"><Suspense fallback={fallback}><LeadImportPage /></Suspense></RequirePermission> },
             { path: '/tiem-nang/:id',         element: <Suspense fallback={fallback}><LeadDetailPage /></Suspense> },
             { path: '/lien-he',               element: <Suspense fallback={fallback}><LienHePage /></Suspense> },

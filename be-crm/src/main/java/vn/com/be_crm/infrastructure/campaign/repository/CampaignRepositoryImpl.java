@@ -1,14 +1,14 @@
 package vn.com.be_crm.infrastructure.campaign.repository;
 
-import vn.com.be_crm.infrastructure.shared.audit.CurrentUserHolder;
-import vn.com.be_crm.infrastructure.shared.util.ListQueryUtils;
+import vn.com.be_crm.core.audit.CurrentUserHolder;
+import vn.com.be_crm.core.util.ListQueryUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.campaign.dto.CampaignStatsResult;
-import vn.com.be_crm.application.shared.dto.DeletedItemResult;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.core.dto.delete.DeletedItemResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.domain.campaign.entity.Campaign;
 import vn.com.be_crm.domain.campaign.repository.ICampaignRepository;
 import vn.com.be_crm.infrastructure.campaign.entity.CampaignHibernate;
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
 /**
  * Hibernate implementation của ICampaignRepository.

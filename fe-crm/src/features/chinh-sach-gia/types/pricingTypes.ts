@@ -1,16 +1,16 @@
 export type PricePolicyStatus = 'active' | 'inactive' | 'expired';
 export type DiscountType = 'percent' | 'amount';
 
-/** Kết quả tra cứu giá theo chính sách giá cho một sản phẩm + số lượng (GET /api/pricing/resolve). */
+// kết quả tra cứu giá theo chính sách giá cho một sản phẩm + số lượng (GET /api/pricing/resolve)
 export interface ResolvePriceResult {
     productId: number;
-    /** Đơn giá niêm yết theo chính sách (null nếu không tìm thấy). */
+    // đơn giá niêm yết theo chính sách (null nếu không tìm thấy)
     unitPrice: number | null;
-    /** Chiết khấu trên một đơn vị (số tiền). */
+    // chiết khấu trên một đơn vị (số tiền)
     discount: number | null;
-    /** true nếu sản phẩm có trong chính sách giá **và** số lượng đã đạt ngưỡng. */
+    // true nếu sản phẩm có trong chính sách giá và số lượng đã đạt ngưỡng
     found: boolean;
-    /** Số lượng tối thiểu của dòng chính sách; null khi sản phẩm không có trong chính sách. */
+    // số lượng tối thiểu của dòng chính sách; null khi sản phẩm không có trong chính sách
     minQty: number | null;
 }
 
@@ -88,11 +88,9 @@ export interface CreatePricePolicyCustomerPayload {
     customerId: number;
 }
 
-/**
- * Danh mục sản phẩm trong chính sách giá — chỉ là marker "chọn nhanh": chọn 1 danh mục thì BE tự
- * bulk-seed toàn bộ sản phẩm thuộc danh mục vào price_policy_products (giá để trống), sửa giá
- * từng dòng ở tab "Sản phẩm" như bình thường. Không mang field giá/chiết khấu nào.
- */
+// danh mục sản phẩm trong chính sách giá — chỉ là marker "chọn nhanh": chọn 1 danh mục thì be tự
+// bulk-seed toàn bộ sản phẩm thuộc danh mục vào price_policy_products (giá để trống), sửa giá
+// từng dòng ở tab "Sản phẩm" như bình thường. không mang field giá/chiết khấu nào
 export interface PricePolicyProductCategoryResult {
     id: number;
     pricePolicyId: number;

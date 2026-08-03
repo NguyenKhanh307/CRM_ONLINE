@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ticketService } from '../services/ticketService';
 
-/** Lấy danh sách phiếu hỗ trợ (phân trang, lọc client-side). */
+// lấy danh sách phiếu hỗ trợ (phân trang, lọc client-side)
 export function useTicketList() {
     return useQuery({
         queryKey: ['tickets'],

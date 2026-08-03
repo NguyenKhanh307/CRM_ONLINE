@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { customerService } from '../services/customerService';
 
-/** Lấy danh sách khách hàng (phân trang). */
+// lấy danh sách khách hàng (phân trang)
 export function useCustomerList() {
     return useQuery({
         queryKey: ['customers'],

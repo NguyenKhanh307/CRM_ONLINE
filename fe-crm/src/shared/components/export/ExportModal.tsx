@@ -6,24 +6,22 @@ import type { ExportColumn, ExportFormat } from './exportTypes';
 
 interface ExportModalProps<T> {
     open: boolean;
-    /** Toàn bộ cột khả dụng của phân hệ. */
+    // toàn bộ cột khả dụng của phân hệ
     columns: ExportColumn<T>[];
-    /** Số dòng sẽ được xuất. */
+    // số dòng sẽ được xuất
     rowCount: number;
     onClose: () => void;
     onExport: (selectedKeys: string[], format: ExportFormat) => void;
 }
 
-/**
- * Modal cho người dùng chọn cột + định dạng trước khi xuất file.
- * Mặc định tick toàn bộ cột.
- */
+// modal cho người dùng chọn cột + định dạng trước khi xuất file
+// mặc định tick toàn bộ cột
 export function ExportModal<T>({ open, columns, rowCount, onClose, onExport }: ExportModalProps<T>) {
     const allKeys = columns.map(c => c.key);
     const [selected, setSelected] = useState<string[]>(allKeys);
     const [format, setFormat] = useState<ExportFormat>('xlsx');
 
-    // Khi mở lại, reset về tick tất cả.
+    // khi mở lại, reset về tick tất cả
     useEffect(() => {
         if (open) {
             setSelected(columns.map(c => c.key));
@@ -32,7 +30,7 @@ export function ExportModal<T>({ open, columns, rowCount, onClose, onExport }: E
     }, [open, columns]);
 
     const ref = useRef<HTMLDivElement>(null);
-    // Không tự focus nút — người dùng thường tick chọn cột trước.
+    // không tự focus nút — người dùng thường tick chọn cột trước
     useDialogKeyboardNav(ref, { onCancel: onClose, autoFocus: 'none', enabled: open });
 
     if (!open) return null;

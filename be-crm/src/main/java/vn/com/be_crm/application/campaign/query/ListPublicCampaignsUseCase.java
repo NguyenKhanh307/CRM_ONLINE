@@ -1,7 +1,7 @@
 package vn.com.be_crm.application.campaign.query;
 
 import vn.com.be_crm.application.campaign.dto.PublicCampaignResult;
-import vn.com.be_crm.application.shared.dto.PageRequest;
+import vn.com.be_crm.core.page.PageRequest;
 import vn.com.be_crm.domain.campaign.entity.Campaign;
 import vn.com.be_crm.domain.campaign.enums.CampaignStatus;
 import vn.com.be_crm.domain.campaign.repository.ICampaignRepository;

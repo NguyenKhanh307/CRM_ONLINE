@@ -3,7 +3,7 @@ export interface UpdateQuotationPayload {
     contactId: number | null;
     opportunityId?: number | null;
     campaignId?: number | null;
-    /** Chính sách giá áp dụng — nguồn đơn giá tự điền cho dòng hàng. */
+    // chính sách giá áp dụng — nguồn đơn giá tự điền cho dòng hàng
     pricePolicyId?: number | null;
     ownerId: number | null;
     quoteDate: string | null;
@@ -18,7 +18,7 @@ export interface UpdateQuotationPayload {
     note: string | null;
 }
 
-/** Một bước phê duyệt báo giá (GET /api/quotations/{id}/approvals). */
+// một bước phê duyệt báo giá (GET /api/quotations/{id}/approvals)
 export interface QuotationApprovalResult {
     id: number;
     quotationId: number;
@@ -30,7 +30,7 @@ export interface QuotationApprovalResult {
     createdAt: string;
 }
 
-/** Nội dung email báo giá mặc định (GET /api/quotations/{id}/email-draft). */
+// nội dung email báo giá mặc định (GET /api/quotations/{id}/email-draft)
 export interface QuotationEmailDraft {
     toEmail: string;
     recipientName: string;
@@ -38,19 +38,19 @@ export interface QuotationEmailDraft {
     body: string;
 }
 
-/** Payload gửi email báo giá — POST /api/quotations/{id}/send. */
+// payload gửi email báo giá — POST /api/quotations/{id}/send
 export interface SendQuotationPayload {
-    /** Người nhận chính (bỏ trống → BE lấy email của liên hệ/khách hàng trên báo giá). */
+    // người nhận chính (bỏ trống -> BE lấy email của liên hệ/khách hàng trên báo giá)
     to?: string;
-    /** CC — nhiều email cách nhau bởi dấu phẩy/chấm phẩy. */
+    // CC — nhiều email cách nhau bởi dấu phẩy/chấm phẩy
     cc?: string;
-    /** BCC — nhiều email cách nhau bởi dấu phẩy/chấm phẩy. */
+    // BCC — nhiều email cách nhau bởi dấu phẩy/chấm phẩy
     bcc?: string;
     subject: string;
     body: string;
 }
 
-/** Một dòng hàng gửi kèm khi tạo báo giá. */
+// một dòng hàng gửi kèm khi tạo báo giá
 export interface QuotationItemPayload {
     productId: number;
     unit: string | null;
@@ -62,14 +62,14 @@ export interface QuotationItemPayload {
     note: string | null;
 }
 
-/** Payload tạo mới báo giá — POST /api/quotations (kèm items[]). */
+// payload tạo mới báo giá — POST /api/quotations (kèm items[])
 export interface CreateQuotationPayload {
     code: string;
     customerId: number | null;
     contactId: number | null;
     opportunityId: number | null;
     campaignId: number | null;
-    /** Chính sách giá áp dụng — nguồn đơn giá tự điền cho dòng hàng. */
+    // chính sách giá áp dụng — nguồn đơn giá tự điền cho dòng hàng
     pricePolicyId: number | null;
     ownerId: number | null;
     quoteDate: string | null;
@@ -85,7 +85,7 @@ export interface CreateQuotationPayload {
     items: QuotationItemPayload[];
 }
 
-/** Dòng hàng trả về từ GET /api/quotations/{id}/items. */
+// dòng hàng trả về từ GET /api/quotations/{id}/items
 export interface QuotationItemResult {
     id: number;
     quotationId: number;
@@ -123,7 +123,7 @@ export interface QuotationResult {
     customerResponse: string | null;
     customerResponseNote: string | null;
     customerRespondedAt: string | null;
-    /** Email đã gửi báo giá tới — chỉ có khi response của hành động send. */
+    // email đã gửi báo giá tới — chỉ có khi response của hành động send
     sentToEmail?: string | null;
     createdAt: string;
     updatedAt: string;

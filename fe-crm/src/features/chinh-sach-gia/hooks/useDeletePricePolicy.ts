@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { pricingService } from '../services/pricingService';
 
-/** Xóa chính sách giá — invalidate danh sách sau khi thành công. */
+// xóa chính sách giá — invalidate danh sách sau khi thành công
 export function useDeletePricePolicy() {
     const qc = useQueryClient();
     return useMutation({

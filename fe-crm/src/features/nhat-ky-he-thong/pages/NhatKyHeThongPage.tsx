@@ -5,11 +5,9 @@ import { useAuditLogList } from '../hooks/useAuditLogList';
 import { auditLogColumns } from '../config/auditLogColumns';
 import { AUDIT_SOURCE_TABS } from '../types/auditLogTypes';
 
-/**
- * Trang admin xem nhật ký sự kiện thao tác người dùng — gộp từ các bảng đã có sẵn trong DB
- * (duyệt báo giá, bàn giao tiềm năng, nhật ký phiếu chăm sóc, thông báo hệ thống, tạo/sửa/xóa
- * bản ghi). Chỉ đọc, không thêm bảng/field DB nào.
- */
+// trang admin xem nhật ký sự kiện thao tác người dùng — gộp từ các bảng đã có sẵn trong DB
+// (duyệt báo giá, bàn giao tiềm năng, nhật ký phiếu chăm sóc, thông báo hệ thống, tạo/sửa/xóa
+// bản ghi); chỉ đọc, không thêm bảng/field DB nào
 const NhatKyHeThongPage = () => {
     const [activeSource, setActiveSource] = useState<string | null>(null);
     const [search, setSearch] = useState('');

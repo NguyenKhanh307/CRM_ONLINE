@@ -14,15 +14,16 @@ import { useCustomerDetail } from '../hooks/useCustomerDetail';
 import { useCustomerRelated } from '../hooks/useCustomerRelated';
 import { CustomerInfoPanel } from '../components/CustomerInfoPanel';
 import { CustomerEditModal } from '../components/CustomerEditModal';
+import { CustomerSharesTab } from '../components/tabs/CustomerSharesTab';
 
 const STATUS_LABELS: Record<string, string> = { active: 'Hoạt động', inactive: 'Ngừng', potential: 'Tiềm năng' };
 const STATUS_COLORS: Record<string, string> = {
     active: 'bg-green-100 text-green-700', inactive: 'bg-red-100 text-red-600', potential: 'bg-yellow-100 text-yellow-700',
 };
 
-type TabKey = 'overview' | 'contacts' | 'opportunities' | 'quotations' | 'orders' | 'invoices' | 'tickets' | 'activities';
+type TabKey = 'overview' | 'contacts' | 'opportunities' | 'quotations' | 'orders' | 'invoices' | 'tickets' | 'activities' | 'shares';
 
-/** Trang chi tiết 360° Khách hàng — thông tin + toàn bộ bản ghi liên quan + dòng thời gian. */
+// trang chi tiết 360° Khách hàng — thông tin + toàn bộ bản ghi liên quan + dòng thời gian
 const CustomerDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const customerId = Number(id);
@@ -43,6 +44,7 @@ const CustomerDetailPage = () => {
         { key: 'invoices', label: 'Hóa đơn', count: related?.invoices.total },
         { key: 'tickets', label: 'Chăm sóc', count: related?.tickets.total },
         { key: 'activities', label: 'Hoạt động', count: related?.activities.total },
+        { key: 'shares', label: 'Chia sẻ' },
     ];
 
     return (
@@ -97,6 +99,7 @@ const CustomerDetailPage = () => {
                             emptyText="Khách hàng chưa có phiếu chăm sóc nào." />
                     )}
                     {activeTab === 'activities' && <Timeline group={related?.activities} />}
+                    {activeTab === 'shares' && <CustomerSharesTab customerId={customerId} />}
                 </div>
             </div>
 

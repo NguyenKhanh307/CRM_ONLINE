@@ -8,7 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.contact.enums.ContactGender;
 
-import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+import vn.com.be_crm.core.audit.IAuditable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

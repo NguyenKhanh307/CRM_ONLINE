@@ -7,7 +7,7 @@ const STATUS_LABELS: Record<string, string> = {
     rejected: 'Từ chối', expired: 'Hết hạn',
 };
 
-/** Các cột khả dụng khi xuất file phân hệ Báo giá. */
+// các cột khả dụng khi xuất file phân hệ Báo giá
 export const quotationExportColumns: ExportColumn<QuotationResult>[] = [
     { key: 'code', label: 'Số báo giá' },
     { key: 'status', label: 'Trạng thái', format: r => STATUS_LABELS[r.status] ?? r.status },

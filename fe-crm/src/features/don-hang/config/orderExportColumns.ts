@@ -7,7 +7,7 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
     completed: 'Hoàn tất', cancelled: 'Đã hủy',
 };
 
-/** Các cột khả dụng khi xuất file phân hệ Đơn hàng. */
+// các cột khả dụng khi xuất file phân hệ Đơn hàng
 export const orderExportColumns: ExportColumn<OrderResult>[] = [
     { key: 'code', label: 'Mã Đơn hàng' },
     { key: 'status', label: 'Trạng thái', format: r => ORDER_STATUS_LABELS[r.status] ?? r.status },

@@ -8,16 +8,14 @@ interface AlertContextValue {
 
 export const AlertContext = createContext<AlertContextValue | null>(null);
 
-/**
- * Provider bọc toàn app — cung cấp showAlert() cho mọi component con.
- */
+// provider bọc toàn app — cung cấp showAlert() cho mọi component con
 export const AlertProvider = ({ children }: { children: ReactNode }) => {
     const [message, setMessage] = useState<string | null>(null);
 
     const showAlert = useCallback((msg: string) => setMessage(msg), []);
     const handleClose = useCallback(() => setMessage(null), []);
 
-    // Đăng ký showAlert vào bridge để code ngoài cây React (MutationCache) hiện được alert.
+    // đăng ký showAlert vào bridge để code ngoài cây React (MutationCache) hiện được alert
     useEffect(() => {
         setAlertHandler(showAlert);
         return () => setAlertHandler(null);

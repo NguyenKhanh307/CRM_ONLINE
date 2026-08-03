@@ -12,18 +12,15 @@ import { SHORTCUTS, matchesShortcut } from '@/shared/keyboard/shortcuts';
 
 interface Props {
     roleId: number;
-    /** Tên nhóm — chỉ dùng để nêu rõ trong popup xác nhận. */
+    // tên nhóm — chỉ dùng để nêu rõ trong popup xác nhận
     roleName?: string;
-    /** Báo lên trang cha khi có thay đổi chưa lưu, để chặn đổi nhóm/đổi tab làm mất dữ liệu. */
+    // báo lên trang cha khi có thay đổi chưa lưu, để chặn đổi nhóm/đổi tab làm mất dữ liệu
     onDirtyChange?: (dirty: boolean) => void;
 }
 
-/**
- * Tab phân quyền — accordion các module.
- *
- * Tick checkbox CHỈ đổi bản nháp trong bộ nhớ; phải bấm "Lưu" và qua popup xác nhận thì mới
- * gọi API. Trước đây mỗi lần tick là một request gán/thu hồi ngay, không hoàn tác được.
- */
+// tab phân quyền — accordion các module
+// tick checkbox CHỈ đổi bản nháp trong bộ nhớ; phải bấm "Lưu" và qua popup xác nhận thì mới gọi
+// api. trước đây mỗi lần tick là một request gán/thu hồi ngay, không hoàn tác được
 const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
     const { showAlert } = useAlert();
     const { confirm } = useConfirm();
@@ -33,21 +30,19 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
     const { data: rolePerms = [], isLoading: loadingRole } = useRolePermissions(roleId);
     const { assign, revoke } = useTogglePermission(roleId);
 
-    /** Quyền đã lưu trên server. */
+    // quyền đã lưu trên server
     const savedIds = useMemo(() => new Set(rolePerms.map(p => p.id)), [rolePerms]);
 
-    /** Bản nháp đang chỉnh — null nghĩa là chưa nạp xong dữ liệu server. */
+    // bản nháp đang chỉnh — null nghĩa là chưa nạp xong dữ liệu server
     const [draft, setDraft] = useState<Set<number> | null>(null);
     const [saving, setSaving] = useState(false);
-    /**
-     * Baseline tạm thời sau khi lưu thành công — dùng ngay lập tức thay vì đợi `invalidateQueries`
-     * refetch xong. Không có bước này, `savedIds` (từ server) vẫn cũ trong một nhịp render, khiến
-     * `dirty` vẫn true → thanh "đã thay đổi" không tắt → bấm Lưu lần 2 gửi lại request đã lưu → lỗi trùng.
-     */
+    // baseline tạm thời sau khi lưu thành công — dùng ngay lập tức thay vì đợi `invalidateQueries`
+    // refetch xong. không có bước này, `savedIds` (từ server) vẫn cũ trong một nhịp render, khiến
+    // `dirty` vẫn true -> thanh "đã thay đổi" không tắt -> bấm Lưu lần 2 gửi lại request đã lưu -> lỗi trùng
     const [optimisticSavedIds, setOptimisticSavedIds] = useState<Set<number> | null>(null);
 
-    // Nạp lại bản nháp khi đổi nhóm hoặc khi server trả dữ liệu mới (sau khi lưu xong).
-    // `savedKey` là chuỗi id đã sắp xếp — so sánh theo giá trị, không theo tham chiếu Set.
+    // nạp lại bản nháp khi đổi nhóm hoặc khi server trả dữ liệu mới (sau khi lưu xong)
+    // `savedKey` là chuỗi id đã sắp xếp — so sánh theo giá trị, không theo tham chiếu Set
     const savedKey = useMemo(() => [...savedIds].sort((a, b) => a - b).join(','), [savedIds]);
     useEffect(() => {
         if (loadingRole) return;
@@ -55,7 +50,7 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
         setOptimisticSavedIds(null); // dữ liệu server đã tới — bỏ baseline tạm thời
     }, [roleId, savedKey, loadingRole]);
 
-    /** Baseline để so sánh diff — ưu tiên baseline tạm thời (ngay sau khi lưu) trước server. */
+    // baseline để so sánh diff — ưu tiên baseline tạm thời (ngay sau khi lưu) trước server
     const baselineIds = optimisticSavedIds ?? savedIds;
     const current = draft ?? baselineIds;
 
@@ -64,7 +59,7 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
     const changeCount = toAssign.length + toRevoke.length;
     const dirty = changeCount > 0;
 
-    // Báo trạng thái dirty lên cha; khi tab bị gỡ thì trả về sạch để cha không kẹt cờ cũ.
+    // báo trạng thái dirty lên cha; khi tab bị gỡ thì trả về sạch để cha không kẹt cờ cũ
     useEffect(() => {
         onDirtyChange?.(dirty);
     }, [dirty, onDirtyChange]);
@@ -87,7 +82,7 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
         });
     };
 
-    /** Tick một quyền — chỉ đổi bản nháp, chưa gọi API. */
+    // tick một quyền — chỉ đổi bản nháp, chưa gọi api
     const handleTogglePermission = useCallback((permId: number) => {
         setDraft(prev => {
             const next = new Set(prev ?? []);
@@ -96,7 +91,7 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
         });
     }, []);
 
-    /** Bật/tắt toàn bộ quyền của một phân hệ — cũng chỉ đổi bản nháp. */
+    // bật/tắt toàn bộ quyền của một phân hệ — cũng chỉ đổi bản nháp
     const handleToggleAll = useCallback((moduleId: string, checked: boolean) => {
         const perms = moduleGroups.get(moduleId) ?? [];
         setDraft(prev => {
@@ -116,7 +111,7 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
             ].filter(Boolean).join(', ') + '?';
         if (!(await confirm({ message }))) return;
 
-        // Chốt lại trạng thái đích tại thời điểm bấm Lưu — dùng làm baseline mới ngay khi thành công.
+        // chốt lại trạng thái đích tại thời điểm bấm Lưu — dùng làm baseline mới ngay khi thành công
         const nextIds = new Set(current);
 
         setSaving(true);
@@ -125,7 +120,7 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
                 ...toAssign.map(id => assign.mutateAsync(id)),
                 ...toRevoke.map(id => revoke.mutateAsync(id)),
             ]);
-            // Đóng thanh "đã thay đổi" ngay lập tức, không đợi refetch — tránh bấm Lưu lần 2.
+            // đóng thanh "đã thay đổi" ngay lập tức, không đợi refetch — tránh bấm Lưu lần 2
             setOptimisticSavedIds(nextIds);
         } catch {
             showAlert('Cập nhật quyền thất bại. Vui lòng thử lại.');
@@ -134,7 +129,7 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
         }
     };
 
-    // Ctrl+S lưu — nhãn phím trên nút phải có handler thật, neo callback qua ref của listener.
+    // ctrl+s lưu — nhãn phím trên nút phải có handler thật, neo callback qua ref của listener
     const saveRef = useRef(handleSave);
     saveRef.current = handleSave;
     useEffect(() => {

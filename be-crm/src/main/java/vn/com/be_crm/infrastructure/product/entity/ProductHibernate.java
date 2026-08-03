@@ -9,7 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.product.enums.ProductType;
 import vn.com.be_crm.infrastructure.product.converter.ProductTypeConverter;
 
-import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+import vn.com.be_crm.core.audit.IAuditable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

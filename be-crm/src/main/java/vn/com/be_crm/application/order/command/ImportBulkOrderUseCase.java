@@ -2,8 +2,8 @@ package vn.com.be_crm.application.order.command;
 
 import vn.com.be_crm.application.order.dto.ImportBulkOrderCommand;
 import vn.com.be_crm.application.order.dto.ImportOrderRowCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.ImportRowError;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.dto.import_.ImportRowError;
 import vn.com.be_crm.domain.order.entity.Order;
 import vn.com.be_crm.domain.order.enums.OrderStatus;
 import vn.com.be_crm.domain.order.repository.IOrderRepository;

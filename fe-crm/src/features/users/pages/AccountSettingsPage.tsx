@@ -18,10 +18,8 @@ import { useUpdateProfile } from '../hooks/useUpdateProfile';
 const inputCls =
     'w-full px-3 py-2 border border-gray-300 rounded-btn text-md text-text-main placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors';
 
-/**
- * Trang thiết lập tài khoản — người dùng tự sửa họ tên, số điện thoại và ảnh đại diện.
- * Email hiển thị chỉ-đọc (là định danh đăng nhập).
- */
+// trang thiết lập tài khoản — người dùng tự sửa họ tên, số điện thoại và ảnh đại diện
+// email hiển thị chỉ-đọc (là định danh đăng nhập)
 const AccountSettingsPage = () => {
     const navigate = useNavigate();
     const { user, updateUser } = useAuth();

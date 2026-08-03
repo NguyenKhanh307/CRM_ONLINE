@@ -1,10 +1,8 @@
 import type { RelatedRecord } from '../../types/related';
 import type { RelatedColumn } from './RelatedTable';
 
-/**
- * Cấu hình cột cho từng tab bản ghi liên quan của trang chi tiết 360°.
- * Dùng chung cho cả trang Khách hàng và Cơ hội (báo giá/đơn/hóa đơn giống hệt nhau).
- */
+// cấu hình cột cho từng tab bản ghi liên quan của trang chi tiết 360°
+// dùng chung cho cả trang Khách hàng và Cơ hội (báo giá/đơn/hóa đơn giống hệt nhau)
 
 const STATUS_LABELS: Record<string, Record<string, string>> = {
     lead: {
@@ -60,7 +58,7 @@ const STATUS_COLORS: Record<string, string> = {
     converted: 'bg-green-100 text-green-700',
 };
 
-/** Cột trạng thái dạng badge, nhãn tra theo phân hệ của dòng. */
+// cột trạng thái dạng badge, nhãn tra theo phân hệ của dòng
 const statusColumn = (label = 'Trạng thái'): RelatedColumn => ({
     key: 'status',
     label,

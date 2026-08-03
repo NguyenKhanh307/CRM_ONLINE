@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/useAuth';
 import { SHORTCUTS, matchesShortcut } from './shortcuts';
 
-/** Hành động mà trang hiện tại đăng ký cho phím tắt toàn cục. */
+// hành động mà trang hiện tại đăng ký cho phím tắt toàn cục
 export interface PageActions {
-    /** Gắn với Alt+N. Trang không có khái niệm "thêm mới" thì bỏ trống. */
+    // gắn với Alt+N — trang không có khái niệm "thêm mới" thì bỏ trống
     onCreate?: () => void;
 }
 
@@ -17,17 +17,15 @@ interface Ctx {
 
 const PageShortcutsContext = createContext<Ctx | null>(null);
 
-/** Truy cập context; ném lỗi rõ ràng nếu dùng ngoài provider. */
+// truy cập context, ném lỗi rõ ràng nếu dùng ngoài provider
 const useCtx = () => {
     const ctx = useContext(PageShortcutsContext);
     if (!ctx) throw new Error('usePageShortcuts phải nằm trong <PageShortcutsProvider>');
     return ctx;
 };
 
-/**
- * Đăng ký hành động của trang hiện tại cho phím tắt toàn cục.
- * Hành động được ghi vào ref nên không gây re-render, và tự gỡ khi trang unmount.
- */
+// đăng ký hành động của trang hiện tại cho phím tắt toàn cục
+// hành động được ghi vào ref nên không gây re-render, và tự gỡ khi trang unmount
 export const usePageShortcuts = (actions: PageActions) => {
     const { actionsRef } = useCtx();
     useEffect(() => {
@@ -36,13 +34,13 @@ export const usePageShortcuts = (actions: PageActions) => {
     });
 };
 
-/** Trạng thái popup phím tắt — để Ctrl+/ mở được nó từ bất kỳ đâu. */
+// trạng thái popup phím tắt — để Ctrl+/ mở được nó từ bất kỳ đâu
 export const useShortcutsPopup = () => {
     const { shortcutsOpen, setShortcutsOpen } = useCtx();
     return { shortcutsOpen, setShortcutsOpen };
 };
 
-/** Đưa con trỏ vào ô tìm kiếm của bảng trên trang hiện tại. */
+// đưa con trỏ vào ô tìm kiếm của bảng trên trang hiện tại
 const focusTableSearch = () => {
     const el = document.querySelector<HTMLInputElement>('[data-table-search]');
     if (!el) return false;
@@ -51,10 +49,8 @@ const focusTableSearch = () => {
     return true;
 };
 
-/**
- * Lắng nghe phím tắt toàn cục ở một chỗ duy nhất.
- * Định nghĩa phím nằm ở `shortcuts.ts` — cả bảng hiển thị lẫn nhãn trên nút đều đọc từ đó.
- */
+// lắng nghe phím tắt toàn cục ở một chỗ duy nhất
+// định nghĩa phím nằm ở shortcuts.ts — cả bảng hiển thị lẫn nhãn trên nút đều đọc từ đó
 export const PageShortcutsProvider = ({ children }: { children: ReactNode }) => {
     const navigate = useNavigate();
     const { logout } = useAuth();
@@ -66,7 +62,7 @@ export const PageShortcutsProvider = ({ children }: { children: ReactNode }) => 
             const t = e.target as HTMLElement | null;
             const typing = !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
 
-            // Tìm kiếm nhanh — vẫn nhận phím ngay cả khi đang gõ trong ô khác.
+            // tìm kiếm nhanh — vẫn nhận phím ngay cả khi đang gõ trong ô khác
             if (matchesShortcut(e, SHORTCUTS.SEARCH) || matchesShortcut(e, SHORTCUTS.SEARCH_2)) {
                 if (focusTableSearch()) e.preventDefault();
                 return;
@@ -84,7 +80,7 @@ export const PageShortcutsProvider = ({ children }: { children: ReactNode }) => 
                 return;
             }
 
-            // Các phím còn lại nhường cho ô nhập khi người dùng đang gõ.
+            // các phím còn lại nhường cho ô nhập khi người dùng đang gõ
             if (typing) return;
 
             if (matchesShortcut(e, SHORTCUTS.CREATE)) {

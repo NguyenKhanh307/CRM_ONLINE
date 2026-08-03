@@ -9,9 +9,7 @@ interface FilterRecordsPanelProps {
     onClose: () => void;
 }
 
-/**
- * Panel lọc bản ghi theo điều kiện từng cột (AND logic).
- */
+// panel lọc bản ghi theo điều kiện từng cột (AND logic)
 export const FilterRecordsPanel = ({
     columns,
     conditions,
@@ -20,6 +18,7 @@ export const FilterRecordsPanel = ({
 }: FilterRecordsPanelProps) => {
     const dataCols = columns.filter((c) => c.id !== '__select__');
 
+    // thêm điều kiện lọc mới (mặc định cột đầu tiên, toán tử "chứa")
     const addCondition = () => {
         const newCond: FilterCondition = {
             id: crypto.randomUUID(),
@@ -30,10 +29,12 @@ export const FilterRecordsPanel = ({
         onChange([...conditions, newCond]);
     };
 
+    // sửa một điều kiện theo id
     const updateCondition = (id: string, patch: Partial<FilterCondition>) => {
         onChange(conditions.map((c) => (c.id === id ? { ...c, ...patch } : c)));
     };
 
+    // xóa một điều kiện theo id
     const removeCondition = (id: string) => {
         onChange(conditions.filter((c) => c.id !== id));
     };

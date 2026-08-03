@@ -6,7 +6,7 @@ const PAYMENT_LABELS: Record<string, string> = {
     unpaid: 'Chưa thanh toán', partial: 'Thanh toán một phần', paid: 'Đã thanh toán',
 };
 
-/** Các cột khả dụng khi xuất file phân hệ Hóa đơn. */
+// các cột khả dụng khi xuất file phân hệ Hóa đơn
 export const invoiceExportColumns: ExportColumn<InvoiceResult>[] = [
     { key: 'code', label: 'Mã Hóa đơn' },
     { key: 'status', label: 'Trạng thái' },

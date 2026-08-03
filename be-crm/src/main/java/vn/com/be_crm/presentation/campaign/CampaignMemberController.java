@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.campaign.command.*;
 import vn.com.be_crm.application.campaign.dto.*;
 import vn.com.be_crm.application.campaign.query.ListCampaignMemberUseCase;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

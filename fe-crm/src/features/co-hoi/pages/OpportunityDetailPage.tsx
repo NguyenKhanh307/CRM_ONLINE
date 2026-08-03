@@ -22,7 +22,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 type TabKey = 'overview' | 'quotations' | 'orders' | 'invoices' | 'activities';
 
-/** Trang chi tiết 360° Cơ hội — thông tin + dòng hàng + báo giá/đơn/hóa đơn sinh ra + hoạt động. */
+// trang chi tiết 360° Cơ hội — thông tin + dòng hàng + báo giá/đơn/hóa đơn sinh ra + hoạt động
 const OpportunityDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const opportunityId = Number(id);

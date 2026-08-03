@@ -11,7 +11,7 @@ const STATUS_LABELS: Record<string, string> = {
     planned: 'Đã lên kế hoạch', in_progress: 'Đang thực hiện', done: 'Hoàn thành', cancelled: 'Đã hủy',
 };
 
-/** Các cột khả dụng khi xuất file phân hệ Hoạt động. */
+// các cột khả dụng khi xuất file phân hệ Hoạt động
 export const activityExportColumns: ExportColumn<ActivityResult>[] = [
     { key: 'type', label: 'Loại', format: r => TYPE_LABELS[r.type] ?? r.type },
     { key: 'subject', label: 'Tiêu đề' },

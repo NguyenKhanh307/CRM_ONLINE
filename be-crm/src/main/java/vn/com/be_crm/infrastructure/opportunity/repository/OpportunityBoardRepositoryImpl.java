@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.opportunity.dto.BoardCardResult;
 import vn.com.be_crm.application.opportunity.dto.BoardColumnResult;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityBoardRepository;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;

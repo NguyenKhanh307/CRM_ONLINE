@@ -18,15 +18,14 @@ interface Props {
     onClose: () => void;
 }
 
-/**
- * Suy phân hệ từ tiền tố `type` (phần trước dấu `_`).
- * Loại không gắn bản ghi cụ thể (vd `handover_all`) trả null → chỉ đánh dấu đã đọc, không điều hướng.
- */
+// suy phân hệ từ tiền tố `type` (phần trước dấu `_`)
+// loại không gắn bản ghi cụ thể (vd `handover_all`) trả null -> chỉ đánh dấu đã đọc, không điều hướng
 const moduleOf = (type: string | null): RelatedModule | null => {
     const prefix = type?.split('_')[0];
     return prefix && prefix in MODULE_ROUTES ? (prefix as RelatedModule) : null;
 };
 
+// popup chuông thông báo trên header: danh sách, đánh dấu đã đọc, chọn nhiều để xóa
 export const NotificationPopup = ({ onClose }: Props) => {
     const ref = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
@@ -38,13 +37,13 @@ export const NotificationPopup = ({ onClose }: Props) => {
     const [selectMode, setSelectMode] = useState(false);
     const [selected, setSelected] = useState<Set<number>>(new Set());
 
-    /** Bật/tắt chế độ chọn — tắt thì bỏ luôn danh sách đang tick. */
+    // bật/tắt chế độ chọn — tắt thì bỏ luôn danh sách đang tick
     const toggleSelectMode = () => {
         setSelectMode(v => !v);
         setSelected(new Set());
     };
 
-    /** Tick/bỏ tick một thông báo trong chế độ chọn. */
+    // tick/bỏ tick một thông báo trong chế độ chọn
     const toggleOne = (id: number) => {
         setSelected(prev => {
             const next = new Set(prev);
@@ -55,7 +54,7 @@ export const NotificationPopup = ({ onClose }: Props) => {
 
     const allSelected = items.length > 0 && selected.size === items.length;
 
-    /** Bấm thông báo: chế độ chọn thì tick, ngược lại đánh dấu đã đọc + mở bản ghi đích. */
+    // bấm thông báo: chế độ chọn thì tick, ngược lại đánh dấu đã đọc + mở bản ghi đích
     const handleClick = (n: NotificationResult) => {
         if (selectMode) { toggleOne(n.id); return; }
         if (!n.isRead) markOne.mutate(n.id);
@@ -64,7 +63,7 @@ export const NotificationPopup = ({ onClose }: Props) => {
         onClose();
     };
 
-    /** Xóa các thông báo đang tick (hỏi xác nhận trước). */
+    // xóa các thông báo đang tick (hỏi xác nhận trước)
     const handleDeleteSelected = async () => {
         if (selected.size === 0) return;
         const ok = await confirm({
@@ -78,7 +77,7 @@ export const NotificationPopup = ({ onClose }: Props) => {
         setSelected(new Set());
     };
 
-    /** Dọn sạch hộp thông báo (hỏi xác nhận trước). */
+    // dọn sạch hộp thông báo (hỏi xác nhận trước)
     const handleDeleteAll = async () => {
         const ok = await confirm({
             message: 'Xóa tất cả thông báo? Danh sách sẽ trống.',
@@ -94,7 +93,7 @@ export const NotificationPopup = ({ onClose }: Props) => {
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            // Popup xác nhận/cảnh báo render ở gốc app (ngoài ref) — bấm trong đó không được đóng popup
+            // popup xác nhận/cảnh báo render ở gốc app (ngoài ref) — bấm trong đó không được đóng popup
             if (target.closest('[data-modal-layer]')) return;
             if (ref.current && !ref.current.contains(target)) {
                 onClose();
@@ -167,7 +166,7 @@ export const NotificationPopup = ({ onClose }: Props) => {
                             className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 ${n.isRead ? '' : 'bg-blue-50/50'}`}
                         >
                             <div className="flex items-start gap-2">
-                                {/* Ô đánh dấu thuần hiển thị — <input> lồng trong <button> là HTML không hợp lệ */}
+                                {/* ô đánh dấu thuần hiển thị — <input> lồng trong <button> là HTML không hợp lệ */}
                                 {selectMode && (
                                     <span
                                         className={`mt-1 w-3.5 h-3.5 shrink-0 rounded-sm border flex items-center justify-center ${selected.has(n.id) ? 'bg-primary border-primary text-white' : 'border-gray-300'}`}
@@ -208,6 +207,7 @@ export const NotificationPopup = ({ onClose }: Props) => {
     );
 };
 
+// icon chuông trên header + badge số chưa đọc, mở NotificationPopup khi bấm
 export const NotificationButton = () => {
     const [open, setOpen] = useState(false);
     const { data: count = 0 } = useUnreadCount();

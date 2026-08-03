@@ -24,7 +24,7 @@ export interface CampaignResult {
     updatedByName: string | null;
 }
 
-/** Payload tạo mới Chiến dịch — POST /api/campaigns. */
+// payload tạo mới Chiến dịch — POST /api/campaigns
 export interface CreateCampaignPayload {
     code: string;
     name: string;

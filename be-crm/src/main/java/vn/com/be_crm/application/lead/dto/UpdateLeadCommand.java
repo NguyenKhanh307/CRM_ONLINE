@@ -12,9 +12,10 @@ import vn.com.be_crm.domain.lead.enums.LeadStatus;
 
 import java.math.BigDecimal;
 
-/** Input DTO khi cập nhật tiềm năng. */
+// input khi cập nhật tiềm năng
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class UpdateLeadCommand {
+    // id lấy từ path (@PathVariable), KHÔNG @NotNull — nếu không mọi request update sẽ 400
     private Long id;
     @Size(max = 100) private String name;
     @Size(max = 100) private String companyName;

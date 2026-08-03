@@ -5,7 +5,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.application.duplicate.dto.DuplicateMatch;
 import vn.com.be_crm.domain.duplicate.repository.IDuplicateRepository;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
 import java.util.ArrayList;
 import java.util.HashMap;

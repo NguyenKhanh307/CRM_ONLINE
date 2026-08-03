@@ -1,6 +1,6 @@
 import type { FilterCondition, FilterOperator } from '@/shared/types/table';
 
-/** Danh sách toán tử lọc + nhãn tiếng Việt — dùng chung cho panel Lọc & Tô màu. */
+// danh sách toán tử lọc + nhãn tiếng Việt — dùng chung cho panel Lọc & Tô màu
 export const OPERATOR_OPTIONS: { value: FilterOperator; label: string }[] = [
     { value: 'is',               label: 'Bằng' },
     { value: 'is_not',           label: 'Không bằng' },
@@ -10,12 +10,10 @@ export const OPERATOR_OPTIONS: { value: FilterOperator; label: string }[] = [
     { value: 'is_not_empty',     label: 'Không để trống' },
 ];
 
-/** Các toán tử không cần ô nhập giá trị. */
+// các toán tử không cần ô nhập giá trị
 export const HIDE_VALUE_OPERATORS: FilterOperator[] = ['is_empty', 'is_not_empty'];
 
-/**
- * Kiểm tra một giá trị cell có thoả điều kiện operator không.
- */
+// kiểm tra một giá trị cell có thoả điều kiện operator không
 export function checkCondition(
     cellValue: string,
     operator: FilterOperator,
@@ -34,10 +32,8 @@ export function checkCondition(
     }
 }
 
-/**
- * Áp dụng danh sách FilterCondition lên data, trả về mảng đã lọc (AND logic).
- * Chỉ áp dụng các condition có fieldId hợp lệ.
- */
+// áp dụng danh sách FilterCondition lên data, trả về mảng đã lọc (AND logic)
+// chỉ áp dụng các condition có fieldId hợp lệ
 export function applyConditions<T extends Record<string, unknown>>(
     data: T[],
     conditions: FilterCondition[]

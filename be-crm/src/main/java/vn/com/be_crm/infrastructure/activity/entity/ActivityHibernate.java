@@ -9,7 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import vn.com.be_crm.domain.activity.enums.ActivityStatus;
 import vn.com.be_crm.domain.activity.enums.ActivityType;
 
-import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+import vn.com.be_crm.core.audit.IAuditable;
 
 import java.time.LocalDateTime;
 

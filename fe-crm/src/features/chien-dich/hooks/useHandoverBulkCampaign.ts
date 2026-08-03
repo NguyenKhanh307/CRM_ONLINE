@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { campaignService } from '../services/campaignService';
 
-/** Bàn giao hàng loạt Chiến dịch cho nhân viên khác. */
+// bàn giao hàng loạt Chiến dịch cho nhân viên khác
 export function useHandoverBulkCampaign() {
     const qc = useQueryClient();
     return useMutation({

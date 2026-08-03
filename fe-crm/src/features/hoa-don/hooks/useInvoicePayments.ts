@@ -2,11 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { invoiceService } from '../services/invoiceService';
 import type { PaymentSchedulePayload } from '../types/invoiceTypes';
 
-/**
- * Hook quản lý đợt thanh toán của một hóa đơn: danh sách + thêm/sửa/xóa.
- * Mọi mutation invalidate ['invoice-payments', invoiceId] và ['invoices']
- * (BE tự suy ra lại paymentStatus + status hóa đơn sau mỗi thay đổi).
- */
+// hook quản lý đợt thanh toán của một hóa đơn: danh sách + thêm/sửa/xóa
+// mọi mutation invalidate ['invoice-payments', invoiceId] và ['invoices'] (be tự suy ra lại
+// paymentStatus + status hóa đơn sau mỗi thay đổi)
 export function useInvoicePayments(invoiceId: number | null) {
     const qc = useQueryClient();
 
@@ -19,8 +17,8 @@ export function useInvoicePayments(invoiceId: number | null) {
     const invalidate = () => {
         qc.invalidateQueries({ queryKey: ['invoice-payments', invoiceId] });
         qc.invalidateQueries({ queryKey: ['invoices'] });
-        // Key SỐ ÍT của trang chi tiết (useInvoiceDetail) — thiếu dòng này thì badge trạng thái /
-        // thanh toán trên header đứng yên dù BE đã suy lại status sau mỗi thay đổi đợt thanh toán.
+        // key SỐ ÍT của trang chi tiết (useInvoiceDetail) — thiếu dòng này thì badge trạng thái /
+        // thanh toán trên header đứng yên dù be đã suy lại status sau mỗi thay đổi đợt thanh toán
         qc.invalidateQueries({ queryKey: ['invoice', invoiceId] });
     };
 

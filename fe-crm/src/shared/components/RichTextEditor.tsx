@@ -14,18 +14,15 @@ import contentUiCss from 'tinymce/skins/ui/oxide/content.min.css?raw';
 import contentCss from 'tinymce/skins/content/default/content.min.css?raw';
 
 interface Props {
-    /** Nội dung HTML hiện tại. */
     value: string;
-    /** Callback khi nội dung thay đổi (trả về HTML). */
+    // callback khi nội dung thay đổi (trả về HTML)
     onChange: (html: string) => void;
-    /** Chiều cao editor (px). */
+    // chiều cao editor (px)
     height?: number;
 }
 
-/**
- * Trình soạn thảo WYSIWYG dùng chung (TinyMCE self-host).
- * Toolbar gọn cho soạn email; xuất ra HTML.
- */
+// trình soạn thảo WYSIWYG dùng chung (TinyMCE self-host)
+// toolbar gọn cho soạn email; xuất ra HTML
 export function RichTextEditor({ value, onChange, height = 320 }: Props) {
     return (
         <Editor

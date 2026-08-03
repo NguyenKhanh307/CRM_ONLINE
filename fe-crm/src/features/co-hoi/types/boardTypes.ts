@@ -1,4 +1,4 @@
-/** Một thẻ cơ hội trên bảng Kanban — GET /api/opportunities/board. */
+// một thẻ cơ hội trên bảng Kanban — GET /api/opportunities/board
 export interface BoardCard {
     id: number;
     code: string;
@@ -11,24 +11,22 @@ export interface BoardCard {
     stageId: number | null;
 }
 
-/**
- * Một cột (= giai đoạn pipeline) trên bảng Kanban.
- * BE trả cờ tên `won`/`lost` (không phải `isWon`) — xem BoardColumnResult.
- */
+// một cột (= giai đoạn pipeline) trên bảng Kanban — BE trả cờ tên `won`/`lost` (không phải
+// `isWon`), xem BoardColumnResult
 export interface BoardColumn {
     stageId: number;
     stageName: string;
     sortOrder: number;
     won: boolean;
     lost: boolean;
-    /** Tổng số cơ hội thật ở giai đoạn này (có thể > cards.length). */
+    // tổng số cơ hội thật ở giai đoạn này (có thể > cards.length)
     total: number;
     sumAmount: number;
-    /** Tối đa 50 thẻ mới cập nhật nhất. */
+    // tối đa 50 thẻ mới cập nhật nhất
     cards: BoardCard[];
 }
 
-/** Payload đổi giai đoạn — POST /api/opportunities/{id}/stage. */
+// payload đổi giai đoạn — POST /api/opportunities/{id}/stage
 export interface ChangeStagePayload {
     stageId: number;
     winLossReason?: string | null;

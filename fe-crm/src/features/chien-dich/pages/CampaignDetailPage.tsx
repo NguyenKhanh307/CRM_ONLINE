@@ -22,10 +22,8 @@ import { CAMPAIGN_STATUS_LABELS, CAMPAIGN_TYPE_LABELS } from '../config/campaign
 
 type TabKey = 'overview' | 'members' | 'leads' | 'opportunities' | 'orders' | 'invoices' | 'stats';
 
-/**
- * Trang chi tiết Chiến dịch — thông tin, danh sách khách hàng của chiến dịch,
- * các bản ghi quy về chiến dịch (attribution) và hiệu quả (ROI).
- */
+// trang chi tiết Chiến dịch — thông tin, danh sách khách hàng của chiến dịch,
+// các bản ghi quy về chiến dịch (attribution) và hiệu quả (ROI)
 const CampaignDetailPage = () => {
     const { can } = usePermission();
     const { id } = useParams();
@@ -50,7 +48,7 @@ const CampaignDetailPage = () => {
         { key: 'stats', label: 'Hiệu quả' },
     ];
 
-    /** Thẻ số liệu ở tab Hiệu quả — chỉ dựng khi API stats đã trả về. */
+    // thẻ số liệu ở tab Hiệu quả — chỉ dựng khi API stats đã trả về
     const statCards: StatCard[] = stats
         ? [
             { label: 'Khách hàng', value: formatNumber(stats.memberCount) },

@@ -3,7 +3,7 @@ package vn.com.be_crm.infrastructure.activity.mapper;
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.activity.entity.Activity;
 import vn.com.be_crm.domain.activity.enums.ActivityStatus;
-import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
+import vn.com.be_crm.core.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.activity.entity.ActivityHibernate;
 
 /**

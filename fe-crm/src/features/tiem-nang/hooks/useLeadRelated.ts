@@ -1,11 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { leadService } from '../services/leadService';
 
-/** Lấy bản ghi liên quan của một tiềm năng (trang chi tiết). */
+// lấy bản ghi liên quan của một tiềm năng (trang chi tiết)
 export function useLeadRelated(id: number | undefined) {
-    return useQuery({
-        queryKey: ['lead', id, 'related'],
-        queryFn: () => leadService.getRelated(id as number).then(r => r.data.data),
-        enabled: id != null && !Number.isNaN(id),
-    });
+    const enabled = id != null && !Number.isNaN(id);
+    return useLiveQuery(`lead:${id}:related`, () => leadService.getRelated(id as number).then(r => r.data.data), enabled);
 }

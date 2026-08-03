@@ -2,7 +2,7 @@ package vn.com.be_crm.application.quotation.query;
 
 import vn.com.be_crm.application.quotation.dto.QuotationItemResult;
 import vn.com.be_crm.application.quotation.mapper.QuotationItemCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 
 import java.util.List;

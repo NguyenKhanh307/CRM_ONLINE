@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { quotationService } from '../services/quotationService';
 
-/** Lấy chi tiết một báo giá theo ID (trang chi tiết). */
+// lấy chi tiết một báo giá theo ID (trang chi tiết)
 export function useQuotationDetail(id: number | undefined) {
     return useQuery({
         queryKey: ['quotation', id],

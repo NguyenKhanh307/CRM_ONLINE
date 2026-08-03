@@ -24,7 +24,7 @@ import {
     CHANNEL_LABELS, REASON_LABELS, RESOLUTION_LABELS,
 } from '../config/ticketEnums';
 
-/** Ô thông tin nhãn - giá trị. */
+// ô thông tin nhãn - giá trị
 const Info = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <div className="flex gap-2 text-md">
         <span className="text-gray-500 w-32 flex-shrink-0">{label}</span>
@@ -68,7 +68,7 @@ const TicketDetailPage = () => {
     const onError = (err: unknown) => showAlert((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Không thực hiện được hành động');
     const isReturn = ticket.type === 'return' || ticket.type === 'exchange';
 
-    /** Điều phối hành động — hành động cần input mở modal, còn lại gọi trực tiếp. */
+    // điều phối hành động — hành động cần input mở modal, còn lại gọi trực tiếp
     const handleAction = (action: TicketAction) => {
         if (action === 'assign') { setAssignOpen(true); return; }
         if (action === 'reject') { setRejectOpen(true); return; }
@@ -79,7 +79,7 @@ const TicketDetailPage = () => {
 
     const canCsat = ticket.status === 'resolved' || ticket.status === 'closed';
 
-    /** Khách tự đánh giá qua trang public — nhân viên chỉ sao chép liên kết gửi cho khách. */
+    // khách tự đánh giá qua trang public — nhân viên chỉ sao chép liên kết gửi cho khách
     const copySupportLink = () => {
         const url = `${window.location.origin}/support-page/${ticket.code}`;
         navigator.clipboard.writeText(url)

@@ -1,24 +1,15 @@
-/**
- * Tải ảnh lên Cloudinary bằng unsigned upload preset — không lộ secret, không cần backend.
- * Cấu hình qua 2 biến env: VITE_CLOUDINARY_CLOUD_NAME, VITE_CLOUDINARY_UPLOAD_PRESET.
- *
- * Dùng `fetch` thô (KHÔNG dùng axiosInstance) vì axiosInstance prepend baseURL + Bearer token
- * của backend nội bộ — sẽ hỏng khi gọi thẳng API Cloudinary.
- */
+// tải ảnh lên Cloudinary bằng unsigned upload preset — không lộ secret, không cần backend
+// cấu hình qua 2 biến env: VITE_CLOUDINARY_CLOUD_NAME, VITE_CLOUDINARY_UPLOAD_PRESET
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string | undefined;
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string | undefined;
 
-/** Giới hạn kích thước ảnh tải lên (5MB). */
+// giới hạn kích thước ảnh tải lên (5MB)
 export const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
 
-/**
- * Upload một file ảnh lên Cloudinary và trả về `secure_url`.
- *
- * @param file file ảnh người dùng chọn
- * @returns URL ảnh đã lưu trên Cloudinary
- * @throws Error nếu thiếu cấu hình env, file không hợp lệ, hoặc upload thất bại
- */
+// upload một file ảnh lên Cloudinary và trả về secure_url
+// dùng fetch thô (KHÔNG dùng axiosInstance) vì axiosInstance prepend baseURL + Bearer token
+// của backend nội bộ — sẽ hỏng khi gọi thẳng API Cloudinary
 export const uploadImage = async (file: File): Promise<string> => {
     if (!CLOUD_NAME || !UPLOAD_PRESET) {
         throw new Error('Chưa cấu hình Cloudinary (VITE_CLOUDINARY_CLOUD_NAME / VITE_CLOUDINARY_UPLOAD_PRESET).');

@@ -4,8 +4,8 @@ import vn.com.be_crm.application.related.dto.QuotationRelatedResult;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 import vn.com.be_crm.domain.related.repository.IRelatedRepository;
-import vn.com.be_crm.domain.shared.exception.ForbiddenException;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.ForbiddenException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Lấy bản ghi liên quan của một báo giá cho trang chi tiết 360°.

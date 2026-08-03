@@ -3,10 +3,10 @@ package vn.com.be_crm.application.quotation.command;
 import vn.com.be_crm.application.quotation.dto.QuotationApprovalResult;
 import vn.com.be_crm.application.quotation.dto.UpdateQuotationApprovalCommand;
 import vn.com.be_crm.application.quotation.mapper.QuotationApprovalCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.quotation.entity.QuotationApproval;
 import vn.com.be_crm.domain.quotation.repository.IQuotationApprovalRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case cập nhật bước phê duyệt báo giá. */
 public class UpdateQuotationApprovalUseCase implements IUseCase<UpdateQuotationApprovalCommand, QuotationApprovalResult> {

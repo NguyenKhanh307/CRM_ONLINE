@@ -5,43 +5,24 @@ import vn.com.be_crm.domain.lead.entity.Lead;
 import vn.com.be_crm.domain.lead.entity.LeadTrackingEvent;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadTrackingEventRepository;
-import vn.com.be_crm.application.shared.tx.ITransactionRunner;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
 
-/**
- * Use case xử lý nộp form web tracking: cập nhật thông tin liên hệ vào tiềm năng,
- * ghi lịch sử và cộng điểm.
- */
+// xử lý nộp form web tracking: cập nhật thông tin liên hệ vào tiềm năng, ghi lịch sử + cộng điểm
 public class SubmitTrackingFormUseCase {
     private final ILeadRepository leadRepo;
     private final ILeadTrackingEventRepository eventRepo;
     private final AddLeadScoreUseCase addScoreUC;
     private final ITransactionRunner tx;
 
-    /**
-     * @param leadRepo   port lưu trữ Lead
-     * @param eventRepo  port lưu trữ LeadTrackingEvent
-     * @param addScoreUC use case cộng điểm dùng chung
-     * @param tx         bộ chạy transaction
-     */
     public SubmitTrackingFormUseCase(ILeadRepository leadRepo, ILeadTrackingEventRepository eventRepo,
                                      AddLeadScoreUseCase addScoreUC, ITransactionRunner tx) {
         this.leadRepo = leadRepo; this.eventRepo = eventRepo; this.addScoreUC = addScoreUC; this.tx = tx;
     }
 
-    /**
-     * Cập nhật thông tin từ form + ghi sự kiện + cộng điểm.
-     * @param code        mã tiềm năng (TNW...)
-     * @param name        họ tên (nếu có)
-     * @param companyName tên công ty (nếu có)
-     * @param email       email (nếu có)
-     * @param phone       số điện thoại (nếu có)
-     * @param note        ghi chú (nếu có)
-     * @param points      số điểm cộng
-     * @return LeadResult sau cập nhật, hoặc null nếu không tìm thấy tiềm năng
-     */
+    // name/companyName/email/phone/note: chỉ ghi đè nếu form gửi lên (không rỗng); trả null
+    // nếu không tìm thấy tiềm năng theo mã; cập nhật + sự kiện + điểm cùng 1 transaction
     public LeadResult execute(String code, String name, String companyName, String email,
                               String phone, String note, int points) {
-        // Cập nhật lead + ghi sự kiện + cộng điểm chạy trong MỘT transaction
         return tx.call(() -> {
             Lead lead = leadRepo.findByCode(code).orElse(null);
             if (lead == null) return null;

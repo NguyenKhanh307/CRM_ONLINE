@@ -8,15 +8,13 @@ import type { LeadResult } from '../types/leadTypes';
 interface Props {
     lead: LeadResult;
     isLoading?: boolean;
-    /** customerId = null → tạo khách hàng mới; ngược lại gắn cơ hội vào khách hàng đã có. */
+    // customerId = null: tạo khách hàng mới; ngược lại gắn cơ hội vào khách hàng đã có
     onConfirm: (customerId: number | null) => void;
     onCancel: () => void;
 }
 
-/**
- * Xác nhận chuyển đổi tiềm năng. Nếu có khách hàng trùng MST/email/SĐT, cho chọn dùng lại
- * khách hàng đó thay vì tạo bản ghi thứ hai cho cùng một công ty.
- */
+// xác nhận chuyển đổi tiềm năng — nếu có khách hàng trùng MST/email/SĐT, cho chọn dùng lại
+// khách hàng đó thay vì tạo bản ghi thứ hai cho cùng một công ty
 export function ConvertLeadModal({ lead, isLoading, onConfirm, onCancel }: Props) {
     const ref = useRef<HTMLDivElement>(null);
     useDialogKeyboardNav(ref, { onCancel, autoFocus: 'none' });

@@ -5,7 +5,7 @@ import vn.com.be_crm.application.order.mapper.OrderCommandMapper;
 import vn.com.be_crm.domain.order.entity.Order;
 import vn.com.be_crm.domain.order.enums.OrderStatus;
 import vn.com.be_crm.domain.order.repository.IOrderRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Use case điều phối trạng thái đơn hàng (theo hành động, không sửa tay):

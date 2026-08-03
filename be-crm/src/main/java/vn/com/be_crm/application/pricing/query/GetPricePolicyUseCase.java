@@ -2,9 +2,9 @@ package vn.com.be_crm.application.pricing.query;
 
 import vn.com.be_crm.application.pricing.dto.PricePolicyResult;
 import vn.com.be_crm.application.pricing.mapper.PricePolicyCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case lấy chính sách giá theo ID. */
 public class GetPricePolicyUseCase implements IUseCase<Long, PricePolicyResult> {

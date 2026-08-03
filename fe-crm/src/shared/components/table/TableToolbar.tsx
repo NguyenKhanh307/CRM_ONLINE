@@ -7,28 +7,25 @@ interface TableToolbarProps {
     quickFilters?: QuickFilter[];
     selectedCount: number;
     onClearSelection: () => void;
-    /** Filter records panel */
+    // filter records panel
     isFilterOpen: boolean;
     onToggleFilter: () => void;
     activeFilterCount: number;
-    /** Sort panel */
+    // sort panel
     isSortOpen: boolean;
     onToggleSort: () => void;
     activeSortCount: number;
-    /** Conditional coloring panel */
+    // conditional coloring panel
     isColoringOpen: boolean;
     onToggleColoring: () => void;
     activeColoringCount: number;
-    /** Column visibility panel */
+    // column visibility panel
     isColumnsOpen: boolean;
     onToggleColumns: () => void;
 }
 
-/**
- * Thanh công cụ phía trên bảng.
- * Trái: badge số dòng chọn + tag filter nhanh.
- * Phải: ô tìm kiếm + 4 icon buttons (Filter, Sort, Coloring, Columns).
- */
+// thanh công cụ phía trên bảng
+// trái: badge số dòng chọn + tag filter nhanh; phải: ô tìm kiếm + 4 icon buttons (Filter, Sort, Coloring, Columns)
 export const TableToolbar = ({
     globalFilter,
     onGlobalFilterChange,
@@ -93,8 +90,8 @@ export const TableToolbar = ({
                         data-table-search
                         value={globalFilter}
                         onChange={(e) => onGlobalFilterChange(e.target.value)}
-                        // Ô tra cứu: Esc xóa nội dung và rời ô. Ô không nằm trong <form>
-                        // nên Enter vốn vô hại — cố ý không gắn hành động nào cho Enter.
+                        // ô tra cứu: Esc xóa nội dung và rời ô. Ô không nằm trong <form>
+                        // nên Enter vốn vô hại — cố ý không gắn hành động nào cho Enter
                         onKeyDown={(e) => {
                             if (e.key !== 'Escape') return;
                             e.stopPropagation();
@@ -161,6 +158,7 @@ interface IconToolbarButtonProps {
     title?: string;
 }
 
+// nút icon vuông trên toolbar, có badge số lượng tùy chọn
 const IconToolbarButton = ({ icon, isActive, onClick, badge, title }: IconToolbarButtonProps) => (
     <button
         onClick={onClick}

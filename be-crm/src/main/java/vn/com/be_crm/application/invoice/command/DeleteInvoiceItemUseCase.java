@@ -1,9 +1,9 @@
 package vn.com.be_crm.application.invoice.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.invoice.entity.InvoiceItem;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceItemRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case xóa dòng hàng hóa đơn. Tổng chứng từ được tính lại sau khi xóa. */
 public class DeleteInvoiceItemUseCase implements IUseCase<Long, Void> {

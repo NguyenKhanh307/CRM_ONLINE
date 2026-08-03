@@ -3,13 +3,13 @@ package vn.com.be_crm.application.opportunity.command;
 import vn.com.be_crm.application.opportunity.dto.OpportunityResult;
 import vn.com.be_crm.application.opportunity.dto.UpdateOpportunityCommand;
 import vn.com.be_crm.application.opportunity.mapper.OpportunityCommandMapper;
-import vn.com.be_crm.application.shared.notify.NotifyAssignmentUseCase;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.notify.NotifyAssignmentUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
 import vn.com.be_crm.domain.opportunity.entity.OpportunityStage;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityStageRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 import java.util.Objects;
 

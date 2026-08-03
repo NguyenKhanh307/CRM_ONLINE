@@ -1,9 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { phanQuyenService } from '../services/phanQuyenService';
 
-/**
- * Lấy danh sách nhóm người dùng từ API.
- */
+// lấy danh sách nhóm người dùng từ api
 export const useRoleGroups = () => {
     return useQuery({
         queryKey: ['roleGroups'],

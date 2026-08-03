@@ -13,7 +13,7 @@ export interface PickerOption {
 
 interface Props {
     title: string;
-    /** Danh từ nêu trong popup xác nhận, ví dụ 'sản phẩm vào chính sách giá'. */
+    // danh từ nêu trong popup xác nhận, ví dụ 'sản phẩm vào chính sách giá'
     confirmNoun: string;
     options: PickerOption[];
     existingIds: Set<number>;
@@ -22,11 +22,9 @@ interface Props {
     isLoading: boolean;
 }
 
-/**
- * Modal chọn 1 thực thể để thêm vào chính sách giá (mô phỏng AddMemberModal phân quyền).
- * Ô tìm kiếm là form tra cứu — Enter vô hại, không popup lỗi. Nút "Thêm" là hành động ghi
- * nên phải qua popup xác nhận.
- */
+// modal chọn 1 thực thể để thêm vào chính sách giá (mô phỏng AddMemberModal phân quyền)
+// ô tìm kiếm là form tra cứu — Enter vô hại, không popup lỗi. nút "Thêm" là hành động ghi
+// nên phải qua popup xác nhận
 const AddEntityModal = ({ title, confirmNoun, options, existingIds, onAdd, onClose, isLoading }: Props) => {
     const [search, setSearch] = useState('');
     const { confirmCreate } = useConfirm();

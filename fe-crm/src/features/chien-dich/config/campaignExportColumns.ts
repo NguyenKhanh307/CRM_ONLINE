@@ -3,7 +3,7 @@ import type { ExportColumn } from '@/shared/components/export/exportTypes';
 import type { CampaignResult } from '../types/campaignTypes';
 import { CAMPAIGN_STATUS_LABELS, CAMPAIGN_TYPE_LABELS } from './campaignColumns';
 
-/** Các cột khả dụng khi xuất file phân hệ Chiến dịch. */
+// các cột khả dụng khi xuất file phân hệ Chiến dịch
 export const campaignExportColumns: ExportColumn<CampaignResult>[] = [
     { key: 'code', label: 'Mã' },
     { key: 'name', label: 'Tên chiến dịch' },

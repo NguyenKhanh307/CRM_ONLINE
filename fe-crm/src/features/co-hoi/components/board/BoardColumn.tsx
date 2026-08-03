@@ -9,11 +9,11 @@ interface BoardColumnProps {
     onOpenCard: (id: number) => void;
 }
 
-/** Màu vạch đầu cột theo tính chất giai đoạn: thắng = xanh lá, thua = đỏ, còn lại = xanh dương. */
+// màu vạch đầu cột theo tính chất giai đoạn: thắng = xanh lá, thua = đỏ, còn lại = xanh dương
 const headBar = (col: BoardColumnData) =>
     col.won ? 'bg-green-500' : col.lost ? 'bg-red-500' : 'bg-primary';
 
-/** Một cột của bảng Kanban = một giai đoạn pipeline; nhận thẻ được thả vào. */
+// một cột của bảng Kanban = một giai đoạn pipeline; nhận thẻ được thả vào
 export const BoardColumn = ({ column, onOpenCard }: BoardColumnProps) => {
     const navigate = useNavigate();
     const { setNodeRef, isOver } = useDroppable({ id: column.stageId });

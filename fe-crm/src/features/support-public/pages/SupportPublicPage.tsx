@@ -7,7 +7,7 @@ import { publicTicketService, type PublicTicketView } from '../services/publicTi
 
 const CSAT_STATUSES = new Set(['resolved', 'closed']);
 
-/** Trang công khai để khách xem trạng thái phiếu chăm sóc + tự đánh giá hài lòng theo mã phiếu. */
+// trang công khai để khách xem trạng thái phiếu chăm sóc + tự đánh giá hài lòng theo mã phiếu
 const SupportPublicPage = () => {
     const { code = '' } = useParams();
 
@@ -119,7 +119,7 @@ const SupportPublicPage = () => {
     );
 };
 
-/** Dòng nhãn - giá trị. */
+// dòng nhãn - giá trị
 const Row = ({ label, children }: { label: string; children: ReactNode }) => (
     <div className="flex gap-2">
         <span className="text-gray-500 w-32 flex-shrink-0">{label}</span>
@@ -127,7 +127,7 @@ const Row = ({ label, children }: { label: string; children: ReactNode }) => (
     </div>
 );
 
-/** Khung căn giữa cho trạng thái tải/lỗi. */
+// khung căn giữa cho trạng thái tải/lỗi
 const Centered = ({ children }: { children: ReactNode }) => (
     <div className="min-h-screen bg-bg-main flex items-center justify-center text-gray-500 text-md">{children}</div>
 );

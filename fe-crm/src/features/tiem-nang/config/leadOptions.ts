@@ -1,4 +1,4 @@
-/** Nguồn gốc tiềm năng — dùng chung cho LeadAddPage và LeadEditModal. */
+// nguồn gốc tiềm năng — dùng chung cho NewLeadPage và LeadEditModal
 export const SOURCE_OPTIONS = [
     { value: 'website', label: 'Website' },
     { value: 'gioi-thieu', label: 'Giới thiệu' },

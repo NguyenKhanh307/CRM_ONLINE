@@ -2,7 +2,7 @@ package vn.com.be_crm.application.service.query;
 
 import vn.com.be_crm.application.service.dto.TicketReturnItemResult;
 import vn.com.be_crm.application.service.mapper.TicketReturnItemCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.service.repository.ITicketReturnItemRepository;
 
 import java.util.List;

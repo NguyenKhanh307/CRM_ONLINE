@@ -3,36 +3,34 @@ import { formatISODate } from '@/shared/utils/date';
 import { formatNumber } from '@/shared/utils/number';
 import { lookupName } from '@/shared/utils/lookup';
 
-/**
- * Cell render dùng chung cho DataTable — giảm lặp code ở các config cột.
- * Tất cả đều generic theo kiểu row `T` để gán trực tiếp vào `ColumnDef<T>['cell']`.
- */
+// cell render dùng chung cho DataTable — giảm lặp code ở các config cột
+// tất cả đều generic theo kiểu row `T` để gán trực tiếp vào `ColumnDef<T>['cell']`
 
-/** Số tiền: "1.234.567 đ", null → "—". */
+// số tiền: "1.234.567 đ", null -> "—"
 export function currencyCell<T>({ getValue }: CellContext<T, unknown>) {
     const v = getValue() as number | null;
     return v != null ? formatNumber(v) + ' đ' : '—';
 }
 
-/** Số thường (vd số lượng, %): format vi-VN, null → "—". */
+// số thường (vd số lượng, %): format vi-VN, null -> "—"
 export function numberCell<T>({ getValue }: CellContext<T, unknown>) {
     const v = getValue() as number | null;
     return v != null ? formatNumber(v) : '—';
 }
 
-/** Ngày ISO → dd/mm/yyyy, rỗng → "—". */
+// ngày ISO -> dd/mm/yyyy, rỗng -> "—"
 export function dateCell<T>({ getValue }: CellContext<T, unknown>) {
     const v = getValue() as string | null;
     return v ? formatISODate(v) : '—';
 }
 
-/** Text thường, null/rỗng → "—". */
+// text thường, null/rỗng -> "—"
 export function textCell<T>({ getValue }: CellContext<T, unknown>) {
     const v = getValue() as string | null;
     return v != null && v !== '' ? v : '—';
 }
 
-/** Badge boolean xanh/đỏ với nhãn tùy biến. */
+// badge boolean xanh/đỏ với nhãn tùy biến
 export function boolBadge(trueLabel: string, falseLabel: string) {
     return function BoolBadgeCell<T>({ getValue }: CellContext<T, unknown>) {
         const v = getValue() as boolean;
@@ -44,12 +42,12 @@ export function boolBadge(trueLabel: string, falseLabel: string) {
     };
 }
 
-/** Cờ Có/Không đơn giản (không badge). */
+// cờ Có/Không đơn giản (không badge)
 export function yesNoCell<T>({ getValue }: CellContext<T, unknown>) {
     return (getValue() as boolean) ? 'Có' : 'Không';
 }
 
-/** Map giá trị enum → nhãn tiếng Việt; không có nhãn thì hiện giá trị thô. */
+// map giá trị enum -> nhãn tiếng Việt; không có nhãn thì hiện giá trị thô
 export function labelCell(labels: Record<string, string>) {
     return function LabelCell<T>({ getValue }: CellContext<T, unknown>) {
         const v = getValue() as string | null;
@@ -58,7 +56,7 @@ export function labelCell(labels: Record<string, string>) {
     };
 }
 
-/** Badge enum có màu + nhãn tiếng Việt. */
+// badge enum có màu + nhãn tiếng Việt
 export function badgeCell(labels: Record<string, string>, colors: Record<string, string>) {
     return function BadgeCell<T>({ getValue }: CellContext<T, unknown>) {
         const v = getValue() as string | null;
@@ -71,7 +69,7 @@ export function badgeCell(labels: Record<string, string>, colors: Record<string,
     };
 }
 
-/** Tag trung tính cho chuỗi tự do (vd tên danh mục) — không cần bảng màu cố định theo giá trị như badgeCell. */
+// tag trung tính cho chuỗi tự do (vd tên danh mục) — không cần bảng màu cố định theo giá trị như badgeCell
 export function tagCell<T>({ getValue }: CellContext<T, unknown>) {
     const v = getValue() as string | null;
     if (v == null || v === '') return '—';
@@ -82,7 +80,7 @@ export function tagCell<T>({ getValue }: CellContext<T, unknown>) {
     );
 }
 
-/** Resolve ID khóa ngoại sang tên qua map; null → "—", chưa load → "#id". */
+// resolve ID khóa ngoại sang tên qua map; null -> "—", chưa load -> "#id"
 export function fkCell(map: Map<number, string>) {
     return function FkCell<T>({ getValue }: CellContext<T, unknown>) {
         return lookupName(map, getValue() as number | null);

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { tableScrollMaxHeight } from './tableMetrics';
 
-/** Một cột của bảng dòng hàng (chỉ-xem) ở panel dưới. */
+// một cột của bảng dòng hàng (chỉ-xem) ở panel dưới
 export interface ItemPanelColumn<T> {
     key: string;
     header: string;
@@ -10,16 +10,16 @@ export interface ItemPanelColumn<T> {
 }
 
 interface RecordItemsPanelProps<T> {
-    /** Nhãn bản ghi đang chọn; bỏ trống nghĩa là chưa chọn dòng nào. */
+    // nhãn bản ghi đang chọn; bỏ trống nghĩa là chưa chọn dòng nào
     title?: string;
     columns: ItemPanelColumn<T>[];
     rows: T[];
     isLoading?: boolean;
-    /** Thông báo khi chưa chọn bản ghi nào. */
+    // thông báo khi chưa chọn bản ghi nào
     placeholder?: string;
-    /** Thông báo khi bản ghi đang chọn không có dòng hàng. */
+    // thông báo khi bản ghi đang chọn không có dòng hàng
     emptyText?: string;
-    /** Số dòng hàng thấy được mà không cần cuộn; phần dư cuộn trong khung. */
+    // số dòng hàng thấy được mà không cần cuộn; phần dư cuộn trong khung
     visibleRows?: number;
 }
 
@@ -32,10 +32,8 @@ const alignClass: Record<'left' | 'right' | 'center', string> = {
     center: 'text-center',
 };
 
-/**
- * Bảng dưới (chỉ-xem) hiển thị danh sách dòng hàng của bản ghi đang được chọn ở bảng trên.
- * Dùng cho bố cục 2 bảng (master–detail) của Cơ hội / Báo giá / Đơn hàng / Hóa đơn.
- */
+// bảng dưới (chỉ-xem) hiển thị danh sách dòng hàng của bản ghi đang được chọn ở bảng trên
+// dùng cho bố cục 2 bảng (master–detail) của Cơ hội / Báo giá / Đơn hàng / Hóa đơn
 export const RecordItemsPanel = <T extends { id: number }>({
     title,
     columns,

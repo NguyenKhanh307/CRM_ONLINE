@@ -1,6 +1,6 @@
 package vn.com.be_crm.application.opportunity.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 
 /** Use case khôi phục cơ hội từ thùng rác. */

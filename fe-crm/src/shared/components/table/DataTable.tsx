@@ -39,32 +39,28 @@ interface DataTableProps<T> {
     emptyText?: string;
     quickFilters?: QuickFilterDef[];
     onSelectionChange?: (selectedRows: T[]) => void;
-    /** ID bản ghi cần focus (highlight + cuộn tới, tự nhảy đúng trang). Dùng cho điều hướng từ thông báo. */
+    // ID bản ghi cần focus (highlight + cuộn tới, tự nhảy đúng trang). Dùng cho điều hướng từ thông báo
     focusId?: number | string | null;
-    /** Các thao tác của một dòng — hiện trong menu chuột phải (thay cho cột "Thao tác"). */
+    // các thao tác của một dòng — hiện trong menu chuột phải (thay cho cột "Thao tác")
     rowActions?: (row: T) => RowAction[];
-    /** Hành động chính khi nhấp đúp vào dòng (thường là Chỉnh sửa hoặc mở trang chi tiết). */
+    // hành động chính khi nhấp đúp vào dòng (thường là Chỉnh sửa hoặc mở trang chi tiết)
     onRowDoubleClick?: (row: T) => void;
-    /** Báo dòng đang được chọn (highlight) ra ngoài — null khi bỏ chọn. Dùng cho bố cục 2 bảng. */
+    // báo dòng đang được chọn (highlight) ra ngoài — null khi bỏ chọn. Dùng cho bố cục 2 bảng
     onRowSelect?: (row: T | null) => void;
-    /** Giới hạn khung bảng còn đúng N dòng, phần dư cuộn trong khung. Bỏ trống → cao theo số dòng. */
+    // giới hạn khung bảng còn đúng N dòng, phần dư cuộn trong khung. Bỏ trống -> cao theo số dòng
     visibleRows?: number;
-    /** Luôn giữ một dòng được chọn (mặc định dòng đầu trang) — không cho bỏ chọn. Dùng cho bố cục 2 bảng. */
+    // luôn giữ một dòng được chọn (mặc định dòng đầu trang) — không cho bỏ chọn. Dùng cho bố cục 2 bảng
     autoSelectFirstRow?: boolean;
-    /**
-     * Server-mode: phân trang + tìm kiếm + tag lọc nhanh xử lý ở server.
-     * Không truyền → toàn bộ chạy client như cũ (bảng nhỏ: phân quyền, thùng rác...).
-     */
+    // server-mode: phân trang + tìm kiếm + tag lọc nhanh xử lý ở server
+    // không truyền -> toàn bộ chạy client như cũ (bảng nhỏ: phân quyền, thùng rác...)
     server?: ServerTableState;
 }
 
 type OpenPanel = 'filter' | 'sort' | 'coloring' | 'columns' | null;
 
-/**
- * Bảng dữ liệu tái sử dụng kiểu Excel.
- * Hỗ trợ: chọn nhiều dòng, quick-filter tags, filter records,
- * sort đa cột, tô màu có điều kiện, ẩn/hiện cột, phân trang.
- */
+// bảng dữ liệu tái sử dụng kiểu Excel
+// hỗ trợ: chọn nhiều dòng, quick-filter tags, filter records,
+// sort đa cột, tô màu có điều kiện, ẩn/hiện cột, phân trang
 export const DataTable = <T extends object>({
     data,
     columns,
@@ -82,7 +78,7 @@ export const DataTable = <T extends object>({
 }: DataTableProps<T>) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const isServer = !!server;
-    // Callback server đổi ref mỗi render cha (object inline) — neo vào ref để effect không phải gắn lại
+    // callback server đổi ref mỗi render cha (object inline) — neo vào ref để effect không phải gắn lại
     const serverRef = useRef(server);
     serverRef.current = server;
     const [menu, setMenu] = useState<{ x: number; y: number; actions: RowAction[] } | null>(null);
@@ -96,7 +92,7 @@ export const DataTable = <T extends object>({
     const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
     const [activeQuickFilter, setActiveQuickFilter] = useState<string | null>(null);
 
-    // Server-mode: ô search hiển thị tức thời, debounce 350ms rồi mới báo ra ngoài (gọi API)
+    // server-mode: ô search hiển thị tức thời, debounce 350ms rồi mới báo ra ngoài (gọi API)
     const [searchInput, setSearchInput] = useState(server?.searchValue ?? '');
     const serverSearchValue = server?.searchValue;
     useEffect(() => {
@@ -114,7 +110,7 @@ export const DataTable = <T extends object>({
     const togglePanel = (panel: OpenPanel) =>
         setOpenPanel((cur) => (cur === panel ? null : panel));
 
-    // Esc đóng panel đang mở (lọc / sắp xếp / tô màu / ẩn hiện cột) — một chỗ cho cả 4 panel.
+    // Esc đóng panel đang mở (lọc / sắp xếp / tô màu / ẩn hiện cột) — một chỗ cho cả 4 panel
     useEffect(() => {
         if (openPanel === null) return;
         const onEsc = (e: KeyboardEvent) => {
@@ -124,7 +120,7 @@ export const DataTable = <T extends object>({
         return () => document.removeEventListener('keydown', onEsc);
     }, [openPanel]);
 
-    /** Cột checkbox chọn dòng — luôn đứng đầu bảng. */
+    // cột checkbox chọn dòng — luôn đứng đầu bảng
     const selectionColumn = useMemo<ColumnDef<T>>(
         () => ({
             id: '__select__',
@@ -157,30 +153,28 @@ export const DataTable = <T extends object>({
         [selectionColumn, columns]
     );
 
-    /** Pre-filter data bằng filterConditions trước khi vào TanStack. */
+    // pre-filter data bằng filterConditions trước khi vào TanStack
     const preFilteredData = useMemo(
         () => applyConditions(data as Record<string, unknown>[], filterConditions) as T[],
         [data, filterConditions]
     );
 
-    /**
-     * Lọc tiếp theo tag lọc nhanh đang chọn (so khớp String(row[field]) === value).
-     * Memo theo field/value primitive thay vì identity mảng `quickFilters` — trang khai báo
-     * mảng inline sẽ tạo ref mới mỗi render, nếu đưa vào deps thì `displayData` đổi ref liên tục
-     * khi filter bật → các effect key theo `displayData` chạy lại → vòng lặp render (treo tab).
-     */
+    // lọc tiếp theo tag lọc nhanh đang chọn (so khớp String(row[field]) === value)
+    // memo theo field/value primitive thay vì identity mảng `quickFilters` — trang khai báo
+    // mảng inline sẽ tạo ref mới mỗi render, nếu đưa vào deps thì `displayData` đổi ref liên tục
+    // khi filter bật -> các effect key theo `displayData` chạy lại -> vòng lặp render (treo tab)
     const activeTag = quickFilters?.find((q) => q.id === activeQuickFilter);
     const activeTagField = activeTag?.field;
     const activeTagValue = activeTag?.value;
     const displayData = useMemo(() => {
-        // Server-mode: tag lọc nhanh đã áp ở server (param status) — không lọc lại client
+        // server-mode: tag lọc nhanh đã áp ở server (param status) — không lọc lại client
         if (isServer || !activeQuickFilter || activeTagField == null) return preFilteredData;
         return preFilteredData.filter(
             (row) => String((row as Record<string, unknown>)[activeTagField] ?? '') === activeTagValue
         );
     }, [isServer, preFilteredData, activeQuickFilter, activeTagField, activeTagValue]);
 
-    /** Map khai báo QuickFilterDef → QuickFilter (gắn isActive + onToggle) cho toolbar. */
+    // map khai báo QuickFilterDef -> QuickFilter (gắn isActive + onToggle) cho toolbar
     const toolbarQuickFilters = useMemo<QuickFilter[]>(
         () =>
             (quickFilters ?? []).map((q) => ({
@@ -190,7 +184,7 @@ export const DataTable = <T extends object>({
                 onToggle: () => {
                     const next = activeQuickFilter === q.id ? null : q.id;
                     setActiveQuickFilter(next);
-                    // Server-mode: báo giá trị tag ra ngoài để page gọi API với param status
+                    // server-mode: báo giá trị tag ra ngoài để page gọi API với param status
                     if (isServer) serverRef.current?.onQuickFilterChange?.(next ? q.value : null);
                 },
             })),
@@ -200,7 +194,7 @@ export const DataTable = <T extends object>({
     const table = useReactTable({
         data: displayData,
         columns: columnsWithSelection,
-        // Server-mode: search do server lọc (không đưa globalFilter vào TanStack)
+        // server-mode: search do server lọc (không đưa globalFilter vào TanStack)
         state: { sorting, columnVisibility, globalFilter: isServer ? '' : globalFilter, rowSelection },
         getRowId: (row) => String((row as { id?: unknown }).id),
         onSortingChange: setSorting,
@@ -208,7 +202,7 @@ export const DataTable = <T extends object>({
         onGlobalFilterChange: setGlobalFilter,
         onRowSelectionChange: setRowSelection,
         enableRowSelection: true,
-        // Server-mode: data đã là đúng một trang — TanStack không phân trang lại
+        // server-mode: data đã là đúng một trang — TanStack không phân trang lại
         manualPagination: isServer,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
@@ -223,12 +217,10 @@ export const DataTable = <T extends object>({
         onSelectionChange(selected);
     }, [rowSelection, onSelectionChange, table]);
 
-    /**
-     * Focus bản ghi theo `focusId`: tìm dòng trong danh sách đã lọc/sắp xếp,
-     * tự nhảy đúng trang phân trang, highlight + cuộn tới. Dùng khi bấm thông báo.
-     * Chỉ focus MỘT LẦN cho mỗi `focusId` (khi đã tìm thấy dòng) — tránh cuộn giật lại
-     * mỗi lần danh sách refetch trong khi `?focus=` vẫn còn trên URL.
-     */
+    // focus bản ghi theo `focusId`: tìm dòng trong danh sách đã lọc/sắp xếp,
+    // tự nhảy đúng trang phân trang, highlight + cuộn tới. Dùng khi bấm thông báo
+    // chỉ focus MỘT LẦN cho mỗi `focusId` (khi đã tìm thấy dòng) — tránh cuộn giật lại
+    // mỗi lần danh sách refetch trong khi `?focus=` vẫn còn trên URL
     const focusedRef = useRef<string | null>(null);
     useEffect(() => {
         if (focusId == null) { focusedRef.current = null; return; }
@@ -236,9 +228,9 @@ export const DataTable = <T extends object>({
         if (focusedRef.current === target) return;
         const rows = table.getSortedRowModel().rows;
         const idx = rows.findIndex((r) => r.id === target);
-        if (idx < 0) return;                       // dữ liệu chưa tải xong → thử lại ở lần render sau
+        if (idx < 0) return;                       // dữ liệu chưa tải xong -> thử lại ở lần render sau
         focusedRef.current = target;
-        // Server-mode: bản ghi đã nằm trong trang hiện tại (page tự lo nạp đúng trang) — không nhảy trang client
+        // server-mode: bản ghi đã nằm trong trang hiện tại (page tự lo nạp đúng trang) — không nhảy trang client
         if (!isServer) table.setPageIndex(Math.floor(idx / table.getState().pagination.pageSize));
         setSelectedRowId(target);
         const raf = requestAnimationFrame(() => {
@@ -263,7 +255,7 @@ export const DataTable = <T extends object>({
         [table, columnVisibility]
     );
 
-    /** Tính màu cho một row từ conditionalRules (scope=row). */
+    // tính màu cho một row từ conditionalRules (scope=row)
     const getRowColor = useCallback(
         (row: T): string | undefined => {
             for (const rule of conditionalRules) {
@@ -278,7 +270,7 @@ export const DataTable = <T extends object>({
         [conditionalRules]
     );
 
-    /** Tính màu cho một cell từ conditionalRules (scope=cell). */
+    // tính màu cho một cell từ conditionalRules (scope=cell)
     const getCellColor = useCallback(
         (colId: string, row: T): string | undefined => {
             for (const rule of conditionalRules) {
@@ -297,7 +289,7 @@ export const DataTable = <T extends object>({
     const { pageIndex, pageSize } = table.getState().pagination;
     const totalRows = table.getFilteredRowModel().rows.length;
 
-    // Số liệu phân trang hiển thị: server-mode lấy từ prop, client-mode từ TanStack
+    // số liệu phân trang hiển thị: server-mode lấy từ prop, client-mode từ TanStack
     const shownPageIndex = server ? server.pageIndex : pageIndex;
     const shownPageSize = server ? server.pageSize : pageSize;
     const shownTotalRows = server ? server.totalRows : totalRows;
@@ -305,12 +297,10 @@ export const DataTable = <T extends object>({
         ? Math.max(1, Math.ceil(server.totalRows / server.pageSize))
         : table.getPageCount();
 
-    /**
-     * Giữ luôn có một dòng được chọn trên trang hiện tại: chọn lại dòng đầu khi tải xong dữ liệu,
-     * đổi trang, đổi bộ lọc, hoặc dòng đang chọn biến mất. Không lặp vô hạn vì lần chạy kế tiếp
-     * `selectedRowId` đã hợp lệ nên effect thoát sớm. `reportedRowIdRef` chặn gọi `onRowSelect`
-     * trùng id — cắt đứt vòng setState cha ↔ effect kể cả khi effect chạy lại thừa.
-     */
+    // giữ luôn có một dòng được chọn trên trang hiện tại: chọn lại dòng đầu khi tải xong dữ liệu,
+    // đổi trang, đổi bộ lọc, hoặc dòng đang chọn biến mất. Không lặp vô hạn vì lần chạy kế tiếp
+    // `selectedRowId` đã hợp lệ nên effect thoát sớm. `reportedRowIdRef` chặn gọi `onRowSelect`
+    // trùng id — cắt đứt vòng setState cha <-> effect kể cả khi effect chạy lại thừa
     const reportedRowIdRef = useRef<string | null>(null);
     useEffect(() => {
         if (!autoSelectFirstRow) return;
@@ -332,10 +322,8 @@ export const DataTable = <T extends object>({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoSelectFirstRow, selectedRowId, displayData, pageIndex, pageSize]);
 
-    /**
-     * Alt+U sửa / Delete xóa dòng đang chọn — tái dùng đúng action `key: 'edit'`/`key: 'delete'`
-     * đã khai báo trong `rowActions` của trang (menu chuột phải), không định nghĩa hành vi riêng.
-     */
+    // Alt+U sửa / Delete xóa dòng đang chọn — tái dùng đúng action `key: 'edit'`/`key: 'delete'`
+    // đã khai báo trong `rowActions` của trang (menu chuột phải), không định nghĩa hành vi riêng
     useEffect(() => {
         if (!rowActions) return;
         const onKey = (e: KeyboardEvent) => {

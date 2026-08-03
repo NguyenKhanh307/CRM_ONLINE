@@ -5,10 +5,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.handover.HandoverAllUseCase;
-import vn.com.be_crm.application.shared.dto.HandoverAllCommand;
-import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
-import vn.com.be_crm.presentation.shared.ApiResponse;
-import vn.com.be_crm.presentation.shared.HandoverAllRequest;
+import vn.com.be_crm.core.dto.handover.HandoverAllCommand;
+import vn.com.be_crm.core.util.SecurityUtils;
+import vn.com.be_crm.core.response.ApiResponse;
+import vn.com.be_crm.core.dto.handover.HandoverAllRequest;
 
 /**
  * REST controller cho nghiệp vụ bàn giao toàn bộ công việc.

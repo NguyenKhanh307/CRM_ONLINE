@@ -14,7 +14,7 @@ import vn.com.be_crm.application.related.dto.QuotationRelatedResult;
 import vn.com.be_crm.application.related.dto.RelatedGroup;
 import vn.com.be_crm.application.related.dto.RelatedRecord;
 import vn.com.be_crm.domain.related.repository.IRelatedRepository;
-import vn.com.be_crm.infrastructure.shared.tx.TxSupport;
+import vn.com.be_crm.core.tx.impl.TxSupport;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;

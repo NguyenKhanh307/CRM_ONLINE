@@ -1,9 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { phanQuyenService } from '../services/phanQuyenService';
 
-/**
- * Cập nhật tên/mô tả nhóm người dùng.
- */
+// cập nhật tên/mô tả nhóm người dùng
 export const useUpdateGroup = () => {
     const queryClient = useQueryClient();
     return useMutation({

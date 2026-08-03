@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { opportunityService } from '../services/opportunityService';
 
-/** Bàn giao hàng loạt cơ hội cho nhân viên khác. */
+// bàn giao hàng loạt cơ hội cho nhân viên khác
 export function useHandoverBulkOpportunity() {
     const qc = useQueryClient();
     return useMutation({

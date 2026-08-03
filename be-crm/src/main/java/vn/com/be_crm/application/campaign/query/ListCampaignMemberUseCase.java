@@ -2,7 +2,7 @@ package vn.com.be_crm.application.campaign.query;
 
 import vn.com.be_crm.application.campaign.dto.CampaignMemberResult;
 import vn.com.be_crm.application.campaign.mapper.CampaignMemberCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.campaign.repository.ICampaignMemberRepository;
 
 import java.util.List;

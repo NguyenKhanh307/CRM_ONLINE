@@ -4,7 +4,7 @@ import vn.com.be_crm.application.service.dto.PublicTicketView;
 import vn.com.be_crm.application.service.query.GetTicketByCodePublicUseCase;
 import vn.com.be_crm.domain.service.entity.Ticket;
 import vn.com.be_crm.domain.service.repository.ITicketRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Use case khách tự đánh giá hài lòng (CSAT) qua trang public theo mã phiếu

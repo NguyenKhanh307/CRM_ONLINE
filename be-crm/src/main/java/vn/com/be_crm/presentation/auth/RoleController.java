@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.auth.command.*;
 import vn.com.be_crm.application.auth.dto.*;
 import vn.com.be_crm.application.auth.query.*;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.presentation.auth.request.*;
-import vn.com.be_crm.presentation.shared.ApiResponse;
-import vn.com.be_crm.presentation.shared.PageResponse;
+import vn.com.be_crm.core.response.ApiResponse;
+import vn.com.be_crm.core.page.PageResponse;
 
 import java.util.List;
 

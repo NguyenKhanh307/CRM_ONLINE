@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.invoice.entity.Invoice;
 import vn.com.be_crm.domain.invoice.enums.InvoiceStatus;
 import vn.com.be_crm.domain.invoice.enums.PaymentStatus;
-import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
+import vn.com.be_crm.core.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.invoice.entity.InvoiceHibernate;
 
 import java.math.BigDecimal;

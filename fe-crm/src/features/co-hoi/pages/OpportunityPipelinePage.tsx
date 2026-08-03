@@ -23,7 +23,7 @@ interface FormState {
 
 const EMPTY: FormState = { name: '', sortOrder: '0', probability: '0', isWon: false, isLost: false };
 
-/** Chuyển stage → form state để sửa. */
+// chuyển stage -> form state để sửa
 const toForm = (s: OpportunityStageResult): FormState => ({
     name: s.name,
     sortOrder: String(s.sortOrder ?? 0),
@@ -32,7 +32,7 @@ const toForm = (s: OpportunityStageResult): FormState => ({
     isLost: !!s.isLost,
 });
 
-/** Trang quản lý giai đoạn pipeline cơ hội (CRUD opportunity_stages). */
+// trang quản lý giai đoạn pipeline cơ hội (CRUD opportunity_stages)
 const OpportunityPipelinePage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
@@ -50,7 +50,7 @@ const OpportunityPipelinePage = () => {
     const { confirmCreate, confirmSave } = useConfirm();
 
     const formRef = useRef<HTMLFormElement>(null);
-    // enabled: modalOpen — form chỉ tồn tại khi modal mở.
+    // enabled: modalOpen — form chỉ tồn tại khi modal mở
     useFormKeyboardNav(formRef, {
         onSubmit: () => formRef.current?.requestSubmit(),
         onCancel: () => setModalOpen(false),
@@ -95,7 +95,7 @@ const OpportunityPipelinePage = () => {
     const inp = 'w-full border border-gray-300 rounded-btn px-3 py-1.5 text-md text-text-main focus:outline-none focus:border-primary';
 
     return (
-        // Không min-h-screen: MainLayout đã h-screen overflow-hidden, <main> là vùng cuộn duy nhất.
+        // không min-h-screen: MainLayout đã h-screen overflow-hidden, <main> là vùng cuộn duy nhất
         <div className="p-6 bg-bg-main">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">

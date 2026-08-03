@@ -1,4 +1,4 @@
-/** Nhóm người dùng (mapping với bảng roles). */
+// nhóm người dùng (mapping với bảng roles)
 export interface RoleGroup {
     id: number;
     code: string;
@@ -9,7 +9,7 @@ export interface RoleGroup {
     updatedAt: string;
 }
 
-/** Quyền hạn (mapping với bảng permissions). */
+// quyền hạn (mapping với bảng permissions)
 export interface GroupPermission {
     id: number;
     code: string;
@@ -20,7 +20,7 @@ export interface GroupPermission {
     updatedAt: string;
 }
 
-/** Thành viên trong nhóm (mapping với bảng users). */
+// thành viên trong nhóm (mapping với bảng users)
 export interface GroupMember {
     id: number;
     fullName: string;
@@ -31,13 +31,13 @@ export interface GroupMember {
     dataAccessFromYear: number | null;
 }
 
-/** Liên kết user-role — mỗi người chỉ thuộc một nhóm. */
+// liên kết user-role — mỗi người chỉ thuộc một nhóm
 export interface UserRoleAssignment {
     userId: number;
     roleId: number;
 }
 
-/** Payload tạo/sửa nhóm. */
+// payload tạo/sửa nhóm
 export interface GroupFormPayload {
     code?: string;
     name: string;

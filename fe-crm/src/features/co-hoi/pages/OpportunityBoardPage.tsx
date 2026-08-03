@@ -14,16 +14,14 @@ import { BoardColumn } from '../components/board/BoardColumn';
 import { CardBody } from '../components/board/OpportunityCard';
 import type { BoardCard } from '../types/boardTypes';
 
-/** Thẻ vừa kéo vào cột "thua" — giữ lại để hỏi lý do trước khi gọi API. */
+// thẻ vừa kéo vào cột "thua" — giữ lại để hỏi lý do trước khi gọi API
 interface PendingLostMove {
     id: number;
     stageId: number;
 }
 
-/**
- * Bảng Kanban cơ hội: cột = giai đoạn pipeline, thẻ = cơ hội.
- * Kéo thẻ sang cột khác = đổi giai đoạn; trạng thái (open/won/lost) vẫn do BE suy ra từ giai đoạn.
- */
+// bảng Kanban cơ hội: cột = giai đoạn pipeline, thẻ = cơ hội — kéo thẻ sang cột khác = đổi giai
+// đoạn; trạng thái (open/won/lost) vẫn do BE suy ra từ giai đoạn
 const OpportunityBoardPage = () => {
     const navigate = useNavigate();
     const [search, setSearch] = useState('');
@@ -39,7 +37,7 @@ const OpportunityBoardPage = () => {
     const { data: columns = [], isLoading } = useOpportunityBoard(debounced || undefined);
     const { mutate: changeStage } = useChangeOpportunityStage(debounced || undefined);
 
-    // Kéo quá 5px mới tính là kéo → click (không di chuột) vẫn mở được trang chi tiết
+    // kéo quá 5px mới tính là kéo -> click (không di chuột) vẫn mở được trang chi tiết
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
     const cardsById = useMemo(() => {
@@ -61,7 +59,7 @@ const OpportunityBoardPage = () => {
         const card = cardsById.get(id);
         if (!card || card.stageId === stageId) return;
 
-        // Kéo vào giai đoạn "thua" thì phải ghi lý do (hủy modal = không đổi giai đoạn)
+        // kéo vào giai đoạn "thua" thì phải ghi lý do (hủy modal = không đổi giai đoạn)
         const target = columns.find(c => c.stageId === stageId);
         if (target?.lost) {
             setPendingLost({ id, stageId });
@@ -110,7 +108,7 @@ const OpportunityBoardPage = () => {
                         ))}
                     </div>
 
-                    {/* Bắt buộc: refetch giữa lúc kéo sẽ remount cột, thẻ đang kéo phải sống ở overlay */}
+                    {/* bắt buộc: refetch giữa lúc kéo sẽ remount cột, thẻ đang kéo phải sống ở overlay */}
                     <DragOverlay>{draggingCard && <div className="w-[264px]"><CardBody card={draggingCard} /></div>}</DragOverlay>
                 </DndContext>
             )}

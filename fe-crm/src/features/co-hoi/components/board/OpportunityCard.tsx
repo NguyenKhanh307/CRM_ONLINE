@@ -9,7 +9,7 @@ interface OpportunityCardProps {
     onOpen: (id: number) => void;
 }
 
-/** Nội dung thẻ — tách riêng để dùng lại cho DragOverlay (thẻ "bay" theo con trỏ). */
+// nội dung thẻ — tách riêng để dùng lại cho DragOverlay (thẻ "bay" theo con trỏ)
 export const CardBody = ({ card }: { card: BoardCard }) => (
     <div className="bg-white rounded-btn border border-gray-200 p-3 shadow-sm space-y-1.5">
         <div className="flex items-start justify-between gap-2">
@@ -33,10 +33,8 @@ export const CardBody = ({ card }: { card: BoardCard }) => (
     </div>
 );
 
-/**
- * Thẻ cơ hội kéo được trên bảng Kanban.
- * Kéo quá 5px mới tính là kéo (PointerSensor ở trang) → click vẫn mở được trang chi tiết.
- */
+// thẻ cơ hội kéo được trên bảng Kanban — kéo quá 5px mới tính là kéo (PointerSensor ở trang) nên
+// click vẫn mở được trang chi tiết
 export const OpportunityCard = ({ card, onOpen }: OpportunityCardProps) => {
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: card.id });
 

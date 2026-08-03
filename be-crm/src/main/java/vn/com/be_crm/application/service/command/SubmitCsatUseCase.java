@@ -5,8 +5,8 @@ import vn.com.be_crm.application.service.mapper.TicketCommandMapper;
 import vn.com.be_crm.domain.service.entity.Ticket;
 import vn.com.be_crm.domain.service.enums.TicketStatus;
 import vn.com.be_crm.domain.service.repository.ITicketRepository;
-import vn.com.be_crm.domain.shared.exception.DomainException;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.DomainException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 import java.util.Set;
 

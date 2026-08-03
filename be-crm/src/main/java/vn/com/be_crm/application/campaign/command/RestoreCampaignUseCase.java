@@ -1,6 +1,6 @@
 package vn.com.be_crm.application.campaign.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.campaign.repository.ICampaignRepository;
 
 /** Use case khôi phục chiến dịch từ thùng rác. */

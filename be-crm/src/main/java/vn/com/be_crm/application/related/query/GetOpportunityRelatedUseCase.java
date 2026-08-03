@@ -4,8 +4,8 @@ import vn.com.be_crm.application.related.dto.OpportunityRelatedResult;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 import vn.com.be_crm.domain.related.repository.IRelatedRepository;
-import vn.com.be_crm.domain.shared.exception.ForbiddenException;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.ForbiddenException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Lấy toàn bộ bản ghi liên quan của một cơ hội cho trang chi tiết 360°.

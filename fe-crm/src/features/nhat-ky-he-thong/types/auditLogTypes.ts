@@ -1,4 +1,4 @@
-/** Một dòng nhật ký sự kiện thao tác người dùng (GET /api/audit-log). */
+// một dòng nhật ký sự kiện thao tác người dùng (GET /api/audit-log)
 export interface AuditLogEntry {
     source: string;
     actorName: string | null;
@@ -8,7 +8,7 @@ export interface AuditLogEntry {
     occurredAt: string;
 }
 
-/** Tab lọc theo nguồn dữ liệu — mỗi nguồn ứng với một (hoặc nhóm) bảng đã có trong DB. */
+// tab lọc theo nguồn dữ liệu — mỗi nguồn ứng với một (hoặc nhóm) bảng đã có trong DB
 export const AUDIT_SOURCE_TABS: { id: string | null; label: string }[] = [
     { id: null, label: 'Tất cả' },
     { id: 'quotation_approval', label: 'Duyệt báo giá' },

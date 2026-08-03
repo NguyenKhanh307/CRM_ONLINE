@@ -45,7 +45,7 @@ export function CustomerEditModal({ item, onClose }: Props) {
     }, [item]);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
-    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    // xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
@@ -59,9 +59,9 @@ export function CustomerEditModal({ item, onClose }: Props) {
 
     if (!item) return null;
 
+    // lưu form — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
         const errs = collectErrors({
             name: !form.name?.trim() ? 'Tên khách hàng không được để trống' : null,
             email: emailError(form.email),

@@ -14,44 +14,36 @@ interface SearchableSelectProps {
     placeholder?: string;
     searchPlaceholder?: string;
     className?: string;
-    /**
-     * Nhãn hiển thị khi `value` có giá trị nhưng không nằm trong `options`.
-     *
-     * Danh sách lookup của form lấy qua list API — vốn bị lọc `owner_id` cho nhân viên, lọc
-     * `dataAccessFromYear` và giới hạn 500 dòng — nên bản ghi trỏ tới khóa ngoại ngoài phạm vi đó
-     * sẽ không có option tương ứng. Không có nhãn dự phòng thì ô hiện y hệt như **chưa chọn**,
-     * người dùng tưởng dữ liệu bị mất. Truyền tên khóa ngoại backend đã trả sẵn (`*Name`) vào đây.
-     */
+    // nhãn hiển thị khi `value` có giá trị nhưng không nằm trong `options`
+    // danh sách lookup của form lấy qua list API — vốn bị lọc owner_id cho nhân viên, lọc
+    // dataAccessFromYear và giới hạn 500 dòng — nên bản ghi trỏ tới khóa ngoại ngoài phạm vi đó
+    // sẽ không có option tương ứng. Không có nhãn dự phòng thì ô hiện y hệt như chưa chọn,
+    // người dùng tưởng dữ liệu bị mất. Truyền tên khóa ngoại backend đã trả sẵn (*Name) vào đây
     fallbackLabel?: string | null;
-    /**
-     * Bật chế độ **tìm kiếm phía server**: nhận từ khóa đã debounce để nơi dùng tự gọi API.
-     *
-     * Có prop này nghĩa là `options` đã được server lọc sẵn → component **không lọc lại lần nữa**
-     * (lọc thêm sẽ cắt mất kết quả trả về). Dùng khi bảng nguồn quá lớn để nạp sẵn — ví dụ đơn hàng
-     * và liên hệ đều 10.000 bản ghi, nạp 500 dòng thì gõ mã nào cũng "Không tìm thấy".
-     * Ở chế độ này **phải** truyền kèm `fallbackLabel` để bản ghi đang chọn vẫn hiện đúng tên
-     * khi nó không nằm trong trang kết quả hiện tại.
-     */
+    // bật chế độ tìm kiếm phía server: nhận từ khóa đã debounce để nơi dùng tự gọi api
+    // có prop này nghĩa là `options` đã được server lọc sẵn -> component KHÔNG lọc lại lần nữa
+    // (lọc thêm sẽ cắt mất kết quả trả về). Dùng khi bảng nguồn quá lớn để nạp sẵn — ví dụ đơn hàng
+    // và liên hệ đều 10.000 bản ghi, nạp 500 dòng thì gõ mã nào cũng "Không tìm thấy".
+    // ở chế độ này BẮT BUỘC truyền kèm `fallbackLabel` để bản ghi đang chọn vẫn hiện đúng tên
+    // khi nó không nằm trong trang kết quả hiện tại
     onSearchChange?: (q: string) => void;
-    /** Đang chờ kết quả tìm kiếm (chỉ dùng cùng `onSearchChange`). */
+    // đang chờ kết quả tìm kiếm (chỉ dùng cùng `onSearchChange`)
     loading?: boolean;
 }
 
-/** Toạ độ + bề rộng để đặt panel dropdown theo nút trigger (position: fixed). */
+// toạ độ + bề rộng để đặt panel dropdown theo nút trigger (position: fixed)
 interface PanelRect {
     top: number;
     left: number;
     width: number;
 }
 
-/** Khoảng cách tối thiểu tới mép màn hình khi phải lật panel lên trên. */
+// khoảng cách tối thiểu tới mép màn hình khi phải lật panel lên trên
 const EDGE_GAP = 8;
 
-/**
- * Custom select với ô tìm kiếm và highlight lựa chọn hiện tại.
- * Panel options render qua portal (position: fixed) để luôn nổi trên section/bảng/modal,
- * không bị overflow-hidden hay stacking context của component cha cắt/che.
- */
+// custom select với ô tìm kiếm và highlight lựa chọn hiện tại
+// panel options render qua portal (position: fixed) để luôn nổi trên section/bảng/modal,
+// không bị overflow-hidden hay stacking context của component cha cắt/che
 export const SearchableSelect = ({
     options,
     value,
@@ -68,10 +60,10 @@ export const SearchableSelect = ({
     const [rect, setRect] = useState<PanelRect | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
-    /** Bounding box của trigger tại lần đo gần nhất — dùng để lật panel lên trên nếu tràn đáy. */
+    // bounding box của trigger tại lần đo gần nhất — dùng để lật panel lên trên nếu tràn đáy
     const triggerRectRef = useRef<DOMRect | null>(null);
 
-    /** Tính lại vị trí panel từ bounding box của nút trigger (mặc định đặt phía dưới). */
+    // tính lại vị trí panel từ bounding box của nút trigger (mặc định đặt phía dưới)
     const updateRect = useCallback(() => {
         const el = containerRef.current;
         if (!el) return;

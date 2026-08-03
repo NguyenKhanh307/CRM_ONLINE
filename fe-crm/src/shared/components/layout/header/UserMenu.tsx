@@ -10,6 +10,7 @@ interface Props {
     onChangePassword: () => void;
 }
 
+// menu người dùng: thông tin tài khoản + đổi mật khẩu + thiết lập tài khoản + đăng xuất
 const UserMenuDropdown = ({ onClose, onChangePassword }: Props) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
@@ -76,6 +77,7 @@ const UserMenuDropdown = ({ onClose, onChangePassword }: Props) => {
     );
 };
 
+// avatar trên header, mở UserMenuDropdown + ChangePasswordModal khi cần
 export const UserMenuButton = () => {
     const { user } = useAuth();
     const [open, setOpen] = useState(false);

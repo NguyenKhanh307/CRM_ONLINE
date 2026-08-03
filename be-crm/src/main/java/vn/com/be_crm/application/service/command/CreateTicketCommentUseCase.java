@@ -3,15 +3,15 @@ package vn.com.be_crm.application.service.command;
 import vn.com.be_crm.application.service.dto.CreateTicketCommentCommand;
 import vn.com.be_crm.application.service.dto.TicketCommentResult;
 import vn.com.be_crm.application.service.mapper.TicketCommentMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.service.entity.Ticket;
 import vn.com.be_crm.domain.service.entity.TicketComment;
 import vn.com.be_crm.domain.service.enums.CommentType;
 import vn.com.be_crm.domain.service.enums.TicketStatus;
 import vn.com.be_crm.domain.service.repository.ITicketCommentRepository;
 import vn.com.be_crm.domain.service.repository.ITicketRepository;
-import vn.com.be_crm.domain.shared.exception.DomainException;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.DomainException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case tạo ghi chú (note) do người dùng nhập cho phiếu. */
 public class CreateTicketCommentUseCase implements IUseCase<CreateTicketCommentCommand, TicketCommentResult> {

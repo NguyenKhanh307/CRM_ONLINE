@@ -1,6 +1,6 @@
 package vn.com.be_crm.domain.customer.enums;
 
-import vn.com.be_crm.domain.shared.exception.DomainException;
+import vn.com.be_crm.core.error.frontend.DomainException;
 
 import java.util.Map;
 import java.util.Set;

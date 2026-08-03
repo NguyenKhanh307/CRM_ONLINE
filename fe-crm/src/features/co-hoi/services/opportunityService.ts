@@ -34,13 +34,13 @@ export const opportunityService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/opportunities/handover-bulk', payload),
-    /** Bản ghi liên quan cho trang chi tiết 360° (báo giá, đơn, hóa đơn, hoạt động). */
+    // bản ghi liên quan cho trang chi tiết 360° (báo giá, đơn, hóa đơn, hoạt động)
     getRelated: (id: number) =>
         axiosInstance.get<ApiResponse<OpportunityRelatedResult>>(`/api/opportunities/${id}/related`),
-    /** Nạp bảng Kanban (cột = giai đoạn, thẻ = cơ hội). */
+    // nạp bảng Kanban (cột = giai đoạn, thẻ = cơ hội)
     getBoard: (q?: string) =>
         axiosInstance.get<ApiResponse<BoardColumn[]>>('/api/opportunities/board', { params: q ? { q } : undefined }),
-    /** Đổi giai đoạn khi kéo-thả thẻ; trạng thái do BE suy ra từ giai đoạn. */
+    // đổi giai đoạn khi kéo-thả thẻ; trạng thái do BE suy ra từ giai đoạn
     changeStage: (id: number, payload: ChangeStagePayload) =>
         axiosInstance.post<ApiResponse<OpportunityResult>>(`/api/opportunities/${id}/stage`, payload),
 };

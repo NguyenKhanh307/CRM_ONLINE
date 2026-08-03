@@ -3,7 +3,7 @@ package vn.com.be_crm.application.service.query;
 import vn.com.be_crm.application.service.dto.PublicTicketView;
 import vn.com.be_crm.domain.service.entity.Ticket;
 import vn.com.be_crm.domain.service.repository.ITicketRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Use case lấy phiếu chăm sóc theo mã để hiển thị trên trang public

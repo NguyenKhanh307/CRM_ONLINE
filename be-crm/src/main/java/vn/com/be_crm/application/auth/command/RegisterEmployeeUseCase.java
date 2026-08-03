@@ -3,14 +3,14 @@ package vn.com.be_crm.application.auth.command;
 import vn.com.be_crm.application.auth.dto.RegisterEmployeeCommand;
 import vn.com.be_crm.application.auth.dto.UserResult;
 import vn.com.be_crm.application.auth.mapper.UserCommandMapper;
-import vn.com.be_crm.application.shared.email.IEmailService;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.email.port.IEmailService;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.auth.entity.User;
 import vn.com.be_crm.domain.auth.entity.UserRole;
 import vn.com.be_crm.domain.auth.enums.UserStatus;
 import vn.com.be_crm.domain.auth.repository.IUserRepository;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
-import vn.com.be_crm.domain.shared.exception.DomainException;
+import vn.com.be_crm.core.error.frontend.DomainException;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

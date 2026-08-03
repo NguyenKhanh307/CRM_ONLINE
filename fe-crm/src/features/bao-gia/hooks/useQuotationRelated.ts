@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { quotationService } from '../services/quotationService';
 
-/** Lấy bản ghi liên quan của một báo giá (trang chi tiết). */
+// lấy bản ghi liên quan của một báo giá (trang chi tiết)
 export function useQuotationRelated(id: number | undefined) {
     return useQuery({
         queryKey: ['quotation', id, 'related'],

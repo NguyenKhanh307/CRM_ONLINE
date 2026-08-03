@@ -1,6 +1,6 @@
 package vn.com.be_crm.application.copilot.query;
 
-import vn.com.be_crm.application.shared.ai.IEmbeddingService;
+import vn.com.be_crm.core.ai.port.IEmbeddingService;
 import vn.com.be_crm.domain.copilot.model.VectorHit;
 import vn.com.be_crm.domain.copilot.repository.IVectorStore;
 

@@ -11,11 +11,9 @@ import {
 
 interface Props { policyId: number; }
 
-/**
- * Danh mục sản phẩm trong chính sách giá — chỉ là marker "chọn nhanh": chọn 1 danh mục thì BE tự
- * bulk-seed toàn bộ sản phẩm thuộc danh mục vào tab "Sản phẩm" (giá để trống), người dùng qua đó
- * đặt giá/chiết khấu cho từng sản phẩm như bình thường. Không có gì để sửa ở đây.
- */
+// danh mục sản phẩm trong chính sách giá — chỉ là marker "chọn nhanh": chọn 1 danh mục thì be tự
+// bulk-seed toàn bộ sản phẩm thuộc danh mục vào tab "Sản phẩm" (giá để trống), người dùng qua đó
+// đặt giá/chiết khấu cho từng sản phẩm như bình thường. không có gì để sửa ở đây
 export function PolicyProductCategoriesTab({ policyId }: Props) {
     const { data = [], isLoading } = usePolicyProductCategories(policyId);
     const { mutate: createFn, isPending: isCreating } = useCreatePolicyProductCategory(policyId);

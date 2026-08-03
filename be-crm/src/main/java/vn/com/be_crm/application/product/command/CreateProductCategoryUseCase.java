@@ -2,7 +2,7 @@ package vn.com.be_crm.application.product.command;
 
 import vn.com.be_crm.application.product.dto.*;
 import vn.com.be_crm.application.product.mapper.ProductCategoryCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.product.repository.IProductCategoryRepository;
 
 /** Use case tạo mới danh mục hàng hóa. */

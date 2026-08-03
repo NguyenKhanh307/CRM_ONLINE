@@ -12,7 +12,7 @@ export interface OpportunityStageResult {
     updatedAt?: string;
 }
 
-/** Payload tạo/cập nhật giai đoạn pipeline. */
+// payload tạo/cập nhật giai đoạn pipeline
 export interface OpportunityStagePayload {
     name: string;
     sortOrder: number;
@@ -22,17 +22,17 @@ export interface OpportunityStagePayload {
 }
 
 export const opportunityStageService = {
-    /** Lấy danh sách giai đoạn (mặc định sắp theo sortOrder asc). */
+    // lấy danh sách giai đoạn (mặc định sắp theo sortOrder asc)
     getList: () =>
         axiosInstance.get<ApiResponse<PageResult<OpportunityStageResult>>>('/api/opportunity-stages', {
             params: { size: 100 },
         }),
-    /** Tạo giai đoạn mới. */
+    // tạo giai đoạn mới
     create: (body: OpportunityStagePayload) =>
         axiosInstance.post<ApiResponse<OpportunityStageResult>>('/api/opportunity-stages', body),
-    /** Cập nhật giai đoạn theo id. */
+    // cập nhật giai đoạn theo id
     update: (id: number, body: OpportunityStagePayload) =>
         axiosInstance.put<ApiResponse<OpportunityStageResult>>(`/api/opportunity-stages/${id}`, body),
-    /** Xóa giai đoạn theo id. */
+    // xóa giai đoạn theo id
     remove: (id: number) => axiosInstance.delete(`/api/opportunity-stages/${id}`),
 };

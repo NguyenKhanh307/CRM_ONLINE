@@ -1,6 +1,6 @@
 package vn.com.be_crm.application.invoice.command;
 
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
 
 /** Use case khôi phục đơn hàng từ thùng rác. */

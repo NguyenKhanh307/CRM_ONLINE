@@ -3,7 +3,7 @@ package vn.com.be_crm.infrastructure.quotation.mapper;
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.enums.QuotationStatus;
-import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
+import vn.com.be_crm.core.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.quotation.entity.QuotationHibernate;
 
 import java.math.BigDecimal;

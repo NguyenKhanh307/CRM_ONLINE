@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 interface CalendarProps {
-    /** Ngày đang chọn dạng ISO yyyy-mm-dd (hoặc rỗng). */
+    // ngày đang chọn dạng ISO yyyy-mm-dd (hoặc rỗng)
     value: string;
-    /** Gọi khi chọn một ngày — trả ISO yyyy-mm-dd. */
+    // gọi khi chọn một ngày — trả ISO yyyy-mm-dd
     onSelect: (iso: string) => void;
 }
 
@@ -17,18 +17,16 @@ const MONTHS = [
 const pad = (n: number) => String(n).padStart(2, '0');
 const toISO = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
-/**
- * Lưới lịch chọn ngày (dd/mm/yyyy) thuần — không tự dựng portal.
- * Dùng chung cho DateInput và DateTimeInput; component cha lo việc đặt nổi.
- */
+// lưới lịch chọn ngày (dd/mm/yyyy) thuần — không tự dựng portal
+// dùng chung cho DateInput và DateTimeInput; component cha lo việc đặt nổi
 export const Calendar = ({ value, onSelect }: CalendarProps) => {
-    // Tháng đang hiển thị: lấy từ value nếu hợp lệ, mặc định tháng hiện tại.
+    // tháng đang hiển thị: lấy từ value nếu hợp lệ, mặc định tháng hiện tại
     const initial = value ? new Date(value) : new Date();
     const base = isNaN(initial.getTime()) ? new Date() : initial;
     const [viewYear, setViewYear] = useState(base.getFullYear());
     const [viewMonth, setViewMonth] = useState(base.getMonth());
 
-    // Khi value đổi từ ngoài (vd mở lại modal), nhảy lịch tới tháng của value.
+    // khi value đổi từ ngoài (vd mở lại modal), nhảy lịch tới tháng của value
     useEffect(() => {
         if (!value) return;
         const d = new Date(value);
@@ -53,7 +51,7 @@ export const Calendar = ({ value, onSelect }: CalendarProps) => {
     const today = new Date();
     const todayISO = toISO(today.getFullYear(), today.getMonth(), today.getDate());
 
-    // Các ô: đệm đầu tháng bằng null, rồi 1..daysInMonth.
+    // các ô: đệm đầu tháng bằng null, rồi 1..daysInMonth
     const cells: (number | null)[] = [
         ...Array(firstDay).fill(null),
         ...Array.from({ length: daysInMonth }, (_, i) => i + 1),

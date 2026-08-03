@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ticketService } from '../services/ticketService';
 import type { ResolutionType } from '../types/ticketTypes';
 
-/** Loại hành động chuyển trạng thái phiếu. */
+// loại hành động chuyển trạng thái phiếu
 export type TicketAction =
     | 'assign' | 'start' | 'resolve' | 'approve' | 'reject'
     | 'receive' | 'inspect' | 'complete' | 'close' | 'reopen' | 'csat';
@@ -18,10 +18,8 @@ interface ActionArgs {
     comment?: string;
 }
 
-/**
- * Hook thực hiện các hành động chuyển trạng thái phiếu:
- * assign / start / resolve / approve / reject / receive / inspect / complete / close / reopen / csat.
- */
+// chạy hành động chuyển trạng thái phiếu: assign / start / resolve / approve / reject / receive /
+// inspect / complete / close / reopen / csat
 export function useTicketWorkflow() {
     const qc = useQueryClient();
     return useMutation({

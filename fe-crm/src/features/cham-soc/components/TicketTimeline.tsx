@@ -5,11 +5,11 @@ import { useTicketComments, useCreateTicketComment } from '../hooks/useTicketCom
 
 interface Props {
     ticketId: number;
-    /** Phiếu đã đóng — chỉ mở lại mới ghi chú tiếp được. */
+    // phiếu đã đóng — chỉ mở lại mới ghi chú tiếp được
     closed?: boolean;
 }
 
-/** Dòng thời gian ghi chú / lịch sử phiếu: phân biệt system (audit) và note (người nhập). */
+// dòng thời gian ghi chú / lịch sử phiếu: phân biệt system (audit) và note (người nhập)
 export function TicketTimeline({ ticketId, closed = false }: Props) {
     const { data: comments = [], isLoading } = useTicketComments(ticketId);
     const { mutate: addNote, isPending } = useCreateTicketComment(ticketId);
@@ -46,7 +46,7 @@ export function TicketTimeline({ ticketId, closed = false }: Props) {
             {isLoading ? (
                 <p className="text-gray-400 text-md">Đang tải lịch sử...</p>
             ) : (
-                // Khung cuộn riêng — lịch sử audit + trao đổi dài không kéo dài trang
+                // khung cuộn riêng — lịch sử audit + trao đổi dài không kéo dài trang
                 <ul className="space-y-3 overflow-auto pr-1 max-h-[420px]">
                     {comments.map(c => (
                         <li key={c.id} className="flex gap-3">

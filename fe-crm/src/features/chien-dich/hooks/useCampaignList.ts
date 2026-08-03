@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { campaignService } from '../services/campaignService';
 
-/** Lấy danh sách Chiến dịch (phân trang). */
+// lấy danh sách Chiến dịch (phân trang)
 export function useCampaignList() {
     return useQuery({
         queryKey: ['campaigns'],

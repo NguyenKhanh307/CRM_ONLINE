@@ -39,7 +39,7 @@ interface FormState {
     ownerId: string;
 }
 
-/** State khởi tạo — người phụ trách mặc định là user đang đăng nhập. */
+// state khởi tạo — người phụ trách mặc định là user đang đăng nhập
 const initialState = (ownerId: string): FormState => ({
     code: '', name: '', shortName: '', type: 'company', taxCode: '', industry: '', source: '',
     phone: '', email: '', website: '', address: '', creditDays: '', creditLimit: '',
@@ -72,7 +72,7 @@ const toPayload = (f: FormState): CreateCustomerPayload => ({
     ownerId: f.ownerId ? Number(f.ownerId) : null,
 });
 
-/** Trang thêm khách hàng mới — form full-page nhiều section (layout AMIS). */
+// trang thêm khách hàng mới — form full-page nhiều section (layout AMIS)
 const CustomerAddPage = () => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
@@ -86,7 +86,7 @@ const CustomerAddPage = () => {
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
 
-    /** Cập nhật form và xóa lỗi của đúng những field vừa gõ. */
+    // cập nhật form và xóa lỗi của đúng những field vừa gõ
     const set = (patch: Partial<FormState>) => {
         setForm((p) => ({ ...p, ...patch }));
         setErrors((e) => {
@@ -96,7 +96,7 @@ const CustomerAddPage = () => {
         });
     };
 
-    /** Kiểm tra bắt buộc + biên (khớp ràng buộc backend) — trả map field→lỗi. */
+    // kiểm tra bắt buộc + biên (khớp ràng buộc backend) — trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
             code: !form.code.trim() ? 'Mã khách hàng không được để trống' : null,
@@ -108,12 +108,14 @@ const CustomerAddPage = () => {
             annualRevenue: nonNegativeError(form.annualRevenue, 'Doanh thu năm'),
         });
 
+    // lưu form — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const submit = async (andNew: boolean) => {
-        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
 
+        // bước hỏi xác nhận rồi lưu
         if (!(await confirmCreate('khách hàng'))) return;
 
         mutate(toPayload(form), {

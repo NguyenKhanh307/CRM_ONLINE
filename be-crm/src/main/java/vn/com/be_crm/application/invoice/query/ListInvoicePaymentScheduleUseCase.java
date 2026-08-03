@@ -2,7 +2,7 @@ package vn.com.be_crm.application.invoice.query;
 
 import vn.com.be_crm.application.invoice.dto.InvoicePaymentScheduleResult;
 import vn.com.be_crm.application.invoice.mapper.InvoicePaymentScheduleCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.invoice.repository.IInvoicePaymentScheduleRepository;
 
 import java.util.List;

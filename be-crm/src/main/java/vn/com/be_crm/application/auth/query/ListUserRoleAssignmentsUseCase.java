@@ -1,7 +1,7 @@
 package vn.com.be_crm.application.auth.query;
 
 import vn.com.be_crm.application.auth.dto.UserRoleResult;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
 
 import java.util.List;

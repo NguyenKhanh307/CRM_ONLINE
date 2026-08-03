@@ -53,7 +53,7 @@ const ChinhSachGiaPage = () => {
 
     usePageShortcuts({ onCreate: canCreate ? openCreate : undefined });
 
-    /** Thao tác của một chính sách giá — hiện trong menu chuột phải (theo permission). */
+    // thao tác của một chính sách giá — hiện trong menu chuột phải (theo permission)
     const rowActions = (p: PricePolicyResult): RowAction[] => [
         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/chinh-sach-gia/${p.id}`) },
         ...(canEdit ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => openEdit(p) }] : []),

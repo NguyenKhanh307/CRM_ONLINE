@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { activityService } from '../services/activityService';
 
-/** Lấy danh sách hoạt động (phân trang). */
+// lấy danh sách hoạt động (phân trang)
 export function useActivityList() {
     return useQuery({
         queryKey: ['activities'],

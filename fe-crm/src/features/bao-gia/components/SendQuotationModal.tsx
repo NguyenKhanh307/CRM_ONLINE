@@ -12,23 +12,21 @@ import { useQuotationEmailDraft } from '../hooks/useQuotationEmailDraft';
 import { useQuotationWorkflow } from '../hooks/useQuotationWorkflow';
 import { quotationService } from '../services/quotationService';
 
-/** Kiểm danh sách email cách nhau bởi dấu phẩy (CC/BCC). */
+// kiểm danh sách email cách nhau bởi dấu phẩy (CC/BCC)
 const emailListError = (v: string, label: string): string | null => {
     const list = v.split(',').map(s => s.trim()).filter(Boolean);
     return list.some(e => emailError(e)) ? `${label} có địa chỉ không hợp lệ` : null;
 };
 
 interface Props {
-    /** ID báo giá cần gửi (null = đóng). */
+    // ID báo giá cần gửi (null = đóng)
     quotationId: number | null;
     onClose: () => void;
 }
 
-/**
- * Modal soạn nội dung email báo giá trước khi gửi cho khách.
- * Nội dung mặc định được nạp từ BE (GET /email-draft) để hiển thị sẵn cho người dùng sửa.
- * 3 nút phản hồi (Đồng ý/Điều chỉnh/Không đồng ý) do BE tự chèn vào cuối khi gửi.
- */
+// modal soạn nội dung email báo giá trước khi gửi cho khách. Nội dung mặc định được nạp từ
+// BE (GET /email-draft) để hiển thị sẵn cho người dùng sửa; 3 nút phản hồi (Đồng ý/Điều
+// chỉnh/Không đồng ý) do BE tự chèn vào cuối khi gửi
 export function SendQuotationModal({ quotationId, onClose }: Props) {
     const open = quotationId !== null;
     const { showAlert } = useAlert();
@@ -62,7 +60,7 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
 
     if (!open) return null;
 
-    /** Tải PDF báo giá và mở ở tab mới — endpoint cần JWT nên không dùng <a href> trực tiếp. */
+    // tải PDF báo giá và mở ở tab mới — endpoint cần JWT nên không dùng <a href> trực tiếp
     const handlePreviewPdf = async () => {
         setPreviewing(true);
         try {
@@ -78,9 +76,11 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
         }
     };
 
+    // xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
+    // validate rồi hỏi xác nhận trước khi gửi email thật cho khách
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 

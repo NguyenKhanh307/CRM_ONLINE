@@ -8,7 +8,7 @@ import vn.com.be_crm.domain.invoice.enums.InvoiceStatus;
 import vn.com.be_crm.domain.invoice.enums.PaymentStatus;
 import vn.com.be_crm.domain.invoice.repository.IInvoicePaymentScheduleRepository;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 import java.math.BigDecimal;
 

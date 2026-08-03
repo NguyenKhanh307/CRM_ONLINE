@@ -50,7 +50,7 @@ export function LeadEditModal({ item, onClose }: Props) {
     }, [item]);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
-    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    // hàm xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
@@ -64,9 +64,10 @@ export function LeadEditModal({ item, onClose }: Props) {
 
     if (!item) return null;
 
+    // hàm lưu — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        // bước kiểm tra dữ liệu
         const errs = collectErrors({
             email: emailError(form.email),
             phone: phoneError(form.phone),
@@ -76,6 +77,7 @@ export function LeadEditModal({ item, onClose }: Props) {
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
 
+        // bước hỏi xác nhận rồi gọi api lưu
         if (!(await confirmSave('tiềm năng'))) return;
         mutate({ id: item.id, payload: form }, { onSuccess: onClose });
     };
@@ -136,8 +138,8 @@ export function LeadEditModal({ item, onClose }: Props) {
                         <label className={lbl}>Chiến dịch nguồn</label>
                         <select className={inp} value={form.campaignId ?? ''} onChange={e => setForm(f => ({ ...f, campaignId: e.target.value ? +e.target.value : null }))}>
                             <option value="">-- Không gắn chiến dịch --</option>
-                            {/* Chiến dịch ngoài phạm vi lookup (lọc owner/năm/500 dòng) vẫn phải hiện,
-                                nếu không ô sẽ trông như chưa gắn chiến dịch dù DB có dữ liệu. */}
+                            {/* chiến dịch ngoài phạm vi lookup (lọc owner/năm/500 dòng) vẫn phải hiện,
+                                nếu không ô sẽ trông như chưa gắn chiến dịch dù DB có dữ liệu */}
                             {form.campaignId != null && !campaigns?.some(c => c.id === form.campaignId) && (
                                 <option value={form.campaignId}>{item.campaignName ?? `#${form.campaignId}`}</option>
                             )}

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ticketService } from '../services/ticketService';
 import type { UpdateTicketPayload } from '../types/ticketTypes';
 
-/** Cập nhật phiếu — invalidate danh sách + chi tiết sau khi thành công. */
+// cập nhật phiếu — invalidate danh sách + chi tiết sau khi thành công
 export function useUpdateTicket() {
     const qc = useQueryClient();
     return useMutation({

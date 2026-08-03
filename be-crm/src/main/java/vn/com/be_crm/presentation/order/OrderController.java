@@ -10,15 +10,15 @@ import vn.com.be_crm.application.invoice.dto.InvoiceResult;
 import vn.com.be_crm.application.order.command.*;
 import vn.com.be_crm.application.order.dto.*;
 import vn.com.be_crm.application.order.query.*;
-import vn.com.be_crm.application.shared.dto.DeleteCommand;
-import vn.com.be_crm.application.shared.dto.DeletedItemResult;
-import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
-import vn.com.be_crm.presentation.shared.ApiResponse;
-import vn.com.be_crm.presentation.shared.HandoverBulkRequest;
-import vn.com.be_crm.presentation.shared.PageResponse;
+import vn.com.be_crm.core.dto.delete.DeleteCommand;
+import vn.com.be_crm.core.dto.delete.DeletedItemResult;
+import vn.com.be_crm.core.dto.handover.HandoverBulkCommand;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.util.SecurityUtils;
+import vn.com.be_crm.core.response.ApiResponse;
+import vn.com.be_crm.core.dto.handover.HandoverBulkRequest;
+import vn.com.be_crm.core.page.PageResponse;
 
 /**
  * REST controller cho nghiệp vụ quản lý đơn hàng.

@@ -40,11 +40,11 @@ const toState = (t: TicketResult): FormState => ({
     productId: t.productId ? String(t.productId) : '', assignedUserId: t.assignedUserId ? String(t.assignedUserId) : '',
 });
 
-/** Modal chỉnh sửa thông tin phiếu (KHÔNG đổi trạng thái — trạng thái đổi qua nút hành động). */
+// modal chỉnh sửa thông tin phiếu (KHÔNG đổi trạng thái — trạng thái đổi qua nút hành động)
 export function TicketEditModal({ ticket, customerOptions, userOptions, productOptions, onClose }: Props) {
     const { showAlert } = useAlert();
     const [errors, setErrors] = useState<Record<string, string>>({});
-    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    // xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
@@ -66,9 +66,9 @@ export function TicketEditModal({ ticket, customerOptions, userOptions, productO
     if (!ticket || !form) return null;
     const set = (p: Partial<FormState>) => setForm((s) => (s ? { ...s, ...p } : s));
 
-    /** Đổi khách hàng → tự điền liên hệ chính (chỉ khi ô liên hệ còn trống). */
+    // hàm đổi khách hàng -> tự điền liên hệ chính (chỉ khi ô liên hệ còn trống)
     const onPickCustomer = async (v: string) => {
-        // Đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai.
+        // đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai
         const base = { ...form, customerId: v, contactId: '' };
         set({ customerId: v, contactId: '' });
         setPrefillFrom(null);
@@ -77,7 +77,7 @@ export function TicketEditModal({ ticket, customerOptions, userOptions, productO
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customerOptions.find(o => o.value === v)?.label ?? v}»`); }
     };
 
-    /** Đổi hóa đơn → tự điền khách hàng + liên hệ của hóa đơn đó (chỉ ô còn trống). */
+    // hàm đổi hóa đơn -> tự điền khách hàng + liên hệ của hóa đơn đó (chỉ ô còn trống)
     const onPickInvoice = async (v: string) => {
         set({ invoiceId: v });
         setPrefillFrom(null);
@@ -92,7 +92,7 @@ export function TicketEditModal({ ticket, customerOptions, userOptions, productO
 
     const submit = async (e: FormEvent) => {
         e.preventDefault();
-        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        // lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
         const errs = collectErrors({
             subject: !form.subject.trim() ? 'Tiêu đề không được để trống' : null,
         });

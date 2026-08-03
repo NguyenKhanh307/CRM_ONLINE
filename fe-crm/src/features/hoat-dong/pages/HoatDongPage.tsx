@@ -22,7 +22,7 @@ import { activityExportColumns } from '../config/activityExportColumns';
 import { ActivityEditModal } from '../components/ActivityEditModal';
 import type { ActivityResult } from '../types/activityTypes';
 
-/** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
+// tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render
 const QUICK_FILTERS = [
     { id: 'planned',     label: 'Đã lên kế hoạch', field: 'status', value: 'planned' },
     { id: 'in_progress', label: 'Đang thực hiện',  field: 'status', value: 'in_progress' },
@@ -35,7 +35,7 @@ const HoatDongPage = () => {
     const goCreate = () => navigate('/hoat-dong/them-moi');
     usePageShortcuts({ onCreate: can('activity', 'create') ? goCreate : undefined });
     const { showAlert } = useAlert();
-    // Server-side pagination + search + tag lọc nhanh
+    // server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');
@@ -56,7 +56,7 @@ const HoatDongPage = () => {
     const [exportOpen, setExportOpen] = useState(false);
 
 
-    /** Chạy hành động chuyển trạng thái hoạt động, báo lỗi qua alert nếu không hợp lệ. */
+    // chạy hành động chuyển trạng thái hoạt động, báo lỗi qua alert nếu không hợp lệ
     const runAction = (id: number, action: ActivityAction) =>
         workflowFn({ id, action }, {
             onError: (err: unknown) => {
@@ -68,7 +68,7 @@ const HoatDongPage = () => {
 
     const columns = useMemo<ColumnDef<ActivityResult>[]>(() => getActivityColumns(), []);
 
-    /** Thao tác của một hoạt động — hiện trong menu chuột phải. */
+    // thao tác của một hoạt động — hiện trong menu chuột phải
     const rowActions = (a: ActivityResult): RowAction[] => [
         ...(a.status === 'planned' && can('activity', 'edit')
             ? [{ key: 'start', label: 'Bắt đầu', onClick: () => runAction(a.id, 'start') }]
@@ -164,7 +164,7 @@ const HoatDongPage = () => {
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
                 onExport={async (keys, format) => {
-                    // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
+                    // không tick dòng -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await activityService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;

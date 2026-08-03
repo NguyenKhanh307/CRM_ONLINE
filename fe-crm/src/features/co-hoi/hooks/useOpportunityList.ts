@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { opportunityService } from '../services/opportunityService';
 
-/** Lấy danh sách cơ hội (phân trang). */
+// lấy danh sách cơ hội (phân trang)
 export function useOpportunityList() {
     return useQuery({
         queryKey: ['opportunities'],

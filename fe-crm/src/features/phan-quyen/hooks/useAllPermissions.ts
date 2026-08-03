@@ -1,9 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { phanQuyenService } from '../services/phanQuyenService';
 
-/**
- * Lấy toàn bộ danh sách quyền hạn có trong hệ thống.
- */
+// lấy toàn bộ danh sách quyền hạn có trong hệ thống
 export const useAllPermissions = () => {
     return useQuery({
         queryKey: ['allPermissions'],

@@ -1,16 +1,14 @@
 import React from 'react';
 
-/**
- * Render nhẹ câu trả lời của trợ lý (không dùng thư viện markdown):
- * - `**...**` → in đậm (nhãn), bỏ dấu `*`.
- * - dòng bắt đầu `* ` / `- ` / `• ` → gạch đầu dòng.
- * - cụm "tăng X%"/"+X%" → xanh (text-success); "giảm X%"/"-X%" → đỏ (text-danger); số thường → đen.
- */
+// render nhẹ câu trả lời của trợ lý (không dùng thư viện markdown):
+// - **...** -> in đậm (nhãn), bỏ dấu *
+// - dòng bắt đầu * / - / • -> gạch đầu dòng
+// - cụm "tăng X%"/"+X%" -> xanh (text-success); "giảm X%"/"-X%" -> đỏ (text-danger); số thường -> đen
 
-/** Regex cụm tăng/giảm phần trăm để tô màu. */
+// regex cụm tăng/giảm phần trăm để tô màu
 const CHANGE_RE = /((?:tăng|giảm)\s*[\d.,]+\s*%|[+\-]\s*[\d.,]+\s*%)/gi;
 
-/** Chọn class màu theo cụm tăng/giảm. */
+// chọn class màu theo cụm tăng/giảm
 function changeColor(token: string): string {
     const t = token.toLowerCase().trim();
     if (t.includes('giảm') || t.startsWith('-')) return 'text-danger';
@@ -18,7 +16,7 @@ function changeColor(token: string): string {
     return '';
 }
 
-/** Tô màu các cụm tăng/giảm % trong một đoạn text. */
+// tô màu các cụm tăng/giảm % trong một đoạn text
 function renderColored(text: string, keyBase: string): React.ReactNode[] {
     const parts: React.ReactNode[] = [];
     let last = 0;
@@ -36,10 +34,10 @@ function renderColored(text: string, keyBase: string): React.ReactNode[] {
     return parts;
 }
 
-/** Bắt cả **in đậm** lẫn *in đậm* (một hoặc hai dấu sao) — ưu tiên hai dấu. */
+// bắt cả **in đậm** lẫn *in đậm* (một hoặc hai dấu sao) — ưu tiên hai dấu
 const BOLD_RE = /\*\*(.+?)\*\*|\*(.+?)\*/g;
 
-/** Render nội dung một dòng: in đậm nhãn + tô màu tăng/giảm; xóa dấu `*` thừa. */
+// render nội dung một dòng: in đậm nhãn + tô màu tăng/giảm, xóa dấu * thừa
 function renderInline(text: string, keyBase: string): React.ReactNode[] {
     const nodes: React.ReactNode[] = [];
     let last = 0;
@@ -67,7 +65,7 @@ function renderInline(text: string, keyBase: string): React.ReactNode[] {
     return nodes;
 }
 
-/** Chuyển câu trả lời (text) thành cây React: gạch đầu dòng + in đậm + tô màu. */
+// chuyển câu trả lời (text) thành cây React: gạch đầu dòng + in đậm + tô màu
 export function renderAnswer(text: string): React.ReactNode {
     const lines = text.split('\n');
     const blocks: React.ReactNode[] = [];

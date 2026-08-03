@@ -9,26 +9,26 @@ import {
     type RespondAction,
 } from '../services/publicQuotationService';
 
-/** Nhãn hành động phản hồi. */
+// nhãn hành động phản hồi
 const ACTION_META: Record<RespondAction, { label: string; color: string; icon: ReactNode; noteLabel: string }> = {
     accept: { label: 'Đồng ý', color: 'bg-success', icon: <FiCheck size={16} />, noteLabel: 'Lời nhắn (tùy chọn)' },
     adjust: { label: 'Điều chỉnh', color: 'bg-warning', icon: <FiEdit3 size={16} />, noteLabel: 'Nội dung cần điều chỉnh' },
     reject: { label: 'Không đồng ý', color: 'bg-danger', icon: <FiX size={16} />, noteLabel: 'Lý do không đồng ý' },
 };
 
-/** Nhãn trạng thái phản hồi đã lưu. */
+// nhãn trạng thái phản hồi đã lưu
 const RESPONSE_LABELS: Record<string, string> = {
     accepted: 'Bạn đã ĐỒNG Ý báo giá này',
     adjust: 'Bạn đã gửi yêu cầu ĐIỀU CHỈNH',
     rejected: 'Bạn đã chọn KHÔNG ĐỒNG Ý báo giá này',
 };
 
-/** Map action trên link email (?action=agree) sang action gửi API. */
+// map action trên link email (?action=agree) sang action gửi api
 const QUERY_TO_ACTION: Record<string, RespondAction> = {
     agree: 'accept', accept: 'accept', adjust: 'adjust', reject: 'reject',
 };
 
-/** Trang công khai để khách hàng xem + phản hồi báo giá theo token (không cần đăng nhập). */
+// trang công khai để khách hàng xem + phản hồi báo giá theo token (không cần đăng nhập)
 const QuotationResponsePage = () => {
     const { token = '' } = useParams();
     const [searchParams] = useSearchParams();
@@ -169,12 +169,12 @@ const QuotationResponsePage = () => {
     );
 };
 
-/** Khung căn giữa cho trạng thái tải/lỗi. */
+// khung căn giữa cho trạng thái tải/lỗi
 const Centered = ({ children }: { children: ReactNode }) => (
     <div className="min-h-screen bg-bg-main flex items-center justify-center text-gray-500 text-md">{children}</div>
 );
 
-/** Banner thông báo trạng thái. */
+// banner thông báo trạng thái
 const Banner = ({ children, className }: { children: ReactNode; className: string }) => (
     <div className={`rounded-btn px-4 py-3 text-md ${className}`}>{children}</div>
 );

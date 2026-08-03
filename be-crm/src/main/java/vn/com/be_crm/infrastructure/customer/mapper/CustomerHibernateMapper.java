@@ -5,7 +5,7 @@ import vn.com.be_crm.domain.customer.entity.Customer;
 import vn.com.be_crm.domain.customer.enums.CustomerStatus;
 import vn.com.be_crm.domain.customer.enums.CustomerType;
 import vn.com.be_crm.infrastructure.customer.entity.CustomerHibernate;
-import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
+import vn.com.be_crm.core.audit.AuditStamper;
 
 /** Chuyển đổi giữa Customer domain entity ↔ CustomerHibernate. */
 @Component

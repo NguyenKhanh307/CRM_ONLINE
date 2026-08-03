@@ -6,14 +6,14 @@ import {
     PRIORITY_LABELS, PRIORITY_COLORS, CHANNEL_LABELS,
 } from './ticketEnums';
 
-/** Cell cờ quá hạn SLA: badge đỏ khi isOverdue. */
+// cell cờ quá hạn SLA: badge đỏ khi isOverdue
 function overdueCell({ row }: { row: { original: TicketResult } }) {
     return row.original.isOverdue
         ? <span className="inline-block px-2 py-0.5 rounded text-sm font-medium bg-red-100 text-red-600">Quá hạn</span>
         : <span className="text-gray-400">—</span>;
 }
 
-/** Tạo danh sách cột phiếu hỗ trợ — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+// tạo danh sách cột phiếu hỗ trợ — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn)
 export const getTicketColumns = (): ColumnDef<TicketResult>[] => [
     { accessorKey: 'code', header: 'Mã phiếu', size: 120, enableSorting: true },
     { accessorKey: 'subject', header: 'Tiêu đề', size: 220, cell: textCell },

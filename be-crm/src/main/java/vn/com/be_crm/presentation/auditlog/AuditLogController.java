@@ -4,8 +4,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.auditlog.dto.AuditLogEntry;
 import vn.com.be_crm.application.auditlog.query.ListAuditLogUseCase;
-import vn.com.be_crm.presentation.shared.ApiResponse;
-import vn.com.be_crm.presentation.shared.PageResponse;
+import vn.com.be_crm.core.response.ApiResponse;
+import vn.com.be_crm.core.page.PageResponse;
 
 /**
  * REST controller cho nhật ký sự kiện thao tác người dùng — chỉ ADMIN (guard tại {@code SecurityConfig},

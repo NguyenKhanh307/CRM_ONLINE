@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.opportunity.command.*;
 import vn.com.be_crm.application.opportunity.dto.*;
 import vn.com.be_crm.application.opportunity.query.ListOpportunityItemUseCase;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

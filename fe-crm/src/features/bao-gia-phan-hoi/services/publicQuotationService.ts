@@ -1,7 +1,7 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse } from '@/shared/types/api';
 
-/** Một dòng hàng trong báo giá công khai. */
+// một dòng hàng trong báo giá công khai
 export interface PublicQuotationLine {
     productName: string;
     unit: string | null;
@@ -11,7 +11,7 @@ export interface PublicQuotationLine {
     amount: number;
 }
 
-/** Báo giá hiển thị trên trang phản hồi công khai. */
+// báo giá hiển thị trên trang phản hồi công khai
 export interface PublicQuotationView {
     code: string;
     customerName: string;
@@ -30,14 +30,14 @@ export interface PublicQuotationView {
     items: PublicQuotationLine[];
 }
 
-/** Hành động phản hồi của khách. */
+// hành động phản hồi của khách
 export type RespondAction = 'accept' | 'adjust' | 'reject';
 
 export const publicQuotationService = {
-    /** Lấy báo giá công khai theo token. */
+    // lấy báo giá công khai theo token
     getByToken: (token: string) =>
         axiosInstance.get<ApiResponse<PublicQuotationView>>(`/api/public/quotations/${token}`),
-    /** Gửi phản hồi của khách (đồng ý/điều chỉnh/không đồng ý). */
+    // gửi phản hồi của khách (đồng ý/điều chỉnh/không đồng ý)
     respond: (token: string, action: RespondAction, note?: string) =>
         axiosInstance.post<ApiResponse<null>>(`/api/public/quotations/${token}/respond`, { action, note }),
 };

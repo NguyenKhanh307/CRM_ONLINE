@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customerService } from '../services/customerService';
 
-/** Bàn giao hàng loạt khách hàng cho nhân viên khác. */
+// bàn giao hàng loạt khách hàng cho nhân viên khác
 export function useHandoverBulkCustomer() {
     const qc = useQueryClient();
     return useMutation({

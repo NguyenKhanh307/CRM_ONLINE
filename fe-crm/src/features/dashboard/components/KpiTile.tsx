@@ -5,21 +5,20 @@ import type { TimeSeriesPoint } from '../types/dashboardTypes';
 import { COLORS } from './chartTheme';
 
 interface KpiTileProps {
-    /** Nhãn chỉ số. */
     label: string;
-    /** Giá trị đã format sẵn để hiển thị. */
+    // giá trị đã format sẵn để hiển thị
     value: ReactNode;
-    /** % tăng trưởng so kỳ trước (null = ẩn badge). */
+    // % tăng trưởng so kỳ trước (null = ẩn badge)
     growthPct?: number | null;
-    /** Chuỗi dữ liệu cho sparkline nền (tùy chọn). */
+    // chuỗi dữ liệu cho sparkline nền (tùy chọn)
     sparkline?: TimeSeriesPoint[];
-    /** Màu sparkline (mặc định primary). */
+    // màu sparkline (mặc định primary)
     color?: string;
-    /** Nội dung phụ dưới giá trị (vd breakdown). */
+    // nội dung phụ dưới giá trị (vd breakdown)
     children?: ReactNode;
 }
 
-/** Badge % tăng trưởng: xanh ↑ khi dương, đỏ ↓ khi âm. */
+// badge % tăng trưởng: xanh mũi tên lên khi dương, đỏ mũi tên xuống khi âm
 const GrowthBadge = ({ pct }: { pct: number }) => {
     const up = pct >= 0;
     return (

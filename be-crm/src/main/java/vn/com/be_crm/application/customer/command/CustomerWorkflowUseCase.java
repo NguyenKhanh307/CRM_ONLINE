@@ -5,7 +5,7 @@ import vn.com.be_crm.application.customer.mapper.CustomerCommandMapper;
 import vn.com.be_crm.domain.customer.entity.Customer;
 import vn.com.be_crm.domain.customer.enums.CustomerStatus;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Use case điều phối trạng thái khách hàng (theo hành động, không sửa tay):

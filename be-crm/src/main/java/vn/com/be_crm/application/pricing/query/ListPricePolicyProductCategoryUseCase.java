@@ -2,7 +2,7 @@ package vn.com.be_crm.application.pricing.query;
 
 import vn.com.be_crm.application.pricing.dto.PricePolicyProductCategoryResult;
 import vn.com.be_crm.application.pricing.mapper.PricePolicySubEntityCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyProductCategoryRepository;
 
 import java.util.List;

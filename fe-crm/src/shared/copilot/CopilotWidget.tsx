@@ -6,10 +6,8 @@ import { useAskCopilot } from './useAskCopilot';
 import { renderAnswer } from './answerRenderer';
 import type { ChatMessage, CopilotAction } from './copilotTypes';
 
-/**
- * Trợ lý AI Copilot — bong bóng chat nổi góc phải-dưới, hiện trên mọi trang.
- * Hỏi tiếng Việt về dữ liệu CRM (doanh thu, tỷ lệ thắng, tình hình khách hàng...).
- */
+// trợ lý AI Copilot — bong bóng chat nổi góc phải-dưới, hiện trên mọi trang
+// hỏi tiếng Việt về dữ liệu CRM (doanh thu, tỷ lệ thắng, tình hình khách hàng...)
 export const CopilotWidget = () => {
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -20,12 +18,12 @@ export const CopilotWidget = () => {
     const panelRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
 
-    // Tự cuộn xuống tin nhắn mới nhất.
+    // tự cuộn xuống tin nhắn mới nhất
     useEffect(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }, [messages, isPending]);
 
-    // Bấm ra ngoài hộp (trừ bong bóng) hoặc nhấn Escape → đóng hộp thoại.
+    // bấm ra ngoài hộp (trừ bong bóng) hoặc nhấn Escape -> đóng hộp thoại
     useEffect(() => {
         if (!open) return;
         const onMouseDown = (e: MouseEvent) => {
@@ -44,7 +42,7 @@ export const CopilotWidget = () => {
         };
     }, [open]);
 
-    /** Gửi câu hỏi hiện tại lên trợ lý. */
+    // gửi câu hỏi hiện tại lên trợ lý
     const handleSend = () => {
         const question = input.trim();
         if (!question || isPending) return;
@@ -53,7 +51,7 @@ export const CopilotWidget = () => {
         mutate(question, {
             onSuccess: (res) => {
                 setMessages((prev) => [...prev, { role: 'assistant', text: res.answer, action: res.action }]);
-                // Lệnh điều hướng ("mở trang...") → tự nhảy trang ngay và đóng hộp thoại.
+                // lệnh điều hướng ("mở trang...") -> tự nhảy trang ngay và đóng hộp thoại
                 if (res.action?.type === 'navigate') {
                     setOpen(false);
                     navigate(res.action.route);
@@ -67,13 +65,13 @@ export const CopilotWidget = () => {
         });
     };
 
-    /** Bấm nút link trong bong bóng (vd "Xem biểu đồ so sánh") → điều hướng + đóng hộp. */
+    // bấm nút link trong bong bóng (vd "Xem biểu đồ so sánh") -> điều hướng + đóng hộp
     const handleActionClick = (action: CopilotAction) => {
         setOpen(false);
         navigate(action.route);
     };
 
-    /** Enter để gửi, Shift+Enter để xuống dòng. */
+    // Enter để gửi, Shift+Enter để xuống dòng
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();

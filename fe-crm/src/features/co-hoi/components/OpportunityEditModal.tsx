@@ -11,7 +11,7 @@ import type { OpportunityResult, UpdateOpportunityPayload } from '../types/oppor
 import { useUpdateOpportunity } from '../hooks/useUpdateOpportunity';
 import { useOpportunityStages } from '../hooks/useOpportunityStages';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
-import { usePricePolicyList } from '@/features/chinh-sach-gia/hooks/usePricePolicyList';
+import { useEligiblePricePolicies } from '@/features/chinh-sach-gia/hooks/useEligiblePricePolicies';
 import { opportunityService } from '../services/opportunityService';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
@@ -41,7 +41,6 @@ export function OpportunityEditModal({ item, onClose }: Props) {
     const { data: products = [] } = useProductList();
     const { data: stages = [] } = useOpportunityStages();
     const { data: campaigns = [] } = useCampaignList();
-    const { data: pricePolicies = [] } = usePricePolicyList();
     const [form, setForm] = useState<UpdateOpportunityPayload>({
         name: '', opportunityType: null, customerId: null, contactId: null, ownerId: null,
         stageId: null, campaignId: null, pricePolicyId: null, amount: null, expectedRevenue: null, expectedCloseDate: null,
@@ -50,6 +49,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
     const [rows, setRows] = useState<LineItemRow[]>([]);
     const [originalRows, setOriginalRows] = useState<LineItemRow[]>([]);
     const [saving, setSaving] = useState(false);
+    const { data: pricePolicies = [] } = useEligiblePricePolicies(form.customerId ?? undefined);
 
     const productOptions = useMemo<ProductOption[]>(
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0 })),
@@ -58,7 +58,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
     const stageOptions = useMemo(() => stages.map((s) => ({ value: String(s.id), label: s.name })), [stages]);
     const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
     const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
-    /** Giai đoạn đang chọn — nguồn của xác suất thắng; đổi giai đoạn thì số đổi ngay trước cả khi lưu. */
+    // giai đoạn đang chọn — nguồn của xác suất thắng; đổi giai đoạn thì số đổi ngay trước cả khi lưu
     const selectedStage = useMemo(() => stages.find((s) => s.id === form.stageId), [stages, form.stageId]);
 
     useEffect(() => {
@@ -79,7 +79,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
     }, [item]);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
-    /** Xoa loi cua mot o ngay khi nguoi dung go lai. */
+    // xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
@@ -95,7 +95,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
+        // lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
         const errs = collectErrors({
             expectedRevenue: nonNegativeError(form.expectedRevenue, 'Doanh thu kỳ vọng'),
         });
@@ -112,7 +112,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                 ...toUpdate.map((r) => opportunityService.updateItem(item.id, r.backendId as number, toItemPayload(r))),
                 ...toDelete.map((id) => opportunityService.deleteItem(item.id, id)),
             ]);
-            // Dòng hàng đổi → BE roll-up lại amount cơ hội → làm mới cả dòng hàng lẫn header
+            // dòng hàng đổi -> BE roll-up lại amount cơ hội -> làm mới cả dòng hàng lẫn header
             qc.invalidateQueries({ queryKey: ['opportunity-items', item.id] });
             qc.invalidateQueries({ queryKey: ['opportunities'] });
             qc.invalidateQueries({ queryKey: ['opportunity', item.id] });
@@ -162,7 +162,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                        {/* Xác suất do giai đoạn pipeline định nghĩa (opportunity_stages.probability) — chỉ hiển thị */}
+                        {/* xác suất do giai đoạn pipeline định nghĩa (opportunity_stages.probability) — chỉ hiển thị */}
                         <div>
                             <label className={lbl}>Xác suất (tự động theo giai đoạn)</label>
                             <span className="inline-block px-2 py-1 rounded text-sm font-medium bg-blue-50 text-primary">
@@ -205,7 +205,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                     </div>
                     <div>
                         <label className={lbl}>Hàng hóa</label>
-                        <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} pricePolicyId={form.pricePolicyId} />
+                        <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} pricePolicyId={form.pricePolicyId} customerId={form.customerId} />
                     </div>
                     <div>
                         <label className={lbl}>Mô tả</label>

@@ -6,7 +6,7 @@ const STATUS_LABELS: Record<string, string> = {
     open: 'Đang mở', won: 'Đã thắng', lost: 'Đã thua',
 };
 
-/** Các cột khả dụng khi xuất file phân hệ Cơ hội. */
+// các cột khả dụng khi xuất file phân hệ Cơ hội
 export const opportunityExportColumns: ExportColumn<OpportunityResult>[] = [
     { key: 'code', label: 'Mã' },
     { key: 'name', label: 'Tên cơ hội' },

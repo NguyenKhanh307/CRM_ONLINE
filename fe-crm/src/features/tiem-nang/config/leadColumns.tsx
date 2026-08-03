@@ -15,7 +15,7 @@ const STATUS_LABELS: Record<string, string> = {
     converted: 'Đã chuyển đổi', lost: 'Thất bại',
 };
 
-/** Tạo danh sách cột Tiềm năng — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+// tạo danh sách cột Tiềm năng — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn)
 export const getLeadColumns = (): ColumnDef<LeadResult>[] => [
     { accessorKey: 'code', header: 'Mã', size: 100, enableSorting: true },
     { accessorKey: 'name', header: 'Tên tiềm năng', size: 180, enableSorting: true },

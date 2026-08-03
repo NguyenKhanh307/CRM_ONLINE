@@ -1,10 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { leadService } from '../services/leadService';
 
-/** Lấy danh sách tiềm năng (phân trang). */
+// lấy toàn bộ tiềm năng (tối đa 500 dòng) — dùng cho dropdown chọn tiềm năng
 export function useLeadList() {
-    return useQuery({
-        queryKey: ['leads'],
-        queryFn: () => leadService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items),
-    });
+    return useLiveQuery('leads', () =>
+        leadService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items));
 }

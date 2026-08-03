@@ -6,7 +6,7 @@ import vn.com.be_crm.domain.service.enums.TicketChannel;
 import vn.com.be_crm.domain.service.enums.TicketPriority;
 import vn.com.be_crm.domain.service.enums.TicketStatus;
 import vn.com.be_crm.domain.service.enums.TicketType;
-import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
+import vn.com.be_crm.core.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.service.entity.TicketHibernate;
 
 /** Chuyển đổi giữa Ticket domain entity ↔ TicketHibernate. */

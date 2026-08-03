@@ -4,17 +4,15 @@ import { SHORTCUTS } from '@/shared/keyboard/shortcuts';
 
 interface ModalFooterProps {
     onCancel: () => void;
-    /** Đang lưu → vô hiệu nút và đổi nhãn. */
+    // đang lưu -> vô hiệu nút và đổi nhãn
     saving?: boolean;
     saveLabel?: string;
-    /** Ghi đè class của thanh footer khi modal có bố cục khác. */
+    // ghi đè class của thanh footer khi modal có bố cục khác
     className?: string;
 }
 
-/**
- * Footer cho modal chỉnh sửa có `<form>`: Hủy (Esc) + Lưu (Ctrl+S, `type="submit"`).
- * Phím tắt chỉ là nhãn — `useFormKeyboardNav` mới là nơi xử lý Esc và Ctrl+S.
- */
+// footer cho modal chỉnh sửa có `<form>`: Hủy (Esc) + Lưu (Ctrl+S, `type="submit"`)
+// phím tắt chỉ là nhãn — `useFormKeyboardNav` mới là nơi xử lý Esc và Ctrl+S
 export const ModalFooter = ({
     onCancel,
     saving,
@@ -35,20 +33,18 @@ interface DialogFooterProps {
     onCancel: () => void;
     onConfirm: () => void;
     confirmLabel: string;
-    /** Nút xác nhận nền đỏ đặc (hành động nguy hiểm). */
+    // nút xác nhận nền đỏ đặc (hành động nguy hiểm)
     confirmDanger?: boolean;
     confirmIcon?: IconType;
     confirmDisabled?: boolean;
-    /** Hiện nhãn `Enter` trên nút xác nhận. Tắt khi popup có ô nhập, vì Enter chưa chắc kích hoạt nút. */
+    // hiện nhãn `Enter` trên nút xác nhận. Tắt khi popup có ô nhập, vì Enter chưa chắc kích hoạt nút
     showConfirmShortcut?: boolean;
     cancelDisabled?: boolean;
     className?: string;
 }
 
-/**
- * Footer cho popup xác nhận. Nút mang `data-dialog-button` để `useDialogKeyboardNav`
- * dò được và cho 4 mũi tên đổi qua lại giữa chúng.
- */
+// footer cho popup xác nhận. Nút mang `data-dialog-button` để `useDialogKeyboardNav`
+// dò được và cho 4 mũi tên đổi qua lại giữa chúng
 export const DialogFooter = ({
     onCancel,
     onConfirm,

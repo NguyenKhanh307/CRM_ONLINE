@@ -2,7 +2,7 @@ package vn.com.be_crm.application.contact.query;
 
 import vn.com.be_crm.application.contact.dto.ContactPhoneResult;
 import vn.com.be_crm.application.contact.mapper.ContactPhoneCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.contact.repository.IContactPhoneRepository;
 
 import java.util.List;

@@ -12,7 +12,7 @@ const STATUS_LABELS: Record<string, string> = {
     open: 'Đang mở', won: 'Đã thắng', lost: 'Đã thua',
 };
 
-/** Tạo danh sách cột Cơ hội — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+// tạo danh sách cột Cơ hội — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn)
 export const getOpportunityColumns = (): ColumnDef<OpportunityResult>[] => [
     { accessorKey: 'code', header: 'Mã', size: 100, enableSorting: true },
     { accessorKey: 'name', header: 'Tên cơ hội', size: 200, enableSorting: true },

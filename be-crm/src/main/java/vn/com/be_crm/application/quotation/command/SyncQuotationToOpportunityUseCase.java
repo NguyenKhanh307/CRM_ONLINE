@@ -7,7 +7,7 @@ import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.entity.QuotationItem;
 import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
-import vn.com.be_crm.application.shared.tx.ITransactionRunner;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
 
 /**
  * Use case đồng bộ hai chiều: khi dòng hàng của báo giá ĐỒNG BỘ (primary, chưa khóa) thay đổi,

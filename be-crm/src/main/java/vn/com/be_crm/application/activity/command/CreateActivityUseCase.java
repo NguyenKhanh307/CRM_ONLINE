@@ -4,7 +4,7 @@ import vn.com.be_crm.application.activity.dto.ActivityResult;
 import vn.com.be_crm.application.activity.dto.CreateActivityCommand;
 import vn.com.be_crm.application.activity.mapper.ActivityCommandMapper;
 import vn.com.be_crm.application.lead.command.AddLeadScoreUseCase;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.activity.entity.Activity;
 import vn.com.be_crm.domain.activity.enums.ActivityType;
 import vn.com.be_crm.domain.activity.repository.IActivityRepository;

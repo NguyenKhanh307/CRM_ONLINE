@@ -25,7 +25,7 @@ const MEMBER_STATUS_COLORS: Record<string, string> = {
     unsubscribed: 'bg-gray-200 text-gray-500',
 };
 
-/** Bảng khách hàng của chiến dịch (bảng `campaign_members`) — thêm nhanh theo email + xóa. */
+// bảng khách hàng của chiến dịch (bảng `campaign_members`) — thêm nhanh theo email + xóa
 export function CampaignMembersTable({ campaignId }: Props) {
     const { data: members = [], isLoading } = useCampaignMembers(campaignId);
     const { mutate: createMember, mutateAsync: createMemberAsync, isPending: isCreating } = useCreateCampaignMember(campaignId);
@@ -44,9 +44,11 @@ export function CampaignMembersTable({ campaignId }: Props) {
         autoFocus: false, // form phụ trên trang chi tiết — không cướp focus khi mở tab
     });
 
+    // xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
+    // thêm một khách hàng vào chiến dịch theo email nhập tay
     const handleAdd = async (e: FormEvent) => {
         e.preventDefault();
 
@@ -64,6 +66,7 @@ export function CampaignMembersTable({ campaignId }: Props) {
         );
     };
 
+    // thêm hàng loạt khách hàng đang hoạt động (có email, chưa là thành viên) vào chiến dịch
     const handleAddAllActive = async () => {
         const existingEmails = new Set(members.map(m => m.email?.toLowerCase()).filter(Boolean));
         const targets = customers.filter(c => c.status === 'active' && c.email && !existingEmails.has(c.email.toLowerCase()));
@@ -87,6 +90,7 @@ export function CampaignMembersTable({ campaignId }: Props) {
         }
     };
 
+    // xóa một thành viên khỏi chiến dịch, có hỏi xác nhận
     const handleDelete = async (id: number, label: string) => {
         if (!(await confirmDelete(`"${label}" khỏi chiến dịch`))) return;
         deleteMember(id);

@@ -17,4 +17,8 @@ public interface IPricePolicyCustomerRepository {
     void deleteById(Long id);
     /** Lấy danh sách theo pricePolicyId. @param pricePolicyId @return danh sách */
     List<PricePolicyCustomer> findAllByPricePolicyId(Long pricePolicyId);
+    /** ID các chính sách customerId được phép dùng: không giới hạn khách hàng (0 dòng) HOẶC có dòng khớp customerId. @param customerId @return danh sách policy ID */
+    List<Long> findEligiblePolicyIdsForCustomer(Long customerId);
+    /** true nếu policy không giới hạn khách hàng (0 dòng) HOẶC có dòng khớp customerId. @param pricePolicyId @param customerId @return có hợp lệ không */
+    boolean isEligibleForCustomer(Long pricePolicyId, Long customerId);
 }

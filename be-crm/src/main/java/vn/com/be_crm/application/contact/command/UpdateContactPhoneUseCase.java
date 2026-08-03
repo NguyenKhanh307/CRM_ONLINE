@@ -3,10 +3,10 @@ package vn.com.be_crm.application.contact.command;
 import vn.com.be_crm.application.contact.dto.ContactPhoneResult;
 import vn.com.be_crm.application.contact.dto.UpdateContactPhoneCommand;
 import vn.com.be_crm.application.contact.mapper.ContactPhoneCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.contact.entity.ContactPhone;
 import vn.com.be_crm.domain.contact.repository.IContactPhoneRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case cập nhật số điện thoại liên hệ. */
 public class UpdateContactPhoneUseCase implements IUseCase<UpdateContactPhoneCommand, ContactPhoneResult> {

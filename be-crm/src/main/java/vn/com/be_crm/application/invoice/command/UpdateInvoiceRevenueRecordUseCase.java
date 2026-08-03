@@ -3,10 +3,10 @@ package vn.com.be_crm.application.invoice.command;
 import vn.com.be_crm.application.invoice.dto.InvoiceRevenueRecordResult;
 import vn.com.be_crm.application.invoice.dto.UpdateInvoiceRevenueRecordCommand;
 import vn.com.be_crm.application.invoice.mapper.InvoiceRevenueRecordCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.invoice.entity.InvoiceRevenueRecord;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRevenueRecordRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case cập nhật bản ghi doanh thu đơn hàng. */
 public class UpdateInvoiceRevenueRecordUseCase implements IUseCase<UpdateInvoiceRevenueRecordCommand, InvoiceRevenueRecordResult> {

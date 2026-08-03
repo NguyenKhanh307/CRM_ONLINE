@@ -6,16 +6,16 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
+import vn.com.be_crm.core.util.SecurityUtils;
 import vn.com.be_crm.application.activity.command.*;
 import vn.com.be_crm.application.activity.dto.*;
 import vn.com.be_crm.application.activity.query.*;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.application.shared.dto.PageResult;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.presentation.activity.request.*;
-import vn.com.be_crm.presentation.shared.ApiResponse;
-import vn.com.be_crm.presentation.shared.PageResponse;
+import vn.com.be_crm.core.response.ApiResponse;
+import vn.com.be_crm.core.page.PageResponse;
 
 /**
  * REST controller cho nghiệp vụ quản lý hoạt động chăm sóc.

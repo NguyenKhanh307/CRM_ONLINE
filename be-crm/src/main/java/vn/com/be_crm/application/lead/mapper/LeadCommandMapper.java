@@ -4,13 +4,9 @@ import vn.com.be_crm.application.lead.dto.*;
 import vn.com.be_crm.domain.lead.entity.Lead;
 import vn.com.be_crm.domain.lead.enums.LeadStatus;
 
-/** Chuyển đổi Command ↔ Lead ↔ LeadResult. */
+// chuyển đổi Command <-> Lead <-> LeadResult
 public class LeadCommandMapper {
 
-    /**
-     * Tạo Lead từ CreateLeadCommand.
-     * @param cmd command tạo mới @return domain entity
-     */
     public static Lead toEntity(CreateLeadCommand cmd) {
         return Lead.builder()
                 .code(cmd.getCode()).name(cmd.getName())
@@ -28,10 +24,6 @@ public class LeadCommandMapper {
                 .note(cmd.getNote()).build();
     }
 
-    /**
-     * Cập nhật Lead từ UpdateLeadCommand.
-     * @param cmd command cập nhật @param e entity hiện tại @return domain entity đã cập nhật
-     */
     public static Lead toEntity(UpdateLeadCommand cmd, Lead e) {
         return Lead.builder()
                 .id(e.getId()).code(e.getCode())
@@ -49,7 +41,7 @@ public class LeadCommandMapper {
                 .industry(cmd.getIndustry() != null ? cmd.getIndustry() : e.getIndustry())
                 .source(cmd.getSource() != null ? cmd.getSource() : e.getSource())
                 .campaignId(cmd.getCampaignId() != null ? cmd.getCampaignId() : e.getCampaignId())
-                // status: đổi tự động (chấm điểm) hoặc qua hành động (convert/lose) — không nhận từ command.
+                // status: đổi tự động (chấm điểm) hoặc qua hành động (convert/lose), không nhận từ command
                 .status(e.getStatus())
                 .estimatedValue(cmd.getEstimatedValue() != null ? cmd.getEstimatedValue() : e.getEstimatedValue())
                 .score(e.getScore())
@@ -62,10 +54,6 @@ public class LeadCommandMapper {
                 .createdAt(e.getCreatedAt()).build();
     }
 
-    /**
-     * Chuyển Lead sang LeadResult.
-     * @param e domain entity @return result DTO
-     */
     public static LeadResult toResult(Lead e) {
         return LeadResult.builder()
                 .id(e.getId()).code(e.getCode()).name(e.getName())

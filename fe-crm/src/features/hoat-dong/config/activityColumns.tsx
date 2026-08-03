@@ -26,7 +26,7 @@ const CALL_DIRECTION_LABELS: Record<string, string> = {
     inbound: 'Gọi đến', outbound: 'Gọi đi',
 };
 
-/** Tạo danh sách cột Hoạt động — hiển thị đầy đủ trường + tên người phụ trách (do BE resolve sẵn). */
+// tạo danh sách cột Hoạt động — hiển thị đầy đủ trường + tên người phụ trách (do BE resolve sẵn)
 export const getActivityColumns = (): ColumnDef<ActivityResult>[] => [
     { accessorKey: 'type', header: 'Loại', size: 120, cell: labelCell(TYPE_LABELS) },
     { accessorKey: 'subject', header: 'Tiêu đề', size: 200, enableSorting: true },

@@ -2,8 +2,8 @@ package vn.com.be_crm.application.pricing.command;
 
 import vn.com.be_crm.application.pricing.dto.ImportBulkPricePolicyCommand;
 import vn.com.be_crm.application.pricing.dto.ImportPricePolicyRowCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.ImportRowError;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.dto.import_.ImportRowError;
 import vn.com.be_crm.domain.pricing.entity.PricePolicy;
 import vn.com.be_crm.domain.pricing.enums.PricePolicyStatus;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyRepository;

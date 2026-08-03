@@ -2,8 +2,8 @@ package vn.com.be_crm.application.invoice.command;
 
 import vn.com.be_crm.application.invoice.dto.ImportBulkInvoiceCommand;
 import vn.com.be_crm.application.invoice.dto.ImportInvoiceRowCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.ImportRowError;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.dto.import_.ImportRowError;
 import vn.com.be_crm.domain.invoice.entity.Invoice;
 import vn.com.be_crm.domain.invoice.enums.InvoiceStatus;
 import vn.com.be_crm.domain.invoice.enums.PaymentStatus;

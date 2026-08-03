@@ -15,7 +15,7 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
     completed: 'Hoàn tất', cancelled: 'Đã hủy',
 };
 
-/** Tạo danh sách cột Đơn hàng — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn). */
+// tạo danh sách cột Đơn hàng — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn)
 export const getOrderColumns = (): ColumnDef<OrderResult>[] => [
     { accessorKey: 'code', header: 'Mã Đơn hàng', size: 140, enableSorting: true },
     { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },

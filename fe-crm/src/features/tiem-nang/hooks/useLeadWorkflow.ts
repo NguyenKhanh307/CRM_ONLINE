@@ -1,30 +1,40 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { leadService } from '../services/leadService';
 
-/** Loại hành động chuyển trạng thái tiềm năng. */
+// loại hành động chuyển trạng thái tiềm năng
 export type LeadAction = 'qualify' | 'convert' | 'lose' | 'claim';
 
-/**
- * Hook thực hiện hành động chuyển trạng thái tiềm năng:
- * convert (chuyển đổi) / lose (đánh mất, kèm lý do) / claim (nhân viên tự nhận chăm sóc).
- */
+interface WorkflowInput {
+    id: number;
+    action: LeadAction;
+    reason?: string;
+    customerId?: number | null;
+}
+
+// chạy hành động chuyển trạng thái tiềm năng: convert (chuyển đổi) / lose (đánh mất, kèm lý do)
+// / claim (nhân viên tự nhận chăm sóc) / qualify (đủ điều kiện thủ công)
 export function useLeadWorkflow() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, action, reason, customerId }:
-                     { id: number; action: LeadAction; reason?: string; customerId?: number | null }) => {
-            switch (action) {
-                case 'qualify': return leadService.qualify(id);
-                case 'convert': return leadService.convert(id, customerId);
-                case 'lose': return leadService.lose(id, reason);
-                case 'claim': return leadService.claim(id);
-            }
-        },
-        // convert tạo Khách hàng + Liên hệ + Cơ hội → làm mới cả các danh sách đó
-        onSuccess: (_d, v) => {
-            ['leads', 'customers', 'contacts', 'opportunities'].forEach(
-                (key) => qc.invalidateQueries({ queryKey: [key] }));
-            qc.invalidateQueries({ queryKey: ['lead', v.id] });
-        },
+    const { mutate: run, isPending } = useLiveMutation((input: WorkflowInput) => {
+        // bước gọi đúng api theo hành động
+        switch (input.action) {
+            case 'qualify': return leadService.qualify(input.id);
+            case 'convert': return leadService.convert(input.id, input.customerId);
+            case 'lose': return leadService.lose(input.id, input.reason);
+            case 'claim': return leadService.claim(input.id);
+        }
     });
+
+    const mutate: typeof run = (input, callbacks) =>
+        run(input, {
+            ...callbacks,
+            onSuccess: (data) => {
+                // convert tạo Khách hàng + Liên hệ + Cơ hội -> làm mới cả các danh sách đó
+                notify('leads'); notify('customers'); notify('contacts'); notify('opportunities');
+                notify(`lead:${input.id}`);
+                callbacks?.onSuccess?.(data);
+            },
+        });
+
+    return { mutate, isPending };
 }

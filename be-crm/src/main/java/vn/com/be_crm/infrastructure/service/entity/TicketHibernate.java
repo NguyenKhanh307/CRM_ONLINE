@@ -15,7 +15,7 @@ import vn.com.be_crm.domain.service.enums.TicketType;
 import vn.com.be_crm.infrastructure.service.converter.TicketStatusConverter;
 import vn.com.be_crm.infrastructure.service.converter.TicketTypeConverter;
 
-import vn.com.be_crm.infrastructure.shared.audit.IAuditable;
+import vn.com.be_crm.core.audit.IAuditable;
 
 import java.time.LocalDateTime;
 

@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import vn.com.be_crm.application.copilot.dto.AskCopilotQuery;
 import vn.com.be_crm.application.copilot.dto.CopilotAnswer;
 import vn.com.be_crm.application.copilot.query.AskCopilotUseCase;
-import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
+import vn.com.be_crm.core.util.SecurityUtils;
 import vn.com.be_crm.presentation.copilot.request.AskCopilotRequest;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 /**
  * REST controller cho trợ lý AI Copilot — hỏi đáp dữ liệu CRM bằng ngôn ngữ tự nhiên.

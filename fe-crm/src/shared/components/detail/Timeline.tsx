@@ -4,7 +4,7 @@ import type { RelatedGroup } from '../../types/related';
 import { ScrollFrame } from '../table/ScrollFrame';
 import { formatISODate } from '../../utils/date';
 
-/** Icon + nhãn theo loại hoạt động (cột `code` của RelatedRecord). */
+// icon + nhãn theo loại hoạt động (cột `code` của RelatedRecord)
 const TYPE_META: Record<string, { icon: IconType; label: string }> = {
     call:    { icon: FiPhone,       label: 'Cuộc gọi' },
     meeting: { icon: FiUsers,       label: 'Cuộc hẹn' },
@@ -13,7 +13,7 @@ const TYPE_META: Record<string, { icon: IconType; label: string }> = {
     note:    { icon: FiFileText,    label: 'Ghi chú' },
 };
 
-/** Nhãn trạng thái hoạt động. */
+// nhãn trạng thái hoạt động
 const STATUS_LABEL: Record<string, string> = {
     planned:     'Dự kiến',
     in_progress: 'Đang làm',
@@ -31,14 +31,12 @@ const STATUS_CLASS: Record<string, string> = {
 interface TimelineProps {
     group: RelatedGroup | undefined;
     emptyText?: string;
-    /** Chiều cao tối đa khung cuộn (px) — dòng timeline cao không đều nên dùng số cố định. */
+    // chiều cao tối đa khung cuộn (px) — dòng timeline cao không đều nên dùng số cố định
     maxHeight?: number;
 }
 
-/**
- * Dòng thời gian hoạt động của một bản ghi (khách hàng / cơ hội).
- * Dữ liệu lấy từ nhóm `activities` của API `/related`.
- */
+// dòng thời gian hoạt động của một bản ghi (khách hàng / cơ hội)
+// dữ liệu lấy từ nhóm `activities` của API `/related`
 export const Timeline = ({ group, emptyText = 'Chưa có hoạt động nào.', maxHeight = 420 }: TimelineProps) => {
     const items = group?.items ?? [];
 
@@ -47,7 +45,7 @@ export const Timeline = ({ group, emptyText = 'Chưa có hoạt động nào.', 
     }
 
     return (
-        // Khung cuộn riêng: dòng thời gian dài không kéo dài trang
+        // khung cuộn riêng: dòng thời gian dài không kéo dài trang
         <ScrollFrame maxHeight={maxHeight} className="pr-1">
         <ul className="space-y-3">
             {items.map(a => {

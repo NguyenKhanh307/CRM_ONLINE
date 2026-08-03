@@ -17,10 +17,10 @@ export interface PageParams {
     size?: number;
     sortBy?: string;
     sortDir?: 'asc' | 'desc';
-    /** Từ khóa tìm kiếm server-side (LIKE trên các cột chính của module). */
+    // từ khóa tìm kiếm server-side (LIKE trên các cột chính của module)
     q?: string;
-    /** Giá trị tag lọc nhanh của module (BE map sang cột status/type/isActive... tương ứng). */
+    // giá trị tag lọc nhanh của module (BE map sang cột status/type/isActive... tương ứng)
     status?: string;
-    /** Thu hẹp theo khách hàng — hiện chỉ `/api/contacts` hỗ trợ (ô chọn Liên hệ theo khách đang chọn). */
+    // thu hẹp theo khách hàng — hiện chỉ /api/contacts hỗ trợ (ô chọn Liên hệ theo khách đang chọn)
     customerId?: number;
 }

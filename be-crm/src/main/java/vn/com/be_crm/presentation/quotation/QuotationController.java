@@ -12,18 +12,18 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.quotation.command.*;
 import vn.com.be_crm.application.quotation.dto.*;
 import vn.com.be_crm.application.quotation.query.*;
-import vn.com.be_crm.application.shared.dto.DeleteCommand;
-import vn.com.be_crm.application.shared.dto.DeletedItemResult;
-import vn.com.be_crm.application.shared.dto.HandoverBulkCommand;
-import vn.com.be_crm.application.shared.dto.ImportBulkResult;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.infrastructure.shared.util.SecurityUtils;
+import vn.com.be_crm.core.dto.delete.DeleteCommand;
+import vn.com.be_crm.core.dto.delete.DeletedItemResult;
+import vn.com.be_crm.core.dto.handover.HandoverBulkCommand;
+import vn.com.be_crm.core.dto.import_.ImportBulkResult;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.util.SecurityUtils;
 import vn.com.be_crm.presentation.quotation.request.QuotationActionRequest;
 import vn.com.be_crm.presentation.quotation.request.SendQuotationRequest;
-import vn.com.be_crm.presentation.shared.ApiResponse;
-import vn.com.be_crm.presentation.shared.HandoverBulkRequest;
-import vn.com.be_crm.presentation.shared.PageResponse;
-import vn.com.be_crm.domain.shared.exception.DomainException;
+import vn.com.be_crm.core.response.ApiResponse;
+import vn.com.be_crm.core.dto.handover.HandoverBulkRequest;
+import vn.com.be_crm.core.page.PageResponse;
+import vn.com.be_crm.core.error.frontend.DomainException;
 
 /**
  * REST controller cho nghiệp vụ quản lý báo giá.

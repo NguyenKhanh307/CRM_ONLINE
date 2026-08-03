@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.product.command.*;
 import vn.com.be_crm.application.product.dto.*;
 import vn.com.be_crm.application.product.query.*;
-import vn.com.be_crm.application.shared.dto.PageRequest;
-import vn.com.be_crm.presentation.shared.ApiResponse;
-import vn.com.be_crm.presentation.shared.PageResponse;
+import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.core.response.ApiResponse;
+import vn.com.be_crm.core.page.PageResponse;
 
 /**
  * REST controller cho nghiệp vụ quản lý danh mục hàng hóa.

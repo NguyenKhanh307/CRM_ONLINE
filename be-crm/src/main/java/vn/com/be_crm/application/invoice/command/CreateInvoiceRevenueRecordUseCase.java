@@ -3,7 +3,7 @@ package vn.com.be_crm.application.invoice.command;
 import vn.com.be_crm.application.invoice.dto.CreateInvoiceRevenueRecordCommand;
 import vn.com.be_crm.application.invoice.dto.InvoiceRevenueRecordResult;
 import vn.com.be_crm.application.invoice.mapper.InvoiceRevenueRecordCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRevenueRecordRepository;
 
 /** Use case tạo mới bản ghi doanh thu đơn hàng. */

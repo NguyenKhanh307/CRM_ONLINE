@@ -6,10 +6,10 @@ import vn.com.be_crm.application.copilot.dto.CopilotAnswer;
 import vn.com.be_crm.application.copilot.dto.RecordRef;
 import vn.com.be_crm.application.copilot.intent.CopilotIntentDetector;
 import vn.com.be_crm.application.copilot.intent.CopilotIntentDetector.Intent;
-import vn.com.be_crm.application.shared.ai.IAiService;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.ai.port.IAiService;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.copilot.repository.ICopilotContextRepository;
-import vn.com.be_crm.domain.shared.exception.DomainException;
+import vn.com.be_crm.core.error.frontend.DomainException;
 
 import java.util.Optional;
 

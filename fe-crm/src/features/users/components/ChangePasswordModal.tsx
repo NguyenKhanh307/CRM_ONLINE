@@ -12,7 +12,7 @@ interface Props {
     onClose: () => void;
 }
 
-/** Modal đổi mật khẩu cho người dùng đang đăng nhập. */
+// modal đổi mật khẩu cho người dùng đang đăng nhập
 export function ChangePasswordModal({ onClose }: Props) {
     const { showAlert } = useAlert();
     const { confirmSave } = useConfirm();

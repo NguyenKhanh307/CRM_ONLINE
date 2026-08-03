@@ -2,10 +2,10 @@ package vn.com.be_crm.application.quotation.command;
 
 import vn.com.be_crm.application.quotation.email.QuotationEmailComposer;
 import vn.com.be_crm.application.quotation.pdf.QuotationPdfDataBuilder;
-import vn.com.be_crm.application.shared.pdf.IQuotationPdfService;
+import vn.com.be_crm.core.pdf.port.IQuotationPdfService;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Use case xem trước PDF báo giá — dùng khi soạn email gửi khách (trước khi bấm gửi) để kiểm tra

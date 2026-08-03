@@ -2,7 +2,7 @@ package vn.com.be_crm.infrastructure.contact.mapper;
 
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.contact.entity.Contact;
-import vn.com.be_crm.infrastructure.shared.audit.AuditStamper;
+import vn.com.be_crm.core.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.contact.entity.ContactHibernate;
 
 /** Chuyển đổi giữa Contact domain entity ↔ ContactHibernate. */

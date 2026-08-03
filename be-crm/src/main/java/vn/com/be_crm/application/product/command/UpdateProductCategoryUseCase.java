@@ -2,9 +2,9 @@ package vn.com.be_crm.application.product.command;
 
 import vn.com.be_crm.application.product.dto.*;
 import vn.com.be_crm.application.product.mapper.ProductCategoryCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.product.repository.IProductCategoryRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case cập nhật danh mục hàng hóa. */
 public class UpdateProductCategoryUseCase implements IUseCase<UpdateProductCategoryCommand, ProductCategoryResult> {

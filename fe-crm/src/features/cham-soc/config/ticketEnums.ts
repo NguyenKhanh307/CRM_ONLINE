@@ -1,4 +1,4 @@
-/** Nhãn tiếng Việt + màu badge cho các enum của phiếu hỗ trợ — dùng chung bảng/chi tiết/form. */
+// nhãn tiếng Việt + màu badge cho các enum của phiếu hỗ trợ — dùng chung bảng/chi tiết/form
 
 export const TYPE_LABELS: Record<string, string> = {
     support: 'Hỗ trợ', return: 'Trả hàng', exchange: 'Đổi hàng', complaint: 'Khiếu nại',
@@ -43,7 +43,7 @@ export const RESOLUTION_LABELS: Record<string, string> = {
     store_credit: 'Ghi có', answered: 'Đã giải đáp', rejected: 'Từ chối',
 };
 
-/** Danh sách option cho dropdown form (value + label). */
+// danh sách option cho dropdown form (value + label)
 export const TYPE_OPTIONS = Object.entries(TYPE_LABELS).map(([value, label]) => ({ value, label }));
 export const CHANNEL_OPTIONS = Object.entries(CHANNEL_LABELS).map(([value, label]) => ({ value, label }));
 export const PRIORITY_OPTIONS = Object.entries(PRIORITY_LABELS).map(([value, label]) => ({ value, label }));

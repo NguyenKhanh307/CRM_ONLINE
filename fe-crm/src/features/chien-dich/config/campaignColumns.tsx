@@ -22,7 +22,7 @@ const CAMPAIGN_TYPE_COLORS: Record<string, string> = {
     other: 'bg-gray-50 text-gray-600',
 };
 
-/** Tạo danh sách cột Chiến dịch — hiển thị đầy đủ trường + tên người phụ trách (do BE resolve sẵn). */
+// tạo danh sách cột Chiến dịch — hiển thị đầy đủ trường + tên người phụ trách (do BE resolve sẵn)
 export const getCampaignColumns = (): ColumnDef<CampaignResult>[] => [
     { accessorKey: 'code', header: 'Mã', size: 110, enableSorting: true },
     { accessorKey: 'name', header: 'Tên chiến dịch', size: 220, enableSorting: true, cell: textCell },

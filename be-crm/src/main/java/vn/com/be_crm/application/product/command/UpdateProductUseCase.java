@@ -2,10 +2,10 @@ package vn.com.be_crm.application.product.command;
 
 import vn.com.be_crm.application.product.dto.*;
 import vn.com.be_crm.application.product.mapper.ProductCommandMapper;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
-import vn.com.be_crm.application.shared.util.CrossFieldRules;
+import vn.com.be_crm.core.usecase.IUseCase;
+import vn.com.be_crm.core.util.CrossFieldRules;
 import vn.com.be_crm.domain.product.repository.IProductRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /** Use case cập nhật hàng hóa. */
 public class UpdateProductUseCase implements IUseCase<UpdateProductCommand, ProductResult> {

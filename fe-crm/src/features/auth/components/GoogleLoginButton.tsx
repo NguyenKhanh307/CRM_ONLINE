@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGoogleLogin } from '../hooks/useGoogleLogin';
 
-/** Phản hồi credential (ID token) từ Google Identity Services. */
+// phản hồi credential (ID token) từ Google Identity Services
 interface GoogleCredentialResponse {
     credential: string;
 }
@@ -22,10 +22,8 @@ declare global {
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
-/**
- * Nút "Đăng nhập bằng Google" — render nút chính chủ của Google Identity Services.
- * Nhận ID token qua callback rồi gửi lên BE để xác thực.
- */
+// nút "Đăng nhập bằng Google" — render nút chính chủ của Google Identity Services
+// nhận id token qua callback rồi gửi lên BE để xác thực
 export const GoogleLoginButton = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const { mutate } = useGoogleLogin();

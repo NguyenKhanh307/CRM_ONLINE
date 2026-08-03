@@ -2,10 +2,10 @@ package vn.com.be_crm.application.quotation.query;
 
 import vn.com.be_crm.application.quotation.dto.QuotationEmailDraft;
 import vn.com.be_crm.application.quotation.email.QuotationEmailComposer;
-import vn.com.be_crm.application.shared.usecase.IUseCase;
+import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
-import vn.com.be_crm.domain.shared.exception.NotFoundException;
+import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
  * Use case xem-trước nội dung email báo giá mặc định (để FE hiển thị trong ô soạn trước khi gửi).

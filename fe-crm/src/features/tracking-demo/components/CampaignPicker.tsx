@@ -5,20 +5,17 @@ import type { PublicCampaign } from '../types/trackingTypes';
 interface Props {
     campaigns: PublicCampaign[];
     isLoading: boolean;
-    /** Chiến dịch đang chọn (chưa mở phiên). */
+    // chiến dịch đang chọn (chưa mở phiên)
     value: number | null;
     onChange: (id: number | null) => void;
-    /** Đã mở phiên → khóa lựa chọn, chỉ hiện chiến dịch đã gắn. */
+    // đã mở phiên -> khóa lựa chọn, chỉ hiện chiến dịch đã gắn
     locked: boolean;
-    /** Chiến dịch thực sự đã gắn vào tiềm năng (sau khi mở phiên). */
+    // chiến dịch thực sự đã gắn vào tiềm năng (sau khi mở phiên)
     attached: PublicCampaign | null;
 }
 
-/**
- * Bước 1 — chọn chiến dịch nguồn.
- * Kèm URL quảng cáo minh họa: đổi lựa chọn thì `utm_campaign` trên URL đổi theo,
- * cho thấy đúng cách web tracking thật quy nguồn tiềm năng.
- */
+// bước 1 — chọn chiến dịch nguồn, kèm url quảng cáo minh họa: đổi lựa chọn thì `utm_campaign`
+// trên url đổi theo, cho thấy đúng cách web tracking thật quy nguồn tiềm năng
 export const CampaignPicker = ({ campaigns, isLoading, value, onChange, locked, attached }: Props) => {
     const selected = campaigns.find((c) => c.id === (locked ? attached?.id : value)) ?? attached ?? null;
     const url = buildLandingUrl(selected?.code ?? null);

@@ -8,7 +8,7 @@ import vn.com.be_crm.application.lead.command.RecordTrackingEventUseCase;
 import vn.com.be_crm.application.lead.command.SubmitTrackingFormUseCase;
 import vn.com.be_crm.application.lead.command.TrackVisitUseCase;
 import vn.com.be_crm.application.lead.dto.LeadResult;
-import vn.com.be_crm.presentation.shared.ApiResponse;
+import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 

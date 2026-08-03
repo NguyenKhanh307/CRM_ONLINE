@@ -12,19 +12,19 @@ import { useSendCampaignEmail } from '../hooks/useSendCampaignEmail';
 
 interface Props {
     campaignId: number;
-    /** Mã chiến dịch — dùng để dựng link tracking-demo gắn đúng nguồn. */
+    // mã chiến dịch — dùng để dựng link tracking-demo gắn đúng nguồn
     campaignCode: string;
     open: boolean;
     onClose: () => void;
 }
 
-/** Nội dung mẫu ban đầu: mời khách trải nghiệm, kèm link landing page gắn mã chiến dịch. */
+// nội dung mẫu ban đầu: mời khách trải nghiệm, kèm link landing page gắn mã chiến dịch
 const buildDefaultBody = (campaignCode: string): string => {
     const trackingUrl = `${window.location.origin}/tracking-demo?${UTM_PARAM}=${campaignCode}`;
     return `<p>Xin chào,</p><p>Mời bạn tìm hiểu thêm giải pháp của chúng tôi tại đây: <a href="${trackingUrl}">${trackingUrl}</a></p><p>Trân trọng.</p>`;
 };
 
-/** Modal soạn + gửi email hàng loạt cho thành viên chiến dịch. */
+// modal soạn + gửi email hàng loạt cho thành viên chiến dịch
 export function SendEmailModal({ campaignId, campaignCode, open, onClose }: Props) {
     const { showAlert } = useAlert();
     const { confirm } = useConfirm();
@@ -41,7 +41,7 @@ export function SendEmailModal({ campaignId, campaignCode, open, onClose }: Prop
         enabled: open,
     });
 
-    // Mở modal lần đầu (nội dung còn trống) → nạp sẵn mẫu kèm link tracking-demo, người dùng vẫn sửa được.
+    // mở modal lần đầu (nội dung còn trống) -> nạp sẵn mẫu kèm link tracking-demo, người dùng vẫn sửa được
     useEffect(() => {
         if (open && !body) setBody(buildDefaultBody(campaignCode));
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,9 +49,11 @@ export function SendEmailModal({ campaignId, campaignCode, open, onClose }: Prop
 
     if (!open) return null;
 
+    // xóa lỗi của một ô ngay khi người dùng gõ lại
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
+    // gửi email hàng loạt cho thành viên chiến dịch
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
@@ -62,7 +64,7 @@ export function SendEmailModal({ campaignId, campaignCode, open, onClose }: Prop
         setErrors(found);
         if (Object.keys(found).length > 0) return;
 
-        // Gửi hàng loạt ra ngoài hệ thống — không rút lại được, phải xác nhận.
+        // gửi hàng loạt ra ngoài hệ thống — không rút lại được, phải xác nhận
         const ok = await confirm({
             message: 'Gửi email này tới tất cả thành viên chiến dịch? Email đã gửi không thu hồi được.',
             confirmLabel: 'Gửi email',

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { pricingService } from '../services/pricingService';
 
-/** Lấy danh sách chính sách giá (phân trang). */
+// lấy danh sách chính sách giá (phân trang)
 export function usePricePolicyList() {
     return useQuery({
         queryKey: ['price-policies'],

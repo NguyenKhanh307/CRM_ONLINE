@@ -1,9 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { userService } from '../services/userService';
 
-/**
- * Lấy danh sách user active — dùng cho dropdown người phụ trách / chủ sở hữu.
- */
+// lấy danh sách user active — dùng cho dropdown người phụ trách / chủ sở hữu
 export function useActiveUsers(enabled = true) {
     return useQuery({
         queryKey: ['users-active'],

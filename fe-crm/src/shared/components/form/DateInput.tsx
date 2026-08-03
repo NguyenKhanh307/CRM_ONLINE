@@ -7,15 +7,15 @@ import { Calendar } from './Calendar';
 import { useAnchoredPanel } from './useAnchoredPanel';
 
 interface DateInputProps {
-    /** Giá trị ISO yyyy-mm-dd (khớp form state). Rỗng nếu chưa chọn. */
+    // giá trị ISO yyyy-mm-dd (khớp form state). Rỗng nếu chưa chọn
     value: string;
-    /** Phát ISO yyyy-mm-dd khi hợp lệ, hoặc '' khi trống/không hợp lệ. */
+    // phát ISO yyyy-mm-dd khi hợp lệ, hoặc '' khi trống/không hợp lệ
     onChange: (iso: string) => void;
     className?: string;
     placeholder?: string;
 }
 
-/** Ghép chuỗi số thành mặt nạ dd/mm/yyyy (tự chèn dấu '/'). */
+// ghép chuỗi số thành mặt nạ dd/mm/yyyy (tự chèn dấu '/')
 function maskDate(raw: string): string {
     const digits = raw.replace(/\D/g, '').slice(0, 8);
     const dd = digits.slice(0, 2);
@@ -27,11 +27,9 @@ function maskDate(raw: string): string {
     return out;
 }
 
-/**
- * Ô nhập ngày hiển thị & nhập theo dd/mm/yyyy, kèm lịch popup, nhưng lưu/emit ISO yyyy-mm-dd.
- * Thay thế native <input type="date"> để đồng bộ định dạng trên mọi trình duyệt.
- * Panel lịch render qua portal (position: fixed) để nổi trên cả modal.
- */
+// ô nhập ngày hiển thị & nhập theo dd/mm/yyyy, kèm lịch popup, nhưng lưu/emit ISO yyyy-mm-dd
+// thay thế native <input type="date"> để đồng bộ định dạng trên mọi trình duyệt
+// panel lịch render qua portal (position: fixed) để nổi trên cả modal
 export const DateInput = ({
     value,
     onChange,
@@ -41,11 +39,12 @@ export const DateInput = ({
     const { open, setOpen, rect, containerRef, panelRef } = useAnchoredPanel();
     const [text, setText] = useState(formatISODate(value));
 
-    // Đồng bộ text hiển thị khi value đổi từ ngoài (populate modal sửa, reset form…).
+    // đồng bộ text hiển thị khi value đổi từ ngoài (populate modal sửa, reset form…)
     useEffect(() => {
         setText(formatISODate(value));
     }, [value]);
 
+    // commit giá trị đang gõ thành ISO nếu hợp lệ
     const commit = (raw: string) => {
         if (!raw.trim()) { onChange(''); return; }
         const iso = parseVNDate(raw);
@@ -56,8 +55,8 @@ export const DateInput = ({
         setText(maskDate(e.target.value));
     };
 
+    // chuẩn hóa lại hiển thị theo giá trị đã commit; nếu không hợp lệ -> khôi phục value cũ
     const handleBlur = () => {
-        // Chuẩn hóa lại hiển thị theo giá trị đã commit; nếu không hợp lệ → khôi phục value cũ.
         if (!text.trim()) { onChange(''); return; }
         const iso = parseVNDate(text);
         if (iso) { onChange(iso); setText(formatISODate(iso)); }

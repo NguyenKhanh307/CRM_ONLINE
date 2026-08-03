@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { campaignService } from '../services/campaignService';
 import type { CreateCampaignMemberPayload } from '../types/campaignTypes';
 
-/** Lấy danh sách thành viên của một Chiến dịch. */
+// lấy danh sách thành viên của một Chiến dịch
 export function useCampaignMembers(campaignId: number) {
     return useQuery({
         queryKey: ['campaign-members', campaignId],
@@ -11,7 +11,7 @@ export function useCampaignMembers(campaignId: number) {
     });
 }
 
-/** Thêm thành viên vào Chiến dịch. */
+// thêm thành viên vào Chiến dịch — cùng lúc làm mới thống kê ROI
 export function useCreateCampaignMember(campaignId: number) {
     const qc = useQueryClient();
     return useMutation({
@@ -23,7 +23,7 @@ export function useCreateCampaignMember(campaignId: number) {
     });
 }
 
-/** Xóa thành viên khỏi Chiến dịch. */
+// xóa thành viên khỏi Chiến dịch — cùng lúc làm mới thống kê ROI
 export function useDeleteCampaignMember(campaignId: number) {
     const qc = useQueryClient();
     return useMutation({

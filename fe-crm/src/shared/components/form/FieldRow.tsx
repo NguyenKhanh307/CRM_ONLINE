@@ -1,10 +1,8 @@
 import type { ReactNode } from 'react';
 
-/**
- * Hàng field trong form: label trái 148px + control bên phải.
- * Dùng trong lưới grid-cols-2 của FormSection.
- * Truyền `error` để hiện thông báo lỗi đỏ dưới ô nhập (kèm viền đỏ qua class `has-error`).
- */
+// hàng field trong form: label trái 148px + control bên phải
+// dùng trong lưới grid-cols-2 của FormSection
+// truyền `error` để hiện thông báo lỗi đỏ dưới ô nhập (kèm viền đỏ qua class `has-error`)
 export const FieldRow = ({
     label,
     required,
@@ -14,9 +12,9 @@ export const FieldRow = ({
 }: {
     label: string;
     required?: boolean;
-    /** Căn label lên đầu (cho textarea). */
+    // căn label lên đầu (cho textarea)
     alignTop?: boolean;
-    /** Thông báo lỗi — có giá trị thì ô nhập viền đỏ và hiện dòng lỗi bên dưới. */
+    // thông báo lỗi — có giá trị thì ô nhập viền đỏ và hiện dòng lỗi bên dưới
     error?: string | null;
     children: ReactNode;
 }) => (

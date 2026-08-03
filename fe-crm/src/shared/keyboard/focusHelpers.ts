@@ -1,26 +1,23 @@
 import { useEffect, useRef, type RefObject } from 'react';
 
-/** Phần tử khớp selector và đang hiển thị, theo thứ tự DOM. */
+// phần tử khớp selector và đang hiển thị, theo thứ tự DOM
 export const getVisibleElements = (container: HTMLElement, selector: string): HTMLElement[] =>
     Array.from(container.querySelectorAll<HTMLElement>(selector)).filter(el => el.offsetParent !== null);
 
-/** Đưa focus vào một phần tử và bôi đen nội dung sẵn có (nếu là ô text). */
+// đưa focus vào một phần tử và bôi đen nội dung sẵn có (nếu là ô text)
 export const focusAndSelect = (el: HTMLElement) => {
     el.focus();
     if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
-        // Ô number/date không cho select() trong một số trình duyệt.
+        // ô number/date không cho select() trong một số trình duyệt
         try { el.select(); } catch { /* bỏ qua */ }
     }
 };
 
-/**
- * Focus một phần tử sau khi DOM đã commit.
- * Cần `requestAnimationFrame` vì modal render sau overlay một nhịp.
- */
+// focus một phần tử sau khi DOM đã commit — cần requestAnimationFrame vì modal render sau overlay một nhịp
 export const useRafFocus = (
     pick: () => HTMLElement | null | undefined,
     enabled: boolean,
-    /** Bôi đen nội dung sẵn có — form cần, popup thì không. */
+    // bôi đen nội dung sẵn có — form cần, popup thì không
     select = false,
 ) => {
     const pickRef = useRef(pick);
@@ -37,7 +34,7 @@ export const useRafFocus = (
     }, [enabled, select]);
 };
 
-/** Gắn listener `keydown` lên container, tự gỡ khi unmount hoặc khi `enabled` tắt. */
+// gắn listener keydown lên container, tự gỡ khi unmount hoặc khi enabled tắt
 export const useContainerKeydown = <T extends HTMLElement>(
     ref: RefObject<T | null>,
     handler: (e: KeyboardEvent) => void,
