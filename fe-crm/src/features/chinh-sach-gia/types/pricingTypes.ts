@@ -102,15 +102,3 @@ export interface CreatePricePolicyProductCategoryPayload {
     pricePolicyId: number;
     categoryId: number;
 }
-
-export interface PricePolicyEmployeeResult {
-    id: number;
-    pricePolicyId: number;
-    userId: number | null;
-    userName?: string;
-}
-
-export interface CreatePricePolicyEmployeePayload {
-    pricePolicyId: number;
-    userId: number | null;
-}

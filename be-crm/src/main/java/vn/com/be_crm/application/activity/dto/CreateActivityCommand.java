@@ -37,8 +37,6 @@ public class CreateActivityCommand {
 
     private String targetType;
     private Long targetId;
-    private String relatedType;
-    private Long relatedId;
 
     @Size(max = 255)
     private String location;

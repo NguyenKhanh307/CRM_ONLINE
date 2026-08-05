@@ -150,7 +150,7 @@ public class ContactRepositoryImpl implements IContactRepository {
         return TxSupport.read(sf, s -> {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
             String ownerFilter = r.getOwnerId() != null ? " AND assignedUserId = :ownerId" : "";
-            String searchFilter = ListQueryUtils.likeClause(r.getQ(), "fullName", "email", "workEmail");
+            String searchFilter = ListQueryUtils.likeClause(r.getQ(), "fullName", "email");
             Boolean statusVal = r.getStatus() == null || r.getStatus().isBlank() ? null : Boolean.valueOf(r.getStatus());
             String statusFilter = statusVal != null ? " AND isPrimary = :status" : "";
             // Thu hẹp theo khách hàng — ô chọn Liên hệ trong form dùng để chỉ hiện liên hệ của khách đang chọn

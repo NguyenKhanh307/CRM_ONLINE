@@ -8,9 +8,8 @@ import vn.com.be_crm.domain.invoice.enums.PaymentScheduleStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
-/** Output DTO cho InvoicePaymentSchedule. */
+// output cho InvoicePaymentSchedule
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class InvoicePaymentScheduleResult {
     private Long id;
@@ -20,6 +19,7 @@ public class InvoicePaymentScheduleResult {
     private BigDecimal amount;
     private BigDecimal paidAmount;
     private PaymentScheduleStatus status;
-    private LocalDateTime paidAt;
+    private String bankName;
+    private String bankAccount;
     private String note;
 }

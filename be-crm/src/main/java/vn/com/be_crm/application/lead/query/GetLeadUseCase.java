@@ -26,7 +26,6 @@ public class GetLeadUseCase implements IUseCase<Long, LeadResult> {
                 repo.findById(id).orElseThrow(() -> new NotFoundException("Lead not found: " + id)));
         List<LeadResult> one = List.of(result);
         NameEnricher.apply(one, LeadResult::getOwnerId, names::users, LeadResult::setOwnerName);
-        NameEnricher.apply(one, LeadResult::getCustomerId, names::customers, LeadResult::setCustomerName);
         NameEnricher.apply(one, LeadResult::getContactId, names::contacts, LeadResult::setContactName);
         NameEnricher.apply(one, LeadResult::getCampaignId, names::campaigns, LeadResult::setCampaignName);
         NameEnricher.apply(one, LeadResult::getCreatedBy, names::users, LeadResult::setCreatedByName);

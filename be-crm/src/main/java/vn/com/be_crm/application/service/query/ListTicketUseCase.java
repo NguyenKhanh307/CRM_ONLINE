@@ -22,9 +22,7 @@ public class ListTicketUseCase implements IUseCase<PageRequest, PageResult<Ticke
     @Override public PageResult<TicketResult> execute(PageRequest r) {
         var page = repo.findAll(r);
         List<TicketResult> items = page.getItems().stream().map(TicketCommandMapper::toResult).collect(Collectors.toList());
-        NameEnricher.apply(items, TicketResult::getCustomerId, names::customers, TicketResult::setCustomerName);
-        NameEnricher.apply(items, TicketResult::getContactId, names::contacts, TicketResult::setContactName);
-        NameEnricher.apply(items, TicketResult::getInvoiceId, names::invoiceCodes, TicketResult::setInvoiceCode);
+        NameEnricher.apply(items, TicketResult::getOrderId, names::orderCodes, TicketResult::setOrderCode);
         NameEnricher.apply(items, TicketResult::getAssignedUserId, names::users, TicketResult::setAssignedUserName);
         NameEnricher.apply(items, TicketResult::getCreatedBy, names::users, TicketResult::setCreatedByName);
         NameEnricher.apply(items, TicketResult::getUpdatedBy, names::users, TicketResult::setUpdatedByName);

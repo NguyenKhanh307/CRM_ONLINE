@@ -5,16 +5,22 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.campaign.dto.PublicCampaignResult;
 import vn.com.be_crm.application.campaign.query.ListPublicCampaignsUseCase;
 import vn.com.be_crm.application.lead.command.RecordTrackingEventUseCase;
+import vn.com.be_crm.application.lead.command.RequestProductQuoteUseCase;
 import vn.com.be_crm.application.lead.command.SubmitTrackingFormUseCase;
+import vn.com.be_crm.application.lead.command.TrackProductViewUseCase;
 import vn.com.be_crm.application.lead.command.TrackVisitUseCase;
 import vn.com.be_crm.application.lead.dto.LeadResult;
+import vn.com.be_crm.application.lead.dto.RequestProductQuoteCommand;
+import vn.com.be_crm.application.lead.dto.TrackProductViewCommand;
+import vn.com.be_crm.application.product.dto.PublicProductResult;
+import vn.com.be_crm.application.product.query.ListPublicProductsUseCase;
 import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 
 /**
  * REST controller công khai cho web tracking (không yêu cầu đăng nhập).
- * Phục vụ trang landing mô phỏng: tạo tiềm năng ẩn danh, cộng điểm, nộp form.
+ * Phục vụ trang landing sản phẩm: tạo tiềm năng ẩn danh, cộng điểm, nộp form, yêu cầu báo giá.
  */
 @RestController
 @RequestMapping("/api/tracking")
@@ -23,16 +29,25 @@ public class TrackingController {
     private final RecordTrackingEventUseCase scoreUC;
     private final SubmitTrackingFormUseCase submitUC;
     private final ListPublicCampaignsUseCase campaignsUC;
+    private final ListPublicProductsUseCase productsUC;
+    private final RequestProductQuoteUseCase requestQuoteUC;
+    private final TrackProductViewUseCase trackViewUC;
 
     /**
-     * @param visitUC     lượt truy cập
-     * @param scoreUC     ghi điểm
-     * @param submitUC    nộp form
-     * @param campaignsUC danh sách chiến dịch đang chạy (chọn nguồn cho landing page)
+     * @param visitUC        lượt truy cập
+     * @param scoreUC        ghi điểm
+     * @param submitUC       nộp form
+     * @param campaignsUC    danh sách chiến dịch đang chạy (chọn nguồn cho landing page)
+     * @param productsUC     danh sách sản phẩm công khai
+     * @param requestQuoteUC yêu cầu báo giá các sản phẩm đã chọn
+     * @param trackViewUC    ghi nhận lượt xem chi tiết một sản phẩm
      */
     public TrackingController(TrackVisitUseCase visitUC, RecordTrackingEventUseCase scoreUC,
-                              SubmitTrackingFormUseCase submitUC, ListPublicCampaignsUseCase campaignsUC) {
+                              SubmitTrackingFormUseCase submitUC, ListPublicCampaignsUseCase campaignsUC,
+                              ListPublicProductsUseCase productsUC, RequestProductQuoteUseCase requestQuoteUC,
+                              TrackProductViewUseCase trackViewUC) {
         this.visitUC = visitUC; this.scoreUC = scoreUC; this.submitUC = submitUC; this.campaignsUC = campaignsUC;
+        this.productsUC = productsUC; this.requestQuoteUC = requestQuoteUC; this.trackViewUC = trackViewUC;
     }
 
     /**
@@ -69,6 +84,25 @@ public class TrackingController {
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
+    /** Danh sách sản phẩm đang hoạt động cho landing page. @return 200 */
+    @GetMapping("/products")
+    public ResponseEntity<ApiResponse<List<PublicProductResult>>> products() {
+        return ResponseEntity.ok(ApiResponse.ok(productsUC.execute()));
+    }
+
+    /** Yêu cầu báo giá các sản phẩm đã chọn + cập nhật thông tin liên hệ. @param cmd body @return 200 */
+    @PostMapping("/request-quote")
+    public ResponseEntity<ApiResponse<LeadResult>> requestQuote(@RequestBody RequestProductQuoteCommand cmd) {
+        return ResponseEntity.ok(ApiResponse.ok(requestQuoteUC.execute(cmd)));
+    }
+
+    /** Ghi nhận lượt xem chi tiết một sản phẩm. @param req body @return 200 */
+    @PostMapping("/view-product")
+    public ResponseEntity<ApiResponse<LeadResult>> viewProduct(@RequestBody ViewProductRequest req) {
+        return ResponseEntity.ok(ApiResponse.ok(trackViewUC.execute(
+                TrackProductViewCommand.builder().code(req.code()).productId(req.productId()).build())));
+    }
+
     /** Body cho /visit. */
     public record VisitRequest(String code, Long campaignId) {}
 
@@ -78,4 +112,7 @@ public class TrackingController {
     /** Body cho /submit. */
     public record SubmitRequest(String code, String name, String companyName, String email,
                                 String phone, String note, Integer points) {}
+
+    /** Body cho /view-product. */
+    public record ViewProductRequest(String code, Long productId) {}
 }

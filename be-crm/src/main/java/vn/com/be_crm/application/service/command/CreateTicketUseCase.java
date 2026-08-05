@@ -15,24 +15,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Use case tạo mới phiếu hỗ trợ: tra chính sách SLA theo độ ưu tiên để tính hạn giải quyết,
- * lưu phiếu (kèm dòng hàng trả/đổi nếu có), rồi ghi audit log "tạo phiếu".
- */
+// tạo mới phiếu hỗ trợ: tra chính sách SLA theo độ ưu tiên để tính hạn giải quyết, lưu phiếu
+// (kèm dòng hàng trả/đổi nếu có)
 public class CreateTicketUseCase implements IUseCase<CreateTicketCommand, TicketResult> {
     private final ITicketRepository repo;
     private final ISlaPolicyRepository slaRepo;
-    private final LogTicketEventUseCase logEvent;
 
-    /** @param repo phiếu @param slaRepo chính sách SLA @param logEvent ghi audit log */
-    public CreateTicketUseCase(ITicketRepository repo, ISlaPolicyRepository slaRepo, LogTicketEventUseCase logEvent) {
-        this.repo = repo; this.slaRepo = slaRepo; this.logEvent = logEvent;
+    public CreateTicketUseCase(ITicketRepository repo, ISlaPolicyRepository slaRepo) {
+        this.repo = repo; this.slaRepo = slaRepo;
     }
 
-    /** Tạo mới phiếu + tính SLA + lưu dòng hàng + log. @param cmd @return TicketResult */
     @Override public TicketResult execute(CreateTicketCommand cmd) {
         Ticket entity = TicketCommandMapper.toEntity(cmd);
-        // Tra SLA theo độ ưu tiên → set slaPolicyId + hạn giải quyết (createdAt + resolutionHours)
+        // tra SLA theo độ ưu tiên -> set slaPolicyId + hạn giải quyết (createdAt + resolutionHours)
         SlaPolicy sla = slaRepo.findByPriority(entity.getPriority()).orElse(null);
         if (sla != null) {
             entity = entity.toBuilder()
@@ -50,7 +45,6 @@ public class CreateTicketUseCase implements IUseCase<CreateTicketCommand, Ticket
             saved = repo.save(entity);
         }
 
-        logEvent.execute(saved.getId(), "Tạo phiếu " + saved.getCode() + " từ kênh " + saved.getChannel());
         return TicketCommandMapper.toResult(saved);
     }
 }

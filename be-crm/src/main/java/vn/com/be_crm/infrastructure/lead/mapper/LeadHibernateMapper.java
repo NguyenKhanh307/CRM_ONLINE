@@ -14,17 +14,14 @@ public class LeadHibernateMapper {
         LeadHibernate h = new LeadHibernate();
         h.setId(d.getId()); h.setCode(d.getCode()); h.setName(d.getName());
         h.setCompanyName(d.getCompanyName()); h.setLeadType(d.getLeadType());
-        h.setOwnerId(d.getOwnerId()); h.setCustomerId(d.getCustomerId()); h.setContactId(d.getContactId());
+        h.setOwnerId(d.getOwnerId()); h.setContactId(d.getContactId());
         h.setConvertedOpportunityId(d.getConvertedOpportunityId());
-        h.setTitle(d.getTitle()); h.setDepartment(d.getDepartment());
         h.setTaxCode(d.getTaxCode()); h.setWebsite(d.getWebsite()); h.setIndustry(d.getIndustry());
         h.setSource(d.getSource()); h.setCampaignId(d.getCampaignId());
         h.setStatus(d.getStatus() != null ? d.getStatus() : LeadStatus.new_);
-        h.setEstimatedValue(d.getEstimatedValue());
         h.setScore(d.getScore() != null ? d.getScore() : 0);
         h.setPhone(d.getPhone());
         h.setEmail(d.getEmail());
-        h.setDoNotCall(d.isDoNotCall()); h.setDoNotEmail(d.isDoNotEmail());
         h.setNote(d.getNote()); h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
         // đóng dấu người tạo/sửa ngay ở đây — cần cho body response của PUT (AuditInterceptor
@@ -37,15 +34,13 @@ public class LeadHibernateMapper {
                 .id(h.getId()).code(h.getCode()).name(h.getName())
                 .companyName(h.getCompanyName()).leadType(h.getLeadType())
                 .ownerId(h.getOwnerId())
-                .customerId(h.getCustomerId()).contactId(h.getContactId())
+                .contactId(h.getContactId())
                 .convertedOpportunityId(h.getConvertedOpportunityId())
-                .title(h.getTitle()).department(h.getDepartment())
                 .taxCode(h.getTaxCode()).website(h.getWebsite()).industry(h.getIndustry())
                 .source(h.getSource()).campaignId(h.getCampaignId())
-                .status(h.getStatus()).estimatedValue(h.getEstimatedValue()).score(h.getScore())
+                .status(h.getStatus()).score(h.getScore())
                 .phone(h.getPhone())
                 .email(h.getEmail())
-                .doNotCall(h.isDoNotCall()).doNotEmail(h.isDoNotEmail())
                 .note(h.getNote()).createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt())
                 .updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())

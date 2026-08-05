@@ -22,22 +22,11 @@ export const getOpportunityColumns = (): ColumnDef<OpportunityResult>[] => [
     { accessorKey: 'stageName', header: 'Giai đoạn', size: 150, cell: textCell },
     { accessorKey: 'campaignName', header: 'Chiến dịch', size: 160, cell: textCell },
     { accessorKey: 'amount', header: 'Giá trị', size: 140, cell: currencyCell },
-    { accessorKey: 'expectedRevenue', header: 'Doanh thu dự kiến', size: 160, cell: currencyCell },
-    {
-        accessorKey: 'probability',
-        header: 'Xác suất',
-        size: 100,
-        cell: ({ getValue }) => {
-            const v = getValue<number | null>();
-            return v != null ? v + '%' : '—';
-        },
-    },
     { accessorKey: 'status', header: 'Trạng thái', size: 120, cell: badgeCell(STATUS_LABELS, STATUS_COLORS) },
     { accessorKey: 'source', header: 'Nguồn', size: 120, cell: textCell },
     { accessorKey: 'winLossReason', header: 'Lý do thắng/thua', size: 180, cell: textCell },
     { accessorKey: 'description', header: 'Mô tả', size: 200, cell: textCell },
     { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
-    { accessorKey: 'expectedCloseDate', header: 'Ngày đóng dự kiến', size: 160, cell: dateCell },
     { accessorKey: 'createdByName', header: 'Người tạo', size: 160, cell: textCell },
     { accessorKey: 'createdAt', header: 'Ngày tạo', size: 120, enableSorting: true, cell: dateCell },
     { accessorKey: 'updatedByName', header: 'Người sửa cuối', size: 160, cell: textCell },

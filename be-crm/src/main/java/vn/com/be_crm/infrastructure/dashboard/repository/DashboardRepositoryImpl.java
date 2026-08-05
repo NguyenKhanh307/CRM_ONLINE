@@ -14,23 +14,26 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import vn.com.be_crm.core.tx.impl.TxSupport;
 
-/**
- * Hibernate implementation của IDashboardRepository — thống kê tổng hợp bằng native COUNT/SUM.
- */
+// Hibernate implementation của IDashboardRepository — thống kê tổng hợp bằng native COUNT/SUM.
+// invoices/orders/quotations không còn cột subtotal/discount/tax/total lưu sẵn (tính on-read từ
+// dòng hàng, xem LineItemTotals) — mọi SUM(total) ở đây được thay bằng công thức tương đương tính
+// trực tiếp trong SQL: SUM((quantity*unit_price - discount) * (1 + tax_rate/100)) join qua
+// invoice_items. Cộng dồn theo dòng cho kết quả TOÁN HỌC TƯƠNG ĐƯƠNG với cộng dồn theo hóa đơn
+// (chỉ lệch sai số làm tròn rất nhỏ do làm tròn 2 lần thay vì 1 lần — chấp nhận được ở quy mô dashboard).
 @Repository
 public class DashboardRepositoryImpl implements IDashboardRepository {
 
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
     private static final DateTimeFormatter YM = DateTimeFormatter.ofPattern("yyyy-MM");
+    // công thức thành tiền một dòng hóa đơn — khớp LineItemTotals.lineAmount()
+    private static final String INVOICE_LINE_AMOUNT = "(ii.quantity * ii.unit_price - ii.discount) * (1 + ii.tax_rate / 100)";
 
     private final SessionFactory sf;
 
-    /** @param sf Hibernate SessionFactory */
     public DashboardRepositoryImpl(SessionFactory sf) {
         this.sf = sf;
     }
 
-    /** {@inheritDoc} */
     @Override
     public AdminDashboardResult getAdmin(DateRange cur, DateRange prev, LocalDate seriesFrom) {
         return TxSupport.read(sf, s -> {
@@ -68,7 +71,6 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         });
     }
 
-    /** {@inheritDoc} */
     @Override
     public SalesDashboardResult getSales(Long ownerId, boolean includeTeam, DateRange cur, DateRange prev, LocalDate seriesFrom) {
         return TxSupport.read(sf, s -> {
@@ -76,17 +78,16 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
             String ofI = ownerId == null ? "" : " AND i.owner_id = :o";        // alias i cho invoices
             String ofTicket = ownerId == null ? "" : " AND assigned_user_id = :o";
 
-            // ----- Tài chính -----
-            BigDecimal revCur = sum(s, "SELECT COALESCE(SUM(total),0) FROM invoices WHERE status <> 'cancelled' AND deleted_at IS NULL " +
-                    "AND invoice_date >= :f AND invoice_date < :t" + of, dateOwner(cur, ownerId));
-            BigDecimal revPrev = sum(s, "SELECT COALESCE(SUM(total),0) FROM invoices WHERE status <> 'cancelled' AND deleted_at IS NULL " +
-                    "AND invoice_date >= :f AND invoice_date < :t" + of, dateOwner(prev, ownerId));
+            // ----- Tài chính (tổng tiền hóa đơn tính từ dòng hàng, không còn cột total lưu sẵn) -----
+            BigDecimal revCur = sum(s, invoiceRevenueSql(ofI), dateOwner(cur, ownerId));
+            BigDecimal revPrev = sum(s, invoiceRevenueSql(ofI), dateOwner(prev, ownerId));
             BigDecimal costCur = sum(s, cogsSql(ofI), dateOwner(cur, ownerId));
             BigDecimal costPrev = sum(s, cogsSql(ofI), dateOwner(prev, ownerId));
 
             List<TimeSeriesPoint> revByMonth = fillMonths(seriesFrom, rows(s,
-                    "SELECT DATE_FORMAT(invoice_date, '%Y-%m') p, COALESCE(SUM(total),0) v FROM invoices " +
-                            "WHERE status <> 'cancelled' AND deleted_at IS NULL AND invoice_date >= :f" + of + " GROUP BY p ORDER BY p",
+                    "SELECT DATE_FORMAT(i.invoice_date, '%Y-%m') p, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v " +
+                            "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                            "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL AND i.invoice_date >= :f" + ofI + " GROUP BY p ORDER BY p",
                     seriesOwner(seriesFrom, ownerId)));
             List<TimeSeriesPoint> costByMonth = fillMonths(seriesFrom, rows(s,
                     "SELECT DATE_FORMAT(i.invoice_date, '%Y-%m') p, COALESCE(SUM(ii.quantity * COALESCE(pr.cost_price,0)),0) v " +
@@ -94,10 +95,9 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
                             "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL AND i.invoice_date >= :f" + ofI + " GROUP BY p ORDER BY p",
                     seriesOwner(seriesFrom, ownerId)));
             List<TimeSeriesPoint> profitByMonth = subtractSeries(revByMonth, costByMonth);
-            List<TimeSeriesPoint> expectedByMonth = fillMonths(seriesFrom, rows(s,
-                    "SELECT DATE_FORMAT(expected_close_date, '%Y-%m') p, COALESCE(SUM(COALESCE(expected_revenue, amount)),0) v " +
-                            "FROM opportunities WHERE status = 'open' AND deleted_at IS NULL AND expected_close_date IS NOT NULL " +
-                            "AND expected_close_date >= :f" + of + " GROUP BY p ORDER BY p", seriesOwner(seriesFrom, ownerId)));
+            // TODO: doanh số kỳ vọng theo tháng cần thiết kế lại — opportunities.expected_close_date/
+            // expected_revenue đã bỏ khỏi schema mới, không còn cột nào tương đương để tính lại
+            List<TimeSeriesPoint> expectedByMonth = fillMonths(seriesFrom, List.of());
 
             // ----- KPI cơ hội -----
             KpiMetric oppTotal = oppKpi(s, "", of, cur, prev, ownerId);
@@ -144,14 +144,21 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
 
     // ==================== Helpers truy vấn ====================
 
-    /** SQL tính giá vốn (COGS) theo kỳ; {@code ofI} = mệnh đề lọc owner trên alias i. */
+    // SQL tính giá vốn (COGS) theo kỳ; ofI = mệnh đề lọc owner trên alias i
     private String cogsSql(String ofI) {
         return "SELECT COALESCE(SUM(ii.quantity * COALESCE(pr.cost_price,0)),0) FROM invoices i " +
                 "JOIN invoice_items ii ON ii.invoice_id = i.id LEFT JOIN products pr ON pr.id = ii.product_id " +
                 "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL AND i.invoice_date >= :f AND i.invoice_date < :t" + ofI;
     }
 
-    /** Tính KpiMetric số cơ hội theo bộ lọc trạng thái, so kỳ hiện tại/kỳ trước. */
+    // SQL tính doanh thu (tổng tiền hóa đơn từ dòng hàng) theo kỳ; ofI = mệnh đề lọc owner trên alias i
+    private String invoiceRevenueSql(String ofI) {
+        return "SELECT COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) FROM invoices i " +
+                "JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL AND i.invoice_date >= :f AND i.invoice_date < :t" + ofI;
+    }
+
+    // tính KpiMetric số cơ hội theo bộ lọc trạng thái, so kỳ hiện tại/kỳ trước
     private KpiMetric oppKpi(Session s, String statusFilter, String of, DateRange cur, DateRange prev, Long ownerId) {
         String sql = "SELECT COUNT(*) FROM opportunities WHERE deleted_at IS NULL AND created_at >= :f AND created_at < :t" + statusFilter + of;
         long c = count(s, sql, dateOwner(cur, ownerId));
@@ -159,14 +166,14 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         return KpiMetric.of(BigDecimal.valueOf(c), BigDecimal.valueOf(p));
     }
 
-    /** Tỉ lệ thắng = won / (won + lost) * 100. */
+    // tỉ lệ thắng = won / (won + lost) * 100
     private BigDecimal winRatePct(BigDecimal won, BigDecimal lost) {
         BigDecimal denom = won.add(lost);
         if (denom.signum() == 0) return BigDecimal.ZERO;
         return won.multiply(HUNDRED).divide(denom, 1, RoundingMode.HALF_UP);
     }
 
-    /** Phễu chuyển đổi theo giai đoạn pipeline; owner tùy chọn. */
+    // phễu chuyển đổi theo giai đoạn pipeline; owner tùy chọn
     private List<FunnelStage> funnel(Session s, Long ownerId) {
         String join = ownerId == null ? "" : " AND o.owner_id = :o";
         List<Object[]> rs = rows(s,
@@ -185,7 +192,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         return out;
     }
 
-    /** Danh sách việc gấp: phiếu quá hạn SLA + báo giá sắp hết hạn + hóa đơn quá hạn. */
+    // danh sách việc gấp: phiếu quá hạn SLA + báo giá sắp hết hạn + hóa đơn quá hạn
     private List<UrgentItem> urgentItems(Session s, String of, String ofTicket, Long ownerId) {
         Map<String, Object> po = owner(ownerId);
         List<UrgentItem> out = new ArrayList<>();
@@ -207,7 +214,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         return out;
     }
 
-    /** Thống kê cơ hội theo trạng thái, gom theo từng nhân viên (tối đa 8 người). */
+    // thống kê cơ hội theo trạng thái, gom theo từng nhân viên (tối đa 8 người)
     private List<GroupedStatusRow> teamByOwner(Session s) {
         List<Object[]> rs = rows(s,
                 "SELECT u.full_name, o.status, COUNT(*) FROM opportunities o JOIN users u ON u.id = o.owner_id " +
@@ -221,26 +228,34 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
                 .map(e -> new GroupedStatusRow(e.getKey(), e.getValue())).toList();
     }
 
-    /** {@inheritDoc} */
+    // doanh thu theo chiến dịch (top 8) — invoices không còn campaign_id trực tiếp, chiến dịch nay
+    // suy ra qua chuỗi Invoice -> Order -> Quotation -> Opportunity -> campaign_id
     @Override
     public List<RankedItem> revenueByCampaign(Long ownerId, DateRange cur) {
         String of = ownerId == null ? "" : " AND i.owner_id = :o";
         return TxSupport.read(sf, s -> rows(s,
-                "SELECT c.id, c.name, COALESCE(SUM(i.total),0) v FROM invoices i JOIN campaigns c ON c.id = i.campaign_id " +
+                "SELECT c.id, c.name, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v " +
+                        "FROM invoices i " +
+                        "JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                        "JOIN orders o ON o.id = i.order_id " +
+                        "JOIN quotations q ON q.id = o.quotation_id " +
+                        "JOIN opportunities opp ON opp.id = q.opportunity_id " +
+                        "JOIN campaigns c ON c.id = opp.campaign_id " +
                         "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL AND i.invoice_date >= :f AND i.invoice_date < :t" + of +
                         " GROUP BY c.id, c.name ORDER BY v DESC LIMIT 8", dateOwner(cur, ownerId))
                 .stream().map(r -> new RankedItem(((Number) r[0]).longValue(), str(r[1]), toBig(r[2]))).toList());
     }
 
-    /** Doanh thu theo nhân viên trong kỳ (top 8). */
+    // doanh thu theo nhân viên trong kỳ (top 8)
     private List<RankedItem> revenueByOwner(Session s, DateRange cur) {
-        return rows(s, "SELECT u.id, u.full_name, COALESCE(SUM(i.total),0) v FROM invoices i JOIN users u ON u.id = i.owner_id " +
+        return rows(s, "SELECT u.id, u.full_name, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v " +
+                "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id JOIN users u ON u.id = i.owner_id " +
                 "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL AND i.invoice_date >= :f AND i.invoice_date < :t " +
                 "GROUP BY u.id, u.full_name ORDER BY v DESC LIMIT 8", Map.of("f", cur.from(), "t", cur.toExclusive()))
                 .stream().map(r -> new RankedItem(((Number) r[0]).longValue(), str(r[1]), toBig(r[2]))).toList();
     }
 
-    /** Đếm tổng bản ghi 1 bảng nghiệp vụ (chưa xóa mềm) → DonutSegment (pct điền sau). */
+    // đếm tổng bản ghi 1 bảng nghiệp vụ (chưa xóa mềm) → DonutSegment (pct điền sau)
     private DonutSegment recordTotal(Session s, String label, String table) {
         long c = count(s, "SELECT COUNT(*) FROM " + table + " WHERE deleted_at IS NULL", Map.of());
         return new DonutSegment(label, c, BigDecimal.ZERO);
@@ -248,7 +263,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
 
     // ==================== Helpers dựng dữ liệu ====================
 
-    /** Dựng danh sách donut kèm % từ các dòng [label, count]. */
+    // dựng danh sách donut kèm % từ các dòng [label, count]
     private List<DonutSegment> donut(List<Object[]> rs) {
         long total = rs.stream().mapToLong(r -> ((Number) r[1]).longValue()).sum();
         List<DonutSegment> out = new ArrayList<>();
@@ -259,13 +274,13 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         return out;
     }
 
-    /** Điền lại % cho danh sách DonutSegment đã có count. */
+    // điền lại % cho danh sách DonutSegment đã có count
     private List<DonutSegment> withPct(List<DonutSegment> in) {
         long total = in.stream().mapToLong(DonutSegment::count).sum();
         return in.stream().map(d -> new DonutSegment(d.label(), d.count(), pct(d.count(), total))).toList();
     }
 
-    /** Đổ các dòng [period, value] vào chuỗi 12 tháng liên tục từ {@code from}. */
+    // đổ các dòng [period, value] vào chuỗi 12 tháng liên tục từ "from"
     private List<TimeSeriesPoint> fillMonths(LocalDate from, List<Object[]> rs) {
         Map<String, BigDecimal> map = new HashMap<>();
         for (Object[] r : rs) map.put(str(r[0]), toBig(r[1]));
@@ -279,7 +294,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         return out;
     }
 
-    /** Hiệu hai chuỗi cùng độ dài (doanh thu − chi phí). */
+    // hiệu hai chuỗi cùng độ dài (doanh thu − chi phí)
     private List<TimeSeriesPoint> subtractSeries(List<TimeSeriesPoint> a, List<TimeSeriesPoint> b) {
         List<TimeSeriesPoint> out = new ArrayList<>();
         for (int i = 0; i < a.size(); i++) {
@@ -288,7 +303,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         return out;
     }
 
-    /** % của count trên total, làm tròn 1 chữ số. */
+    // % của count trên total, làm tròn 1 chữ số
     private BigDecimal pct(long count, long total) {
         if (total == 0) return BigDecimal.ZERO;
         return BigDecimal.valueOf(count).multiply(HUNDRED).divide(BigDecimal.valueOf(total), 1, RoundingMode.HALF_UP);
@@ -296,7 +311,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
 
     // ==================== Helpers native query ====================
 
-    /** Chạy native query trả về 1 giá trị đếm. */
+    // chạy native query trả về 1 giá trị đếm
     private long count(Session s, String sql, Map<String, Object> params) {
         var q = s.createNativeQuery(sql, Object.class);
         params.forEach(q::setParameter);
@@ -304,14 +319,14 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         return r == null ? 0 : ((Number) r).longValue();
     }
 
-    /** Chạy native query trả về 1 giá trị SUM (BigDecimal). */
+    // chạy native query trả về 1 giá trị SUM (BigDecimal)
     private BigDecimal sum(Session s, String sql, Map<String, Object> params) {
         var q = s.createNativeQuery(sql, Object.class);
         params.forEach(q::setParameter);
         return toBig(q.uniqueResult());
     }
 
-    /** Chạy native query trả về nhiều cột. */
+    // chạy native query trả về nhiều cột
     @SuppressWarnings("unchecked")
     private List<Object[]> rows(Session s, String sql, Map<String, Object> params) {
         var q = s.createNativeQuery(sql, Object[].class);
@@ -319,7 +334,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         return q.list();
     }
 
-    /** Map tham số {f,t} + owner tùy chọn. */
+    // map tham số {f,t} + owner tùy chọn
     private Map<String, Object> dateOwner(DateRange r, Long ownerId) {
         Map<String, Object> m = new HashMap<>();
         m.put("f", r.from());
@@ -328,7 +343,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         return m;
     }
 
-    /** Map tham số {f = seriesFrom} + owner tùy chọn. */
+    // map tham số {f = seriesFrom} + owner tùy chọn
     private Map<String, Object> seriesOwner(LocalDate seriesFrom, Long ownerId) {
         Map<String, Object> m = new HashMap<>();
         m.put("f", seriesFrom);
@@ -336,12 +351,12 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         return m;
     }
 
-    /** Map chỉ chứa owner (rỗng nếu null). */
+    // map chỉ chứa owner (rỗng nếu null)
     private Map<String, Object> owner(Long ownerId) {
         return ownerId == null ? Map.of() : Map.of("o", ownerId);
     }
 
-    /** Ép object kết quả về BigDecimal an toàn. */
+    // ép object kết quả về BigDecimal an toàn
     private BigDecimal toBig(Object o) {
         if (o == null) return BigDecimal.ZERO;
         if (o instanceof BigDecimal b) return b;
@@ -349,7 +364,7 @@ public class DashboardRepositoryImpl implements IDashboardRepository {
         return new BigDecimal(o.toString());
     }
 
-    /** Ép object về String an toàn. */
+    // ép object về String an toàn
     private String str(Object o) {
         return o == null ? "" : o.toString();
     }

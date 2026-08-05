@@ -91,6 +91,12 @@ public class NameResolverImpl implements INameResolver {
         return resolve("product_categories", "name", ids);
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public Map<Long, String> products(Collection<Long> ids) {
+        return resolve("products", "name", ids);
+    }
+
     /**
      * Chạy native query tra id→tên cho một bảng.
      * Tham số bảng/cột là hằng nội bộ (không nhận từ input người dùng) nên không có

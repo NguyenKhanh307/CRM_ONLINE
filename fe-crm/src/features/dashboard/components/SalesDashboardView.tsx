@@ -4,7 +4,6 @@ import { COLORS, viStatus } from './chartTheme';
 import { DashCard } from './DashCard';
 import { KpiTile } from './KpiTile';
 import { DonutChart } from './DonutChart';
-import { AreaTrend } from './AreaTrend';
 import { RevenueCostProfitChart } from './RevenueCostProfitChart';
 import { FunnelChart } from './FunnelChart';
 import { RankedList } from './RankedList';
@@ -55,23 +54,18 @@ export const SalesDashboardView = ({ data, unit, periodLabel, onRefresh, showTea
                 <KpiTile label="Kết thúc thua" value={formatNumber(data.oppLost.current)} growthPct={data.oppLost.growthPct} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <DashCard title="Tỷ lệ cơ hội thắng" periodLabel={periodLabel} onRefresh={onRefresh}>
-                    <div className="flex items-center justify-center">
-                        <div className="text-center mr-6">
-                            <div className="text-xl font-semibold text-success">{data.winRate.current}%</div>
-                            <div className="text-sm text-gray-400">Tỷ lệ thắng</div>
-                        </div>
-                        <DonutChart centerLabel="Cơ hội" segments={[
-                            { label: 'Thắng', count: data.oppWon.current, pct: data.winRate.current },
-                            { label: 'Thua', count: data.oppLost.current, pct: 100 - data.winRate.current },
-                        ]} />
+            <DashCard title="Tỷ lệ cơ hội thắng" periodLabel={periodLabel} onRefresh={onRefresh}>
+                <div className="flex items-center justify-center">
+                    <div className="text-center mr-6">
+                        <div className="text-xl font-semibold text-success">{data.winRate.current}%</div>
+                        <div className="text-sm text-gray-400">Tỷ lệ thắng</div>
                     </div>
-                </DashCard>
-                <DashCard title="Doanh số kỳ vọng theo tháng" periodLabel="12 tháng" onRefresh={onRefresh}>
-                    <AreaTrend data={data.expectedByMonth} color={COLORS.primary} format={fmt} />
-                </DashCard>
-            </div>
+                    <DonutChart centerLabel="Cơ hội" segments={[
+                        { label: 'Thắng', count: data.oppWon.current, pct: data.winRate.current },
+                        { label: 'Thua', count: data.oppLost.current, pct: 100 - data.winRate.current },
+                    ]} />
+                </div>
+            </DashCard>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <DashCard title="Phễu chuyển đổi theo giai đoạn" periodLabel={periodLabel} onRefresh={onRefresh}>

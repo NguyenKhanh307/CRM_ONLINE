@@ -1,7 +1,5 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { collectErrors, nonNegativeError } from '@/shared/utils/validators';
-import { FieldError } from '@/shared/components/form/FormField';
 import { formatNumber } from '@/shared/utils/number';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
@@ -16,10 +14,10 @@ import { opportunityService } from '../services/opportunityService';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
-import { DateInput } from '@/shared/components/form/DateInput';
 import {
     type LineItemRow,
     type ProductOption,
+    computeTotals,
     fromItemResult,
     diffLineItems,
     toItemPayload,
@@ -43,7 +41,7 @@ export function OpportunityEditModal({ item, onClose }: Props) {
     const { data: campaigns = [] } = useCampaignList();
     const [form, setForm] = useState<UpdateOpportunityPayload>({
         name: '', opportunityType: null, customerId: null, contactId: null, ownerId: null,
-        stageId: null, campaignId: null, pricePolicyId: null, amount: null, expectedRevenue: null, expectedCloseDate: null,
+        stageId: null, campaignId: null, pricePolicyId: null, amount: null,
         source: null, winLossReason: null, description: null,
     });
     const [rows, setRows] = useState<LineItemRow[]>([]);
@@ -60,15 +58,15 @@ export function OpportunityEditModal({ item, onClose }: Props) {
     const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
     // giai đoạn đang chọn — nguồn của xác suất thắng; đổi giai đoạn thì số đổi ngay trước cả khi lưu
     const selectedStage = useMemo(() => stages.find((s) => s.id === form.stageId), [stages, form.stageId]);
+    // giá trị cơ hội KHÔNG gõ tay — luôn suy từ tổng dòng hàng hiện tại (khớp cách BE tự tính lại)
+    const amount = useMemo(() => computeTotals(rows).total, [rows]);
 
     useEffect(() => {
         if (!item) return;
         setForm({
             name: item.name, opportunityType: item.opportunityType, customerId: item.customerId,
             contactId: item.contactId, ownerId: item.ownerId, stageId: item.stageId, campaignId: item.campaignId,
-            pricePolicyId: item.pricePolicyId, amount: item.amount,
-            expectedRevenue: item.expectedRevenue,
-            expectedCloseDate: item.expectedCloseDate, source: item.source,
+            pricePolicyId: item.pricePolicyId, amount: item.amount, source: item.source,
             winLossReason: item.winLossReason, description: item.description,
         });
         opportunityService.getItems(item.id).then((r) => {
@@ -77,11 +75,6 @@ export function OpportunityEditModal({ item, onClose }: Props) {
             setOriginalRows(loaded);
         });
     }, [item]);
-
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    // xóa lỗi của một ô ngay khi người dùng gõ lại
-    const clearError = (key: string) =>
-        setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
     const { confirmSave } = useConfirm();
     const formRef = useRef<HTMLFormElement>(null);
@@ -95,17 +88,10 @@ export function OpportunityEditModal({ item, onClose }: Props) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
-        const errs = collectErrors({
-            expectedRevenue: nonNegativeError(form.expectedRevenue, 'Doanh thu kỳ vọng'),
-        });
-        setErrors(errs);
-        if (Object.keys(errs).length > 0) return;
-
         if (!(await confirmSave('cơ hội'))) return;
         setSaving(true);
         try {
-            await mutateAsync({ id: item.id, payload: form });
+            await mutateAsync({ id: item.id, payload: { ...form, amount } });
             const { toCreate, toUpdate, toDelete } = diffLineItems(originalRows, rows);
             await Promise.all([
                 ...toCreate.map((r) => opportunityService.createItem(item.id, toItemPayload(r))),
@@ -187,20 +173,12 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                             />
                         </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                        <div>
-                            <label className={lbl}>Giá trị (đ)</label>
-                            <input type="number" min={0} className={inp} value={form.amount ?? ''} onChange={e => setForm(f => ({ ...f, amount: e.target.value ? +e.target.value : null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Doanh số kỳ vọng</label>
-                            <FieldError error={errors.expectedRevenue}>
-                                <input type="number" min={0} className={inp} value={form.expectedRevenue ?? ''} onChange={e => { setForm(f => ({ ...f, expectedRevenue: e.target.value ? +e.target.value : null })); clearError('expectedRevenue'); }} />
-                            </FieldError>
-                        </div>
-                        <div>
-                            <label className={lbl}>Ngày đóng dự kiến</label>
-                            <DateInput value={form.expectedCloseDate ?? ''} onChange={v => setForm(f => ({ ...f, expectedCloseDate: v || null }))} />
+                    <div>
+                        {/* giá trị KHÔNG gõ tay — luôn suy từ tổng dòng hàng bên dưới */}
+                        <label className={lbl}>Giá trị (đ)</label>
+                        <div className="flex items-center gap-2">
+                            <span className="text-md font-medium text-text-main">{formatNumber(amount)}</span>
+                            <span className="text-sm text-gray-400">(tự tính theo dòng hàng)</span>
                         </div>
                     </div>
                     <div>

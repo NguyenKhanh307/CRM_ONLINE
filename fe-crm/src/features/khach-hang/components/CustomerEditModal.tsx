@@ -27,7 +27,7 @@ export function CustomerEditModal({ item, onClose }: Props) {
         name: '', type: 'individual', taxCode: null, phone: null,
         email: null, address: null, source: null, ownerId: null,
         shortName: null, website: null, industry: null, creditDays: null, creditLimit: null,
-        bankAccount: null, bankName: null, rating: null, annualRevenue: null,
+        rating: null,
         employeeSize: null, isDistributor: false,
     });
 
@@ -38,8 +38,8 @@ export function CustomerEditModal({ item, onClose }: Props) {
             email: item.email, address: item.address, source: item.source,
             ownerId: item.ownerId,
             shortName: item.shortName, website: item.website, industry: item.industry,
-            creditDays: item.creditDays, creditLimit: item.creditLimit, bankAccount: item.bankAccount,
-            bankName: item.bankName, rating: item.rating, annualRevenue: item.annualRevenue,
+            creditDays: item.creditDays, creditLimit: item.creditLimit,
+            rating: item.rating,
             employeeSize: item.employeeSize, isDistributor: item.isDistributor,
         });
     }, [item]);
@@ -68,7 +68,6 @@ export function CustomerEditModal({ item, onClose }: Props) {
             phone: phoneError(form.phone),
             taxCode: taxCodeError(form.taxCode),
             creditLimit: nonNegativeError(form.creditLimit, 'Hạn mức tín dụng'),
-            annualRevenue: nonNegativeError(form.annualRevenue, 'Doanh thu năm'),
         });
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
@@ -166,16 +165,6 @@ export function CustomerEditModal({ item, onClose }: Props) {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className={lbl}>Số tài khoản</label>
-                            <input className={inp} value={form.bankAccount ?? ''} onChange={e => setForm(f => ({ ...f, bankAccount: e.target.value || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Ngân hàng</label>
-                            <input className={inp} value={form.bankName ?? ''} onChange={e => setForm(f => ({ ...f, bankName: e.target.value || null }))} />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
                             <label className={lbl}>Xếp hạng</label>
                             <select className={inp} value={form.rating ?? ''} onChange={e => setForm(f => ({ ...f, rating: e.target.value || null }))}>
                                 <option value="">-- Không xếp hạng --</option>
@@ -183,23 +172,15 @@ export function CustomerEditModal({ item, onClose }: Props) {
                             </select>
                         </div>
                         <div>
-                            <label className={lbl}>Doanh thu năm</label>
-                            <FieldError error={errors.annualRevenue}>
-                                <input type="number" min={0} className={inp} value={form.annualRevenue ?? ''} onChange={e => { setForm(f => ({ ...f, annualRevenue: e.target.value ? +e.target.value : null })); clearError('annualRevenue'); }} />
-                            </FieldError>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
                             <label className={lbl}>Quy mô nhân sự</label>
                             <input className={inp} value={form.employeeSize ?? ''} onChange={e => setForm(f => ({ ...f, employeeSize: e.target.value || null }))} />
                         </div>
-                        <div className="flex items-end pb-1.5">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isDistributor ?? false} onChange={e => setForm(f => ({ ...f, isDistributor: e.target.checked }))} />
-                                <span className="text-sm text-text-main">Là nhà phân phối</span>
-                            </label>
-                        </div>
+                    </div>
+                    <div className="flex items-center pb-1.5">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isDistributor ?? false} onChange={e => setForm(f => ({ ...f, isDistributor: e.target.checked }))} />
+                            <span className="text-sm text-text-main">Là nhà phân phối</span>
+                        </label>
                     </div>
                     <ModalFooter onCancel={onClose} saving={isPending} />
                 </form>

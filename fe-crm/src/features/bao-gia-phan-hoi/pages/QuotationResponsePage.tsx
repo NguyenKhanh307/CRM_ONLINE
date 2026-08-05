@@ -28,9 +28,9 @@ const QUERY_TO_ACTION: Record<string, RespondAction> = {
     agree: 'accept', accept: 'accept', adjust: 'adjust', reject: 'reject',
 };
 
-// trang công khai để khách hàng xem + phản hồi báo giá theo token (không cần đăng nhập)
+// trang công khai để khách hàng xem + phản hồi báo giá theo mã báo giá (không cần đăng nhập)
 const QuotationResponsePage = () => {
-    const { token = '' } = useParams();
+    const { code = '' } = useParams();
     const [searchParams] = useSearchParams();
 
     const [view, setView] = useState<PublicQuotationView | null>(null);
@@ -42,20 +42,20 @@ const QuotationResponsePage = () => {
     const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
-        publicQuotationService.getByToken(token)
+        publicQuotationService.getByCode(code)
             .then((r) => setView(r.data.data))
             .catch((err) => setErrorMsg(
                 (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                 ?? 'Không tìm thấy báo giá hoặc liên kết đã hết hạn'))
             .finally(() => setLoading(false));
-    }, [token]);
+    }, [code]);
 
     const alreadyResponded = !!view?.customerResponse;
 
     const handleSubmit = async () => {
         setSubmitting(true);
         try {
-            await publicQuotationService.respond(token, action, note.trim() || undefined);
+            await publicQuotationService.respond(code, action, note.trim() || undefined);
             setSubmitted(true);
         } catch (err) {
             setErrorMsg((err as { response?: { data?: { message?: string } } })?.response?.data?.message
@@ -65,7 +65,7 @@ const QuotationResponsePage = () => {
         }
     };
 
-    const totalText = useMemo(() => view ? `${formatCurrency(view.total)} ${view.currency ?? ''}`.trim() : '', [view]);
+    const totalText = useMemo(() => view ? formatCurrency(view.total) : '', [view]);
 
     if (loading) return <Centered>Đang tải báo giá...</Centered>;
     if (errorMsg && !view) return <Centered><span className="text-danger">{errorMsg}</span></Centered>;

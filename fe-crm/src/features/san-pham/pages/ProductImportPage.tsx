@@ -12,8 +12,7 @@ const FIELDS: ImportField[] = [
     { key: 'costPrice',      label: 'Giá vốn',                       type: 'number' },
     { key: 'vatRate',        label: 'Thuế VAT (%)',                   type: 'number' },
     { key: 'description',    label: 'Mô tả',                         type: 'text' },
-    { key: 'isDiscontinued', label: 'Ngừng theo dõi',                type: 'enum', enumValues: ['true', 'false'] },
-    { key: 'isActive',       label: 'Đang hoạt động',                type: 'enum', enumValues: ['true', 'false'] },
+    { key: 'status',         label: 'Trạng thái',                    type: 'enum', enumValues: ['active', 'inactive', 'discontinued'] },
 ];
 
 const ProductImportPage = () => {

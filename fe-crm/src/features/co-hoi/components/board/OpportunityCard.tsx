@@ -1,7 +1,6 @@
 import { useDraggable } from '@dnd-kit/core';
-import { FiUser, FiCalendar } from 'react-icons/fi';
+import { FiUser } from 'react-icons/fi';
 import { formatCurrency } from '@/shared/utils/number';
-import { formatISODate } from '@/shared/utils/date';
 import type { BoardCard } from '../../types/boardTypes';
 
 interface OpportunityCardProps {
@@ -22,11 +21,6 @@ export const CardBody = ({ card }: { card: BoardCard }) => (
             {card.ownerName && (
                 <span className="flex items-center gap-1 truncate">
                     <FiUser size={11} /> {card.ownerName}
-                </span>
-            )}
-            {card.expectedCloseDate && (
-                <span className="flex items-center gap-1 shrink-0">
-                    <FiCalendar size={11} /> {formatISODate(card.expectedCloseDate)}
                 </span>
             )}
         </div>

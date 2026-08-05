@@ -6,10 +6,9 @@ import vn.com.be_crm.core.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.application.customer.command.*;
 import vn.com.be_crm.application.customer.query.*;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
-import vn.com.be_crm.domain.customer.repository.ICustomerShareRepository;
 
 /**
- * Wire các UseCase của module Customer (customer, share, trash, handover, import) qua @Bean.
+ * Wire các UseCase của module Customer (customer, trash, handover, import) qua @Bean.
  */
 @Configuration
 public class CustomerBeanConfig {
@@ -28,15 +27,6 @@ public class CustomerBeanConfig {
     @Bean public ListCustomerUseCase listCustomerUseCase(ICustomerRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListCustomerUseCase(r, n); }
     /** @return CustomerWorkflowUseCase — hành động activate/deactivate */
     @Bean public CustomerWorkflowUseCase customerWorkflowUseCase(ICustomerRepository r) { return new CustomerWorkflowUseCase(r); }
-
-    // ===== Customer Share =====
-
-    /** @return AssignCustomerShareUseCase */
-    @Bean public AssignCustomerShareUseCase assignCustomerShareUseCase(ICustomerShareRepository r) { return new AssignCustomerShareUseCase(r); }
-    /** @return RevokeCustomerShareUseCase */
-    @Bean public RevokeCustomerShareUseCase revokeCustomerShareUseCase(ICustomerShareRepository r) { return new RevokeCustomerShareUseCase(r); }
-    /** @return ListCustomerShareUseCase */
-    @Bean public ListCustomerShareUseCase listCustomerShareUseCase(ICustomerShareRepository r) { return new ListCustomerShareUseCase(r); }
 
     // ===== Trash =====
 

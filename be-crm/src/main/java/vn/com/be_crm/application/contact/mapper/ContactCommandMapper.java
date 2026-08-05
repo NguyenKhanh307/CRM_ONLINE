@@ -15,12 +15,9 @@ public class ContactCommandMapper {
                 .customerId(cmd.getCustomerId()).assignedUserId(cmd.getAssignedUserId())
                 .salutation(cmd.getSalutation())
                 .fullName(cmd.getFullName()).title(cmd.getTitle()).department(cmd.getDepartment())
-                .position(cmd.getPosition()).email(cmd.getEmail())
-                .workEmail(cmd.getWorkEmail()).personalEmail(cmd.getPersonalEmail())
+                .email(cmd.getEmail())
                 .zalo(cmd.getZalo()).source(cmd.getSource())
-                .gender(cmd.getGender()).dateOfBirth(cmd.getDateOfBirth()).address(cmd.getAddress())
-                .doNotCall(cmd.getDoNotCall() != null && cmd.getDoNotCall())
-                .doNotEmail(cmd.getDoNotEmail() != null && cmd.getDoNotEmail())
+                .gender(cmd.getGender()).dateOfBirth(cmd.getDateOfBirth())
                 .isPrimary(cmd.getIsPrimary() != null ? cmd.getIsPrimary() : false).build();
     }
 
@@ -37,17 +34,11 @@ public class ContactCommandMapper {
                 .fullName(cmd.getFullName() != null ? cmd.getFullName() : e.getFullName())
                 .title(cmd.getTitle() != null ? cmd.getTitle() : e.getTitle())
                 .department(cmd.getDepartment() != null ? cmd.getDepartment() : e.getDepartment())
-                .position(cmd.getPosition() != null ? cmd.getPosition() : e.getPosition())
                 .email(cmd.getEmail() != null ? cmd.getEmail() : e.getEmail())
-                .workEmail(cmd.getWorkEmail() != null ? cmd.getWorkEmail() : e.getWorkEmail())
-                .personalEmail(cmd.getPersonalEmail() != null ? cmd.getPersonalEmail() : e.getPersonalEmail())
                 .zalo(cmd.getZalo() != null ? cmd.getZalo() : e.getZalo())
                 .source(cmd.getSource() != null ? cmd.getSource() : e.getSource())
                 .gender(cmd.getGender() != null ? cmd.getGender() : e.getGender())
                 .dateOfBirth(cmd.getDateOfBirth() != null ? cmd.getDateOfBirth() : e.getDateOfBirth())
-                .address(cmd.getAddress() != null ? cmd.getAddress() : e.getAddress())
-                .doNotCall(cmd.getDoNotCall() != null ? cmd.getDoNotCall() : e.isDoNotCall())
-                .doNotEmail(cmd.getDoNotEmail() != null ? cmd.getDoNotEmail() : e.isDoNotEmail())
                 .isPrimary(cmd.getIsPrimary() != null ? cmd.getIsPrimary() : e.getIsPrimary())
                 .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).build();
@@ -62,11 +53,9 @@ public class ContactCommandMapper {
                 .id(e.getId()).customerId(e.getCustomerId()).assignedUserId(e.getAssignedUserId())
                 .salutation(e.getSalutation())
                 .fullName(e.getFullName()).title(e.getTitle()).department(e.getDepartment())
-                .position(e.getPosition()).email(e.getEmail())
-                .workEmail(e.getWorkEmail()).personalEmail(e.getPersonalEmail())
+                .email(e.getEmail())
                 .zalo(e.getZalo()).source(e.getSource())
-                .gender(e.getGender()).dateOfBirth(e.getDateOfBirth()).address(e.getAddress())
-                .doNotCall(e.isDoNotCall()).doNotEmail(e.isDoNotEmail())
+                .gender(e.getGender()).dateOfBirth(e.getDateOfBirth())
                 .isPrimary(e.getIsPrimary()).createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }

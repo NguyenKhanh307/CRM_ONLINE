@@ -94,12 +94,12 @@ public class DuplicateRepositoryImpl implements IDuplicateRepository {
         if (email == null && phone == null) return List.of();
 
         List<String> conds = new ArrayList<>();
-        if (email != null) conds.add("(c.email = :email OR c.work_email = :email OR c.personal_email = :email)");
+        if (email != null) conds.add("c.email = :email");
         if (phone != null) conds.add("EXISTS (SELECT 1 FROM contact_phones cp WHERE cp.contact_id = c.id AND cp.phone = :phone)");
 
         boolean exclude = "contact".equals(excludeModule) && excludeId != null;
         String sql = "SELECT c.id, c.full_name, "
-                + "CASE WHEN " + (email != null ? "(c.email = :email OR c.work_email = :email OR c.personal_email = :email)" : "FALSE")
+                + "CASE WHEN " + (email != null ? "c.email = :email" : "FALSE")
                 + " THEN 'email' ELSE 'phone' END "
                 + "FROM contacts c WHERE c.deleted_at IS NULL AND (" + String.join(" OR ", conds) + ")"
                 + (exclude ? " AND c.id <> :excludeId" : "")

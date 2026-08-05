@@ -90,14 +90,10 @@ public class OrderController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<OrderResult>> update(@PathVariable Long id, @Valid @RequestBody UpdateOrderCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
-                UpdateOrderCommand.builder().id(id).customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
-                        .quotationId(cmd.getQuotationId()).opportunityId(cmd.getOpportunityId())
-                        .campaignId(cmd.getCampaignId()).ownerId(cmd.getOwnerId())
+                UpdateOrderCommand.builder().id(id)
+                        .quotationId(cmd.getQuotationId()).ownerId(cmd.getOwnerId())
                         .orderDate(cmd.getOrderDate()).deliveryDate(cmd.getDeliveryDate())
-                        .currency(cmd.getCurrency()).exchangeRate(cmd.getExchangeRate())
-                        .billingAddress(cmd.getBillingAddress()).taxCode(cmd.getTaxCode())
-                        .subtotal(cmd.getSubtotal()).discount(cmd.getDiscount()).tax(cmd.getTax())
-                        .total(cmd.getTotal()).note(cmd.getNote()).build())));
+                        .note(cmd.getNote()).build())));
     }
 
     /** Xác nhận đơn hàng (draft → confirmed). @param id ID @return 200 */

@@ -1,17 +1,15 @@
 package vn.com.be_crm.application.invoice.mapper;
 
 import vn.com.be_crm.application.invoice.dto.*;
+import vn.com.be_crm.core.util.LineItemTotals;
 import vn.com.be_crm.domain.invoice.entity.InvoiceItem;
 
 import java.math.BigDecimal;
 
-/** Chuyển đổi Command ↔ InvoiceItem ↔ InvoiceItemResult. */
+// chuyển đổi Command <-> InvoiceItem <-> InvoiceItemResult. "amount" không lưu DB — tính bằng
+// LineItemTotals ngay khi build Result.
 public class InvoiceItemCommandMapper {
 
-    /**
-     * Tạo InvoiceItem từ CreateInvoiceItemCommand.
-     * @param cmd command tạo mới @return domain entity
-     */
     public static InvoiceItem toEntity(CreateInvoiceItemCommand cmd) {
         return InvoiceItem.builder()
                 .invoiceId(cmd.getInvoiceId()).productId(cmd.getProductId())
@@ -20,14 +18,9 @@ public class InvoiceItemCommandMapper {
                 .unitPrice(cmd.getUnitPrice() != null ? cmd.getUnitPrice() : BigDecimal.ZERO)
                 .discount(cmd.getDiscount() != null ? cmd.getDiscount() : BigDecimal.ZERO)
                 .taxRate(cmd.getTaxRate() != null ? cmd.getTaxRate() : BigDecimal.ZERO)
-                .amount(cmd.getAmount() != null ? cmd.getAmount() : BigDecimal.ZERO)
                 .note(cmd.getNote()).build();
     }
 
-    /**
-     * Cập nhật InvoiceItem từ UpdateInvoiceItemCommand.
-     * @param cmd command cập nhật @param e entity hiện tại @return domain entity đã cập nhật
-     */
     public static InvoiceItem toEntity(UpdateInvoiceItemCommand cmd, InvoiceItem e) {
         return InvoiceItem.builder()
                 .id(e.getId()).invoiceId(e.getInvoiceId())
@@ -37,20 +30,17 @@ public class InvoiceItemCommandMapper {
                 .unitPrice(cmd.getUnitPrice() != null ? cmd.getUnitPrice() : e.getUnitPrice())
                 .discount(cmd.getDiscount() != null ? cmd.getDiscount() : e.getDiscount())
                 .taxRate(cmd.getTaxRate() != null ? cmd.getTaxRate() : e.getTaxRate())
-                .amount(cmd.getAmount() != null ? cmd.getAmount() : e.getAmount())
                 .note(cmd.getNote() != null ? cmd.getNote() : e.getNote()).build();
     }
 
-    /**
-     * Chuyển InvoiceItem sang InvoiceItemResult.
-     * @param e domain entity @return result DTO
-     */
     public static InvoiceItemResult toResult(InvoiceItem e) {
         return InvoiceItemResult.builder()
                 .id(e.getId()).invoiceId(e.getInvoiceId()).productId(e.getProductId())
                 .unit(e.getUnit())
                 .quantity(e.getQuantity()).unitPrice(e.getUnitPrice()).discount(e.getDiscount())
-                .taxRate(e.getTaxRate()).amount(e.getAmount()).note(e.getNote()).build();
+                .taxRate(e.getTaxRate())
+                .amount(LineItemTotals.lineAmount(e.getQuantity(), e.getUnitPrice(), e.getDiscount(), e.getTaxRate()))
+                .note(e.getNote()).build();
     }
 
     private InvoiceItemCommandMapper() {}

@@ -39,4 +39,12 @@ public interface ILeadRepository {
     void handoverBulk(List<Long> ids, Long toUserId, Long currentUserId, boolean isAdminOrManager);
 
     void handoverAll(Long fromUserId, Long toUserId);
+
+    // tìm tiềm năng đã liên kết với cơ hội nguồn của một báo giá (qua quotation -> opportunity ->
+    // leads.converted_opportunity_id) — dùng để dò "báo giá này bắt nguồn từ tiềm năng nào"
+    Optional<Lead> findByQuotationId(Long quotationId);
+
+    // đã có đơn hàng nào thuộc chuỗi cơ hội đã chuyển đổi của tiềm năng chưa (excludeOrderId cho
+    // phép loại trừ 1 đơn cụ thể — dùng để phát hiện "đơn vừa tạo có phải đơn đầu tiên không")
+    boolean hasAnyOrder(Long leadId, Long excludeOrderId);
 }

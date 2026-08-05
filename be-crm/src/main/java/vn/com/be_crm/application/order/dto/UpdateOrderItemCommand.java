@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/** Input DTO khi cập nhật dòng đơn hàng. */
+// input khi cập nhật dòng đơn hàng
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class UpdateOrderItemCommand {
     private Long id;
@@ -22,6 +22,5 @@ public class UpdateOrderItemCommand {
     @PositiveOrZero(message = "Đơn giá không được âm") private BigDecimal unitPrice;
     @PositiveOrZero(message = "Chiết khấu không được âm") private BigDecimal discount;
     @DecimalMin(value = "0", message = "Thuế suất phải từ 0 đến 100") @DecimalMax(value = "100", message = "Thuế suất phải từ 0 đến 100") private BigDecimal taxRate;
-    private BigDecimal amount;
     @Size(max = 255) private String note;
 }

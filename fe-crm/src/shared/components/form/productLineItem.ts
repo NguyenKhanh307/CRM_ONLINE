@@ -56,7 +56,7 @@ export const computeTotals = (rows: LineItemRow[]) =>
         { subtotal: 0, discount: 0, tax: 0, total: 0 },
     );
 
-// chuyển một dòng UI sang payload item gửi API
+// chuyển một dòng UI sang payload item gửi API — không gửi amount, backend tự tính từ quantity/unitPrice/discount/taxRate
 export const toItemPayload = (r: LineItemRow) => ({
     productId: Number(r.productId),
     unit: r.unit || null,
@@ -64,7 +64,6 @@ export const toItemPayload = (r: LineItemRow) => ({
     unitPrice: r.unitPrice,
     discount: rowDiscount(r),
     taxRate: r.taxRate,
-    amount: rowTotal(r),
     note: r.note || null,
 });
 

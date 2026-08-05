@@ -18,11 +18,10 @@ interface Props {
     onClose: () => void;
 }
 
-// suy phân hệ từ tiền tố `type` (phần trước dấu `_`)
-// loại không gắn bản ghi cụ thể (vd `handover_all`) trả null -> chỉ đánh dấu đã đọc, không điều hướng
-const moduleOf = (type: string | null): RelatedModule | null => {
-    const prefix = type?.split('_')[0];
-    return prefix && prefix in MODULE_ROUTES ? (prefix as RelatedModule) : null;
+// suy phân hệ từ targetType do backend trả sẵn
+// loại không gắn bản ghi cụ thể (vd `handover_all`, targetType null) -> chỉ đánh dấu đã đọc, không điều hướng
+const moduleOf = (targetType: string | null): RelatedModule | null => {
+    return targetType && targetType in MODULE_ROUTES ? (targetType as RelatedModule) : null;
 };
 
 // popup chuông thông báo trên header: danh sách, đánh dấu đã đọc, chọn nhiều để xóa
@@ -58,7 +57,7 @@ export const NotificationPopup = ({ onClose }: Props) => {
     const handleClick = (n: NotificationResult) => {
         if (selectMode) { toggleOne(n.id); return; }
         if (!n.isRead) markOne.mutate(n.id);
-        const module = moduleOf(n.type);
+        const module = moduleOf(n.targetType);
         if (module && n.targetId != null) navigate(recordPath(module, n.targetId));
         onClose();
     };

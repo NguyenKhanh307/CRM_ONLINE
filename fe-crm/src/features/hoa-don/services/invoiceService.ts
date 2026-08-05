@@ -3,7 +3,6 @@ import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
 import type {
     CreateInvoicePayload, InvoiceItemPayload, InvoiceItemResult, InvoiceResult, UpdateInvoicePayload,
     InvoicePaymentScheduleResult, PaymentSchedulePayload,
-    InvoiceRevenueRecordResult, CreateInvoiceRevenueRecordPayload, UpdateInvoiceRevenueRecordPayload,
 } from '../types/invoiceTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 import type { InvoiceRelatedResult } from '@/shared/types/related';
@@ -57,17 +56,4 @@ export const invoiceService = {
     // xóa một đợt thanh toán
     deletePaymentSchedule: (invoiceId: number, id: number) =>
         axiosInstance.delete(`/api/invoices/${invoiceId}/payment-schedules/${id}`),
-
-    // danh sách bản ghi doanh số/chia hoa hồng của hóa đơn
-    getRevenueRecords: (invoiceId: number) =>
-        axiosInstance.get<ApiResponse<InvoiceRevenueRecordResult[]>>(`/api/invoices/${invoiceId}/revenue-records`),
-    // thêm một bản ghi doanh số
-    addRevenueRecord: (invoiceId: number, payload: CreateInvoiceRevenueRecordPayload) =>
-        axiosInstance.post<ApiResponse<InvoiceRevenueRecordResult>>(`/api/invoices/${invoiceId}/revenue-records`, payload),
-    // cập nhật một bản ghi doanh số (userId không đổi)
-    updateRevenueRecord: (invoiceId: number, id: number, payload: UpdateInvoiceRevenueRecordPayload) =>
-        axiosInstance.put<ApiResponse<InvoiceRevenueRecordResult>>(`/api/invoices/${invoiceId}/revenue-records/${id}`, payload),
-    // xóa một bản ghi doanh số
-    deleteRevenueRecord: (invoiceId: number, id: number) =>
-        axiosInstance.delete(`/api/invoices/${invoiceId}/revenue-records/${id}`),
 };

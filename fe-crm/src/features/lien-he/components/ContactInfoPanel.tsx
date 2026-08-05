@@ -14,20 +14,14 @@ export const ContactInfoPanel = ({ contact: c }: Props) => (
         <InfoRow label="Họ tên" value={c.fullName} />
         <InfoRow label="Danh xưng" value={c.salutation} />
         <InfoRow label="Chức danh" value={c.title} />
-        <InfoRow label="Chức vụ" value={c.position} />
         <InfoRow label="Phòng ban" value={c.department} />
         <InfoRow label="Khách hàng" value={c.customerName} />
         <InfoRow label="Email" value={c.email} />
-        <InfoRow label="Email công việc" value={c.workEmail} />
-        <InfoRow label="Email cá nhân" value={c.personalEmail} />
         <InfoRow label="Zalo" value={c.zalo} />
         <InfoRow label="Giới tính" value={c.gender ? (GENDER_LABELS[c.gender] ?? c.gender) : null} />
         <InfoRow label="Ngày sinh" value={c.dateOfBirth ? formatISODate(c.dateOfBirth) : null} />
-        <InfoRow label="Địa chỉ" value={c.address} />
         <InfoRow label="Nguồn" value={c.source} />
         <InfoRow label="Liên hệ chính" value={c.isPrimary ? 'Có' : 'Không'} />
-        <InfoRow label="Không gọi" value={c.doNotCall ? 'Có' : 'Không'} />
-        <InfoRow label="Không email" value={c.doNotEmail ? 'Có' : 'Không'} />
         <InfoRow label="Người phụ trách" value={c.assignedUserName} />
         <InfoRow label="Người tạo" value={c.createdByName} />
         <InfoRow label="Ngày tạo" value={c.createdAt ? formatISODate(c.createdAt) : null} />

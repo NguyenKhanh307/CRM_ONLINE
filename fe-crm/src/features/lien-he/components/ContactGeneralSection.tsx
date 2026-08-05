@@ -45,7 +45,6 @@ export const ContactGeneralSection = ({ value, onChange, errors = {} }: Props) =
         const customer = customers.find((c) => String(c.id) === v);
         if (!customer) return;
         const patch = fillEmpty(value, {
-            address: customer.address ?? '',
             officePhone: customer.phone ?? '',
             source: customer.source ?? '',
         });
@@ -77,14 +76,6 @@ export const ContactGeneralSection = ({ value, onChange, errors = {} }: Props) =
                         type="text"
                         value={value.department}
                         onChange={(e) => onChange({ department: e.target.value })}
-                        className={inputCls}
-                    />
-                </FieldRow>
-                <FieldRow label="Vị trí">
-                    <input
-                        type="text"
-                        value={value.position}
-                        onChange={(e) => onChange({ position: e.target.value })}
                         className={inputCls}
                     />
                 </FieldRow>

@@ -42,7 +42,6 @@ export const QuotationApprovalHistory = ({ approvals }: Props) => {
                 {items.map(a => (
                     <li key={a.id} className="border-b border-gray-100 pb-3 last:border-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-table font-medium text-text-main">Cấp {a.level}</span>
                             <span className={`px-1.5 py-0.5 rounded text-sm ${STATUS_CLASS[a.status] ?? 'bg-gray-100 text-gray-600'}`}>
                                 {STATUS_LABEL[a.status] ?? a.status}
                             </span>

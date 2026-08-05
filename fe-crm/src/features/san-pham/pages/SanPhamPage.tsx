@@ -21,8 +21,9 @@ import type { ProductResult } from '../types/productTypes';
 
 /** Tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render. */
 const QUICK_FILTERS = [
-    { id: 'active',       label: 'Đang bán',  field: 'isActive', value: 'true' },
-    { id: 'discontinued', label: 'Ngừng bán', field: 'isActive', value: 'false' },
+    { id: 'active',       label: 'Đang KD',    field: 'status', value: 'active' },
+    { id: 'inactive',     label: 'Ngừng HĐ',   field: 'status', value: 'inactive' },
+    { id: 'discontinued', label: 'Ngừng KD',   field: 'status', value: 'discontinued' },
 ];
 
 const SanPhamPage = () => {
@@ -32,7 +33,7 @@ const SanPhamPage = () => {
     const goCreate = () => navigate('/san-pham/them-moi');
     usePageShortcuts({ onCreate: can('product', 'create') ? goCreate : undefined });
 
-    // Server-side pagination + search + tag lọc nhanh (tag Sản phẩm lọc theo isActive — BE map param status → isActive)
+    // Server-side pagination + search + tag lọc nhanh (tag Sản phẩm lọc theo cột status)
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');

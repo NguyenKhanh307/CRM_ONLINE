@@ -7,25 +7,39 @@ import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.core.lookup.port.INameResolver;
 import vn.com.be_crm.core.lookup.NameEnricher;
 import vn.com.be_crm.core.usecase.IUseCase;
+import vn.com.be_crm.core.util.LineItemTotals;
+import vn.com.be_crm.domain.quotation.entity.QuotationItem;
+import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** Use case lấy danh sách báo giá có phân trang. */
+// lấy danh sách báo giá có phân trang, kèm tên khóa ngoại + tổng tiền tính từ dòng hàng của
+// từng bản ghi (không còn cột lưu sẵn — chấp nhận đánh đổi thêm 1 truy vấn/dòng ở quy mô dữ liệu
+// hiện tại)
 public class ListQuotationUseCase implements IUseCase<PageRequest, PageResult<QuotationResult>> {
     private final IQuotationRepository repo;
+    private final IQuotationItemRepository itemRepo;
     private final INameResolver names;
-    /** @param repo port lưu trữ @param names port tra tên khóa ngoại */
-    public ListQuotationUseCase(IQuotationRepository repo, INameResolver names) { this.repo = repo; this.names = names; }
-    /** Lấy danh sách Quotation kèm tên khóa ngoại (khách hàng, liên hệ, cơ hội, người phụ trách). @param r phân trang @return PageResult */
+
+    public ListQuotationUseCase(IQuotationRepository repo, IQuotationItemRepository itemRepo, INameResolver names) {
+        this.repo = repo; this.itemRepo = itemRepo; this.names = names;
+    }
+
     @Override public PageResult<QuotationResult> execute(PageRequest r) {
         var page = repo.findAll(r);
         List<QuotationResult> items = page.getItems().stream().map(QuotationCommandMapper::toResult).collect(Collectors.toList());
+        for (QuotationResult res : items) {
+            List<QuotationItem> qItems = itemRepo.findAllByQuotationId(res.getId());
+            LineItemTotals.Totals t = LineItemTotals.compute(qItems,
+                    QuotationItem::getQuantity, QuotationItem::getUnitPrice, QuotationItem::getDiscount, QuotationItem::getTaxRate);
+            res.setSubtotal(t.subtotal()); res.setDiscount(t.discount());
+            res.setTax(t.tax()); res.setTotal(t.total());
+        }
         NameEnricher.apply(items, QuotationResult::getCustomerId, names::customers, QuotationResult::setCustomerName);
         NameEnricher.apply(items, QuotationResult::getContactId, names::contacts, QuotationResult::setContactName);
         NameEnricher.apply(items, QuotationResult::getOpportunityId, names::opportunities, QuotationResult::setOpportunityName);
-        NameEnricher.apply(items, QuotationResult::getCampaignId, names::campaigns, QuotationResult::setCampaignName);
         NameEnricher.apply(items, QuotationResult::getOwnerId, names::users, QuotationResult::setOwnerName);
         NameEnricher.apply(items, QuotationResult::getCreatedBy, names::users, QuotationResult::setCreatedByName);
         NameEnricher.apply(items, QuotationResult::getUpdatedBy, names::users, QuotationResult::setUpdatedByName);

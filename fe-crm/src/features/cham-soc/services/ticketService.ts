@@ -3,7 +3,7 @@ import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 import type {
     CreateTicketPayload, UpdateTicketPayload, TicketResult,
-    TicketReturnItemPayload, TicketReturnItemResult, TicketComment,
+    TicketReturnItemPayload, TicketReturnItemResult,
     ResolutionType,
 } from '../types/ticketTypes';
 
@@ -38,12 +38,6 @@ export const ticketService = {
         axiosInstance.put<ApiResponse<TicketReturnItemResult>>(`/api/tickets/${ticketId}/return-items/${itemId}`, payload),
     deleteReturnItem: (ticketId: number, itemId: number) =>
         axiosInstance.delete(`/api/tickets/${ticketId}/return-items/${itemId}`),
-
-    // ===== Ghi chú / lịch sử =====
-    getComments: (ticketId: number) =>
-        axiosInstance.get<ApiResponse<TicketComment[]>>(`/api/tickets/${ticketId}/comments`),
-    createComment: (ticketId: number, payload: { content: string; isInternal?: boolean }) =>
-        axiosInstance.post<ApiResponse<TicketComment>>(`/api/tickets/${ticketId}/comments`, payload),
 
     // ===== Hành động luồng trạng thái =====
     assign: (id: number, toUserId: number) =>

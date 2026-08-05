@@ -31,5 +31,4 @@ public class UpdateActivityRequest {
     private Long assignedUserId;
     private ActivityStatus status;
     private LocalDateTime dueAt;
-    private LocalDateTime completedAt;
 }

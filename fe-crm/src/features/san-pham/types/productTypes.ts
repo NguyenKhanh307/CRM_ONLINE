@@ -7,8 +7,7 @@ export interface UpdateProductPayload {
     costPrice: number | null;
     vatRate: number | null;
     description: string | null;
-    isDiscontinued: boolean;
-    isActive: boolean;
+    status: 'active' | 'inactive' | 'discontinued';
 }
 
 /** Payload tạo mới sản phẩm — POST /api/products. */
@@ -22,8 +21,7 @@ export interface CreateProductPayload {
     costPrice: number | null;
     vatRate: number | null;
     description: string | null;
-    isDiscontinued: boolean;
-    isActive: boolean;
+    status: 'active' | 'inactive' | 'discontinued';
 }
 
 export interface ProductResult {
@@ -37,8 +35,7 @@ export interface ProductResult {
     costPrice: number | null;
     vatRate: number | null;
     description: string | null;
-    isDiscontinued: boolean;
-    isActive: boolean;
+    status: 'active' | 'inactive' | 'discontinued';
     createdAt: string;
     updatedAt: string;
     // Tên khóa ngoại do BE resolve sẵn (INameResolver).

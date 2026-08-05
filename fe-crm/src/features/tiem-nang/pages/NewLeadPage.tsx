@@ -1,27 +1,40 @@
 import { useMemo, useRef, useState } from 'react';
-import { collectErrors, emailError, nonNegativeError, phoneError, requiredError, taxCodeError } from '@/shared/utils/validators';
+import { collectErrors, emailError, phoneError, requiredError, taxCodeError } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
+import { FiPlus, FiTrash2, FiUserPlus } from 'react-icons/fi';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { ActionButton } from '@/shared/components/ActionButton';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { DuplicateWarning } from '@/shared/components/DuplicateWarning';
 import { useDuplicateCheck } from '@/shared/hooks/useDuplicateCheck';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
-import { PrefillHint } from '@/shared/components/form/PrefillHint';
-import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
-import { fetchPrimaryContactId } from '@/shared/lookup/recordPrefill';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
+import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { leadService } from '../services/leadService';
 import { useCreateLead } from '../hooks/useCreateLead';
-import type { CreateLeadPayload } from '../types/leadTypes';
+import type { CreateLeadItemPayload, CreateLeadPayload } from '../types/leadTypes';
 import { SOURCE_OPTIONS } from '../config/leadOptions';
+
+// dòng nháp "sản phẩm quan tâm" gom ở client — chỉ gửi lên BE sau khi tiềm năng đã có id
+interface InterestDraftRow {
+    id: string;
+    productId: string;
+    interestType: 'viewed' | 'requested_quote';
+    note: string;
+}
+
+const INTEREST_TYPE_OPTIONS = [
+    { value: 'viewed', label: 'Đã xem' },
+    { value: 'requested_quote', label: 'Yêu cầu báo giá' },
+];
 
 const LEAD_TYPE_OPTIONS = [
     { value: 'ca-nhan', label: 'Cá nhân' },
@@ -33,8 +46,6 @@ interface FormState {
     code: string;
     name: string;
     leadType: string;
-    title: string;
-    department: string;
     phone: string;
     email: string;
     source: string;
@@ -43,21 +54,16 @@ interface FormState {
     website: string;
     industry: string;
     ownerId: string;
-    customerId: string;
     contactId: string;
     campaignId: string;
-    estimatedValue: string;
-    doNotCall: boolean;
-    doNotEmail: boolean;
     note: string;
 }
 
 // state khởi tạo — người phụ trách mặc định là user đang đăng nhập
 const initialState = (ownerId: string): FormState => ({
-    code: '', name: '', leadType: '', title: '', department: '', phone: '', email: '',
+    code: '', name: '', leadType: '', phone: '', email: '',
     source: '', companyName: '', taxCode: '', website: '', industry: '',
-    ownerId, customerId: '', contactId: '', campaignId: '', estimatedValue: '', doNotCall: false,
-    doNotEmail: false, note: '',
+    ownerId, contactId: '', campaignId: '', note: '',
 });
 
 const toPayload = (f: FormState): CreateLeadPayload => ({
@@ -66,20 +72,14 @@ const toPayload = (f: FormState): CreateLeadPayload => ({
     companyName: f.companyName || null,
     leadType: f.leadType || null,
     ownerId: f.ownerId ? Number(f.ownerId) : null,
-    customerId: f.customerId ? Number(f.customerId) : null,
     contactId: f.contactId ? Number(f.contactId) : null,
     campaignId: f.campaignId ? Number(f.campaignId) : null,
-    title: f.title || null,
-    department: f.department || null,
     taxCode: f.taxCode || null,
     website: f.website || null,
     industry: f.industry || null,
     source: f.source || null,
-    estimatedValue: f.estimatedValue ? Number(f.estimatedValue) : null,
     phone: f.phone || null,
     email: f.email || null,
-    doNotCall: f.doNotCall,
-    doNotEmail: f.doNotEmail,
     note: f.note || null,
 });
 
@@ -94,12 +94,30 @@ const NewLeadPage = () => {
     const { mutate, isPending } = useCreateLead();
 
     const { data: users = [] } = useActiveUsers();
-    const { data: customers = [] } = useCustomerList();
     const { data: campaigns = [] } = useCampaignList();
+    const { data: products = [] } = useProductList();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
-    const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
     const campaignOptions = useMemo(() => (campaigns ?? []).map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
+    const productOptions = useMemo(() => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}` })), [products]);
+
+    // "Sản phẩm quan tâm" — chưa có leadId nên chỉ gom nháp ở client, gửi từng dòng sau khi tạo lead
+    const [interestRows, setInterestRows] = useState<InterestDraftRow[]>([]);
+    const [draftProductId, setDraftProductId] = useState('');
+    const [draftInterestType, setDraftInterestType] = useState<'viewed' | 'requested_quote'>('viewed');
+    const [draftNote, setDraftNote] = useState('');
+
+    const addInterestRow = () => {
+        if (!draftProductId) return;
+        setInterestRows((rows) => [
+            ...rows,
+            { id: crypto.randomUUID(), productId: draftProductId, interestType: draftInterestType, note: draftNote },
+        ]);
+        setDraftProductId('');
+        setDraftInterestType('viewed');
+        setDraftNote('');
+    };
+    const removeInterestRow = (id: string) => setInterestRows((rows) => rows.filter((r) => r.id !== id));
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -113,30 +131,6 @@ const NewLeadPage = () => {
         });
     };
 
-    // tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng
-    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
-
-    // hàm chọn khách hàng -> tự điền thông tin công ty + liên hệ chính (chỉ ô còn trống)
-    const onPickCustomer = async (v: string) => {
-        // bước bỏ liên hệ cũ — đổi khách rồi mà giữ liên hệ của khách khác là dữ liệu sai
-        const base = { ...form, customerId: v, contactId: '' };
-        set({ customerId: v, contactId: '' });
-        setPrefillFrom(null);
-        const customer = customers.find((c) => String(c.id) === v);
-        if (!customer) return;
-        // bước điền các ô còn trống từ thông tin khách hàng
-        const patch = fillEmpty(base, {
-            contactId: await fetchPrimaryContactId(customer.id),
-            companyName: customer.name,
-            taxCode: customer.taxCode ?? '',
-            website: customer.website ?? '',
-            industry: customer.industry ?? '',
-            phone: customer.phone ?? '',
-            email: customer.email ?? '',
-        });
-        if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
-    };
-
     // hàm kiểm tra bắt buộc + biên (khớp ràng buộc backend) — trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
@@ -145,11 +139,10 @@ const NewLeadPage = () => {
             email: emailError(form.email),
             phone: phoneError(form.phone),
             taxCode: taxCodeError(form.taxCode),
-            estimatedValue: nonNegativeError(form.estimatedValue, 'Giá trị ước tính'),
         });
 
     // hàm lưu — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
-    const submit = async (andNew: boolean) => {
+    const submit = async () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
@@ -160,9 +153,20 @@ const NewLeadPage = () => {
 
         // bước gọi api lưu
         mutate(toPayload(form), {
-            onSuccess: () => {
-                if (andNew) { setForm(initialState(defaultOwnerId)); setPrefillFrom(null); showAlert('Đã lưu tiềm năng thành công'); }
-                else navigate('/tiem-nang');
+            onSuccess: async (res) => {
+                const newLeadId = res.data.data.id;
+                // gửi từng dòng "sản phẩm quan tâm" đã gom nháp — chỉ gửi được sau khi lead có id
+                if (interestRows.length > 0) {
+                    await Promise.all(interestRows.map((r) => {
+                        const payload: CreateLeadItemPayload = {
+                            productId: Number(r.productId),
+                            interestType: r.interestType,
+                            note: r.note || null,
+                        };
+                        return leadService.createItem(newLeadId, payload);
+                    }));
+                }
+                navigate('/tiem-nang');
             },
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
@@ -173,7 +177,7 @@ const NewLeadPage = () => {
     };
 
     const formRef = useRef<HTMLDivElement>(null);
-    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+    useFormKeyboardNav(formRef, { onSubmit: () => submit() });
 
     // cảnh báo (không chặn) khi email/SĐT/MST trùng bản ghi đã có
     const { data: duplicates } = useDuplicateCheck({ email: form.email, phone: form.phone, taxCode: form.taxCode });
@@ -184,8 +188,7 @@ const NewLeadPage = () => {
                 title="Thêm Tiềm năng"
                 saving={isPending}
                 onCancel={() => navigate(-1)}
-                onSave={() => submit(false)}
-                onSaveAndNew={() => submit(true)}
+                onSave={() => submit()}
             />
 
             <DuplicateWarning matches={duplicates} />
@@ -200,9 +203,6 @@ const NewLeadPage = () => {
                             <FieldRow label="Tên tiềm năng" required error={errors.name}>
                                 <input type="text" value={form.name} onChange={(e) => set({ name: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Chức danh">
-                                <input type="text" value={form.title} onChange={(e) => set({ title: e.target.value })} className={inputCls} />
-                            </FieldRow>
                             <FieldRow label="ĐT di động">
                                 <input type="text" value={form.phone} onChange={(e) => set({ phone: e.target.value })} className={inputCls} />
                             </FieldRow>
@@ -213,9 +213,6 @@ const NewLeadPage = () => {
                         <div className="space-y-4">
                             <FieldRow label="Loại tiềm năng">
                                 <SearchableSelect value={form.leadType} onChange={(v) => set({ leadType: v })} options={LEAD_TYPE_OPTIONS} />
-                            </FieldRow>
-                            <FieldRow label="Phòng ban">
-                                <input type="text" value={form.department} onChange={(e) => set({ department: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Email" error={errors.email}>
                                 <input type="text" value={form.email} onChange={(e) => set({ email: e.target.value })} className={inputCls} />
@@ -251,19 +248,23 @@ const NewLeadPage = () => {
                             <FieldRow label="Người phụ trách">
                                 <SearchableSelect value={form.ownerId} onChange={(v) => set({ ownerId: v })} options={userOptions} />
                             </FieldRow>
-                            <FieldRow label="Khách hàng">
-                                <SearchableSelect value={form.customerId} onChange={onPickCustomer} options={customerOptions} />
-                                <PrefillHint source={prefillFrom} />
+                            <FieldRow label="Liên hệ">
+                                <div className="flex items-center gap-1.5">
+                                    <div className="flex-1">
+                                        <RecordPicker module="contact" value={form.contactId} onChange={(v) => set({ contactId: v })} />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        title="Tạo liên hệ mới (mở tab mới)"
+                                        onClick={() => window.open('/lien-he/them-moi', '_blank')}
+                                        className="shrink-0 p-2 rounded-btn border border-gray-300 text-gray-500 hover:border-primary hover:text-primary"
+                                    >
+                                        <FiUserPlus size={14} />
+                                    </button>
+                                </div>
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
-                            <FieldRow label="Liên hệ">
-                                <RecordPicker module="contact" value={form.contactId} onChange={(v) => set({ contactId: v })}
-                                    customerId={form.customerId ? Number(form.customerId) : undefined} />
-                            </FieldRow>
-                            <FieldRow label="Giá trị ước tính" error={errors.estimatedValue}>
-                                <input type="number" min={0} value={form.estimatedValue} onChange={(e) => set({ estimatedValue: e.target.value })} className={inputCls} />
-                            </FieldRow>
                             <FieldRow label="Chiến dịch nguồn">
                                 <SearchableSelect value={form.campaignId} onChange={(v) => set({ campaignId: v })} options={campaignOptions} />
                             </FieldRow>
@@ -271,16 +272,69 @@ const NewLeadPage = () => {
                     </div>
                 </FormSection>
 
-                <FormSection title="Tùy chọn liên hệ">
-                    <div className="flex items-center gap-8">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={form.doNotCall} onChange={(e) => set({ doNotCall: e.target.checked })} className="w-4 h-4 accent-primary" />
-                            <span className="text-md text-text-main">Không gọi điện</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={form.doNotEmail} onChange={(e) => set({ doNotEmail: e.target.checked })} className="w-4 h-4 accent-primary" />
-                            <span className="text-md text-text-main">Không gửi Email</span>
-                        </label>
+                <FormSection title="Sản phẩm quan tâm">
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-3 gap-2 items-start">
+                            <SearchableSelect
+                                value={draftProductId}
+                                onChange={setDraftProductId}
+                                options={productOptions}
+                                placeholder="Chọn sản phẩm"
+                            />
+                            <SearchableSelect
+                                value={draftInterestType}
+                                onChange={(v) => setDraftInterestType((v || 'viewed') as 'viewed' | 'requested_quote')}
+                                options={INTEREST_TYPE_OPTIONS}
+                            />
+                            <div className="flex items-center gap-1.5">
+                                <input
+                                    type="text"
+                                    placeholder="Ghi chú (tùy chọn)"
+                                    value={draftNote}
+                                    onChange={(e) => setDraftNote(e.target.value)}
+                                    className={inputCls}
+                                />
+                                <ActionButton icon={FiPlus} disabled={!draftProductId} onClick={addInterestRow}>
+                                    Thêm
+                                </ActionButton>
+                            </div>
+                        </div>
+
+                        {interestRows.length > 0 && (
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="text-left text-gray-500 border-b border-gray-100">
+                                        <th className="py-1.5 pr-2 font-medium">Sản phẩm</th>
+                                        <th className="py-1.5 pr-2 font-medium">Mức độ quan tâm</th>
+                                        <th className="py-1.5 pr-2 font-medium">Ghi chú</th>
+                                        <th className="py-1.5 pr-2 font-medium w-8" />
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {interestRows.map((r) => (
+                                        <tr key={r.id} className="border-b border-gray-50">
+                                            <td className="py-1.5 pr-2 text-text-main">
+                                                {productOptions.find((o) => o.value === r.productId)?.label ?? r.productId}
+                                            </td>
+                                            <td className="py-1.5 pr-2 text-text-main">
+                                                {INTEREST_TYPE_OPTIONS.find((o) => o.value === r.interestType)?.label}
+                                            </td>
+                                            <td className="py-1.5 pr-2 text-gray-500">{r.note || '—'}</td>
+                                            <td className="py-1.5 pr-2 text-right">
+                                                <button
+                                                    type="button"
+                                                    title="Xóa dòng"
+                                                    onClick={() => removeInterestRow(r.id)}
+                                                    className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-danger"
+                                                >
+                                                    <FiTrash2 size={13} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
                 </FormSection>
 

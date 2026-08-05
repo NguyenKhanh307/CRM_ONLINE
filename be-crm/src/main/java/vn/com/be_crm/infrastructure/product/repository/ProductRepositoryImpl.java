@@ -131,8 +131,8 @@ public class ProductRepositoryImpl implements IProductRepository {
         return TxSupport.read(sf, s -> {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";
             String searchFilter = ListQueryUtils.likeClause(r.getQ(), "sku", "name");
-            Boolean statusVal = r.getStatus() == null || r.getStatus().isBlank() ? null : Boolean.valueOf(r.getStatus());
-            String statusFilter = statusVal != null ? " AND isActive = :status" : "";
+            var statusVal = ListQueryUtils.parseEnum(vn.com.be_crm.domain.product.enums.ProductStatus.class, r.getStatus());
+            String statusFilter = statusVal != null ? " AND status = :status" : "";
             String where = " WHERE deletedAt IS NULL" + yearFilter + searchFilter + statusFilter;
             String orderBy = " ORDER BY " + ListQueryUtils.safeSortBy(r.getSortBy(), "createdAt") + " " + ListQueryUtils.safeSortDir(r.getSortDir());
             var q = s.createQuery("FROM ProductHibernate" + where + orderBy, ProductHibernate.class)

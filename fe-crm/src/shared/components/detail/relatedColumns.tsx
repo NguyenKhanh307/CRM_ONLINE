@@ -5,10 +5,7 @@ import type { RelatedColumn } from './RelatedTable';
 // dùng chung cho cả trang Khách hàng và Cơ hội (báo giá/đơn/hóa đơn giống hệt nhau)
 
 const STATUS_LABELS: Record<string, Record<string, string>> = {
-    lead: {
-        new: 'Mới', contacting: 'Đang liên hệ', qualified: 'Đủ điều kiện',
-        converted: 'Đã chuyển đổi', lost: 'Thất bại',
-    },
+    lead: { new: 'Mới', contacting: 'Đang liên hệ', converted: 'Đã chuyển đổi' },
     opportunity: { open: 'Đang mở', won: 'Đã thắng', lost: 'Đã thua' },
     quotation: {
         draft: 'Nháp', pending: 'Chờ duyệt', approved: 'Đã duyệt',
@@ -54,7 +51,6 @@ const STATUS_COLORS: Record<string, string> = {
     reopened: 'bg-amber-100 text-amber-700',
     expired: 'bg-orange-100 text-orange-700',
     contacting: 'bg-blue-100 text-blue-700',
-    qualified: 'bg-teal-100 text-teal-700',
     converted: 'bg-green-100 text-green-700',
 };
 

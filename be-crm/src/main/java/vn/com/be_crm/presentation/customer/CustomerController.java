@@ -96,8 +96,7 @@ public class CustomerController {
                         .website(cmd.getWebsite()).address(cmd.getAddress())
                         .industry(cmd.getIndustry()).source(cmd.getSource())
                         .creditDays(cmd.getCreditDays()).creditLimit(cmd.getCreditLimit())
-                        .bankAccount(cmd.getBankAccount()).bankName(cmd.getBankName())
-                        .rating(cmd.getRating()).annualRevenue(cmd.getAnnualRevenue())
+                        .rating(cmd.getRating())
                         .employeeSize(cmd.getEmployeeSize()).isDistributor(cmd.getIsDistributor())
                         .ownerId(cmd.getOwnerId()).build())));
     }

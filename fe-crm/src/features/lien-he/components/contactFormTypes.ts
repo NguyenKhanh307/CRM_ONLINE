@@ -5,19 +5,13 @@ export interface ContactFormState {
     ten: string;
     title: string;
     department: string;
-    position: string;
     customerId: string;
     assignedUserId: string;
     source: string;
     mobilePhone: string;
     officePhone: string;
     email: string;
-    workEmail: string;
-    personalEmail: string;
     zalo: string;
-    address: string;
-    doNotCall: boolean;
-    doNotEmail: boolean;
     gender: string;
     dateOfBirth: string;
     isPrimary: boolean;
@@ -29,19 +23,13 @@ export const INITIAL_CONTACT_FORM: ContactFormState = {
     ten: '',
     title: '',
     department: '',
-    position: '',
     customerId: '',
     assignedUserId: '',
     source: '',
     mobilePhone: '',
     officePhone: '',
     email: '',
-    workEmail: '',
-    personalEmail: '',
     zalo: '',
-    address: '',
-    doNotCall: false,
-    doNotEmail: false,
     gender: '',
     dateOfBirth: '',
     isPrimary: false,

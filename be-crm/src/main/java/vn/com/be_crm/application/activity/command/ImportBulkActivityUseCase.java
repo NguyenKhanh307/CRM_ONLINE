@@ -53,7 +53,6 @@ public class ImportBulkActivityUseCase {
                         .subject(row.subject()).content(row.content())
                         .priority(row.priority())
                         .targetType(row.targetType()).targetId(row.targetId())
-                        .relatedType(row.relatedType()).relatedId(row.relatedId())
                         .location(row.location())
                         .callDirection(row.callDirection()).callResult(row.callResult())
                         .callDuration(row.callDuration())

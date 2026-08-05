@@ -15,7 +15,6 @@ import { useInvoiceRelated } from '../hooks/useInvoiceRelated';
 import { InvoiceInfoPanel } from '../components/InvoiceInfoPanel';
 import { InvoiceEditModal } from '../components/InvoiceEditModal';
 import { PaymentSchedulesTable } from '../components/PaymentSchedulesTable';
-import { RevenueRecordsTable } from '../components/RevenueRecordsTable';
 
 const STATUS_LABELS: Record<string, string> = {
     draft: 'Nháp', sent: 'Đã gửi', partially_paid: 'Thanh toán một phần', paid: 'Đã thanh toán', cancelled: 'Đã hủy',
@@ -28,7 +27,7 @@ const PAYMENT_LABELS: Record<string, string> = {
     unpaid: 'Chưa thanh toán', partial: 'Thanh toán một phần', paid: 'Đã thanh toán', overdue: 'Quá hạn',
 };
 
-type TabKey = 'payments' | 'revenue' | 'tickets' | 'activities';
+type TabKey = 'payments' | 'tickets' | 'activities';
 
 // trang chi tiết Hóa đơn — 2 cột: thông tin + phiếu chăm sóc + hoạt động
 const InvoiceDetailPage = () => {
@@ -46,7 +45,6 @@ const InvoiceDetailPage = () => {
         // đợt thanh toán để ở đây (không phải trong modal sửa) vì phát hành xong hóa đơn bị khóa,
         // mà status sent -> partially_paid -> paid chỉ suy ra được từ các đợt thanh toán
         { key: 'payments', label: 'Đợt thanh toán' },
-        { key: 'revenue', label: 'Doanh số' },
         { key: 'tickets', label: 'Chăm sóc', count: related?.tickets.total },
         { key: 'activities', label: 'Hoạt động', count: related?.activities.total },
     ];
@@ -69,8 +67,7 @@ const InvoiceDetailPage = () => {
                     </span>
                 }
                 meta={[
-                    { label: 'Khách hàng', value: invoice.customerName },
-                    { label: 'Báo giá nguồn', value: invoice.quotationCode },
+                    { label: 'Đơn hàng nguồn', value: invoice.orderCode },
                     { label: 'Tổng tiền', value: invoice.total != null ? formatCurrency(invoice.total) : null },
                     { label: 'Người phụ trách', value: invoice.ownerName },
                 ]}
@@ -89,7 +86,6 @@ const InvoiceDetailPage = () => {
                         <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
                         <div className="p-4">
                             {activeTab === 'payments' && <PaymentSchedulesTable invoiceId={invoiceId} invoiceTotal={invoice.total ?? 0} />}
-                            {activeTab === 'revenue' && <RevenueRecordsTable invoiceId={invoiceId} />}
                             {activeTab === 'tickets' && (
                                 <RelatedTable group={related?.tickets} columns={TICKET_COLUMNS} module="ticket"
                                     emptyText="Hóa đơn chưa có phiếu chăm sóc nào." />

@@ -28,3 +28,28 @@ export interface LeadFormState {
     phone: string;
     note: string;
 }
+
+// sản phẩm công khai — dạng rút gọn từ `GET /api/tracking/products` (không có costPrice)
+export interface PublicProduct {
+    id: number;
+    sku: string;
+    name: string;
+    categoryId: number | null;
+    categoryName: string | null;
+    unit: string | null;
+    basePrice: number | null;
+    vatRate: number | null;
+    description: string | null;
+}
+
+// một dòng trong giỏ yêu cầu báo giá
+export interface QuoteRequestItem {
+    productId: number;
+    quantity: number;
+}
+
+// body ghi nhận lượt xem chi tiết một sản phẩm
+export interface ViewProductPayload {
+    code: string;
+    productId: number;
+}

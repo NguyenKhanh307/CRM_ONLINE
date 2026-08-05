@@ -29,10 +29,10 @@ const PHONE_TYPE_LABELS: Record<PhoneType, string> = { mobile: 'Di động', off
 export function ContactEditModal({ item, onClose }: Props) {
     const { mutateAsync, isPending } = useUpdateContact();
     const [form, setForm] = useState<UpdateContactPayload>({
-        customerId: null, assignedUserId: null, fullName: '', position: null,
-        email: null, gender: null, dateOfBirth: null, address: null, isPrimary: false,
-        salutation: null, title: null, department: null, workEmail: null,
-        personalEmail: null, zalo: null, source: null, doNotCall: false, doNotEmail: false,
+        customerId: null, assignedUserId: null, fullName: '',
+        email: null, gender: null, dateOfBirth: null, isPrimary: false,
+        salutation: null, title: null, department: null,
+        zalo: null, source: null,
     });
     const [phones, setPhones] = useState<PhoneRow[]>([]);
     const [originalPhones, setOriginalPhones] = useState<PhoneRow[]>([]);
@@ -42,11 +42,10 @@ export function ContactEditModal({ item, onClose }: Props) {
         if (!item) return;
         setForm({
             customerId: item.customerId, assignedUserId: item.assignedUserId, fullName: item.fullName,
-            position: item.position, email: item.email, gender: item.gender,
-            dateOfBirth: item.dateOfBirth, address: item.address, isPrimary: item.isPrimary,
+            email: item.email, gender: item.gender,
+            dateOfBirth: item.dateOfBirth, isPrimary: item.isPrimary,
             salutation: item.salutation, title: item.title, department: item.department,
-            workEmail: item.workEmail, personalEmail: item.personalEmail, zalo: item.zalo,
-            source: item.source, doNotCall: item.doNotCall, doNotEmail: item.doNotEmail,
+            zalo: item.zalo, source: item.source,
         });
         contactService.getPhones(item.id).then((r) => {
             const loaded: PhoneRow[] = r.data.data.map((p) => ({
@@ -81,8 +80,6 @@ export function ContactEditModal({ item, onClose }: Props) {
         // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
         const errs = collectErrors({
             email: emailError(form.email),
-            workEmail: emailError(form.workEmail),
-            personalEmail: emailError(form.personalEmail),
         });
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
@@ -129,7 +126,7 @@ export function ContactEditModal({ item, onClose }: Props) {
                             <input className={inp} value={form.salutation ?? ''} onChange={e => setForm(f => ({ ...f, salutation: e.target.value || null }))} />
                         </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Chức danh</label>
                             <input className={inp} value={form.title ?? ''} onChange={e => setForm(f => ({ ...f, title: e.target.value || null }))} />
@@ -137,10 +134,6 @@ export function ContactEditModal({ item, onClose }: Props) {
                         <div>
                             <label className={lbl}>Phòng ban</label>
                             <input className={inp} value={form.department ?? ''} onChange={e => setForm(f => ({ ...f, department: e.target.value || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Chức vụ</label>
-                            <input className={inp} value={form.position ?? ''} onChange={e => setForm(f => ({ ...f, position: e.target.value || null }))} />
                         </div>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
@@ -151,20 +144,6 @@ export function ContactEditModal({ item, onClose }: Props) {
                             </FieldError>
                         </div>
                         <div>
-                            <label className={lbl}>Email cơ quan</label>
-                            <FieldError error={errors.workEmail}>
-                                <input type="email" className={inp} value={form.workEmail ?? ''} onChange={e => { setForm(f => ({ ...f, workEmail: e.target.value || null })); clearError('workEmail'); }} />
-                            </FieldError>
-                        </div>
-                        <div>
-                            <label className={lbl}>Email cá nhân</label>
-                            <FieldError error={errors.personalEmail}>
-                                <input type="email" className={inp} value={form.personalEmail ?? ''} onChange={e => { setForm(f => ({ ...f, personalEmail: e.target.value || null })); clearError('personalEmail'); }} />
-                            </FieldError>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-3">
-                        <div>
                             <label className={lbl}>Zalo</label>
                             <input className={inp} value={form.zalo ?? ''} onChange={e => setForm(f => ({ ...f, zalo: e.target.value || null }))} />
                         </div>
@@ -172,6 +151,8 @@ export function ContactEditModal({ item, onClose }: Props) {
                             <label className={lbl}>Nguồn gốc</label>
                             <input className={inp} value={form.source ?? ''} onChange={e => setForm(f => ({ ...f, source: e.target.value || null }))} />
                         </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Giới tính</label>
                             <select className={inp} value={form.gender ?? ''} onChange={e => setForm(f => ({ ...f, gender: e.target.value || null }))}>
@@ -181,15 +162,9 @@ export function ContactEditModal({ item, onClose }: Props) {
                                 <option value="other">Khác</option>
                             </select>
                         </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Ngày sinh</label>
                             <DateInput value={form.dateOfBirth ?? ''} onChange={v => setForm(f => ({ ...f, dateOfBirth: v || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Địa chỉ</label>
-                            <input className={inp} value={form.address ?? ''} onChange={e => setForm(f => ({ ...f, address: e.target.value || null }))} />
                         </div>
                     </div>
 
@@ -222,14 +197,6 @@ export function ContactEditModal({ item, onClose }: Props) {
                         <label className="flex items-center gap-2 text-md text-text-main cursor-pointer">
                             <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isPrimary} onChange={e => setForm(f => ({ ...f, isPrimary: e.target.checked }))} />
                             Liên hệ chính
-                        </label>
-                        <label className="flex items-center gap-2 text-md text-text-main cursor-pointer">
-                            <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.doNotCall ?? false} onChange={e => setForm(f => ({ ...f, doNotCall: e.target.checked }))} />
-                            Không gọi
-                        </label>
-                        <label className="flex items-center gap-2 text-md text-text-main cursor-pointer">
-                            <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.doNotEmail ?? false} onChange={e => setForm(f => ({ ...f, doNotEmail: e.target.checked }))} />
-                            Không email
                         </label>
                     </div>
                     <ModalFooter onCancel={onClose} saving={busy} />

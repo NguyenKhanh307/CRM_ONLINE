@@ -37,8 +37,8 @@ public class TicketReturnItemController {
                                                                       @Valid @RequestBody CreateTicketReturnItemCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(
                 CreateTicketReturnItemCommand.builder().ticketId(ticketId).invoiceItemId(cmd.getInvoiceItemId())
-                        .productId(cmd.getProductId()).quantity(cmd.getQuantity()).unitPrice(cmd.getUnitPrice())
-                        .amount(cmd.getAmount()).reason(cmd.getReason()).conditionNote(cmd.getConditionNote()).build())));
+                        .quantity(cmd.getQuantity())
+                        .reason(cmd.getReason()).conditionNote(cmd.getConditionNote()).build())));
     }
 
     /** Lấy danh sách dòng hàng trả/đổi. @param ticketId ID phiếu @return 200 */
@@ -53,8 +53,8 @@ public class TicketReturnItemController {
                                                                       @Valid @RequestBody UpdateTicketReturnItemCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateTicketReturnItemCommand.builder().id(id).invoiceItemId(cmd.getInvoiceItemId())
-                        .productId(cmd.getProductId()).quantity(cmd.getQuantity()).unitPrice(cmd.getUnitPrice())
-                        .amount(cmd.getAmount()).reason(cmd.getReason()).conditionNote(cmd.getConditionNote()).build())));
+                        .quantity(cmd.getQuantity())
+                        .reason(cmd.getReason()).conditionNote(cmd.getConditionNote()).build())));
     }
 
     /** Xóa dòng hàng trả/đổi. @param id ID @return 204 */

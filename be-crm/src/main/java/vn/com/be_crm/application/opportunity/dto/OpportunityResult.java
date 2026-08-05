@@ -8,10 +8,9 @@ import lombok.Setter;
 import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/** Output DTO cho Opportunity. */
+// output cho Opportunity
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class OpportunityResult {
     private Long id;
@@ -24,9 +23,6 @@ public class OpportunityResult {
     private Long stageId;
     private Long pricePolicyId;
     private BigDecimal amount;
-    private BigDecimal expectedRevenue;
-    private BigDecimal probability;
-    private LocalDate expectedCloseDate;
     private String source;
     private Long campaignId;
     private String winLossReason;

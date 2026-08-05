@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { badgeCell, currencyCell, dateCell, numberCell, textCell } from '@/shared/components/table/cells';
+import { badgeCell, currencyCell, dateCell, textCell } from '@/shared/components/table/cells';
 import type { QuotationResult } from '../types/quotationTypes';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -22,13 +22,10 @@ export const getQuotationColumns = (): ColumnDef<QuotationResult>[] => [
     { accessorKey: 'customerName', header: 'Khách hàng', size: 180, cell: textCell },
     { accessorKey: 'contactName', header: 'Liên hệ', size: 160, cell: textCell },
     { accessorKey: 'opportunityName', header: 'Cơ hội', size: 160, cell: textCell },
-    { accessorKey: 'campaignName', header: 'Chiến dịch', size: 160, cell: textCell },
     { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
     { accessorKey: 'status', header: 'Trạng thái', size: 120, cell: badgeCell(STATUS_LABELS, STATUS_COLORS) },
     { accessorKey: 'quoteDate', header: 'Ngày báo giá', size: 130, cell: dateCell },
     { accessorKey: 'validUntil', header: 'Hiệu lực đến', size: 130, cell: dateCell },
-    { accessorKey: 'currency', header: 'Tiền tệ', size: 90, cell: textCell },
-    { accessorKey: 'exchangeRate', header: 'Tỷ giá', size: 100, cell: numberCell },
     { accessorKey: 'subtotal', header: 'Tạm tính', size: 150, cell: currencyCell },
     { accessorKey: 'discount', header: 'Chiết khấu', size: 140, cell: currencyCell },
     { accessorKey: 'tax', header: 'Thuế', size: 140, cell: currencyCell },

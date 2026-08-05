@@ -10,18 +10,15 @@ import vn.com.be_crm.domain.service.enums.TicketChannel;
 import vn.com.be_crm.domain.service.enums.TicketPriority;
 import vn.com.be_crm.domain.service.enums.TicketType;
 
-/** Input DTO khi cập nhật phiếu (KHÔNG nhận status — đổi qua hành động). */
+// input khi cập nhật phiếu (KHÔNG nhận status — đổi qua hành động)
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class UpdateTicketCommand {
-    /** ID phiếu — controller set từ path; KHÔNG đặt @NotNull. */
+    // ID phiếu — controller set từ path; KHÔNG đặt @NotNull
     private Long id;
     private TicketType type;
     @Size(max = 150) private String subject;
     @Size(max = 1000) private String description;
-    private Long customerId;
-    private Long contactId;
-    private Long invoiceId;
-    private Long productId;
+    private Long orderId;
     private TicketChannel channel;
     private TicketPriority priority;
     private ReturnReason reason;

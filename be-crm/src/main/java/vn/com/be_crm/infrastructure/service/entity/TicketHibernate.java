@@ -19,9 +19,7 @@ import vn.com.be_crm.core.audit.IAuditable;
 
 import java.time.LocalDateTime;
 
-/**
- * Hibernate entity ánh xạ bảng support_tickets.
- */
+// ánh xạ bảng support_tickets
 @Entity
 @Table(name = "support_tickets")
 @Getter @Setter @NoArgsConstructor
@@ -33,10 +31,7 @@ public class TicketHibernate implements IAuditable {
     @Column(name = "type", nullable = false, length = 20) private TicketType type;
     @Column(name = "subject", nullable = false, length = 150) private String subject;
     @Column(name = "description", length = 1000) private String description;
-    @Column(name = "customer_id") private Long customerId;
-    @Column(name = "contact_id") private Long contactId;
-    @Column(name = "invoice_id") private Long invoiceId;
-    @Column(name = "product_id") private Long productId;
+    @Column(name = "order_id") private Long orderId;
     @Enumerated(EnumType.STRING) @Column(name = "channel", length = 10) private TicketChannel channel;
     @Enumerated(EnumType.STRING) @Column(name = "priority", length = 10) private TicketPriority priority;
     @Convert(converter = TicketStatusConverter.class)

@@ -18,7 +18,6 @@ export interface PublicQuotationView {
     contactName: string;
     quoteDate: string | null;
     validUntil: string | null;
-    currency: string | null;
     note: string | null;
     subtotal: number;
     discount: number;
@@ -34,10 +33,10 @@ export interface PublicQuotationView {
 export type RespondAction = 'accept' | 'adjust' | 'reject';
 
 export const publicQuotationService = {
-    // lấy báo giá công khai theo token
-    getByToken: (token: string) =>
-        axiosInstance.get<ApiResponse<PublicQuotationView>>(`/api/public/quotations/${token}`),
+    // lấy báo giá công khai theo mã báo giá (code) — không còn dùng token bí mật
+    getByCode: (code: string) =>
+        axiosInstance.get<ApiResponse<PublicQuotationView>>(`/api/public/quotations/${code}`),
     // gửi phản hồi của khách (đồng ý/điều chỉnh/không đồng ý)
-    respond: (token: string, action: RespondAction, note?: string) =>
-        axiosInstance.post<ApiResponse<null>>(`/api/public/quotations/${token}/respond`, { action, note }),
+    respond: (code: string, action: RespondAction, note?: string) =>
+        axiosInstance.post<ApiResponse<null>>(`/api/public/quotations/${code}/respond`, { action, note }),
 };

@@ -45,4 +45,7 @@ public interface INameResolver {
 
     /** Tra tên danh mục sản phẩm (product_categories.name). @param ids tập ID @return map id→tên */
     Map<Long, String> productCategories(Collection<Long> ids);
+
+    /** Tra tên sản phẩm (products.name). @param ids tập ID @return map id→tên */
+    Map<Long, String> products(Collection<Long> ids);
 }

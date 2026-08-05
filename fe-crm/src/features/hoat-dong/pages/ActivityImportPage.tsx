@@ -9,8 +9,6 @@ const FIELDS: ImportField[] = [
     { key: 'priority',       label: 'Độ ưu tiên',                      type: 'enum', enumValues: ['low', 'medium', 'high'] },
     { key: 'targetType',     label: 'Loại đối tượng chính',            type: 'text' },
     { key: 'targetId',       label: 'ID đối tượng chính',              type: 'number' },
-    { key: 'relatedType',    label: 'Loại đối tượng liên quan',        type: 'text' },
-    { key: 'relatedId',      label: 'ID đối tượng liên quan',          type: 'number' },
     { key: 'location',       label: 'Địa điểm',                        type: 'text' },
     { key: 'callDirection',  label: 'Chiều cuộc gọi',                  type: 'enum', enumValues: ['in', 'out'] },
     { key: 'callResult',     label: 'Kết quả cuộc gọi',                type: 'text' },

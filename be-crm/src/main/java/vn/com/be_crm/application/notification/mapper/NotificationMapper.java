@@ -1,16 +1,16 @@
 package vn.com.be_crm.application.notification.mapper;
 
 import vn.com.be_crm.application.notification.dto.NotificationResult;
-import vn.com.be_crm.domain.notification.entity.Notification;
+import vn.com.be_crm.domain.notification.entity.NotificationFeedItem;
 
-/** Chuyển Notification domain → NotificationResult. */
+// chuyển NotificationFeedItem (domain, đã gộp sẵn nội dung + trạng thái người nhận) -> NotificationResult
 public class NotificationMapper {
 
-    /** @param e domain entity @return result DTO */
-    public static NotificationResult toResult(Notification e) {
+    public static NotificationResult toResult(NotificationFeedItem e) {
         return NotificationResult.builder()
-                .id(e.getId()).type(e.getType()).title(e.getTitle()).content(e.getContent())
-                .leadId(e.getLeadId()).targetId(e.getTargetId()).isRead(e.isRead()).createdAt(e.getCreatedAt()).build();
+                .id(e.id()).type(e.type()).title(e.title()).content(e.content())
+                .targetType(e.targetType()).targetId(e.targetId())
+                .isRead(e.isRead()).createdAt(e.createdAt()).build();
     }
 
     private NotificationMapper() {}

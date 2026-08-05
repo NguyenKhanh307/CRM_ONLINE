@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.com.be_crm.domain.product.enums.ProductStatus;
 import vn.com.be_crm.domain.product.enums.ProductType;
 
 import java.math.BigDecimal;
@@ -23,8 +24,7 @@ public class ProductResult {
     private BigDecimal costPrice;
     private BigDecimal vatRate;
     private String description;
-    private Boolean isDiscontinued;
-    private Boolean isActive;
+    private ProductStatus status;
     // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
     private Long createdBy;
     private Long updatedBy;

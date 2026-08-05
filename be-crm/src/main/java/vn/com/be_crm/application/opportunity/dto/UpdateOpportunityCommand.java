@@ -1,6 +1,5 @@
 package vn.com.be_crm.application.opportunity.dto;
 
-import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,9 +8,8 @@ import lombok.NoArgsConstructor;
 import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
-/** Input DTO khi cập nhật cơ hội bán hàng. */
+// input khi cập nhật cơ hội bán hàng
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class UpdateOpportunityCommand {
     private Long id;
@@ -23,9 +21,6 @@ public class UpdateOpportunityCommand {
     private Long stageId;
     private Long pricePolicyId;
     private BigDecimal amount;
-    @PositiveOrZero(message = "Doanh thu kỳ vọng không được âm") private BigDecimal expectedRevenue;
-    // probability: KHÔNG nhận từ FE — suy ra từ opportunity_stages.probability của giai đoạn được chọn.
-    private LocalDate expectedCloseDate;
     @Size(max = 30) private String source;
     private Long campaignId;
     @Size(max = 255) private String winLossReason;

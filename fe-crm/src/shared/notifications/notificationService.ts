@@ -7,7 +7,8 @@ export interface NotificationResult {
     type: string | null;
     title: string | null;
     content: string | null;
-    leadId: number | null;
+    // module của bản ghi đích (vd "lead"/"quotation"/"ticket") — dùng để suy route điều hướng
+    targetType: string | null;
     // id bản ghi đích (lead/quotation/ticket...) để điều hướng + focus dòng khi bấm thông báo
     targetId: number | null;
     isRead: boolean;

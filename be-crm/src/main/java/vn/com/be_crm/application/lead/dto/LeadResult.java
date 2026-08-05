@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.com.be_crm.domain.lead.enums.LeadStatus;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 // output cho Lead
@@ -19,23 +18,17 @@ public class LeadResult {
     private String companyName;
     private String leadType;
     private Long ownerId;
-    private Long customerId;
     private Long contactId;
     private Long convertedOpportunityId;
-    private String title;
-    private String department;
     private String taxCode;
     private String website;
     private String industry;
     private String source;
     private Long campaignId;
     private LeadStatus status;
-    private BigDecimal estimatedValue;
     private Integer score;
     private String phone;
     private String email;
-    private boolean doNotCall;
-    private boolean doNotEmail;
     private String note;
     // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
     private Long createdBy;
@@ -44,7 +37,6 @@ public class LeadResult {
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver) để FE hiển thị trực tiếp, không còn "#id".
     private String ownerName;
-    private String customerName;
     private String contactName;
     private String campaignName;
     // Tên người tạo/người sửa — do BE resolve (INameResolver).

@@ -67,7 +67,6 @@ public class ActivityController {
                 .type(request.getType()).subject(request.getSubject()).content(request.getContent())
                 .priority(request.getPriority())
                 .targetType(request.getTargetType()).targetId(request.getTargetId())
-                .relatedType(request.getRelatedType()).relatedId(request.getRelatedId())
                 .location(request.getLocation()).callDirection(request.getCallDirection())
                 .callResult(request.getCallResult()).callDuration(request.getCallDuration())
                 .assignedUserId(request.getAssignedUserId()).status(request.getStatus())
@@ -132,7 +131,7 @@ public class ActivityController {
                 .callDirection(request.getCallDirection()).callResult(request.getCallResult())
                 .callDuration(request.getCallDuration())
                 .assignedUserId(request.getAssignedUserId()).status(request.getStatus())
-                .dueAt(request.getDueAt()).completedAt(request.getCompletedAt()).build();
+                .dueAt(request.getDueAt()).build();
         return ResponseEntity.ok(ApiResponse.ok(updateUseCase.execute(cmd)));
     }
 

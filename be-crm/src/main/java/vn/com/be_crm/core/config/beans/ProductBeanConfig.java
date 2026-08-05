@@ -37,6 +37,8 @@ public class ProductBeanConfig {
     @Bean public GetProductUseCase getProductUseCase(IProductRepository r) { return new GetProductUseCase(r); }
     /** @return ListProductUseCase */
     @Bean public ListProductUseCase listProductUseCase(IProductRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListProductUseCase(r, n); }
+    /** @return ListPublicProductsUseCase — danh sách sản phẩm công khai cho landing page */
+    @Bean public ListPublicProductsUseCase listPublicProductsUseCase(IProductRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListPublicProductsUseCase(r, n); }
 
     // ===== Trash =====
 

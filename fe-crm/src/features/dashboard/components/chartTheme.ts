@@ -20,7 +20,7 @@ export const colorAt = (i: number): string => PALETTE[i % PALETTE.length];
 // nhãn trạng thái tiếng Việt theo từng phân hệ
 export const STATUS_LABELS: Record<string, Record<string, string>> = {
     user: { active: 'Hoạt động', inactive: 'Ngưng', locked: 'Khóa' },
-    lead: { new: 'Mới', contacting: 'Đang liên hệ', qualified: 'Đủ điều kiện', converted: 'Đã chuyển đổi', lost: 'Thất bại' },
+    lead: { new: 'Mới', contacting: 'Đang liên hệ', converted: 'Đã chuyển đổi' },
     opportunity: { open: 'Đang mở', won: 'Thắng', lost: 'Thua' },
     order: { draft: 'Nháp', confirmed: 'Đã xác nhận', processing: 'Đang xử lý', completed: 'Hoàn thành', cancelled: 'Đã hủy' },
     invoice: { draft: 'Nháp', sent: 'Đã gửi', partially_paid: 'TT một phần', paid: 'Đã thanh toán', cancelled: 'Đã hủy' },

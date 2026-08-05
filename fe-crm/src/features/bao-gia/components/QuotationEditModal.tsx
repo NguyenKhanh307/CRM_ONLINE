@@ -11,7 +11,6 @@ import { useUpdateQuotation } from '../hooks/useUpdateQuotation';
 import { quotationService } from '../services/quotationService';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
-import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { useEligiblePricePolicies } from '@/features/chinh-sach-gia/hooks/useEligiblePricePolicies';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
@@ -25,7 +24,6 @@ import {
     type ProductOption,
     fromItemResult,
     diffLineItems,
-    computeTotals,
     toItemPayload, validateLineItems } from '@/shared/components/form/productLineItem';
 
 interface Props {
@@ -46,12 +44,10 @@ export function QuotationEditModal({ item, onClose }: Props) {
     const { showAlert } = useAlert();
     const { mutateAsync, isPending } = useUpdateQuotation();
     const { data: products = [] } = useProductList();
-    const { data: campaigns = [] } = useCampaignList();
     const [pulling, setPulling] = useState(false);
     const [form, setForm] = useState<UpdateQuotationPayload>({
-        customerId: null, contactId: null, campaignId: null, pricePolicyId: null, ownerId: null, quoteDate: null,
-        validUntil: null, currency: 'VND', exchangeRate: 1,
-        subtotal: null, discount: null, tax: null, total: null, note: null,
+        customerId: null, contactId: null, pricePolicyId: null, ownerId: null, quoteDate: null,
+        validUntil: null, note: null,
     });
     const [rows, setRows] = useState<LineItemRow[]>([]);
     const [originalRows, setOriginalRows] = useState<LineItemRow[]>([]);
@@ -62,17 +58,15 @@ export function QuotationEditModal({ item, onClose }: Props) {
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
         [products],
     );
-    const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
     const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
 
     useEffect(() => {
         if (!item) return;
         setForm({
             customerId: item.customerId, contactId: item.contactId, opportunityId: item.opportunityId,
-            campaignId: item.campaignId, pricePolicyId: item.pricePolicyId,
+            pricePolicyId: item.pricePolicyId,
             ownerId: item.ownerId, quoteDate: item.quoteDate, validUntil: item.validUntil,
-            currency: item.currency, exchangeRate: item.exchangeRate,
-            subtotal: item.subtotal, discount: item.discount, tax: item.tax, total: item.total, note: item.note,
+            note: item.note,
         });
         quotationService.getItems(item.id).then((r) => {
             const loaded = r.data.data.map(fromItemResult);
@@ -89,14 +83,13 @@ export function QuotationEditModal({ item, onClose }: Props) {
     // tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Cơ hội
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
-    // đổi cơ hội -> tự điền chiến dịch/chính sách giá còn trống (không đè giá trị đã có)
+    // đổi cơ hội -> tự điền chính sách giá còn trống (không đè giá trị đã có)
     const onPickOpportunity = async (v: string) => {
         setForm(f => ({ ...f, opportunityId: v ? Number(v) : null }));
         setPrefillFrom(null);
         if (!v) return;
         const o = (await opportunityService.getById(Number(v))).data.data;
         const patch = fillEmpty({ ...form, opportunityId: Number(v) }, {
-            campaignId: o.campaignId ?? null,
             pricePolicyId: o.pricePolicyId ?? null,
         });
         if (hasFilled(patch)) { setForm(f => ({ ...f, ...patch })); setPrefillFrom(`cơ hội «${o.code}»`); }
@@ -127,11 +120,7 @@ export function QuotationEditModal({ item, onClose }: Props) {
         if (!(await confirmSave('báo giá'))) return;
         setSaving(true);
         try {
-            const totals = computeTotals(rows);
-            await mutateAsync({
-                id: item.id,
-                payload: { ...form, subtotal: totals.subtotal, discount: totals.discount, tax: totals.tax, total: totals.total },
-            });
+            await mutateAsync({ id: item.id, payload: form });
             const { toCreate, toUpdate, toDelete } = diffLineItems(originalRows, rows);
             await Promise.all([
                 ...toCreate.map((r) => quotationService.createItem(item.id, toItemPayload(r))),
@@ -197,21 +186,11 @@ export function QuotationEditModal({ item, onClose }: Props) {
                             </FieldError>
                         </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                        <div>
-                            <label className={lbl}>Trạng thái (đổi qua hành động)</label>
-                            <span className={`inline-block px-2 py-1.5 rounded text-sm font-medium ${QUOTATION_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                                {QUOTATION_STATUS_LABELS[item.status] ?? item.status}
-                            </span>
-                        </div>
-                        <div>
-                            <label className={lbl}>Tiền tệ</label>
-                            <input className={inp} value={form.currency ?? ''} onChange={e => setForm(f => ({ ...f, currency: e.target.value || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Tỷ giá</label>
-                            <input type="number" min={0} className={inp} value={form.exchangeRate ?? ''} onChange={e => setForm(f => ({ ...f, exchangeRate: e.target.value ? +e.target.value : null }))} />
-                        </div>
+                    <div>
+                        <label className={lbl}>Trạng thái (đổi qua hành động)</label>
+                        <span className={`inline-block px-2 py-1.5 rounded text-sm font-medium ${QUOTATION_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                            {QUOTATION_STATUS_LABELS[item.status] ?? item.status}
+                        </span>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
@@ -221,15 +200,6 @@ export function QuotationEditModal({ item, onClose }: Props) {
                                 onChange={onPickOpportunity}
                                 fallbackLabel={item.opportunityName} />
                             <PrefillHint source={prefillFrom} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Chiến dịch</label>
-                            <SearchableSelect
-                                value={form.campaignId != null ? String(form.campaignId) : ''}
-                                onChange={(v) => setForm(f => ({ ...f, campaignId: v ? Number(v) : null }))}
-                                options={campaignOptions}
-                                fallbackLabel={item.campaignName}
-                            />
                         </div>
                         <div>
                             <label className={lbl}>Chính sách giá</label>

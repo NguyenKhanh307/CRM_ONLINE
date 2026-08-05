@@ -12,27 +12,19 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/** Output DTO cho Invoice. */
+// output cho Invoice. customerId/contactId/quotationId/opportunityId/campaignId không còn — mọi
+// liên kết tra qua orderId. subtotal/discount/tax/total tính từ dòng hàng tại thời điểm đọc.
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class InvoiceResult {
     private Long id;
     private String code;
-    private Long customerId;
-    private Long contactId;
-    private Long quotationId;
-    private Long opportunityId;
     private Long orderId;
-    private Long campaignId;
     private Long ownerId;
     private LocalDate invoiceDate;
     private LocalDate dueDate;
-    private String currency;
-    private BigDecimal exchangeRate;
     private InvoiceStatus status;
     private PaymentStatus paymentStatus;
     private Boolean isLocked;
-    private String billingAddress;
-    private String taxCode;
     private BigDecimal subtotal;
     private BigDecimal discount;
     private BigDecimal tax;
@@ -44,12 +36,7 @@ public class InvoiceResult {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver).
-    private String customerName;
-    private String contactName;
-    private String quotationCode;
     private String orderCode;
-    private String opportunityName;
-    private String campaignName;
     private String ownerName;
     // Tên người tạo/người sửa — do BE resolve (INameResolver).
     private String createdByName;

@@ -8,13 +8,10 @@ export interface UpdateOpportunityPayload {
     campaignId: number | null;
     pricePolicyId: number | null;
     amount: number | null;
-    expectedRevenue?: number | null;
-    // probability: KHÔNG gửi — backend suy ra từ xác suất của giai đoạn pipeline.
-    expectedCloseDate: string | null;
     source?: string | null;
     winLossReason?: string | null;
     description?: string | null;
-    // status: KHÔNG gửi — backend suy ra từ giai đoạn pipeline.
+    // status/probability: KHÔNG gửi — backend suy ra từ giai đoạn pipeline.
 }
 
 // một dòng hàng gửi kèm khi tạo cơ hội
@@ -39,13 +36,10 @@ export interface CreateOpportunityPayload {
     campaignId: number | null;
     pricePolicyId: number | null;
     amount: number | null;
-    expectedRevenue: number | null;
-    // probability: KHÔNG gửi — backend suy ra từ xác suất của giai đoạn pipeline.
-    expectedCloseDate: string | null;
     source: string | null;
     winLossReason: string | null;
     description: string | null;
-    // status: KHÔNG gửi — backend suy ra từ giai đoạn pipeline.
+    // status/probability: KHÔNG gửi — backend suy ra từ giai đoạn pipeline.
     items: OpportunityItemPayload[];
 }
 
@@ -73,9 +67,6 @@ export interface OpportunityResult {
     campaignId: number | null;
     pricePolicyId: number | null;
     amount: number | null;
-    expectedRevenue: number | null;
-    probability: number | null;
-    expectedCloseDate: string | null;
     source: string | null;
     winLossReason: string | null;
     description: string | null;

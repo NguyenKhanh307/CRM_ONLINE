@@ -141,6 +141,36 @@ public class LeadRepositoryImpl implements ILeadRepository {
             });
     }
 
+    // tìm tiềm năng đã liên kết cơ hội nguồn của một báo giá (quotation -> opportunity ->
+    // leads.converted_opportunity_id) — dùng để phát hiện "báo giá/đơn hàng này bắt nguồn từ tiềm năng nào"
+    @Override public Optional<Lead> findByQuotationId(Long quotationId) {
+        return TxSupport.read(sf, s -> {
+            String sql = "SELECT l.id FROM leads l " +
+                    "JOIN quotations q ON q.opportunity_id = l.converted_opportunity_id " +
+                    "WHERE q.id = :quotationId AND l.deleted_at IS NULL";
+            List<Object> rows = s.createNativeQuery(sql, Object.class)
+                    .setParameter("quotationId", quotationId).getResultList();
+            if (rows.isEmpty()) return Optional.<Lead>empty();
+            Long leadId = ((Number) rows.get(0)).longValue();
+            LeadHibernate h = s.find(LeadHibernate.class, leadId);
+            return h == null || h.getDeletedAt() != null ? Optional.<Lead>empty() : Optional.of(mapper.toDomain(h));
+        });
+    }
+
+    @Override public boolean hasAnyOrder(Long leadId, Long excludeOrderId) {
+        return TxSupport.read(sf, s -> {
+            String sql = "SELECT COUNT(*) FROM orders o " +
+                    "JOIN quotations q ON q.id = o.quotation_id " +
+                    "JOIN leads l ON l.converted_opportunity_id = q.opportunity_id " +
+                    "WHERE l.id = :leadId AND o.deleted_at IS NULL" +
+                    (excludeOrderId != null ? " AND o.id != :excludeOrderId" : "");
+            var query = s.createNativeQuery(sql, Object.class).setParameter("leadId", leadId);
+            if (excludeOrderId != null) query.setParameter("excludeOrderId", excludeOrderId);
+            long count = ((Number) query.uniqueResult()).longValue();
+            return count > 0;
+        });
+    }
+
     @Override public PageResult<Lead> findAll(PageRequest r) {
         return TxSupport.read(sf, s -> {
             String yearFilter = r.getDataAccessFromYear() != null ? " AND YEAR(createdAt) >= :fromYear" : "";

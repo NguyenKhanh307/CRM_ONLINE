@@ -83,8 +83,7 @@ public class ProductController {
                         .type(cmd.getType()).unit(cmd.getUnit())
                         .basePrice(cmd.getBasePrice())
                         .costPrice(cmd.getCostPrice()).vatRate(cmd.getVatRate())
-                        .description(cmd.getDescription()).isDiscontinued(cmd.getIsDiscontinued())
-                        .isActive(cmd.getIsActive()).build())));
+                        .description(cmd.getDescription()).status(cmd.getStatus()).build())));
     }
 
     /** Xóa mềm hàng hóa. @param id ID @param req HTTP request @return 204 */

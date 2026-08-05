@@ -51,14 +51,8 @@ public class CustomerHibernate implements IAuditable {
     private Integer creditDays;
     @Column(name = "credit_limit", precision = 18, scale = 2)
     private java.math.BigDecimal creditLimit;
-    @Column(name = "bank_account", length = 30)
-    private String bankAccount;
-    @Column(name = "bank_name", length = 100)
-    private String bankName;
     @Column(name = "rating", length = 10)
     private String rating;
-    @Column(name = "annual_revenue", precision = 18, scale = 2)
-    private java.math.BigDecimal annualRevenue;
     @Column(name = "employee_size", length = 30)
     private String employeeSize;
     @Column(name = "is_distributor")

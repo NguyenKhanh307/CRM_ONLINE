@@ -27,8 +27,6 @@ public class ActivityHibernateMapper {
         h.setPriority(domain.getPriority());
         h.setTargetType(domain.getTargetType());
         h.setTargetId(domain.getTargetId());
-        h.setRelatedType(domain.getRelatedType());
-        h.setRelatedId(domain.getRelatedId());
         h.setLocation(domain.getLocation());
         h.setCallDirection(domain.getCallDirection());
         h.setCallResult(domain.getCallResult());
@@ -36,7 +34,6 @@ public class ActivityHibernateMapper {
         h.setAssignedUserId(domain.getAssignedUserId());
         h.setStatus(domain.getStatus() != null ? domain.getStatus() : ActivityStatus.planned);
         h.setDueAt(domain.getDueAt());
-        h.setCompletedAt(domain.getCompletedAt());
         // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
         return AuditStamper.stamp(h, domain.getCreatedBy(), domain.getUpdatedBy());
     }
@@ -52,12 +49,11 @@ public class ActivityHibernateMapper {
                 .id(h.getId()).type(h.getType()).subject(h.getSubject())
                 .content(h.getContent()).priority(h.getPriority())
                 .targetType(h.getTargetType()).targetId(h.getTargetId())
-                .relatedType(h.getRelatedType()).relatedId(h.getRelatedId())
                 .location(h.getLocation()).callDirection(h.getCallDirection())
                 .callResult(h.getCallResult()).callDuration(h.getCallDuration())
                 .assignedUserId(h.getAssignedUserId())
                 .status(h.getStatus()).dueAt(h.getDueAt())
-                .completedAt(h.getCompletedAt()).createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
+                .createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt())
                 .updatedAt(h.getUpdatedAt())
                 .build();

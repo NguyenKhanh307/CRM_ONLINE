@@ -5,36 +5,28 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import vn.com.be_crm.domain.quotation.enums.QuotationLineStatus;
+
 import java.math.BigDecimal;
 
-/**
- * Domain entity đại diện cho dòng sản phẩm trong báo giá.
- */
+// dòng sản phẩm trong báo giá. "amount" không còn là cột lưu sẵn — tính từ quantity/unitPrice/
+// discount/taxRate tại thời điểm đọc (xem LineItemTotals).
 @Getter
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuotationItem {
-    /** ID dòng sản phẩm. */
     private Long id;
-    /** ID báo giá. */
     private Long quotationId;
-    /** ID sản phẩm. */
     private Long productId;
-    /** ID dòng cơ hội nguồn (để đồng bộ hai chiều với cơ hội). */
+    // ID dòng cơ hội nguồn (để đồng bộ hai chiều với cơ hội)
     private Long opportunityItemId;
-    /** Đơn vị tính dòng hàng. */
     private String unit;
-    /** Số lượng. */
     private BigDecimal quantity;
-    /** Đơn giá. */
     private BigDecimal unitPrice;
-    /** Chiết khấu. */
     private BigDecimal discount;
-    /** Thuế suất (%). */
     private BigDecimal taxRate;
-    /** Thành tiền. */
-    private BigDecimal amount;
-    /** Ghi chú. */
+    // khách chấp nhận/từ chối riêng từng dòng khi phản hồi báo giá — mặc định pending
+    private QuotationLineStatus lineStatus;
     private String note;
 }

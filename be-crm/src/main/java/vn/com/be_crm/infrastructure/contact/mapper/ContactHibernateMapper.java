@@ -18,11 +18,9 @@ public class ContactHibernateMapper {
         h.setId(d.getId()); h.setCustomerId(d.getCustomerId()); h.setAssignedUserId(d.getAssignedUserId());
         h.setSalutation(d.getSalutation());
         h.setFullName(d.getFullName()); h.setTitle(d.getTitle()); h.setDepartment(d.getDepartment());
-        h.setPosition(d.getPosition()); h.setEmail(d.getEmail());
-        h.setWorkEmail(d.getWorkEmail()); h.setPersonalEmail(d.getPersonalEmail());
+        h.setEmail(d.getEmail());
         h.setZalo(d.getZalo()); h.setSource(d.getSource());
-        h.setGender(d.getGender()); h.setDateOfBirth(d.getDateOfBirth()); h.setAddress(d.getAddress());
-        h.setDoNotCall(d.isDoNotCall()); h.setDoNotEmail(d.isDoNotEmail());
+        h.setGender(d.getGender()); h.setDateOfBirth(d.getDateOfBirth());
         h.setIsPrimary(d.getIsPrimary() != null ? d.getIsPrimary() : false);
         h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
@@ -39,11 +37,9 @@ public class ContactHibernateMapper {
                 .id(h.getId()).customerId(h.getCustomerId()).assignedUserId(h.getAssignedUserId())
                 .salutation(h.getSalutation())
                 .fullName(h.getFullName()).title(h.getTitle()).department(h.getDepartment())
-                .position(h.getPosition()).email(h.getEmail())
-                .workEmail(h.getWorkEmail()).personalEmail(h.getPersonalEmail())
+                .email(h.getEmail())
                 .zalo(h.getZalo()).source(h.getSource())
-                .gender(h.getGender()).dateOfBirth(h.getDateOfBirth()).address(h.getAddress())
-                .doNotCall(h.isDoNotCall()).doNotEmail(h.isDoNotEmail())
+                .gender(h.getGender()).dateOfBirth(h.getDateOfBirth())
                 .isPrimary(h.getIsPrimary()).createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt()).updatedAt(h.getUpdatedAt())
                 .deletedAt(h.getDeletedAt()).deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();

@@ -59,7 +59,6 @@ const OrderDetailPage = () => {
                     </span>
                 }
                 meta={[
-                    { label: 'Khách hàng', value: order.customerName },
                     { label: 'Báo giá nguồn', value: order.quotationCode },
                     { label: 'Tổng tiền', value: order.total != null ? formatCurrency(order.total) : null },
                     { label: 'Người phụ trách', value: order.ownerName },

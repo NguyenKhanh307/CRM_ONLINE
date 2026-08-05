@@ -1,53 +1,31 @@
 package vn.com.be_crm.domain.notification.repository;
 
 import vn.com.be_crm.domain.notification.entity.Notification;
+import vn.com.be_crm.domain.notification.entity.NotificationFeedItem;
 
 import java.util.List;
 
-/**
- * Port lưu trữ cho Notification.
- */
+// port lưu trữ cho Notification. Một thông báo dùng chung cho nhiều người nhận — save() ghi 1
+// dòng notifications + N dòng notification_recipients; các thao tác đọc/xóa còn lại đều thao
+// tác trên notification_recipients (id truyền vào là id của dòng người nhận, không phải id
+// thông báo gốc).
 public interface INotificationRepository {
 
-    /**
-     * Lưu một thông báo.
-     * @param notification domain entity @return entity sau khi lưu
-     */
-    Notification save(Notification notification);
+    // lưu 1 thông báo dùng chung + N dòng người nhận trong 1 lần gọi
+    Notification save(Notification notification, List<Long> recipientUserIds);
 
-    /**
-     * Lấy danh sách thông báo của một người nhận, mới nhất trước.
-     * @param recipientUserId ID người nhận @param limit số lượng tối đa @return danh sách
-     */
-    List<Notification> findByRecipient(Long recipientUserId, int limit);
+    // danh sách thông báo của một người nhận, mới nhất trước
+    List<NotificationFeedItem> findByRecipient(Long recipientUserId, int limit);
 
-    /**
-     * Đếm số thông báo chưa đọc của một người nhận.
-     * @param recipientUserId ID người nhận @return số lượng chưa đọc
-     */
     long countUnread(Long recipientUserId);
 
-    /**
-     * Đánh dấu một thông báo đã đọc (chỉ khi đúng người nhận).
-     * @param id ID thông báo @param recipientUserId ID người nhận
-     */
+    // đánh dấu một thông báo đã đọc (id = id dòng notification_recipients, chỉ khi đúng người nhận)
     void markRead(Long id, Long recipientUserId);
 
-    /**
-     * Đánh dấu tất cả thông báo của người nhận là đã đọc.
-     * @param recipientUserId ID người nhận
-     */
     void markAllRead(Long recipientUserId);
 
-    /**
-     * Xóa mềm các thông báo được chọn (chỉ khi đúng người nhận).
-     * @param ids danh sách ID thông báo @param recipientUserId ID người nhận @return số dòng đã xóa mềm
-     */
+    // xóa mềm các thông báo được chọn (id = id dòng notification_recipients, chỉ khi đúng người nhận)
     int softDeleteByIds(List<Long> ids, Long recipientUserId);
 
-    /**
-     * Xóa mềm toàn bộ thông báo còn lại của người nhận.
-     * @param recipientUserId ID người nhận @return số dòng đã xóa mềm
-     */
     int softDeleteAll(Long recipientUserId);
 }

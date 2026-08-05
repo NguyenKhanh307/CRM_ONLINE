@@ -62,17 +62,11 @@ public class ImportBulkContactUseCase {
                             .fullName(row.fullName())
                             .title(row.title() != null ? row.title() : e.getTitle())
                             .department(row.department() != null ? row.department() : e.getDepartment())
-                            .position(row.position() != null ? row.position() : e.getPosition())
                             .email(row.email() != null ? row.email() : e.getEmail())
-                            .workEmail(row.workEmail() != null ? row.workEmail() : e.getWorkEmail())
-                            .personalEmail(row.personalEmail() != null ? row.personalEmail() : e.getPersonalEmail())
                             .zalo(row.zalo() != null ? row.zalo() : e.getZalo())
                             .source(row.source() != null ? row.source() : e.getSource())
                             .gender(gender != null ? gender : e.getGender())
                             .dateOfBirth(dateOfBirth != null ? dateOfBirth : e.getDateOfBirth())
-                            .address(row.address() != null ? row.address() : e.getAddress())
-                            .doNotCall(row.doNotCall() != null ? row.doNotCall() : e.isDoNotCall())
-                            .doNotEmail(row.doNotEmail() != null ? row.doNotEmail() : e.isDoNotEmail())
                             .isPrimary(row.isPrimary() != null ? row.isPrimary() : e.getIsPrimary())
                             .createdAt(e.getCreatedAt()).build());
                     success++;
@@ -83,14 +77,9 @@ public class ImportBulkContactUseCase {
                             .salutation(row.salutation())
                             .fullName(row.fullName())
                             .title(row.title()).department(row.department())
-                            .position(row.position())
                             .email(row.email())
-                            .workEmail(row.workEmail()).personalEmail(row.personalEmail())
                             .zalo(row.zalo()).source(row.source())
                             .gender(gender).dateOfBirth(dateOfBirth)
-                            .address(row.address())
-                            .doNotCall(row.doNotCall() != null && row.doNotCall())
-                            .doNotEmail(row.doNotEmail() != null && row.doNotEmail())
                             .isPrimary(row.isPrimary() != null && row.isPrimary())
                             .build());
                     success++;

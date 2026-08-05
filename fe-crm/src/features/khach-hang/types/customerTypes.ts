@@ -12,10 +12,7 @@ export interface UpdateCustomerPayload {
     // status: KHÔNG gửi — đổi qua hành động activate/deactivate.
     creditDays?: number | null;
     creditLimit?: number | null;
-    bankAccount?: string | null;
-    bankName?: string | null;
     rating?: string | null;
-    annualRevenue?: number | null;
     employeeSize?: string | null;
     isDistributor?: boolean;
     ownerId: number | null;
@@ -37,10 +34,7 @@ export interface CreateCustomerPayload {
     // status: KHÔNG gửi — khách hàng luôn tạo ở trạng thái 'active'.
     creditDays: number | null;
     creditLimit: number | null;
-    bankAccount: string | null;
-    bankName: string | null;
     rating: string | null;
-    annualRevenue: number | null;
     employeeSize: string | null;
     isDistributor: boolean;
     ownerId: number | null;
@@ -62,10 +56,7 @@ export interface CustomerResult {
     status: string;
     creditDays: number | null;
     creditLimit: number | null;
-    bankAccount: string | null;
-    bankName: string | null;
     rating: string | null;
-    annualRevenue: number | null;
     employeeSize: string | null;
     isDistributor: boolean;
     ownerId: number | null;
@@ -78,23 +69,4 @@ export interface CustomerResult {
     ownerName: string | null;
     createdByName: string | null;
     updatedByName: string | null;
-}
-
-export type CustomerSharePermission = 'view' | 'edit';
-
-// một lượt chia sẻ khách hàng cho user khác xem/sửa — GET /api/customers/{id}/shares
-export interface CustomerShareResult {
-    id: number;
-    customerId: number;
-    userId: number;
-    permission: CustomerSharePermission | null;
-    sharedBy: number | null;
-    createdAt: string;
-}
-
-// payload gán chia sẻ mới — POST /api/customers/{id}/shares
-export interface AssignCustomerSharePayload {
-    userId: number;
-    permission: CustomerSharePermission | null;
-    sharedBy: number | null;
 }

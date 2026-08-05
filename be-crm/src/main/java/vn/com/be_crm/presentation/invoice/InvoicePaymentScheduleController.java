@@ -37,7 +37,8 @@ public class InvoicePaymentScheduleController {
         InvoicePaymentScheduleResult result = createUC.execute(
                 CreateInvoicePaymentScheduleCommand.builder().invoiceId(invoiceId).installmentNo(cmd.getInstallmentNo())
                         .dueDate(cmd.getDueDate()).amount(cmd.getAmount()).paidAmount(cmd.getPaidAmount())
-                        .status(cmd.getStatus()).paidAt(cmd.getPaidAt()).note(cmd.getNote()).build());
+                        .status(cmd.getStatus()).bankName(cmd.getBankName()).bankAccount(cmd.getBankAccount())
+                        .note(cmd.getNote()).build());
         workflowUC.recalcPaymentStatus(invoiceId);
         return ResponseEntity.status(201).body(ApiResponse.created(result));
     }
@@ -55,7 +56,8 @@ public class InvoicePaymentScheduleController {
         InvoicePaymentScheduleResult result = updateUC.execute(
                 UpdateInvoicePaymentScheduleCommand.builder().id(id).dueDate(cmd.getDueDate())
                         .amount(cmd.getAmount()).paidAmount(cmd.getPaidAmount()).status(cmd.getStatus())
-                        .paidAt(cmd.getPaidAt()).note(cmd.getNote()).build());
+                        .bankName(cmd.getBankName()).bankAccount(cmd.getBankAccount())
+                        .note(cmd.getNote()).build());
         workflowUC.recalcPaymentStatus(invoiceId);
         return ResponseEntity.ok(ApiResponse.ok(result));
     }

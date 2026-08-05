@@ -10,18 +10,17 @@ import type { OrderResult, UpdateOrderPayload } from '../types/orderTypes';
 import { useUpdateOrder } from '../hooks/useUpdateOrder';
 import { orderService } from '../services/orderService';
 import { quotationService } from '@/features/bao-gia/services/quotationService';
+import type { QuotationResult } from '@/features/bao-gia/types/quotationTypes';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
+import { DerivedContextBox } from '@/shared/components/form/DerivedContextBox';
 import { DateInput } from '@/shared/components/form/DateInput';
-import { PrefillHint } from '@/shared/components/form/PrefillHint';
-import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
 import {
     type LineItemRow,
     type ProductOption,
     fromItemResult,
     diffLineItems,
-    computeTotals,
     toItemPayload, validateLineItems } from '@/shared/components/form/productLineItem';
 
 interface Props {
@@ -38,20 +37,19 @@ const ORDER_STATUS_COLORS: Record<string, string> = {
     completed: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600',
 };
 
-// modal chỉnh sửa Đơn hàng — kèm bảng dòng hàng (diff create/update/delete khi lưu)
+// modal chỉnh sửa Đơn hàng — kèm bảng dòng hàng (diff create/update/delete khi lưu). Đơn hàng chỉ
+// còn 1 khóa ngoại chính (quotationId) — khách hàng/liên hệ/cơ hội tra qua báo giá, hiển thị read-only
 export function OrderEditModal({ item, onClose }: Props) {
     const qc = useQueryClient();
     const { mutateAsync, isPending } = useUpdateOrder();
     const { data: products = [] } = useProductList();
     const [form, setForm] = useState<UpdateOrderPayload>({
-        customerId: null, contactId: null, ownerId: null,
-        orderDate: null, deliveryDate: null,
-        currency: 'VND', exchangeRate: 1, billingAddress: null, taxCode: null,
-        subtotal: null, discount: null, tax: null, total: null, note: null,
+        quotationId: null, ownerId: null, orderDate: null, deliveryDate: null, note: null,
     });
     const [rows, setRows] = useState<LineItemRow[]>([]);
     const [originalRows, setOriginalRows] = useState<LineItemRow[]>([]);
     const [saving, setSaving] = useState(false);
+    const [quotation, setQuotation] = useState<QuotationResult | null>(null);
 
     const productOptions = useMemo<ProductOption[]>(
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
@@ -61,13 +59,13 @@ export function OrderEditModal({ item, onClose }: Props) {
     useEffect(() => {
         if (!item) return;
         setForm({
-            customerId: item.customerId, contactId: item.contactId, quotationId: item.quotationId,
-            opportunityId: item.opportunityId, campaignId: item.campaignId, ownerId: item.ownerId,
-            orderDate: item.orderDate, deliveryDate: item.deliveryDate,
-            currency: item.currency, exchangeRate: item.exchangeRate,
-            billingAddress: item.billingAddress, taxCode: item.taxCode,
-            subtotal: item.subtotal, discount: item.discount, tax: item.tax, total: item.total, note: item.note,
+            quotationId: item.quotationId, ownerId: item.ownerId,
+            orderDate: item.orderDate, deliveryDate: item.deliveryDate, note: item.note,
         });
+        setQuotation(null);
+        if (item.quotationId != null) {
+            quotationService.getById(item.quotationId).then(r => setQuotation(r.data.data));
+        }
         orderService.getItems(item.id).then((r) => {
             const loaded = r.data.data.map(fromItemResult);
             setRows(loaded);
@@ -80,17 +78,13 @@ export function OrderEditModal({ item, onClose }: Props) {
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
-    // tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Báo giá nguồn
-    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
-
-    // đổi báo giá nguồn -> tự điền cơ hội còn trống (không đè giá trị đã có)
+    // đổi báo giá nguồn -> fetch chi tiết để hiển thị khách hàng/liên hệ/cơ hội read-only
     const onPickQuotation = async (v: string) => {
         setForm(f => ({ ...f, quotationId: v ? Number(v) : null }));
-        setPrefillFrom(null);
+        setQuotation(null);
         if (!v) return;
         const q = (await quotationService.getById(Number(v))).data.data;
-        const patch = fillEmpty({ ...form, quotationId: Number(v) }, { opportunityId: q.opportunityId ?? null });
-        if (hasFilled(patch)) { setForm(f => ({ ...f, ...patch })); setPrefillFrom(`báo giá «${q.code}»`); }
+        setQuotation(q);
     };
 
     const { confirmSave } = useConfirm();
@@ -119,12 +113,8 @@ export function OrderEditModal({ item, onClose }: Props) {
         if (!(await confirmSave('đơn hàng'))) return;
         setSaving(true);
         try {
-            // bước lưu header (tổng tiền tính lại từ dòng hàng)
-            const totals = computeTotals(rows);
-            await mutateAsync({
-                id: item.id,
-                payload: { ...form, subtotal: totals.subtotal, discount: totals.discount, tax: totals.tax, total: totals.total },
-            });
+            // bước lưu header
+            await mutateAsync({ id: item.id, payload: form });
 
             // bước đồng bộ dòng hàng theo diff rồi làm mới cache
             const { toCreate, toUpdate, toDelete } = diffLineItems(originalRows, rows);
@@ -170,33 +160,18 @@ export function OrderEditModal({ item, onClose }: Props) {
                             </FieldError>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>Báo giá nguồn</label>
-                            <RecordPicker module="quotation"
-                                value={form.quotationId != null ? String(form.quotationId) : ''}
-                                onChange={onPickQuotation}
-                                fallbackLabel={item.quotationCode} />
-                            <PrefillHint source={prefillFrom} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Cơ hội</label>
-                            <RecordPicker module="opportunity"
-                                value={form.opportunityId != null ? String(form.opportunityId) : ''}
-                                onChange={(v) => setForm(f => ({ ...f, opportunityId: v ? Number(v) : null }))}
-                                fallbackLabel={item.opportunityName} />
-                        </div>
+                    <div>
+                        <label className={lbl}>Báo giá nguồn</label>
+                        <RecordPicker module="quotation"
+                            value={form.quotationId != null ? String(form.quotationId) : ''}
+                            onChange={onPickQuotation}
+                            fallbackLabel={item.quotationCode} />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>Mã số thuế</label>
-                            <input className={inp} value={form.taxCode ?? ''} onChange={e => setForm(f => ({ ...f, taxCode: e.target.value || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Địa chỉ xuất HĐ</label>
-                            <input className={inp} value={form.billingAddress ?? ''} onChange={e => setForm(f => ({ ...f, billingAddress: e.target.value || null }))} />
-                        </div>
-                    </div>
+                    <DerivedContextBox rows={[
+                        { label: 'Khách hàng', value: quotation?.customerName },
+                        { label: 'Liên hệ', value: quotation?.contactName },
+                        { label: 'Cơ hội', value: quotation?.opportunityName },
+                    ]} />
                     <div>
                         <label className={lbl}>Hàng hóa</label>
                         <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />

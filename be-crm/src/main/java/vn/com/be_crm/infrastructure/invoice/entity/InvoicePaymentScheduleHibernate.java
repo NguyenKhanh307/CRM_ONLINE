@@ -8,11 +8,8 @@ import vn.com.be_crm.domain.invoice.enums.PaymentScheduleStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
-/**
- * Hibernate entity ánh xạ bảng invoice_payment_schedules.
- */
+// ánh xạ bảng invoice_payment_schedules
 @Entity
 @Table(name = "invoice_payment_schedules")
 @Getter @Setter @NoArgsConstructor
@@ -25,6 +22,7 @@ public class InvoicePaymentScheduleHibernate {
     @Column(name = "amount", precision = 18, scale = 2) private BigDecimal amount;
     @Column(name = "paid_amount", precision = 18, scale = 2) private BigDecimal paidAmount;
     @Enumerated(EnumType.STRING) @Column(name = "status", length = 20) private PaymentScheduleStatus status;
-    @Column(name = "paid_at") private LocalDateTime paidAt;
+    @Column(name = "bank_name", length = 100) private String bankName;
+    @Column(name = "bank_account", length = 50) private String bankAccount;
     @Column(name = "note", length = 255) private String note;
 }

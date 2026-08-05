@@ -11,12 +11,9 @@ import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
 import vn.com.be_crm.core.audit.IAuditable;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Hibernate entity ánh xạ bảng opportunities.
- */
+// ánh xạ bảng opportunities
 @Entity
 @Table(name = "opportunities")
 @Getter @Setter @NoArgsConstructor
@@ -41,12 +38,6 @@ public class OpportunityHibernate implements IAuditable {
     private Long pricePolicyId;
     @Column(name = "amount", precision = 18, scale = 2)
     private BigDecimal amount;
-    @Column(name = "expected_revenue", precision = 18, scale = 2)
-    private BigDecimal expectedRevenue;
-    @Column(name = "probability", precision = 5, scale = 2)
-    private BigDecimal probability;
-    @Column(name = "expected_close_date")
-    private LocalDate expectedCloseDate;
     @Column(name = "source", length = 30)
     private String source;
     @Column(name = "campaign_id")

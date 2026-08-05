@@ -21,6 +21,12 @@ const PRODUCT_TYPE_OPTIONS: { value: string; label: string }[] = [
     { value: 'service', label: 'Dịch vụ' },
 ];
 
+const STATUS_OPTIONS: { value: string; label: string }[] = [
+    { value: 'active', label: 'Đang kinh doanh' },
+    { value: 'inactive', label: 'Ngừng hoạt động' },
+    { value: 'discontinued', label: 'Ngừng kinh doanh' },
+];
+
 export function ProductEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateProduct();
     const { data: categories = [] } = useProductCategories();
@@ -34,8 +40,7 @@ export function ProductEditModal({ item, onClose }: Props) {
         costPrice: null,
         vatRate: null,
         description: null,
-        isDiscontinued: false,
-        isActive: true,
+        status: 'active',
     });
 
     useEffect(() => {
@@ -49,8 +54,7 @@ export function ProductEditModal({ item, onClose }: Props) {
             costPrice: item.costPrice,
             vatRate: item.vatRate,
             description: item.description,
-            isDiscontinued: item.isDiscontinued,
-            isActive: item.isActive,
+            status: item.status,
         });
     }, [item]);
 
@@ -148,15 +152,13 @@ export function ProductEditModal({ item, onClose }: Props) {
                         <label className={lbl}>Mô tả</label>
                         <textarea className={inp} rows={2} value={form.description ?? ''} onChange={e => setForm(f => ({ ...f, description: e.target.value || null }))} />
                     </div>
-                    <div className="flex gap-6">
-                        <label className="flex items-center gap-2 text-md text-text-main cursor-pointer">
-                            <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))} />
-                            Đang bán
-                        </label>
-                        <label className="flex items-center gap-2 text-md text-text-main cursor-pointer">
-                            <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isDiscontinued} onChange={e => setForm(f => ({ ...f, isDiscontinued: e.target.checked }))} />
-                            Ngừng kinh doanh
-                        </label>
+                    <div>
+                        <label className={lbl}>Trạng thái</label>
+                        <select className={inp} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as UpdateProductPayload['status'] }))}>
+                            {STATUS_OPTIONS.map(o => (
+                                <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                        </select>
                     </div>
                     <ModalFooter onCancel={onClose} saving={isPending} />
                 </form>

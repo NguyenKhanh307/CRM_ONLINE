@@ -17,18 +17,15 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Use case cập nhật lại danh sách dòng hàng của báo giá theo cơ hội nguồn:
- * xóa toàn bộ dòng báo giá hiện tại rồi tạo lại từ dòng hàng cơ hội (OLI → QLI),
- * giữ liên kết {@code opportunityItemId} để đồng bộ hai chiều vẫn hoạt động.
- */
+// cập nhật lại danh sách dòng hàng của báo giá theo cơ hội nguồn: xóa toàn bộ dòng báo giá hiện
+// tại rồi tạo lại từ dòng hàng cơ hội (OLI -> QLI), giữ liên kết opportunityItemId để đồng bộ
+// hai chiều vẫn hoạt động
 public class RefreshQuotationItemsFromOpportunityUseCase {
     private final IQuotationRepository quotationRepo;
     private final IQuotationItemRepository quotationItemRepo;
     private final IOpportunityItemRepository opportunityItemRepo;
     private final ITransactionRunner tx;
 
-    /** @param quotationRepo báo giá @param quotationItemRepo dòng báo giá @param opportunityItemRepo dòng cơ hội @param tx bộ chạy transaction */
     public RefreshQuotationItemsFromOpportunityUseCase(IQuotationRepository quotationRepo,
                                                        IQuotationItemRepository quotationItemRepo,
                                                        IOpportunityItemRepository opportunityItemRepo,
@@ -39,16 +36,12 @@ public class RefreshQuotationItemsFromOpportunityUseCase {
         this.tx = tx;
     }
 
-    /**
-     * Cập nhật dòng hàng báo giá theo cơ hội (cơ hội là nguồn — không sync ngược).
-     * Xóa dòng cũ + tạo lại + tính lại tổng chạy trong MỘT transaction (không để báo giá mất dòng hàng giữa chừng).
-     * @param quotationId ID báo giá @return báo giá sau cập nhật
-     */
+    // xóa dòng cũ + tạo lại chạy trong MỘT transaction (không để báo giá mất dòng hàng giữa chừng)
     public QuotationResult execute(Long quotationId) {
         return tx.call(() -> executeInTx(quotationId));
     }
 
-    /** Thân nghiệp vụ refresh — luôn chạy bên trong transaction. */
+    // thân nghiệp vụ refresh — luôn chạy bên trong transaction
     private QuotationResult executeInTx(Long quotationId) {
         Quotation q = quotationRepo.findById(quotationId)
                 .orElseThrow(() -> new NotFoundException("Quotation not found: " + quotationId));
@@ -61,12 +54,12 @@ public class RefreshQuotationItemsFromOpportunityUseCase {
 
         List<OpportunityItem> oppItems = opportunityItemRepo.findAllByOpportunityId(q.getOpportunityId());
 
-        // Xóa toàn bộ dòng báo giá hiện tại
+        // xóa toàn bộ dòng báo giá hiện tại
         for (QuotationItem existing : quotationItemRepo.findAllByQuotationId(quotationId)) {
             quotationItemRepo.deleteById(existing.getId());
         }
 
-        // Tạo lại dòng báo giá từ dòng cơ hội, giữ tham chiếu nguồn (opportunityItemId)
+        // tạo lại dòng báo giá từ dòng cơ hội, giữ tham chiếu nguồn (opportunityItemId)
         List<QuotationItem> newItems = new ArrayList<>();
         for (OpportunityItem oi : oppItems) {
             newItems.add(quotationItemRepo.save(QuotationItem.builder()
@@ -77,15 +70,14 @@ public class RefreshQuotationItemsFromOpportunityUseCase {
                     .unitPrice(oi.getUnitPrice())
                     .discount(oi.getDiscount())
                     .taxRate(BigDecimal.ZERO)
-                    .amount(oi.getAmount())
                     .build()));
         }
 
-        // Tính lại tổng tiền báo giá theo dòng hàng mới
-        BigDecimal total = LineItemTotals.sumAmount(newItems, QuotationItem::getAmount);
-        Quotation saved = quotationRepo.save(q.toBuilder()
-                .subtotal(total).discount(BigDecimal.ZERO).tax(BigDecimal.ZERO).total(total)
-                .build());
-        return QuotationCommandMapper.toResult(saved);
+        QuotationResult result = QuotationCommandMapper.toResult(q);
+        LineItemTotals.Totals t = LineItemTotals.compute(newItems,
+                QuotationItem::getQuantity, QuotationItem::getUnitPrice, QuotationItem::getDiscount, QuotationItem::getTaxRate);
+        result.setSubtotal(t.subtotal()); result.setDiscount(t.discount());
+        result.setTax(t.tax()); result.setTotal(t.total());
+        return result;
     }
 }

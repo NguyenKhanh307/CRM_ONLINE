@@ -12,7 +12,7 @@ import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// lấy danh sách tiềm năng có phân trang, kèm tên khóa ngoại (owner, khách hàng, liên hệ, chiến dịch)
+// lấy danh sách tiềm năng có phân trang, kèm tên khóa ngoại (owner, liên hệ, chiến dịch)
 public class ListLeadUseCase implements IUseCase<PageRequest, PageResult<LeadResult>> {
     private final ILeadRepository repo;
     private final INameResolver names;
@@ -24,7 +24,6 @@ public class ListLeadUseCase implements IUseCase<PageRequest, PageResult<LeadRes
         var page = repo.findAll(r);
         List<LeadResult> items = page.getItems().stream().map(LeadCommandMapper::toResult).collect(Collectors.toList());
         NameEnricher.apply(items, LeadResult::getOwnerId, names::users, LeadResult::setOwnerName);
-        NameEnricher.apply(items, LeadResult::getCustomerId, names::customers, LeadResult::setCustomerName);
         NameEnricher.apply(items, LeadResult::getContactId, names::contacts, LeadResult::setContactName);
         NameEnricher.apply(items, LeadResult::getCampaignId, names::campaigns, LeadResult::setCampaignName);
         NameEnricher.apply(items, LeadResult::getCreatedBy, names::users, LeadResult::setCreatedByName);

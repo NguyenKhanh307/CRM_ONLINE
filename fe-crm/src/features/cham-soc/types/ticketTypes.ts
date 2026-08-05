@@ -15,17 +15,15 @@ export type ReturnReason =
 export type ResolutionType =
     | 'refund' | 'replacement' | 'repair' | 'store_credit' | 'answered' | 'rejected';
 
-// phiếu hỗ trợ trả về từ GET /api/tickets/{id}
+// phiếu hỗ trợ trả về từ GET /api/tickets/{id}. Không còn customerId/contactId/invoiceId/productId
+// trực tiếp — chỉ còn orderId, mọi liên kết khác tra qua chuỗi Ticket -> Order -> Quotation
 export interface TicketResult {
     id: number;
     code: string;
     type: TicketType;
     subject: string;
     description: string | null;
-    customerId: number | null;
-    contactId: number | null;
-    invoiceId: number | null;
-    productId: number | null;
+    orderId: number | null;
     channel: TicketChannel;
     priority: TicketPriority;
     status: TicketStatus;
@@ -45,9 +43,7 @@ export interface TicketResult {
     createdAt: string;
     updatedAt: string;
     // Tên khóa ngoại do BE resolve sẵn (INameResolver).
-    customerName: string | null;
-    contactName: string | null;
-    invoiceCode: string | null;
+    orderCode: string | null;
     assignedUserName: string | null;
     // Audit: BE tự đóng dấu (AuditInterceptor).
     createdBy: number | null;
@@ -56,13 +52,10 @@ export interface TicketResult {
     updatedByName: string | null;
 }
 
-// một dòng hàng trả/đổi gửi kèm khi tạo phiếu
+// một dòng hàng trả/đổi gửi kèm khi tạo phiếu — chỉ còn invoiceItemId/quantity/reason/conditionNote
 export interface TicketReturnItemPayload {
     invoiceItemId: number | null;
-    productId: number | null;
     quantity: number;
-    unitPrice: number;
-    amount: number;
     reason: ReturnReason | null;
     conditionNote: string | null;
 }
@@ -72,10 +65,7 @@ export interface TicketReturnItemResult {
     id: number;
     ticketId: number;
     invoiceItemId: number | null;
-    productId: number | null;
     quantity: number;
-    unitPrice: number;
-    amount: number;
     reason: ReturnReason | null;
     conditionNote: string | null;
 }
@@ -86,10 +76,7 @@ export interface CreateTicketPayload {
     type: TicketType;
     subject: string;
     description: string | null;
-    customerId: number | null;
-    contactId: number | null;
-    invoiceId: number | null;
-    productId: number | null;
+    orderId: number | null;
     channel: TicketChannel;
     priority: TicketPriority;
     reason: ReturnReason | null;
@@ -102,25 +89,9 @@ export interface UpdateTicketPayload {
     type: TicketType;
     subject: string;
     description: string | null;
-    customerId: number | null;
-    contactId: number | null;
-    invoiceId: number | null;
-    productId: number | null;
+    orderId: number | null;
     channel: TicketChannel;
     priority: TicketPriority;
     reason: ReturnReason | null;
     assignedUserId: number | null;
-}
-
-// ghi chú / lịch sử phiếu
-export interface TicketComment {
-    id: number;
-    ticketId: number;
-    type: 'system' | 'note';
-    content: string;
-    isInternal: boolean;
-    authorId: number | null;
-    createdAt: string;
-    // Tên tác giả do BE resolve sẵn (INameResolver).
-    authorName: string | null;
 }

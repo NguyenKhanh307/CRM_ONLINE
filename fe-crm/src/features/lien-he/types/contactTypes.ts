@@ -5,17 +5,11 @@ export interface UpdateContactPayload {
     fullName: string;
     title?: string | null;
     department?: string | null;
-    position: string | null;
     email: string | null;
-    workEmail?: string | null;
-    personalEmail?: string | null;
     zalo?: string | null;
     source?: string | null;
     gender: string | null;
     dateOfBirth: string | null;
-    address: string | null;
-    doNotCall?: boolean;
-    doNotEmail?: boolean;
     isPrimary: boolean;
 }
 
@@ -43,17 +37,11 @@ export interface CreateContactPayload {
     fullName: string;
     title: string | null;
     department: string | null;
-    position: string | null;
     email: string | null;
-    workEmail: string | null;
-    personalEmail: string | null;
     zalo: string | null;
     source: string | null;
     gender: string | null;
     dateOfBirth: string | null;
-    address: string | null;
-    doNotCall: boolean;
-    doNotEmail: boolean;
     isPrimary: boolean;
     phones: ContactPhonePayload[];
 }
@@ -66,17 +54,11 @@ export interface ContactResult {
     fullName: string;
     title: string | null;
     department: string | null;
-    position: string | null;
     email: string | null;
-    workEmail: string | null;
-    personalEmail: string | null;
     zalo: string | null;
     source: string | null;
     gender: string | null;
     dateOfBirth: string | null;
-    address: string | null;
-    doNotCall: boolean;
-    doNotEmail: boolean;
     isPrimary: boolean;
     createdAt: string;
     updatedAt: string;

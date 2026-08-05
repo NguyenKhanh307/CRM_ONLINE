@@ -154,7 +154,7 @@ export const router = createBrowserRouter([
         ),
     },
     {
-        path: '/bao-gia-phan-hoi/:token',
+        path: '/bao-gia-phan-hoi/:code',
         element: (
             <Suspense fallback={<div className="min-h-screen bg-bg-main" />}>
                 <QuotationResponsePage />

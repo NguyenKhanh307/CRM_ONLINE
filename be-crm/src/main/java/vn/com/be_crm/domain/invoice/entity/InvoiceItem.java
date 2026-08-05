@@ -7,32 +7,20 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * Domain entity đại diện cho dòng sản phẩm trong đơn hàng.
- */
+// dòng sản phẩm trong hóa đơn. "amount" không còn là cột lưu sẵn — tính từ quantity/unitPrice/
+// discount/taxRate tại thời điểm đọc (xem LineItemTotals).
 @Getter
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class InvoiceItem {
-    /** ID dòng sản phẩm. */
     private Long id;
-    /** ID đơn hàng. */
     private Long invoiceId;
-    /** ID sản phẩm. */
     private Long productId;
-    /** Đơn vị tính dòng hàng. */
     private String unit;
-    /** Số lượng. */
     private BigDecimal quantity;
-    /** Đơn giá. */
     private BigDecimal unitPrice;
-    /** Chiết khấu. */
     private BigDecimal discount;
-    /** Thuế suất (%). */
     private BigDecimal taxRate;
-    /** Thành tiền. */
-    private BigDecimal amount;
-    /** Ghi chú. */
     private String note;
 }

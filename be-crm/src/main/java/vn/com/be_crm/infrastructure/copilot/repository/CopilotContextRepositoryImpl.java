@@ -21,17 +21,17 @@ import java.util.Set;
 
 import static vn.com.be_crm.infrastructure.copilot.repository.CopilotSqlSupport.*;
 
-/**
- * Điều phối việc gom ngữ cảnh CRM cho trợ lý AI: số liệu tổng hợp, chuỗi 24 tháng, xếp hạng,
- * đếm theo phân hệ, khối theo khoảng thời gian được hỏi, và phễu bản ghi cụ thể.
- * <p>SQL chi tiết nằm ở {@link CopilotAnalyticsQueries} / {@link CopilotRangeQueries};
- * helper dùng chung ở {@link CopilotSqlSupport}. Mọi truy vấn loại bản ghi đã xóa mềm
- * (kể cả trong Thùng rác) bằng {@code deleted_at IS NULL}.
- */
+// điều phối việc gom ngữ cảnh CRM cho trợ lý AI: số liệu tổng hợp, chuỗi 24 tháng, xếp hạng,
+// đếm theo phân hệ, khối theo khoảng thời gian được hỏi, và phễu bản ghi cụ thể.
+// SQL chi tiết nằm ở CopilotAnalyticsQueries / CopilotRangeQueries; helper dùng chung ở
+// CopilotSqlSupport. Mọi truy vấn loại bản ghi đã xóa mềm (kể cả trong Thùng rác) bằng
+// deleted_at IS NULL.
+// orders/invoices không còn customer_id trực tiếp (chỉ còn quotationId/orderId để tra ngược) —
+// mọi lọc "theo khách hàng" ở file này join qua chuỗi Order -> Quotation.customer_id.
 @Repository
 public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
 
-    /** Từ dừng tiếng Việt thường gặp — loại khi phân giải tên/mã bản ghi. */
+    // từ dừng tiếng Việt thường gặp — loại khi phân giải tên/mã bản ghi
     private static final Set<String> STOPWORDS = Set.of(
             "doanh", "thu", "quy", "quý", "thang", "tháng", "nam", "năm", "tuan", "tuần", "nay", "này",
             "khach", "khách", "hang", "hàng", "bao", "nhieu", "nhiêu", "ty", "le", "tỷ", "lệ",
@@ -45,12 +45,10 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
     private final SessionFactory sf;
     private final CopilotRangeParser rangeParser = new CopilotRangeParser();
 
-    /** @param sf Hibernate SessionFactory */
     public CopilotContextRepositoryImpl(SessionFactory sf) {
         this.sf = sf;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String assemble(String question, Long ownerId, boolean isPrivileged) {
         List<Range> ranges = rangeParser.parse(question);
@@ -80,7 +78,7 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
         });
     }
 
-    /** Cấu hình truy vấn tìm bản ghi theo module: bảng, cột tên, cột mã (null nếu không có), cột LIKE, cột owner. */
+    // cấu hình truy vấn tìm bản ghi theo module: bảng, cột tên, cột mã (null nếu không có), cột LIKE, cột owner
     private record ModuleQuery(String table, String nameCol, String codeCol, List<String> likeCols, String ownerCol) {
     }
 
@@ -95,7 +93,6 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
             "campaign", new ModuleQuery("campaigns", "name", "code", List.of("name", "code"), "owner_id"),
             "ticket", new ModuleQuery("support_tickets", "subject", "code", List.of("subject", "code"), "assigned_user_id"));
 
-    /** {@inheritDoc} */
     @Override
     public Optional<RecordRef> findRecord(String module, String term, Long ownerId, boolean isPrivileged) {
         ModuleQuery mq = RECORD_QUERIES.get(module);
@@ -120,16 +117,21 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
 
     // ==================== Khối SỐ LIỆU TỔNG HỢP ====================
 
-    /** Dựng khối số liệu tổng hợp: doanh thu so kỳ, đếm nhanh, tỷ lệ thắng/chốt đơn, phễu. */
+    // dựng khối số liệu tổng hợp: doanh thu so kỳ, đếm nhanh, tỷ lệ thắng/chốt đơn, phễu
     private void appendAggregates(Session s, StringBuilder ctx, String period, DateRange cur, Long ownerId) {
         String label = periodLabel(period);
         DateRange prev = PeriodRanges.previous(period);
         String of = ownerClause("owner_id", ownerId);
 
-        BigDecimal revCur = sum(s, "SELECT COALESCE(SUM(total),0) FROM invoices WHERE status <> 'cancelled' " +
-                "AND deleted_at IS NULL AND invoice_date >= :f AND invoice_date < :t" + of, dateOwner(cur, ownerId));
-        BigDecimal revPrev = sum(s, "SELECT COALESCE(SUM(total),0) FROM invoices WHERE status <> 'cancelled' " +
-                "AND deleted_at IS NULL AND invoice_date >= :f AND invoice_date < :t" + of, dateOwner(prev, ownerId));
+        // doanh thu tính từ invoice_items (invoices không còn cột total lưu sẵn)
+        BigDecimal revCur = sum(s, "SELECT COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) " +
+                "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
+                "AND i.invoice_date >= :f AND i.invoice_date < :t" + ownerClause("i.owner_id", ownerId), dateOwner(cur, ownerId));
+        BigDecimal revPrev = sum(s, "SELECT COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) " +
+                "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
+                "AND i.invoice_date >= :f AND i.invoice_date < :t" + ownerClause("i.owner_id", ownerId), dateOwner(prev, ownerId));
 
         long oppOpen = count(s, "SELECT COUNT(*) FROM opportunities WHERE deleted_at IS NULL AND status = 'open'" + of, owner(ownerId));
         long overdueInv = count(s, "SELECT COUNT(*) FROM invoices WHERE deleted_at IS NULL AND due_date IS NOT NULL " +
@@ -137,8 +139,10 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
         long won = count(s, "SELECT COUNT(*) FROM opportunities WHERE deleted_at IS NULL AND status = 'won'" + of, owner(ownerId));
         long lost = count(s, "SELECT COUNT(*) FROM opportunities WHERE deleted_at IS NULL AND status = 'lost'" + of, owner(ownerId));
         long totalOpp = count(s, "SELECT COUNT(*) FROM opportunities WHERE deleted_at IS NULL" + of, owner(ownerId));
-        long oppWithOrder = count(s, "SELECT COUNT(DISTINCT opportunity_id) FROM orders WHERE deleted_at IS NULL " +
-                "AND opportunity_id IS NOT NULL" + of, owner(ownerId));
+        // orders không còn opportunity_id trực tiếp — tra ngược qua quotations.opportunity_id
+        long oppWithOrder = count(s, "SELECT COUNT(DISTINCT q.opportunity_id) FROM orders o " +
+                "JOIN quotations q ON q.id = o.quotation_id " +
+                "WHERE o.deleted_at IS NULL AND q.opportunity_id IS NOT NULL" + ownerClause("o.owner_id", ownerId), owner(ownerId));
 
         ctx.append("=== SỐ LIỆU TỔNG HỢP (").append(label).append(", do hệ thống tính từ CSDL) ===\n");
         ctx.append("Doanh thu ").append(label).append(": ").append(money(revCur)).append(" đ")
@@ -165,7 +169,7 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
 
     // ==================== Khối BẢN GHI CỤ THỂ ====================
 
-    /** Nếu câu hỏi nhắc tên/mã khách hàng, phân giải rồi gom phễu của từng khách khớp. */
+    // nếu câu hỏi nhắc tên/mã khách hàng, phân giải rồi gom phễu của từng khách khớp
     private void appendRecords(Session s, StringBuilder ctx, String question, Long ownerId, boolean isPrivileged) {
         List<String> terms = extractTerms(question);
         if (terms.isEmpty()) return;
@@ -191,7 +195,11 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
         }
     }
 
-    /** Gom phễu của một khách hàng: cơ hội → báo giá → đơn → hóa đơn → phiếu chăm sóc (mỗi loại tối đa 5). */
+    // gom phễu của một khách hàng: cơ hội → báo giá → đơn → hóa đơn → phiếu chăm sóc (mỗi loại tối đa 5).
+    // orders/invoices không còn customer_id trực tiếp → tra qua Order -> Quotation.customer_id;
+    // support_tickets không còn customer_id (chỉ còn order_id) → CHỈ thấy được phiếu có gắn đơn hàng
+    // của khách này, phiếu tạo độc lập (support/complaint không qua đơn) sẽ không xuất hiện ở đây —
+    // hạn chế chấp nhận được vì Copilot chỉ dùng để tham khảo nhanh, không phải nguồn số liệu chính thức
     private void appendCustomerFunnel(Session s, StringBuilder ctx, long customerId) {
         Map<String, Object> p = Map.of("c", customerId);
         for (Object[] r : rows(s, "SELECT o.code, st.name, o.status, o.amount FROM opportunities o " +
@@ -200,26 +208,33 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
             ctx.append("  - Cơ hội ").append(str(r[0])).append(": giai đoạn ").append(str(r[1]))
                     .append(", trạng thái ").append(str(r[2])).append(", giá trị ").append(money(toBig(r[3]))).append(" đ\n");
         }
-        for (Object[] r : rows(s, "SELECT code, status, total FROM quotations WHERE deleted_at IS NULL " +
-                "AND customer_id = :c ORDER BY created_at DESC LIMIT 5", p)) {
+        for (Object[] r : rows(s, "SELECT q.code, q.status, COALESCE((SELECT SUM((qi.quantity*qi.unit_price - qi.discount) * (1 + qi.tax_rate/100)) " +
+                "FROM quotation_items qi WHERE qi.quotation_id = q.id),0) FROM quotations q " +
+                "WHERE q.deleted_at IS NULL AND q.customer_id = :c ORDER BY q.created_at DESC LIMIT 5", p)) {
             ctx.append("  - Báo giá ").append(str(r[0])).append(": trạng thái ").append(str(r[1]))
                     .append(", tổng ").append(money(toBig(r[2]))).append(" đ\n");
         }
-        for (Object[] r : rows(s, "SELECT code, status, total FROM orders WHERE deleted_at IS NULL " +
-                "AND customer_id = :c ORDER BY created_at DESC LIMIT 5", p)) {
+        for (Object[] r : rows(s, "SELECT o.code, o.status, COALESCE((SELECT SUM((oi.quantity*oi.unit_price - oi.discount) * (1 + oi.tax_rate/100)) " +
+                "FROM order_items oi WHERE oi.order_id = o.id),0) FROM orders o " +
+                "JOIN quotations q ON q.id = o.quotation_id " +
+                "WHERE o.deleted_at IS NULL AND q.customer_id = :c ORDER BY o.created_at DESC LIMIT 5", p)) {
             ctx.append("  - Đơn hàng ").append(str(r[0])).append(": trạng thái ").append(str(r[1]))
                     .append(", tổng ").append(money(toBig(r[2]))).append(" đ\n");
         }
-        for (Object[] r : rows(s, "SELECT code, status, total, payment_status, " +
-                "(due_date IS NOT NULL AND due_date < CURDATE() AND payment_status <> 'paid' AND status <> 'cancelled') AS overdue " +
-                "FROM invoices WHERE deleted_at IS NULL AND customer_id = :c ORDER BY created_at DESC LIMIT 5", p)) {
+        for (Object[] r : rows(s, "SELECT i.code, i.status, " +
+                "COALESCE((SELECT SUM(" + INVOICE_LINE_AMOUNT.replace("ii.", "ii2.") + ") FROM invoice_items ii2 WHERE ii2.invoice_id = i.id),0), " +
+                "i.payment_status, " +
+                "(i.due_date IS NOT NULL AND i.due_date < CURDATE() AND i.payment_status <> 'paid' AND i.status <> 'cancelled') AS overdue " +
+                "FROM invoices i JOIN orders o ON o.id = i.order_id JOIN quotations q ON q.id = o.quotation_id " +
+                "WHERE i.deleted_at IS NULL AND q.customer_id = :c ORDER BY i.created_at DESC LIMIT 5", p)) {
             boolean overdue = r[4] != null && ((Number) r[4]).intValue() == 1;
             ctx.append("  - Hóa đơn ").append(str(r[0])).append(": trạng thái ").append(str(r[1]))
                     .append(", tổng ").append(money(toBig(r[2]))).append(" đ, thanh toán ").append(str(r[3]))
                     .append(overdue ? " [QUÁ HẠN]" : "").append("\n");
         }
-        for (Object[] r : rows(s, "SELECT code, type, status, subject FROM support_tickets WHERE deleted_at IS NULL " +
-                "AND customer_id = :c ORDER BY created_at DESC LIMIT 5", p)) {
+        for (Object[] r : rows(s, "SELECT t.code, t.type, t.status, t.subject FROM support_tickets t " +
+                "JOIN orders o ON o.id = t.order_id JOIN quotations q ON q.id = o.quotation_id " +
+                "WHERE t.deleted_at IS NULL AND q.customer_id = :c ORDER BY t.created_at DESC LIMIT 5", p)) {
             ctx.append("  - Phiếu chăm sóc ").append(str(r[0])).append(" (").append(str(r[1])).append("): trạng thái ")
                     .append(str(r[2])).append(", nội dung: ").append(str(r[3])).append("\n");
         }
@@ -227,7 +242,7 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
 
     // ==================== Helpers ====================
 
-    /** Suy mã kỳ mặc định từ từ khóa trong câu hỏi (mặc định quarter). */
+    // suy mã kỳ mặc định từ từ khóa trong câu hỏi (mặc định quarter)
     private String detectPeriod(String q) {
         String low = q == null ? "" : q.toLowerCase();
         if (low.contains("tháng") || low.contains("thang")) return "month";
@@ -235,7 +250,7 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
         return "quarter";
     }
 
-    /** Nhãn tiếng Việt của mã kỳ. */
+    // nhãn tiếng Việt của mã kỳ
     private String periodLabel(String period) {
         return switch (period) {
             case "month" -> "tháng này";
@@ -244,7 +259,7 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
         };
     }
 
-    /** Tách token (độ dài ≥ 3, loại từ dừng) để phân giải tên/mã bản ghi. */
+    // tách token (độ dài ≥ 3, loại từ dừng) để phân giải tên/mã bản ghi
     private List<String> extractTerms(String q) {
         if (q == null) return List.of();
         String[] raw = q.split("[^\\p{L}\\p{Nd}]+");

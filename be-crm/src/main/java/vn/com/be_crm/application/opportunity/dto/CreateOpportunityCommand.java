@@ -1,6 +1,5 @@
 package vn.com.be_crm.application.opportunity.dto;
 
-import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -11,10 +10,9 @@ import lombok.NoArgsConstructor;
 import vn.com.be_crm.domain.opportunity.enums.OpportunityStatus;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
-/** Input DTO khi tạo mới cơ hội bán hàng (kèm dòng hàng nếu có). */
+// input khi tạo mới cơ hội bán hàng (kèm dòng hàng nếu có)
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class CreateOpportunityCommand {
     @NotBlank(message = "Mã cơ hội không được để trống") @Size(max = 20) private String code;
@@ -26,14 +24,11 @@ public class CreateOpportunityCommand {
     private Long stageId;
     private Long pricePolicyId;
     private BigDecimal amount;
-    @PositiveOrZero(message = "Doanh thu kỳ vọng không được âm") private BigDecimal expectedRevenue;
-    // probability: KHÔNG nhận từ FE — suy ra từ opportunity_stages.probability của giai đoạn được chọn.
-    private LocalDate expectedCloseDate;
     @Size(max = 30) private String source;
     private Long campaignId;
     @Size(max = 255) private String winLossReason;
     @Size(max = 500) private String description;
     private OpportunityStatus status;
-    /** Dòng hàng tạo kèm cơ hội (opportunityId bỏ trống). */
+    // dòng hàng tạo kèm cơ hội (opportunityId bỏ trống)
     @Valid private List<CreateOpportunityItemCommand> items;
 }

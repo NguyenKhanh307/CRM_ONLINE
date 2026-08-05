@@ -5,17 +5,17 @@ import { useAlert } from '@/shared/alert/useAlert';
 import { usePermission } from '@/core/permissions/usePermission';
 import { ReasonModal } from '@/shared/components/ReasonModal';
 import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
+import { DerivedContextBox } from '@/shared/components/form/DerivedContextBox';
 import { formatISODate } from '@/shared/utils/date';
 import { formatNumber } from '@/shared/utils/number';
 import { toIdNameMap, lookupName } from '@/shared/utils/lookup';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
-import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
-import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { useOrderDetail } from '@/features/don-hang/hooks/useOrderDetail';
+import { useQuotationDetail } from '@/features/bao-gia/hooks/useQuotationDetail';
 import { useTicket } from '../hooks/useTicket';
 import { useTicketReturnItems } from '../hooks/useTicketReturnItems';
 import { useTicketWorkflow, type TicketAction } from '../hooks/useTicketWorkflow';
 import { TicketWorkflowButtons } from '../components/TicketWorkflowButtons';
-import { TicketTimeline } from '../components/TicketTimeline';
 import { TicketEditModal } from '../components/TicketEditModal';
 import { AssignTicketModal } from '../components/AssignTicketModal';
 import { ResolutionModal } from '../components/ResolutionModal';
@@ -47,15 +47,11 @@ const TicketDetailPage = () => {
     const { data: returnItems = [] } = useTicketReturnItems(ticketId);
     const { mutate: runWorkflow } = useTicketWorkflow();
     const { data: users = [] } = useActiveUsers();
-    const { data: customers = [] } = useCustomerList();
-    const { data: products = [] } = useProductList();
+    const { data: order } = useOrderDetail(ticket?.orderId ?? undefined);
+    const { data: quotation } = useQuotationDetail(order?.quotationId ?? undefined);
 
     const userMap = useMemo(() => toIdNameMap(users, 'id', 'fullName'), [users]);
-    const customerMap = useMemo(() => toIdNameMap(customers, 'id', 'name'), [customers]);
-    const productMap = useMemo(() => toIdNameMap(products, 'id', 'name'), [products]);
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
-    const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
-    const productOptions = useMemo(() => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}` })), [products]);
 
     const [editOpen, setEditOpen] = useState(false);
     const [assignOpen, setAssignOpen] = useState(false);
@@ -122,18 +118,19 @@ const TicketDetailPage = () => {
                 <div className="col-span-2 space-y-4">
                     <div className="bg-white rounded-card shadow-sm p-5 space-y-2">
                         <h2 className="text-md font-semibold text-text-main mb-3">Thông tin</h2>
-                        <Info label="Khách hàng" value={ticket.customerId ? lookupName(customerMap, ticket.customerId) : '—'} />
-                        <Info label="Liên hệ" value={ticket.contactName ?? '—'} />
-                        <Info label="Người xử lý" value={ticket.assignedUserId ? lookupName(userMap, ticket.assignedUserId) : '—'} />
-                        <Info label="Sản phẩm" value={ticket.productId ? lookupName(productMap, ticket.productId) : '—'} />
-                        <Info label="Hóa đơn" value={ticket.invoiceId
-                            ? <button type="button" className="text-primary hover:underline" onClick={() => navigate('/hoa-don')}>#{ticket.invoiceId}</button>
+                        <Info label="Đơn hàng" value={ticket.orderId
+                            ? <button type="button" className="text-primary hover:underline" onClick={() => navigate(`/don-hang/${ticket.orderId}`)}>{ticket.orderCode ?? `#${ticket.orderId}`}</button>
                             : '—'} />
+                        <Info label="Người xử lý" value={ticket.assignedUserId ? lookupName(userMap, ticket.assignedUserId) : '—'} />
                         <Info label="Kênh" value={CHANNEL_LABELS[ticket.channel]} />
                         <Info label="Lý do" value={ticket.reason ? REASON_LABELS[ticket.reason] : '—'} />
                         <Info label="Hình thức GQ" value={ticket.resolutionType ? RESOLUTION_LABELS[ticket.resolutionType] : '—'} />
                         <Info label="Ghi chú GQ" value={ticket.resolutionNote} />
                         <Info label="Mô tả" value={ticket.description} />
+                        <DerivedContextBox rows={[
+                            { label: 'Khách hàng', value: quotation?.customerName },
+                            { label: 'Liên hệ', value: quotation?.contactName },
+                        ]} />
                     </div>
 
                     {isReturn && (
@@ -143,7 +140,7 @@ const TicketDetailPage = () => {
                                 <table className="w-full text-md">
                                     <thead>
                                         <tr className="text-left text-gray-500">
-                                            {['Sản phẩm', 'Số lượng', 'Đơn giá', 'Thành tiền', 'Lý do', 'Tình trạng'].map((h, i) => (
+                                            {['Dòng hóa đơn', 'Số lượng', 'Lý do', 'Tình trạng'].map((h, i) => (
                                                 <th key={h} className={`py-2 font-medium ${i === 0 ? 'pr-2' : 'px-2'}`}>{h}</th>
                                             ))}
                                         </tr>
@@ -151,25 +148,18 @@ const TicketDetailPage = () => {
                                     <tbody>
                                         {returnItems.map(it => (
                                             <tr key={it.id} className="border-b border-gray-100">
-                                                <td className="py-1.5 pr-2">{it.productId ? lookupName(productMap, it.productId) : '—'}</td>
+                                                <td className="py-1.5 pr-2">{it.invoiceItemId ? `#${it.invoiceItemId}` : '—'}</td>
                                                 <td className="py-1.5 px-2">{formatNumber(it.quantity)}</td>
-                                                <td className="py-1.5 px-2">{formatNumber(it.unitPrice)} đ</td>
-                                                <td className="py-1.5 px-2">{formatNumber(it.amount)} đ</td>
                                                 <td className="py-1.5 px-2">{it.reason ? REASON_LABELS[it.reason] : '—'}</td>
                                                 <td className="py-1.5 px-2">{it.conditionNote ?? '—'}</td>
                                             </tr>
                                         ))}
-                                        {returnItems.length === 0 && <tr><td colSpan={6} className="py-3 text-center text-gray-400">Chưa có dòng hàng nào</td></tr>}
+                                        {returnItems.length === 0 && <tr><td colSpan={4} className="py-3 text-center text-gray-400">Chưa có dòng hàng nào</td></tr>}
                                     </tbody>
                                 </table>
                             </ScrollFrame>
                         </div>
                     )}
-
-                    <div className="bg-white rounded-card shadow-sm p-5">
-                        <h2 className="text-md font-semibold text-text-main mb-3">Lịch sử / trao đổi</h2>
-                        <TicketTimeline ticketId={ticket.id} closed={ticket.status === 'closed'} />
-                    </div>
                 </div>
 
                 {/* SLA + CSAT */}
@@ -208,8 +198,7 @@ const TicketDetailPage = () => {
             </div>
 
             {editOpen && (
-                <TicketEditModal ticket={ticket} customerOptions={customerOptions}
-                    userOptions={userOptions} productOptions={productOptions} onClose={() => setEditOpen(false)} />
+                <TicketEditModal ticket={ticket} userOptions={userOptions} onClose={() => setEditOpen(false)} />
             )}
             {assignOpen && (
                 <AssignTicketModal userOptions={userOptions}

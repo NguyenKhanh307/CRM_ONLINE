@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import vn.com.be_crm.domain.product.enums.ProductStatus;
 import vn.com.be_crm.domain.product.enums.ProductType;
 
 import java.math.BigDecimal;
@@ -26,6 +27,5 @@ public class CreateProductCommand {
     @PositiveOrZero(message = "Giá vốn không được âm") private BigDecimal costPrice;
     @DecimalMin(value = "0", message = "Thuế VAT phải từ 0 đến 100") @DecimalMax(value = "100", message = "Thuế VAT phải từ 0 đến 100") private BigDecimal vatRate;
     private String description;
-    private Boolean isDiscontinued;
-    private Boolean isActive;
+    private ProductStatus status;
 }

@@ -109,8 +109,7 @@ public class TicketController {
                                                             @Valid @RequestBody UpdateTicketCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateTicketCommand.builder().id(id).type(cmd.getType()).subject(cmd.getSubject())
-                        .description(cmd.getDescription()).customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
-                        .invoiceId(cmd.getInvoiceId()).productId(cmd.getProductId()).channel(cmd.getChannel())
+                        .description(cmd.getDescription()).orderId(cmd.getOrderId()).channel(cmd.getChannel())
                         .priority(cmd.getPriority()).reason(cmd.getReason()).assignedUserId(cmd.getAssignedUserId())
                         .build())));
     }

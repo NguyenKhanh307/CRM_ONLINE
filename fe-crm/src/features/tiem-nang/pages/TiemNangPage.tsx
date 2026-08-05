@@ -10,7 +10,6 @@ import { usePageShortcuts } from '@/shared/keyboard/PageShortcutsProvider';
 import { usePermission } from '@/core/permissions/usePermission';
 import { DataTable } from '@/shared/components/table/DataTable';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
-import { ReasonModal } from '@/shared/components/ReasonModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
@@ -23,14 +22,12 @@ import { useLeadWorkflow, type LeadAction } from '../hooks/useLeadWorkflow';
 import { getLeadColumns } from '../config/leadColumns';
 import { leadExportColumns } from '../config/leadExportColumns';
 import { LeadEditModal } from '../components/LeadEditModal';
-import { ConvertLeadModal } from '../components/ConvertLeadModal';
 import type { LeadResult } from '../types/leadTypes';
 
 // tag lọc nhanh — hằng ngoài component để giữ ref ổn định giữa các lần render
 const QUICK_FILTERS = [
     { id: 'new',        label: 'Mới',         field: 'status', value: 'new' },
     { id: 'contacting', label: 'Đang liên hệ', field: 'status', value: 'contacting' },
-    { id: 'qualified',  label: 'Đủ điều kiện', field: 'status', value: 'qualified' },
     { id: 'converted',  label: 'Đã chuyển đổi',field: 'status', value: 'converted' },
 ];
 
@@ -59,8 +56,6 @@ const TiemNangPage = () => {
 
     const [editTarget, setEditTarget] = useState<LeadResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
-    const [loseTarget, setLoseTarget] = useState<number | null>(null);
-    const [convertTarget, setConvertTarget] = useState<LeadResult | null>(null);
     const [selectedRows, setSelectedRows] = useState<LeadResult[]>([]);
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [handoverOpen, setHandoverOpen] = useState(false);
@@ -74,18 +69,11 @@ const TiemNangPage = () => {
             .catch(() => {});
     }, [focusId]);
 
-    // hàm chạy hành động chuyển trạng thái tiềm năng — convert thành công thì điều hướng sang
-    // Cơ hội (KH + LH + Cơ hội vừa được tạo)
-    const runAction = (id: number, action: LeadAction, reason?: string, customerId?: number | null) =>
-        workflowFn({ id, action, reason, customerId }, {
+    // hàm chạy hành động chuyển trạng thái tiềm năng
+    const runAction = (id: number, action: LeadAction, reason?: string) =>
+        workflowFn({ id, action, reason }, {
             onSuccess: () => {
-                if (action === 'convert') {
-                    setConvertTarget(null);
-                    showAlert(customerId
-                        ? 'Đã gắn Liên hệ và Cơ hội vào khách hàng đã có'
-                        : 'Đã tạo Khách hàng, Liên hệ và Cơ hội từ tiềm năng');
-                    navigate('/co-hoi');
-                } else if (action === 'claim') {
+                if (action === 'claim') {
                     showAlert('Bạn đã nhận chăm sóc tiềm năng này');
                 }
             },
@@ -100,20 +88,14 @@ const TiemNangPage = () => {
 
     // hàm dựng menu thao tác chuột phải cho một dòng tiềm năng
     const rowActions = (l: LeadResult): RowAction[] => {
-        const isOpen = l.status !== 'converted' && l.status !== 'lost';
+        const isOpen = l.status !== 'converted';
         return [
             { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/tiem-nang/${l.id}`) },
             ...(l.ownerId == null && isOpen && can('lead', 'edit')
                 ? [{ key: 'claim', label: 'Nhận chăm sóc', onClick: () => runAction(l.id, 'claim') }]
                 : []),
-            ...(l.status === 'new' || l.status === 'contacting'
-                ? [{ key: 'qualify', label: 'Đủ điều kiện', onClick: () => runAction(l.id, 'qualify') }]
-                : []),
-            ...(l.status === 'qualified' && can('lead', 'convert')
-                ? [{ key: 'convert', label: 'Chuyển đổi', onClick: () => setConvertTarget(l) }]
-                : []),
-            ...(isOpen
-                ? [{ key: 'lose', label: 'Đánh mất', onClick: () => setLoseTarget(l.id) }]
+            ...(can('opportunity', 'create')
+                ? [{ key: 'createOpportunity', label: 'Tạo cơ hội', onClick: () => navigate(`/co-hoi/them-moi?fromLead=${l.id}`) }]
                 : []),
             ...(l.status !== 'converted' && can('lead', 'edit')
                 ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(l) }]
@@ -219,29 +201,6 @@ const TiemNangPage = () => {
                     setExportOpen(false);
                 }}
             />
-
-            {convertTarget && (
-                <ConvertLeadModal
-                    lead={convertTarget}
-                    onCancel={() => setConvertTarget(null)}
-                    onConfirm={(customerId) => runAction(convertTarget.id, 'convert', undefined, customerId)}
-                />
-            )}
-
-            {loseTarget !== null && (
-                <ReasonModal
-                    title="Đánh mất tiềm năng"
-                    label="Lý do thất bại"
-                    placeholder="Nhập lý do tiềm năng thất bại..."
-                    confirmLabel="Đánh mất"
-                    confirmDanger
-                    onCancel={() => setLoseTarget(null)}
-                    onConfirm={(reason) => {
-                        runAction(loseTarget, 'lose', reason);
-                        setLoseTarget(null);
-                    }}
-                />
-            )}
 
             <LeadEditModal item={editTarget} onClose={() => setEditTarget(null)} />
 

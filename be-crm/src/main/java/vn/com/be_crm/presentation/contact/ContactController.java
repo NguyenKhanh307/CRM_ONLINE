@@ -87,11 +87,9 @@ public class ContactController {
                 UpdateContactCommand.builder().id(id).customerId(cmd.getCustomerId())
                         .assignedUserId(cmd.getAssignedUserId()).salutation(cmd.getSalutation())
                         .fullName(cmd.getFullName()).title(cmd.getTitle()).department(cmd.getDepartment())
-                        .position(cmd.getPosition()).email(cmd.getEmail())
-                        .workEmail(cmd.getWorkEmail()).personalEmail(cmd.getPersonalEmail())
+                        .email(cmd.getEmail())
                         .zalo(cmd.getZalo()).source(cmd.getSource()).gender(cmd.getGender())
-                        .dateOfBirth(cmd.getDateOfBirth()).address(cmd.getAddress())
-                        .doNotCall(cmd.getDoNotCall()).doNotEmail(cmd.getDoNotEmail())
+                        .dateOfBirth(cmd.getDateOfBirth())
                         .isPrimary(cmd.getIsPrimary()).build())));
     }
 

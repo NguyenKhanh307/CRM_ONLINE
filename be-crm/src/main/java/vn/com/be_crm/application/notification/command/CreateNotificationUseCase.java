@@ -5,27 +5,24 @@ import vn.com.be_crm.domain.notification.repository.INotificationRepository;
 
 import java.util.List;
 
-/** Use case tạo thông báo cho một hoặc nhiều người nhận. */
+// tạo MỘT thông báo dùng chung cho nhiều người nhận (khác trước đây: mỗi người nhận từng có
+// một dòng notifications riêng trùng lặp nội dung — nay chỉ 1 dòng notifications + N dòng
+// notification_recipients)
 public class CreateNotificationUseCase {
     private final INotificationRepository repository;
 
-    /** @param repository port lưu trữ Notification */
     public CreateNotificationUseCase(INotificationRepository repository) { this.repository = repository; }
 
-    /**
-     * Tạo một thông báo cho mỗi người nhận trong danh sách.
-     * @param recipientUserIds danh sách ID người nhận
-     * @param type loại thông báo
-     * @param title tiêu đề
-     * @param content nội dung
-     * @param leadId ID tiềm năng liên quan (có thể null)
-     * @param targetId ID bản ghi đích để FE điều hướng + focus (có thể null)
-     */
-    public void execute(List<Long> recipientUserIds, String type, String title, String content, Long leadId, Long targetId) {
+    // recipientUserIds: danh sách ID người nhận; targetType/targetId: bản ghi đích để FE điều
+    // hướng + focus (cả hai có thể null cho thông báo không gắn 1 bản ghi cụ thể, vd bàn giao
+    // toàn bộ công việc)
+    public void execute(List<Long> recipientUserIds, String type, String title, String content, String targetType, Long targetId) {
         if (recipientUserIds == null) return;
-        recipientUserIds.stream().distinct().filter(id -> id != null).forEach(uid ->
-                repository.save(Notification.builder()
-                        .recipientUserId(uid).type(type).title(title).content(content)
-                        .leadId(leadId).targetId(targetId).isRead(false).build()));
+        List<Long> uids = recipientUserIds.stream().distinct().filter(id -> id != null).toList();
+        if (uids.isEmpty()) return;
+        Notification n = Notification.builder()
+                .type(type).title(title).content(content)
+                .targetType(targetType).targetId(targetId).build();
+        repository.save(n, uids);
     }
 }

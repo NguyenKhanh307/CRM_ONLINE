@@ -86,8 +86,7 @@ public class OpenPdfQuotationServiceImpl implements IQuotationPdfService {
             }
             doc.add(table);
 
-            Paragraph totalP = new Paragraph("Tổng cộng: " + money(data.total())
-                    + " " + nz(data.currency()), label);
+            Paragraph totalP = new Paragraph("Tổng cộng: " + money(data.total()) + " VND", label);
             totalP.setAlignment(Element.ALIGN_RIGHT);
             totalP.setSpacingBefore(10f);
             doc.add(totalP);

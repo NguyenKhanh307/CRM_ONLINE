@@ -48,14 +48,8 @@ public class Customer {
     private Integer creditDays;
     /** Hạn mức nợ tối đa. */
     private BigDecimal creditLimit;
-    /** Số tài khoản ngân hàng. */
-    private String bankAccount;
-    /** Tên ngân hàng. */
-    private String bankName;
     /** Xếp hạng khách hàng (A/B/C). */
     private String rating;
-    /** Doanh thu hàng năm. */
-    private BigDecimal annualRevenue;
     /** Quy mô nhân sự. */
     private String employeeSize;
     /** Là nhà phân phối. */

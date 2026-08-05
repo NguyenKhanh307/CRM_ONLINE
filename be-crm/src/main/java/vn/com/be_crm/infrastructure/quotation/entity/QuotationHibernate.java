@@ -10,13 +10,10 @@ import vn.com.be_crm.domain.quotation.enums.QuotationStatus;
 
 import vn.com.be_crm.core.audit.IAuditable;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Hibernate entity ánh xạ bảng quotations.
- */
+// ánh xạ bảng quotations
 @Entity
 @Table(name = "quotations")
 @Getter @Setter @NoArgsConstructor
@@ -28,26 +25,17 @@ public class QuotationHibernate implements IAuditable {
     @Column(name = "customer_id") private Long customerId;
     @Column(name = "contact_id") private Long contactId;
     @Column(name = "opportunity_id") private Long opportunityId;
-    @Column(name = "campaign_id") private Long campaignId;
     @Column(name = "price_policy_id") private Long pricePolicyId;
     @Column(name = "is_primary") private boolean isPrimary;
     @Column(name = "is_locked") private boolean isLocked;
     @Column(name = "owner_id") private Long ownerId;
     @Column(name = "quote_date") private LocalDate quoteDate;
     @Column(name = "valid_until") private LocalDate validUntil;
-    @Column(name = "currency", length = 3) private String currency;
-    @Column(name = "exchange_rate", precision = 18, scale = 6) private java.math.BigDecimal exchangeRate;
     @Enumerated(EnumType.STRING) @Column(name = "status", length = 20)
     private QuotationStatus status;
-    @Column(name = "subtotal", precision = 18, scale = 2) private BigDecimal subtotal;
-    @Column(name = "discount", precision = 18, scale = 2) private BigDecimal discount;
-    @Column(name = "tax", precision = 18, scale = 2) private BigDecimal tax;
-    @Column(name = "total", precision = 18, scale = 2) private BigDecimal total;
     @Column(name = "note", length = 255) private String note;
-    @Column(name = "response_token", length = 64) private String responseToken;
     @Column(name = "customer_response", length = 20) private String customerResponse;
     @Column(name = "customer_response_note", length = 1000) private String customerResponseNote;
-    @Column(name = "customer_responded_at") private LocalDateTime customerRespondedAt;
     // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
     @Column(name = "created_by", updatable = false) private Long createdBy;
     @Column(name = "updated_by") private Long updatedBy;

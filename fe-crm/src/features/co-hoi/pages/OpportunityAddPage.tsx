@@ -1,8 +1,8 @@
-import { useMemo, useRef, useState } from 'react';
-import { collectErrors, nonNegativeError } from '@/shared/utils/validators';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { collectErrors } from '@/shared/utils/validators';
 import { formatNumber } from '@/shared/utils/number';
 import { useConfirm } from '@/shared/confirm/useConfirm';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
@@ -13,11 +13,11 @@ import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
 import { fetchPrimaryContactId } from '@/shared/lookup/recordPrefill';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { inputCls } from '@/shared/components/form/formStyles';
-import { DateInput } from '@/shared/components/form/DateInput';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import {
     type LineItemRow,
     type ProductOption,
+    computeTotals,
     emptyLineItem,
     toItemPayloads, validateLineItems } from '@/shared/components/form/productLineItem';
 import { useAlert } from '@/shared/alert/useAlert';
@@ -27,9 +27,11 @@ import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useEligiblePricePolicies } from '@/features/chinh-sach-gia/hooks/useEligiblePricePolicies';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
+import { leadService } from '@/features/tiem-nang/services/leadService';
 import { useCreateOpportunity } from '../hooks/useCreateOpportunity';
 import { useOpportunityStages } from '../hooks/useOpportunityStages';
 import type { CreateOpportunityPayload } from '../types/opportunityTypes';
+import type { LeadResult } from '@/features/tiem-nang/types/leadTypes';
 
 const SOURCE_OPTIONS = [
     { value: 'website', label: 'Website' },
@@ -42,18 +44,15 @@ const SOURCE_OPTIONS = [
 interface HeaderState {
     code: string; name: string; opportunityType: string; customerId: string; contactId: string;
     ownerId: string; stageId: string; campaignId: string; pricePolicyId: string; source: string;
-    amount: string; expectedRevenue: string; expectedCloseDate: string;
     description: string; winLossReason: string;
 }
 
 // state khởi tạo — người phụ trách mặc định là user đang đăng nhập
 const initialState = (ownerId: string): HeaderState => ({
     code: '', name: '', opportunityType: '', customerId: '', contactId: '', ownerId, stageId: '',
-    campaignId: '', pricePolicyId: '', source: '', amount: '', expectedRevenue: '', expectedCloseDate: '',
+    campaignId: '', pricePolicyId: '', source: '',
     description: '', winLossReason: '',
 });
-
-const num = (s: string): number | null => (s.trim() ? Number(s) : null);
 
 // trang thêm cơ hội mới — header + bảng hàng hóa (layout AMIS)
 const OpportunityAddPage = () => {
@@ -84,6 +83,15 @@ const OpportunityAddPage = () => {
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0 })),
         [products],
     );
+    // giá trị cơ hội KHÔNG gõ tay — luôn suy ra từ tổng dòng hàng (khớp công thức BE tự tính lại)
+    const amount = useMemo(() => computeTotals(rows).total, [rows]);
+
+    // nguồn tạo cơ hội: Khách hàng có sẵn (mặc định, giữ nguyên luồng cũ) hoặc Tiềm năng có sẵn
+    // (chỉ tự điền vài ô — KHÔNG tự tạo Khách hàng/Liên hệ, người dùng vẫn tự chọn như bình thường)
+    const [originKind, setOriginKind] = useState<'customer' | 'lead'>('customer');
+    const [pickedLeadId, setPickedLeadId] = useState('');
+    const [pickedLead, setPickedLead] = useState<LeadResult | null>(null);
+    const [leadPrefillFrom, setLeadPrefillFrom] = useState<string | null>(null);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -96,8 +104,6 @@ const OpportunityAddPage = () => {
             return next;
         });
     };
-    const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); setPrefillFrom(null); };
-
     // tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
@@ -117,17 +123,47 @@ const OpportunityAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
     };
 
+    // hàm chọn tiềm năng nguồn -> chỉ tự điền tên/nguồn/chiến dịch/người phụ trách (ô còn trống),
+    // KHÔNG đụng customerId/contactId — người dùng vẫn tự chọn/tạo Khách hàng+Liên hệ như bình thường
+    const onPickLead = async (v: string) => {
+        setPickedLeadId(v);
+        setPickedLead(null);
+        setLeadPrefillFrom(null);
+        if (!v) return;
+        const lead = (await leadService.getById(Number(v))).data.data;
+        setPickedLead(lead);
+        const patch = fillEmpty(form, {
+            name: lead.companyName || lead.name,
+            source: lead.source ?? '',
+            campaignId: lead.campaignId ? String(lead.campaignId) : '',
+            ownerId: lead.ownerId ? String(lead.ownerId) : '',
+        });
+        if (hasFilled(patch)) { set(patch); setLeadPrefillFrom(`tiềm năng «${lead.name}»`); }
+    };
+
+    // vào trang qua nút "Tạo cơ hội" (chuột phải ở danh sách Tiềm năng, ?fromLead=<id>) -> tự
+    // chọn nguồn Tiềm năng + tự điền, chạy đúng 1 lần lúc mount
+    const [searchParams] = useSearchParams();
+    const autoPickedRef = useRef(false);
+    useEffect(() => {
+        const fromLead = searchParams.get('fromLead');
+        if (!fromLead || autoPickedRef.current) return;
+        autoPickedRef.current = true;
+        setOriginKind('lead');
+        void onPickLead(fromLead);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
     // hàm kiểm tra bắt buộc + biên (khớp ràng buộc backend) — trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
             code: !form.code.trim() ? 'Mã cơ hội không được để trống' : null,
             name: !form.name.trim() ? 'Tên cơ hội không được để trống' : null,
-            expectedRevenue: nonNegativeError(form.expectedRevenue, 'Doanh thu kỳ vọng'),
             items: validateLineItems(rows),
         });
 
     // hàm lưu — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
-    const submit = async (andNew: boolean) => {
+    const submit = async () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
@@ -143,9 +179,7 @@ const OpportunityAddPage = () => {
             stageId: form.stageId ? Number(form.stageId) : null,
             campaignId: form.campaignId ? Number(form.campaignId) : null,
             pricePolicyId: form.pricePolicyId ? Number(form.pricePolicyId) : null,
-            amount: num(form.amount),
-            expectedRevenue: num(form.expectedRevenue),
-            expectedCloseDate: form.expectedCloseDate || null,
+            amount,
             source: form.source || null,
             winLossReason: form.winLossReason || null,
             description: form.description || null,
@@ -154,9 +188,36 @@ const OpportunityAddPage = () => {
         // bước hỏi xác nhận rồi mới gọi api lưu
         if (!(await confirmCreate('cơ hội'))) return;
         mutate(payload, {
-            onSuccess: () => {
-                if (andNew) { reset(); showAlert('Đã lưu cơ hội thành công'); }
-                else navigate('/co-hoi');
+            onSuccess: async (res) => {
+                // tạo từ Tiềm năng có sẵn -> chỉ gán ngược converted_opportunity_id để truy vết
+                // "cơ hội này bắt nguồn từ tiềm năng nào" (SELECT ... WHERE converted_opportunity_id = ?).
+                // KHÔNG tự đổi status='converted' — quy định mới chỉ cho chuyển đổi khi đã có đơn
+                // hàng đầu tiên (guard ở UpdateLeadUseCase), việc đó xảy ra sau và vẫn là thao tác tay.
+                // Không rollback nếu bước này lỗi — cơ hội đã tạo vẫn giữ nguyên, gán tay lại sau qua LeadEditModal
+                if (pickedLead) {
+                    try {
+                        await leadService.update(pickedLead.id, {
+                            name: pickedLead.name,
+                            companyName: pickedLead.companyName,
+                            leadType: pickedLead.leadType,
+                            ownerId: pickedLead.ownerId,
+                            contactId: pickedLead.contactId,
+                            convertedOpportunityId: res.data.data.id,
+                            campaignId: pickedLead.campaignId,
+                            taxCode: pickedLead.taxCode,
+                            website: pickedLead.website,
+                            industry: pickedLead.industry,
+                            source: pickedLead.source,
+                            status: pickedLead.status,
+                            phone: pickedLead.phone,
+                            email: pickedLead.email,
+                            note: pickedLead.note,
+                        });
+                    } catch {
+                        // im lặng — không chặn luồng tạo cơ hội vì liên kết truy vết chỉ là phụ trợ
+                    }
+                }
+                navigate('/co-hoi');
             },
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
@@ -167,12 +228,12 @@ const OpportunityAddPage = () => {
     };
 
     const formRef = useRef<HTMLDivElement>(null);
-    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+    useFormKeyboardNav(formRef, { onSubmit: () => submit() });
 
     return (
         <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm Cơ hội" saving={isPending}
-                onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
+                onCancel={() => navigate(-1)} onSave={() => submit()} />
 
             <div className="bg-white rounded-card shadow-sm p-6 space-y-8">
                 <FormSection title="Thông tin chung">
@@ -187,6 +248,33 @@ const OpportunityAddPage = () => {
                             <FieldRow label="Loại cơ hội">
                                 <input type="text" value={form.opportunityType} onChange={(e) => set({ opportunityType: e.target.value })} className={inputCls} />
                             </FieldRow>
+                            <FieldRow label="Nguồn tạo cơ hội">
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setOriginKind('customer')}
+                                        className={`px-3 py-1.5 text-sm rounded-btn border ${originKind === 'customer' ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 text-gray-600'}`}
+                                    >
+                                        Khách hàng có sẵn
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setOriginKind('lead')}
+                                        className={`px-3 py-1.5 text-sm rounded-btn border ${originKind === 'lead' ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 text-gray-600'}`}
+                                    >
+                                        Tiềm năng có sẵn
+                                    </button>
+                                </div>
+                            </FieldRow>
+                            {originKind === 'lead' && (
+                                <FieldRow label="Tiềm năng nguồn">
+                                    <RecordPicker module="lead" value={pickedLeadId} onChange={onPickLead} />
+                                    <PrefillHint source={leadPrefillFrom} />
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Chỉ tự điền Tên/Nguồn/Chiến dịch/Người phụ trách — Khách hàng &amp; Liên hệ vẫn tự chọn/tạo bên dưới.
+                                    </p>
+                                </FieldRow>
+                            )}
                             <FieldRow label="Khách hàng">
                                 <SearchableSelect value={form.customerId} onChange={onPickCustomer} options={customerOptions} />
                                 <PrefillHint source={prefillFrom} />
@@ -219,11 +307,12 @@ const OpportunityAddPage = () => {
                 <FormSection title="Giá trị">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
+                            {/* giá trị KHÔNG gõ tay — luôn suy từ tổng dòng hàng bên dưới, khớp cách backend tự tính lại */}
                             <FieldRow label="Giá trị">
-                                <input type="number" min={0} value={form.amount} onChange={(e) => set({ amount: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                            <FieldRow label="Doanh số kỳ vọng">
-                                <input type="number" min={0} value={form.expectedRevenue} onChange={(e) => set({ expectedRevenue: e.target.value })} className={inputCls} />
+                                <div className="flex items-center gap-2">
+                                    <span className="text-md font-medium text-text-main">{formatNumber(amount)}</span>
+                                    <span className="text-sm text-gray-400">(tự tính theo dòng hàng)</span>
+                                </div>
                             </FieldRow>
                         </div>
                         <div className="space-y-4">
@@ -235,9 +324,6 @@ const OpportunityAddPage = () => {
                                     </span>
                                     <span className="text-sm text-gray-400">(tự động theo giai đoạn)</span>
                                 </div>
-                            </FieldRow>
-                            <FieldRow label="Ngày đóng dự kiến">
-                                <DateInput value={form.expectedCloseDate} onChange={(v) => set({ expectedCloseDate: v })} />
                             </FieldRow>
                         </div>
                     </div>

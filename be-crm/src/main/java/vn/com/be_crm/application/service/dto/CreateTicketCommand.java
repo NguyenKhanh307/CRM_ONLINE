@@ -14,21 +14,18 @@ import vn.com.be_crm.domain.service.enums.TicketType;
 
 import java.util.List;
 
-/** Input DTO khi tạo mới phiếu hỗ trợ (kèm dòng hàng trả/đổi nếu có). */
+// input khi tạo mới phiếu hỗ trợ (kèm dòng hàng trả/đổi nếu có)
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class CreateTicketCommand {
     @NotBlank(message = "Mã phiếu không được để trống") @Size(max = 20) private String code;
     private TicketType type;
     @NotBlank(message = "Tiêu đề không được để trống") @Size(max = 150) private String subject;
     @Size(max = 1000) private String description;
-    private Long customerId;
-    private Long contactId;
-    private Long invoiceId;
-    private Long productId;
+    private Long orderId;
     private TicketChannel channel;
     private TicketPriority priority;
     private ReturnReason reason;
     private Long assignedUserId;
-    /** Dòng hàng trả/đổi tạo kèm phiếu (ticketId bỏ trống). */
+    // dòng hàng trả/đổi tạo kèm phiếu (ticketId bỏ trống)
     @Valid private List<CreateTicketReturnItemCommand> returnItems;
 }

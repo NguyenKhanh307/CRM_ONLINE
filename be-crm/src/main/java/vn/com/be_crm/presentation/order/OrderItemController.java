@@ -10,9 +10,7 @@ import vn.com.be_crm.core.response.ApiResponse;
 
 import java.util.List;
 
-/**
- * REST controller cho dòng sản phẩm trong đơn hàng.
- */
+// REST controller cho dòng sản phẩm trong đơn hàng
 @RestController
 @RequestMapping("/api/orders/{orderId}/items")
 public class OrderItemController {
@@ -21,13 +19,12 @@ public class OrderItemController {
     private final DeleteOrderItemUseCase deleteUC;
     private final ListOrderItemUseCase listUC;
 
-    /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param listUC danh sách */
     public OrderItemController(CreateOrderItemUseCase createUC, UpdateOrderItemUseCase updateUC,
                               DeleteOrderItemUseCase deleteUC, ListOrderItemUseCase listUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC; this.listUC = listUC;
     }
 
-    /** Tạo mới dòng đơn hàng. @param orderId ID đơn hàng @param cmd body @return 201 */
+    // tạo mới dòng đơn hàng
     @PostMapping
     public ResponseEntity<ApiResponse<OrderItemResult>> create(@PathVariable Long orderId,
                                                               @Valid @RequestBody CreateOrderItemCommand cmd) {
@@ -35,28 +32,28 @@ public class OrderItemController {
                 CreateOrderItemCommand.builder().orderId(orderId).productId(cmd.getProductId())
                         .unit(cmd.getUnit())
                         .quantity(cmd.getQuantity()).unitPrice(cmd.getUnitPrice())
-                        .discount(cmd.getDiscount()).taxRate(cmd.getTaxRate()).amount(cmd.getAmount())
+                        .discount(cmd.getDiscount()).taxRate(cmd.getTaxRate())
                         .note(cmd.getNote()).build())));
     }
 
-    /** Lấy danh sách dòng đơn hàng. @param orderId ID đơn hàng @return 200 */
+    // lấy danh sách dòng đơn hàng
     @GetMapping
     public ResponseEntity<ApiResponse<List<OrderItemResult>>> list(@PathVariable Long orderId) {
         return ResponseEntity.ok(ApiResponse.ok(listUC.execute(orderId)));
     }
 
-    /** Cập nhật dòng đơn hàng. @param id ID @param cmd body @return 200 */
+    // cập nhật dòng đơn hàng
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<OrderItemResult>> update(@PathVariable Long orderId, @PathVariable Long id,
                                                               @Valid @RequestBody UpdateOrderItemCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateOrderItemCommand.builder().id(id).productId(cmd.getProductId())
                         .quantity(cmd.getQuantity()).unitPrice(cmd.getUnitPrice())
-                        .discount(cmd.getDiscount()).taxRate(cmd.getTaxRate()).amount(cmd.getAmount())
+                        .discount(cmd.getDiscount()).taxRate(cmd.getTaxRate())
                         .note(cmd.getNote()).build())));
     }
 
-    /** Xóa dòng đơn hàng. @param id ID @return 204 */
+    // xóa dòng đơn hàng
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long orderId, @PathVariable Long id) {
         deleteUC.execute(id); return ResponseEntity.noContent().build();

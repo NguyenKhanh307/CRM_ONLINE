@@ -47,5 +47,4 @@ public class UpdateActivityCommand {
     private Long assignedUserId;
     private ActivityStatus status;
     private LocalDateTime dueAt;
-    private LocalDateTime completedAt;
 }

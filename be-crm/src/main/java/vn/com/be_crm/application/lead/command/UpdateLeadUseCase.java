@@ -31,6 +31,11 @@ public class UpdateLeadUseCase implements IUseCase<UpdateLeadCommand, LeadResult
         if (existing.getStatus() == LeadStatus.converted) {
             throw new DomainException("Tiềm năng đã chuyển đổi, không thể chỉnh sửa");
         }
+        // chuyển sang converted chỉ được phép khi chuỗi Tiềm năng->Cơ hội->Báo giá->Đơn hàng đã có
+        // đơn hàng đầu tiên — việc đổi status thật sự vẫn là thao tác tay ở đây, không tự động
+        if (cmd.getStatus() == LeadStatus.converted && !repo.hasAnyOrder(cmd.getId(), null)) {
+            throw new DomainException("Chỉ có thể chuyển đổi tiềm năng thành khách hàng khi đã có đơn hàng đầu tiên");
+        }
         Lead saved = repo.save(LeadCommandMapper.toEntity(cmd, existing));
         // đổi người phụ trách -> báo cho người nhận việc (gồm cả trường hợp quản lý gán tiềm năng vô chủ)
         if (!Objects.equals(existing.getOwnerId(), saved.getOwnerId())) {

@@ -7,11 +7,9 @@ import vn.com.be_crm.domain.activity.enums.ActivityStatus;
 import vn.com.be_crm.domain.activity.repository.IActivityRepository;
 import vn.com.be_crm.core.error.frontend.NotFoundException;
 
-import java.time.LocalDateTime;
-
 /**
  * Use case điều phối trạng thái hoạt động (theo hành động, không sửa tay):
- * start (planned → in_progress) / complete (→ done, ghi completedAt) / cancel (→ cancelled).
+ * start (planned → in_progress) / complete (→ done) / cancel (→ cancelled).
  */
 public class ActivityWorkflowUseCase {
     private final IActivityRepository repo;
@@ -26,12 +24,11 @@ public class ActivityWorkflowUseCase {
         return ActivityCommandMapper.toResult(repo.save(a.toBuilder().status(ActivityStatus.in_progress).build()));
     }
 
-    /** Hoàn thành (→ done), ghi thời điểm hoàn thành. @param id ID @return hoạt động sau cập nhật */
+    /** Hoàn thành (→ done). @param id ID @return hoạt động sau cập nhật */
     public ActivityResult complete(Long id) {
         Activity a = load(id);
         a.getStatus().ensureCanTransitionTo(ActivityStatus.done);
-        return ActivityCommandMapper.toResult(repo.save(
-                a.toBuilder().status(ActivityStatus.done).completedAt(LocalDateTime.now()).build()));
+        return ActivityCommandMapper.toResult(repo.save(a.toBuilder().status(ActivityStatus.done).build()));
     }
 
     /** Hủy hoạt động (→ cancelled). @param id ID @return hoạt động sau cập nhật */

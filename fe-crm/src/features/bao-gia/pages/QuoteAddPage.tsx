@@ -19,29 +19,27 @@ import {
     type LineItemRow,
     type ProductOption,
     emptyLineItem,
-    computeTotals,
     toItemPayloads, validateLineItems } from '@/shared/components/form/productLineItem';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
-import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { useEligiblePricePolicies } from '@/features/chinh-sach-gia/hooks/useEligiblePricePolicies';
 import { useCreateQuotation } from '../hooks/useCreateQuotation';
 import type { CreateQuotationPayload } from '../types/quotationTypes';
 
 interface HeaderState {
-    code: string; customerId: string; contactId: string; campaignId: string; pricePolicyId: string; ownerId: string;
+    code: string; customerId: string; contactId: string; pricePolicyId: string; ownerId: string;
     opportunityId: string;
-    quoteDate: string; validUntil: string; currency: string; exchangeRate: string;
+    quoteDate: string; validUntil: string;
     note: string;
 }
 
 // state khởi tạo — người phụ trách mặc định là user đang đăng nhập
 const initialState = (ownerId: string): HeaderState => ({
-    code: '', customerId: '', contactId: '', campaignId: '', pricePolicyId: '', opportunityId: '', ownerId, quoteDate: '', validUntil: '',
-    currency: 'VND', exchangeRate: '1', note: '',
+    code: '', customerId: '', contactId: '', pricePolicyId: '', opportunityId: '', ownerId, quoteDate: '', validUntil: '',
+    note: '',
 });
 
 // trang thêm báo giá mới — header + bảng hàng hóa (layout AMIS)
@@ -58,12 +56,10 @@ const QuoteAddPage = () => {
     const { data: users = [] } = useActiveUsers();
     const { data: customers = [] } = useCustomerList();
     const { data: products = [] } = useProductList();
-    const { data: campaigns = [] } = useCampaignList();
     const { data: pricePolicies = [] } = useEligiblePricePolicies(form.customerId ? Number(form.customerId) : undefined);
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
-    const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
     const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
     const productOptions = useMemo<ProductOption[]>(
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
@@ -81,7 +77,6 @@ const QuoteAddPage = () => {
             return next;
         });
     };
-    const reset = () => { setForm(initialState(defaultOwnerId)); setRows([emptyLineItem()]); setPrefillFrom(null); };
 
     // tên khách hàng vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Khách hàng
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
@@ -110,7 +105,6 @@ const QuoteAddPage = () => {
         const patch = fillEmpty({ ...form, opportunityId: v }, {
             customerId: o.customerId ? String(o.customerId) : '',
             contactId: o.contactId ? String(o.contactId) : '',
-            campaignId: o.campaignId ? String(o.campaignId) : '',
             pricePolicyId: o.pricePolicyId ? String(o.pricePolicyId) : '',
             ownerId: o.ownerId ? String(o.ownerId) : '',
         });
@@ -128,38 +122,27 @@ const QuoteAddPage = () => {
         });
 
     // lưu form — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
-    const submit = async (andNew: boolean) => {
+    const submit = async () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
 
-        const totals = computeTotals(rows);
         const payload: CreateQuotationPayload = {
             code: form.code.trim(),
             customerId: form.customerId ? Number(form.customerId) : null,
             contactId: form.contactId ? Number(form.contactId) : null,
             opportunityId: form.opportunityId ? Number(form.opportunityId) : null,
-            campaignId: form.campaignId ? Number(form.campaignId) : null,
             pricePolicyId: form.pricePolicyId ? Number(form.pricePolicyId) : null,
             ownerId: form.ownerId ? Number(form.ownerId) : null,
             quoteDate: form.quoteDate || null,
             validUntil: form.validUntil || null,
-            currency: form.currency || 'VND',
-            exchangeRate: Number(form.exchangeRate) || 1,
-            subtotal: totals.subtotal,
-            discount: totals.discount,
-            tax: totals.tax,
-            total: totals.total,
             note: form.note || null,
             items: toItemPayloads(rows),
         };
         if (!(await confirmCreate('báo giá'))) return;
         mutate(payload, {
-            onSuccess: () => {
-                if (andNew) { reset(); showAlert('Đã lưu báo giá thành công'); }
-                else navigate('/bao-gia');
-            },
+            onSuccess: () => navigate('/bao-gia'),
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Có lỗi xảy ra khi lưu báo giá';
@@ -169,12 +152,12 @@ const QuoteAddPage = () => {
     };
 
     const formRef = useRef<HTMLDivElement>(null);
-    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+    useFormKeyboardNav(formRef, { onSubmit: () => submit() });
 
     return (
         <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm Báo giá" saving={isPending}
-                onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
+                onCancel={() => navigate(-1)} onSave={() => submit()} />
 
             <div className="bg-white rounded-card shadow-sm p-6 space-y-8">
                 <FormSection title="Thông tin chi tiết">
@@ -201,12 +184,6 @@ const QuoteAddPage = () => {
                             </FieldRow>
                             <FieldRow label="Hiệu lực đến" error={errors.validUntil}>
                                 <DateInput value={form.validUntil} onChange={(v) => set({ validUntil: v })} />
-                            </FieldRow>
-                            <FieldRow label="Tiền tệ">
-                                <input type="text" value={form.currency} onChange={(e) => set({ currency: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                            <FieldRow label="Chiến dịch">
-                                <SearchableSelect value={form.campaignId} onChange={(v) => set({ campaignId: v })} options={campaignOptions} />
                             </FieldRow>
                             <FieldRow label="Chính sách giá">
                                 <SearchableSelect value={form.pricePolicyId} onChange={(v) => set({ pricePolicyId: v })} options={pricePolicyOptions} />

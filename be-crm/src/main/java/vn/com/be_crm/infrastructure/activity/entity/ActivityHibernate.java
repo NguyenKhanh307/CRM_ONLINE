@@ -46,12 +46,6 @@ public class ActivityHibernate implements IAuditable {
     @Column(name = "target_id")
     private Long targetId;
 
-    @Column(name = "related_type", length = 50)
-    private String relatedType;
-
-    @Column(name = "related_id")
-    private Long relatedId;
-
     @Column(name = "location", length = 255)
     private String location;
 
@@ -73,9 +67,6 @@ public class ActivityHibernate implements IAuditable {
 
     @Column(name = "due_at")
     private LocalDateTime dueAt;
-
-    @Column(name = "completed_at")
-    private LocalDateTime completedAt;
 
     // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
     @Column(name = "created_by", updatable = false)

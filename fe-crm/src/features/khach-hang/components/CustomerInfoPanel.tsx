@@ -31,10 +31,7 @@ export const CustomerInfoPanel = ({ customer: c }: CustomerInfoPanelProps) => (
             <InfoRow label="Xếp hạng" value={c.rating} />
             <InfoRow label="Số ngày được nợ" value={c.creditDays != null ? formatNumber(c.creditDays) : null} />
             <InfoRow label="Hạn mức nợ" value={c.creditLimit != null ? formatCurrency(c.creditLimit) : null} />
-            <InfoRow label="Doanh thu năm" value={c.annualRevenue != null ? formatCurrency(c.annualRevenue) : null} />
             <InfoRow label="Quy mô nhân sự" value={c.employeeSize} />
-            <InfoRow label="Ngân hàng" value={c.bankName} />
-            <InfoRow label="Số tài khoản" value={c.bankAccount} />
             <InfoRow label="Nhà phân phối" value={c.isDistributor ? 'Có' : 'Không'} />
             <InfoRow label="Người tạo" value={c.createdByName} />
             <InfoRow label="Ngày tạo" value={c.createdAt ? formatISODate(c.createdAt) : null} />

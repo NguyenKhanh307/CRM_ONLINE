@@ -19,18 +19,15 @@ import vn.com.be_crm.core.tx.port.ITransactionRunner;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Use case xuất hóa đơn từ đơn hàng (Order-to-Invoice, quan hệ 1-1):
- * sao chép sâu dòng hàng OrderItem → InvoiceItem, gán invoice.orderId + kế thừa chiến dịch,
- * khóa đơn hàng (audit trail) và chuyển đơn hàng sang Hoàn tất (completed).
- */
+// xuất hóa đơn từ đơn hàng (Order-to-Invoice, quan hệ 1-1): sao chép sâu dòng hàng OrderItem ->
+// InvoiceItem, gán invoice.orderId, khóa đơn hàng (audit trail) và chuyển đơn hàng sang Hoàn
+// tất (completed)
 public class CreateInvoiceFromOrderUseCase {
     private final IOrderRepository orderRepo;
     private final IOrderItemRepository orderItemRepo;
     private final IInvoiceRepository invoiceRepo;
     private final ITransactionRunner tx;
 
-    /** @param orderRepo đơn hàng @param orderItemRepo dòng đơn hàng @param invoiceRepo hóa đơn @param tx bộ chạy transaction */
     public CreateInvoiceFromOrderUseCase(IOrderRepository orderRepo, IOrderItemRepository orderItemRepo,
                                          IInvoiceRepository invoiceRepo, ITransactionRunner tx) {
         this.orderRepo = orderRepo;
@@ -39,43 +36,34 @@ public class CreateInvoiceFromOrderUseCase {
         this.tx = tx;
     }
 
-    /**
-     * Xuất hóa đơn từ đơn hàng.
-     * Tạo hóa đơn + dòng hàng và khóa đơn hàng chạy trong MỘT transaction.
-     * @param orderId ID đơn hàng @return hóa đơn vừa tạo
-     */
+    // tạo hóa đơn + dòng hàng và khóa đơn hàng chạy trong MỘT transaction
     public InvoiceResult execute(Long orderId) {
         return tx.call(() -> executeInTx(orderId));
     }
 
-    /** Thân nghiệp vụ xuất hóa đơn — luôn chạy bên trong transaction. */
+    // thân nghiệp vụ xuất hóa đơn — luôn chạy bên trong transaction
     private InvoiceResult executeInTx(Long orderId) {
         Order o = orderRepo.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));
         if (o.isLocked()) throw new DomainException("Đơn hàng đã xuất hóa đơn trước đó");
 
-        // Sao chép dòng hàng đơn hàng → dòng hàng hóa đơn
+        // sao chép dòng hàng đơn hàng -> dòng hàng hóa đơn
         List<OrderItem> orderItems = orderItemRepo.findAllByOrderId(orderId);
         List<InvoiceItem> invItems = orderItems.stream().map(oi -> InvoiceItem.builder()
                 .productId(oi.getProductId()).unit(oi.getUnit())
                 .quantity(oi.getQuantity()).unitPrice(oi.getUnitPrice()).discount(oi.getDiscount())
-                .taxRate(oi.getTaxRate()).amount(oi.getAmount()).note(oi.getNote())
+                .taxRate(oi.getTaxRate()).note(oi.getNote())
                 .build()).collect(Collectors.toList());
 
         Invoice invoice = Invoice.builder()
                 .code("HD-" + System.currentTimeMillis())
-                .customerId(o.getCustomerId()).contactId(o.getContactId())
-                .quotationId(o.getQuotationId()).opportunityId(o.getOpportunityId())
-                .orderId(o.getId()).campaignId(o.getCampaignId())
+                .orderId(o.getId())
                 .ownerId(o.getOwnerId())
-                .currency(o.getCurrency()).exchangeRate(o.getExchangeRate())
                 .status(InvoiceStatus.draft).paymentStatus(PaymentStatus.unpaid)
-                .billingAddress(o.getBillingAddress()).taxCode(o.getTaxCode())
-                .subtotal(o.getSubtotal()).discount(o.getDiscount()).tax(o.getTax()).total(o.getTotal())
                 .build();
         Invoice savedInvoice = invoiceRepo.saveWithItems(invoice, invItems);
 
-        // Khóa đơn hàng + chuyển sang Hoàn tất (completed)
+        // khóa đơn hàng + chuyển sang Hoàn tất (completed)
         Order locked = o.toBuilder().isLocked(true)
                 .status(o.getStatus() != OrderStatus.completed ? OrderStatus.completed : o.getStatus())
                 .build();

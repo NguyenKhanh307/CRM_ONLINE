@@ -2,7 +2,6 @@ package vn.com.be_crm.application.quotation.command;
 
 import vn.com.be_crm.application.quotation.dto.QuotationResult;
 import vn.com.be_crm.application.quotation.mapper.QuotationCommandMapper;
-import vn.com.be_crm.core.util.LineItemTotals;
 import vn.com.be_crm.domain.opportunity.entity.Opportunity;
 import vn.com.be_crm.domain.opportunity.entity.OpportunityItem;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityItemRepository;
@@ -17,16 +16,13 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Use case clone (sao chép sâu) báo giá từ cơ hội: kế thừa khách hàng/liên hệ/chính sách giá
- * và toàn bộ dòng hàng (OLI → QLI). Báo giá đầu tiên của cơ hội được đánh dấu đồng bộ (primary).
- */
+// clone (sao chép sâu) báo giá từ cơ hội: kế thừa khách hàng/liên hệ/chính sách giá và toàn bộ
+// dòng hàng (OLI -> QLI). Báo giá đầu tiên của cơ hội được đánh dấu đồng bộ (primary).
 public class CreateQuotationFromOpportunityUseCase {
     private final IQuotationRepository quotationRepo;
     private final IOpportunityRepository opportunityRepo;
     private final IOpportunityItemRepository opportunityItemRepo;
 
-    /** @param quotationRepo báo giá @param opportunityRepo cơ hội @param opportunityItemRepo dòng hàng cơ hội */
     public CreateQuotationFromOpportunityUseCase(IQuotationRepository quotationRepo, IOpportunityRepository opportunityRepo,
                                                  IOpportunityItemRepository opportunityItemRepo) {
         this.quotationRepo = quotationRepo;
@@ -34,10 +30,6 @@ public class CreateQuotationFromOpportunityUseCase {
         this.opportunityItemRepo = opportunityItemRepo;
     }
 
-    /**
-     * Tạo báo giá mới từ cơ hội.
-     * @param opportunityId ID cơ hội nguồn @return báo giá vừa tạo
-     */
     public QuotationResult execute(Long opportunityId) {
         Opportunity opp = opportunityRepo.findById(opportunityId)
                 .orElseThrow(() -> new NotFoundException("Opportunity not found: " + opportunityId));
@@ -51,22 +43,19 @@ public class CreateQuotationFromOpportunityUseCase {
                 .unitPrice(oi.getUnitPrice())
                 .discount(oi.getDiscount())
                 .taxRate(BigDecimal.ZERO)
-                .amount(oi.getAmount())
                 .build()).collect(Collectors.toList());
 
-        BigDecimal total = LineItemTotals.sumAmount(qItems, QuotationItem::getAmount);
-        // Báo giá đầu tiên của cơ hội → tự đánh dấu đồng bộ (primary)
+        // báo giá đầu tiên của cơ hội -> tự đánh dấu đồng bộ (primary)
         boolean firstQuote = quotationRepo.findAllByOpportunityId(opportunityId).isEmpty();
 
         Quotation quote = Quotation.builder()
                 .code("BG-" + System.currentTimeMillis())
                 .customerId(opp.getCustomerId()).contactId(opp.getContactId())
-                .opportunityId(opportunityId).campaignId(opp.getCampaignId())
+                .opportunityId(opportunityId)
                 .pricePolicyId(opp.getPricePolicyId())
                 .ownerId(opp.getOwnerId())
                 .isPrimary(firstQuote)
                 .status(QuotationStatus.draft)
-                .subtotal(total).discount(BigDecimal.ZERO).tax(BigDecimal.ZERO).total(total)
                 .build();
 
         return QuotationCommandMapper.toResult(quotationRepo.saveWithItems(quote, qItems));

@@ -45,14 +45,14 @@ const CALL_DIRECTION_OPTIONS = [
 interface FormState {
     type: string; subject: string; content: string; priority: string;
     assignedUserId: string; targetType: string; targetId: string;
-    relatedType: string; relatedId: string; location: string; dueAt: string;
+    location: string; dueAt: string;
     callDirection: string; callResult: string; callDuration: string;
 }
 
 // state khởi tạo — người thực hiện mặc định là user đang đăng nhập
 const initialState = (assignedUserId: string): FormState => ({
     type: 'call', subject: '', content: '', priority: 'medium',
-    assignedUserId, targetType: '', targetId: '', relatedType: '', relatedId: '',
+    assignedUserId, targetType: '', targetId: '',
     location: '', dueAt: '', callDirection: '', callResult: '', callDuration: '',
 });
 
@@ -90,7 +90,7 @@ const ActivityAddPage = () => {
         });
 
     // hàm lưu — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
-    const submit = async (andNew: boolean) => {
+    const submit = async () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
@@ -103,8 +103,6 @@ const ActivityAddPage = () => {
             priority: form.priority || null,
             targetType: form.targetType || null,
             targetId: num(form.targetId),
-            relatedType: form.relatedType || null,
-            relatedId: num(form.relatedId),
             location: form.location || null,
             callDirection: form.type === 'call' ? (form.callDirection || null) : null,
             callResult: form.type === 'call' ? (form.callResult || null) : null,
@@ -115,10 +113,7 @@ const ActivityAddPage = () => {
         // bước hỏi xác nhận rồi mới gọi api lưu
         if (!(await confirmCreate('hoạt động'))) return;
         mutate(payload, {
-            onSuccess: () => {
-                if (andNew) { setForm(initialState(defaultUserId)); showAlert('Đã lưu hoạt động thành công'); }
-                else navigate('/hoat-dong');
-            },
+            onSuccess: () => navigate('/hoat-dong'),
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Có lỗi xảy ra khi lưu hoạt động';
@@ -128,12 +123,12 @@ const ActivityAddPage = () => {
     };
 
     const formRef = useRef<HTMLDivElement>(null);
-    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+    useFormKeyboardNav(formRef, { onSubmit: () => submit() });
 
     return (
         <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm Hoạt động" saving={isPending}
-                onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
+                onCancel={() => navigate(-1)} onSave={() => submit()} />
 
             <div className="bg-white rounded-card shadow-sm p-6 space-y-8">
                 <FormSection title="Thông tin chung">
@@ -164,27 +159,15 @@ const ActivityAddPage = () => {
 
                 <FormSection title="Đối tượng liên quan">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
-                        <div className="space-y-4">
-                            <FieldRow label="Loại đối tượng">
-                                {/* Đổi loại thì xóa id cũ — id của phân hệ khác gắn lại là dữ liệu rác */}
-                                <SearchableSelect value={form.targetType}
-                                    onChange={(v) => set({ targetType: v, targetId: '' })} options={TARGET_TYPE_OPTIONS} />
-                            </FieldRow>
-                            <FieldRow label="Đối tượng">
-                                <RecordPicker module={form.targetType as RecordModule | ''} value={form.targetId}
-                                    onChange={(v) => set({ targetId: v })} />
-                            </FieldRow>
-                        </div>
-                        <div className="space-y-4">
-                            <FieldRow label="Loại liên quan">
-                                <SearchableSelect value={form.relatedType}
-                                    onChange={(v) => set({ relatedType: v, relatedId: '' })} options={TARGET_TYPE_OPTIONS} />
-                            </FieldRow>
-                            <FieldRow label="Bản ghi liên quan">
-                                <RecordPicker module={form.relatedType as RecordModule | ''} value={form.relatedId}
-                                    onChange={(v) => set({ relatedId: v })} />
-                            </FieldRow>
-                        </div>
+                        <FieldRow label="Loại đối tượng">
+                            {/* Đổi loại thì xóa id cũ — id của phân hệ khác gắn lại là dữ liệu rác */}
+                            <SearchableSelect value={form.targetType}
+                                onChange={(v) => set({ targetType: v, targetId: '' })} options={TARGET_TYPE_OPTIONS} />
+                        </FieldRow>
+                        <FieldRow label="Đối tượng">
+                            <RecordPicker module={form.targetType as RecordModule | ''} value={form.targetId}
+                                onChange={(v) => set({ targetId: v })} />
+                        </FieldRow>
                     </div>
                 </FormSection>
 

@@ -5,8 +5,6 @@ export interface UpdateActivityPayload {
     priority?: string | null;
     targetType: string | null;
     targetId: number | null;
-    relatedType?: string | null;
-    relatedId?: number | null;
     location?: string | null;
     callDirection?: string | null;
     callResult?: string | null;
@@ -24,8 +22,6 @@ export interface CreateActivityPayload {
     priority: string | null;
     targetType: string | null;
     targetId: number | null;
-    relatedType: string | null;
-    relatedId: number | null;
     location: string | null;
     callDirection: string | null;
     callResult: string | null;
@@ -43,8 +39,6 @@ export interface ActivityResult {
     priority: string | null;
     targetType: string | null;
     targetId: number | null;
-    relatedType: string | null;
-    relatedId: number | null;
     location: string | null;
     callDirection: string | null;
     callResult: string | null;
@@ -52,7 +46,6 @@ export interface ActivityResult {
     assignedUserId: number | null;
     status: string;
     dueAt: string | null;
-    completedAt: string | null;
     createdAt: string;
     updatedAt: string;
     // Tên khóa ngoại do BE resolve sẵn (INameResolver).

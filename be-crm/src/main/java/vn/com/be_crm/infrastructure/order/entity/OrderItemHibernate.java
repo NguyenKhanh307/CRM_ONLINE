@@ -7,9 +7,8 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
-/**
- * Hibernate entity ánh xạ bảng order_items.
- */
+// ánh xạ bảng order_items. Không có cột "amount" — thành tiền tính từ quantity/unitPrice/
+// discount/taxRate tại thời điểm đọc.
 @Entity
 @Table(name = "order_items")
 @Getter @Setter @NoArgsConstructor
@@ -23,6 +22,5 @@ public class OrderItemHibernate {
     @Column(name = "unit_price", precision = 18, scale = 2) private BigDecimal unitPrice;
     @Column(name = "discount", precision = 18, scale = 2) private BigDecimal discount;
     @Column(name = "tax_rate", precision = 5, scale = 2) private BigDecimal taxRate;
-    @Column(name = "amount", precision = 18, scale = 2) private BigDecimal amount;
     @Column(name = "note", length = 255) private String note;
 }

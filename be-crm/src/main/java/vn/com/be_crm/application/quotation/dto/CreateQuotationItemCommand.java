@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/** Input DTO khi tạo mới dòng báo giá. */
+// input khi tạo mới dòng báo giá
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class CreateQuotationItemCommand {
-    /** ID báo giá — controller set từ path; bỏ trống khi tạo nested kèm báo giá. */
+    // ID báo giá — controller set từ path; bỏ trống khi tạo nested kèm báo giá
     private Long quotationId;
     private Long productId;
     @Size(max = 20) private String unit;
@@ -23,6 +23,5 @@ public class CreateQuotationItemCommand {
     @PositiveOrZero(message = "Đơn giá không được âm") private BigDecimal unitPrice;
     @PositiveOrZero(message = "Chiết khấu không được âm") private BigDecimal discount;
     @DecimalMin(value = "0", message = "Thuế suất phải từ 0 đến 100") @DecimalMax(value = "100", message = "Thuế suất phải từ 0 đến 100") private BigDecimal taxRate;
-    private BigDecimal amount;
     @Size(max = 255) private String note;
 }

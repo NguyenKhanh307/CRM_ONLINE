@@ -14,7 +14,7 @@ import vn.com.be_crm.domain.service.enums.TicketType;
 
 import java.time.LocalDateTime;
 
-/** Output DTO cho Ticket. */
+// output cho Ticket
 @Getter @Setter @Builder(toBuilder = true) @NoArgsConstructor @AllArgsConstructor
 public class TicketResult {
     private Long id;
@@ -22,10 +22,7 @@ public class TicketResult {
     private TicketType type;
     private String subject;
     private String description;
-    private Long customerId;
-    private Long contactId;
-    private Long invoiceId;
-    private Long productId;
+    private Long orderId;
     private TicketChannel channel;
     private TicketPriority priority;
     private TicketStatus status;
@@ -40,7 +37,7 @@ public class TicketResult {
     private LocalDateTime closedAt;
     private Integer satisfactionScore;
     private String satisfactionComment;
-    /** Suy ra: quá hạn SLA khi slaDueAt đã qua mà phiếu chưa resolved/closed. */
+    // suy ra: quá hạn SLA khi slaDueAt đã qua mà phiếu chưa resolved/closed
     private Boolean isOverdue;
     // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
     private Long createdBy;
@@ -48,9 +45,7 @@ public class TicketResult {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     // Tên khóa ngoại — do BE resolve (INameResolver).
-    private String customerName;
-    private String contactName;
-    private String invoiceCode;
+    private String orderCode;
     private String assignedUserName;
     // Tên người tạo/người sửa — do BE resolve (INameResolver).
     private String createdByName;

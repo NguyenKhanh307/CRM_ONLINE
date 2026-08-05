@@ -30,10 +30,7 @@ public class UpdateCustomerCommand {
     private CustomerStatus status;
     @PositiveOrZero(message = "Số ngày nợ không được âm") private Integer creditDays;
     @PositiveOrZero(message = "Hạn mức tín dụng không được âm") private BigDecimal creditLimit;
-    @Size(max = 30) private String bankAccount;
-    @Size(max = 100) private String bankName;
     @Size(max = 10) private String rating;
-    @PositiveOrZero(message = "Doanh thu năm không được âm") private BigDecimal annualRevenue;
     @Size(max = 30) private String employeeSize;
     private Boolean isDistributor;
     private Long ownerId;

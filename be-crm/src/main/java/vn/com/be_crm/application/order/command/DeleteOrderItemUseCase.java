@@ -1,28 +1,20 @@
 package vn.com.be_crm.application.order.command;
 
 import vn.com.be_crm.core.usecase.IUseCase;
-import vn.com.be_crm.domain.order.entity.OrderItem;
 import vn.com.be_crm.domain.order.repository.IOrderItemRepository;
 import vn.com.be_crm.core.error.frontend.NotFoundException;
 
-/** Use case xóa dòng hàng đơn hàng. Tổng chứng từ được tính lại sau khi xóa. */
+// xóa dòng hàng đơn hàng — tổng chứng từ tự cập nhật vì được tính lúc đọc, không cần tính lại
 public class DeleteOrderItemUseCase implements IUseCase<Long, Void> {
     private final IOrderItemRepository repo;
-    private final RecomputeOrderTotalsUseCase recomputeUC;
 
-    /** @param repo port lưu trữ @param recomputeUC tính lại tổng tiền chứng từ */
-    public DeleteOrderItemUseCase(IOrderItemRepository repo, RecomputeOrderTotalsUseCase recomputeUC) {
+    public DeleteOrderItemUseCase(IOrderItemRepository repo) {
         this.repo = repo;
-        this.recomputeUC = recomputeUC;
     }
 
-    /** Xóa OrderItem rồi tính lại tổng chứng từ. @param id @return null @throws NotFoundException */
     @Override public Void execute(Long id) {
-        OrderItem e = repo.findById(id)
-                .orElseThrow(() -> new NotFoundException("OrderItem not found: " + id));
-        Long parentId = e.getOrderId();
+        repo.findById(id).orElseThrow(() -> new NotFoundException("OrderItem not found: " + id));
         repo.deleteById(id);
-        recomputeUC.execute(parentId);
         return null;
     }
 }

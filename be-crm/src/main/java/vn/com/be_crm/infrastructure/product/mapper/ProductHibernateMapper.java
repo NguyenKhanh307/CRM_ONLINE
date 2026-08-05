@@ -2,6 +2,7 @@ package vn.com.be_crm.infrastructure.product.mapper;
 
 import org.springframework.stereotype.Component;
 import vn.com.be_crm.domain.product.entity.Product;
+import vn.com.be_crm.domain.product.enums.ProductStatus;
 import vn.com.be_crm.domain.product.enums.ProductType;
 import vn.com.be_crm.core.audit.AuditStamper;
 import vn.com.be_crm.infrastructure.product.entity.ProductHibernate;
@@ -25,8 +26,7 @@ public class ProductHibernateMapper {
         h.setCostPrice(d.getCostPrice() != null ? d.getCostPrice() : BigDecimal.ZERO);
         h.setVatRate(d.getVatRate() != null ? d.getVatRate() : BigDecimal.ZERO);
         h.setDescription(d.getDescription());
-        h.setIsDiscontinued(d.getIsDiscontinued() != null ? d.getIsDiscontinued() : false);
-        h.setIsActive(d.getIsActive() != null ? d.getIsActive() : true);
+        h.setStatus(d.getStatus() != null ? d.getStatus() : ProductStatus.active);
         h.setDeletedAt(d.getDeletedAt());
         h.setDeletedBy(d.getDeletedBy()); h.setPurged(d.isPurged());
         // Đóng dấu người tạo/người sửa (AuditStamper: cần cho body response của PUT)
@@ -42,8 +42,8 @@ public class ProductHibernateMapper {
                 .type(h.getType()).unit(h.getUnit())
                 .basePrice(h.getBasePrice())
                 .costPrice(h.getCostPrice()).vatRate(h.getVatRate())
-                .description(h.getDescription()).isDiscontinued(h.getIsDiscontinued())
-                .isActive(h.getIsActive()).createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
+                .description(h.getDescription()).status(h.getStatus())
+                .createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())
                 .createdAt(h.getCreatedAt())
                 .updatedAt(h.getUpdatedAt()).deletedAt(h.getDeletedAt())
                 .deletedBy(h.getDeletedBy()).isPurged(h.isPurged()).build();

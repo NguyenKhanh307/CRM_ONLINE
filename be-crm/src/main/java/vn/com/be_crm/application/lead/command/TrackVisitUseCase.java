@@ -38,7 +38,7 @@ public class TrackVisitUseCase {
         Lead lead = Lead.builder()
                 .code(newCode).name("Khách web " + newCode)
                 .source("web").campaignId(campaignId).status(LeadStatus.new_).score(0)
-                .doNotCall(false).doNotEmail(false).build();
+                .build();
         return LeadCommandMapper.toResult(repo.save(lead));
     }
 

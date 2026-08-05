@@ -2,7 +2,7 @@ package vn.com.be_crm.application.opportunity.dto;
 
 import java.math.BigDecimal;
 
-/** Một dòng dữ liệu Opportunity từ file import. */
+// một dòng dữ liệu Opportunity từ file import
 public record ImportOpportunityRowCommand(
         String code,
         String name,
@@ -12,9 +12,6 @@ public record ImportOpportunityRowCommand(
         Long stageId,
         Long pricePolicyId,
         BigDecimal amount,
-        BigDecimal expectedRevenue,
-        BigDecimal probability,
-        String expectedCloseDate,
         String source,
         Long campaignId,
         String winLossReason,

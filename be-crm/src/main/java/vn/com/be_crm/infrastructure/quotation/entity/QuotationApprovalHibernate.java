@@ -9,9 +9,7 @@ import vn.com.be_crm.domain.quotation.enums.QuotationApprovalStatus;
 
 import java.time.LocalDateTime;
 
-/**
- * Hibernate entity ánh xạ bảng quotation_approvals.
- */
+// ánh xạ bảng quotation_approvals
 @Entity
 @Table(name = "quotation_approvals")
 @Getter @Setter @NoArgsConstructor
@@ -20,7 +18,6 @@ public class QuotationApprovalHibernate {
     private Long id;
     @Column(name = "quotation_id", nullable = false) private Long quotationId;
     @Column(name = "approver_id") private Long approverId;
-    @Column(name = "level") private Integer level;
     @Enumerated(EnumType.STRING) @Column(name = "status", length = 20)
     private QuotationApprovalStatus status;
     @Column(name = "comment", length = 500) private String comment;

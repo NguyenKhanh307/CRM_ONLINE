@@ -31,31 +31,6 @@ export const ContactContactSection = ({ value, onChange, errors = {} }: Props) =
                     className={inputCls}
                 />
             </FieldRow>
-            <FieldRow label="Email cá nhân" error={errors.personalEmail}>
-                <input
-                    type="text"
-                    value={value.personalEmail}
-                    onChange={(e) => onChange({ personalEmail: e.target.value })}
-                    className={inputCls}
-                />
-            </FieldRow>
-            <FieldRow label="Địa chỉ" alignTop>
-                <textarea
-                    rows={2}
-                    value={value.address}
-                    onChange={(e) => onChange({ address: e.target.value })}
-                    className={`${inputCls} resize-none`}
-                />
-            </FieldRow>
-            <label className="flex items-center gap-2 cursor-pointer w-fit ml-[160px]">
-                <input
-                    type="checkbox"
-                    checked={value.doNotCall}
-                    onChange={(e) => onChange({ doNotCall: e.target.checked })}
-                    className="w-4 h-4 accent-primary"
-                />
-                <span className="text-md text-text-main">Không gọi điện</span>
-            </label>
         </div>
 
         <div className="space-y-4">
@@ -67,14 +42,6 @@ export const ContactContactSection = ({ value, onChange, errors = {} }: Props) =
                     className={inputCls}
                 />
             </FieldRow>
-            <FieldRow label="Email cơ quan" error={errors.workEmail}>
-                <input
-                    type="text"
-                    value={value.workEmail}
-                    onChange={(e) => onChange({ workEmail: e.target.value })}
-                    className={inputCls}
-                />
-            </FieldRow>
             <FieldRow label="Zalo">
                 <input
                     type="text"
@@ -83,16 +50,6 @@ export const ContactContactSection = ({ value, onChange, errors = {} }: Props) =
                     className={inputCls}
                 />
             </FieldRow>
-            <div className="h-[60px]" />
-            <label className="flex items-center gap-2 cursor-pointer w-fit ml-[160px]">
-                <input
-                    type="checkbox"
-                    checked={value.doNotEmail}
-                    onChange={(e) => onChange({ doNotEmail: e.target.checked })}
-                    className="w-4 h-4 accent-primary"
-                />
-                <span className="text-md text-text-main">Không gửi Email</span>
-            </label>
         </div>
     </div>
 );

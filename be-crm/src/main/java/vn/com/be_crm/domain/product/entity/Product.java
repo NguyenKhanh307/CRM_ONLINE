@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import vn.com.be_crm.domain.product.enums.ProductStatus;
 import vn.com.be_crm.domain.product.enums.ProductType;
 
 import java.math.BigDecimal;
@@ -37,10 +38,8 @@ public class Product {
     private BigDecimal vatRate;
     /** Mô tả. */
     private String description;
-    /** Ngừng theo dõi/kinh doanh. */
-    private Boolean isDiscontinued;
-    /** Đang hoạt động. */
-    private Boolean isActive;
+    /** Trạng thái sản phẩm. */
+    private ProductStatus status;
     /** ID người tạo bản ghi (BE tự đóng dấu, client không gửi lên). */
     private Long createdBy;
     /** ID người sửa bản ghi gần nhất (BE tự đóng dấu). */

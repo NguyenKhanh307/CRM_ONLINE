@@ -86,17 +86,11 @@ public class InvoiceController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<InvoiceResult>> update(@PathVariable Long id, @Valid @RequestBody UpdateInvoiceCommand cmd) {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
-                UpdateInvoiceCommand.builder().id(id).customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
-                        .quotationId(cmd.getQuotationId()).opportunityId(cmd.getOpportunityId())
-                        // Thiếu orderId ở đây thì PUT không bao giờ gắn được hóa đơn vào đơn hàng
+                UpdateInvoiceCommand.builder().id(id)
                         .orderId(cmd.getOrderId())
-                        .campaignId(cmd.getCampaignId())
                         .ownerId(cmd.getOwnerId())
                         .invoiceDate(cmd.getInvoiceDate()).dueDate(cmd.getDueDate())
-                        .currency(cmd.getCurrency()).exchangeRate(cmd.getExchangeRate())
-                        .billingAddress(cmd.getBillingAddress()).taxCode(cmd.getTaxCode())
-                        .subtotal(cmd.getSubtotal()).discount(cmd.getDiscount()).tax(cmd.getTax())
-                        .total(cmd.getTotal()).note(cmd.getNote()).build())));
+                        .note(cmd.getNote()).build())));
     }
 
     /** Phát hành hóa đơn (draft → sent, khóa dữ liệu). @param id ID @return 200 */

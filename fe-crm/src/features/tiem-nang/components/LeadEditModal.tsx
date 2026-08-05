@@ -1,29 +1,29 @@
 import { useRef, useState, type FormEvent, useEffect } from 'react';
-import { collectErrors, emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
+import { collectErrors, emailError, phoneError, taxCodeError } from '@/shared/utils/validators';
 import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
-import { FiX } from 'react-icons/fi';
+import { FiUserPlus, FiX } from 'react-icons/fi';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import type { LeadResult, UpdateLeadPayload } from '../types/leadTypes';
 import { useUpdateLead } from '../hooks/useUpdateLead';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { SOURCE_OPTIONS } from '../config/leadOptions';
+import { LeadItemsPanel } from './LeadItemsPanel';
 
 interface Props {
     item: LeadResult | null;
     onClose: () => void;
 }
 
-const LEAD_STATUS_LABELS: Record<string, string> = {
-    new: 'Mới', contacting: 'Đang liên hệ', qualified: 'Đủ điều kiện', converted: 'Đã chuyển đổi', lost: 'Thất bại',
-};
-const LEAD_STATUS_COLORS: Record<string, string> = {
-    new: 'bg-gray-100 text-gray-600', contacting: 'bg-blue-100 text-blue-700', qualified: 'bg-green-100 text-green-700',
-    converted: 'bg-emerald-100 text-emerald-700', lost: 'bg-red-100 text-red-600',
-};
+const LEAD_STATUS_OPTIONS = [
+    { value: 'new', label: 'Mới' },
+    { value: 'contacting', label: 'Đang liên hệ' },
+    { value: 'converted', label: 'Đã chuyển đổi' },
+];
 
 export function LeadEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateLead();
@@ -31,21 +31,21 @@ export function LeadEditModal({ item, onClose }: Props) {
     const { data: users = [] } = useActiveUsers();
     const userOptions = users.map((u) => ({ value: String(u.id), label: u.fullName }));
     const [form, setForm] = useState<UpdateLeadPayload>({
-        name: '', ownerId: null, customerId: null, contactId: null, campaignId: null,
-        source: null, estimatedValue: null, phone: null, email: null, note: null,
-        companyName: null, leadType: null, title: null, department: null,
-        taxCode: null, website: null, industry: null, doNotCall: false, doNotEmail: false,
+        name: '', ownerId: null, contactId: null, convertedOpportunityId: null, campaignId: null,
+        source: null, phone: null, email: null, note: null,
+        companyName: null, leadType: null, taxCode: null, website: null, industry: null,
+        status: 'new',
     });
 
     useEffect(() => {
         if (!item) return;
         setForm({
-            name: item.name, ownerId: item.ownerId, customerId: item.customerId,
-            contactId: item.contactId, campaignId: item.campaignId, source: item.source,
-            estimatedValue: item.estimatedValue, phone: item.phone, email: item.email, note: item.note,
-            companyName: item.companyName, leadType: item.leadType, title: item.title,
-            department: item.department, taxCode: item.taxCode, website: item.website,
-            industry: item.industry, doNotCall: item.doNotCall, doNotEmail: item.doNotEmail,
+            name: item.name, ownerId: item.ownerId, contactId: item.contactId,
+            convertedOpportunityId: item.convertedOpportunityId, campaignId: item.campaignId, source: item.source,
+            phone: item.phone, email: item.email, note: item.note,
+            companyName: item.companyName, leadType: item.leadType,
+            taxCode: item.taxCode, website: item.website, industry: item.industry,
+            status: item.status,
         });
     }, [item]);
 
@@ -72,7 +72,6 @@ export function LeadEditModal({ item, onClose }: Props) {
             email: emailError(form.email),
             phone: phoneError(form.phone),
             taxCode: taxCodeError(form.taxCode),
-            estimatedValue: nonNegativeError(form.estimatedValue, 'Giá trị ước tính'),
         });
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
@@ -113,10 +112,12 @@ export function LeadEditModal({ item, onClose }: Props) {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className={lbl}>Trạng thái (tự động/hành động)</label>
-                            <span className={`inline-block px-2 py-1.5 rounded text-sm font-medium ${LEAD_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                                {LEAD_STATUS_LABELS[item.status] ?? item.status}
-                            </span>
+                            <label className={lbl}>Trạng thái</label>
+                            <SearchableSelect
+                                value={form.status}
+                                onChange={v => setForm(f => ({ ...f, status: v || 'new' }))}
+                                options={LEAD_STATUS_OPTIONS}
+                            />
                         </div>
                         <div>
                             <label className={lbl}>Nguồn</label>
@@ -133,6 +134,36 @@ export function LeadEditModal({ item, onClose }: Props) {
                                 fallbackLabel={item.ownerName}
                             />
                         </div>
+                        <div>
+                            <label className={lbl}>Liên hệ liên kết</label>
+                            <div className="flex items-center gap-1.5">
+                                <div className="flex-1">
+                                    <RecordPicker
+                                        module="contact"
+                                        value={form.contactId ? String(form.contactId) : ''}
+                                        onChange={v => setForm(f => ({ ...f, contactId: v ? Number(v) : null }))}
+                                        fallbackLabel={item.contactName}
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    title="Tạo liên hệ mới (mở tab mới)"
+                                    onClick={() => window.open('/lien-he/them-moi', '_blank')}
+                                    className="shrink-0 p-2 rounded-btn border border-gray-300 text-gray-500 hover:border-primary hover:text-primary"
+                                >
+                                    <FiUserPlus size={14} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label className={lbl}>Cơ hội đã chuyển đổi</label>
+                        <RecordPicker
+                            module="opportunity"
+                            value={form.convertedOpportunityId ? String(form.convertedOpportunityId) : ''}
+                            onChange={v => setForm(f => ({ ...f, convertedOpportunityId: v ? Number(v) : null }))}
+                            placeholder="— Chưa gán —"
+                        />
                     </div>
                     <div>
                         <label className={lbl}>Chiến dịch nguồn</label>
@@ -145,22 +176,6 @@ export function LeadEditModal({ item, onClose }: Props) {
                             )}
                             {campaigns?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
-                    </div>
-                    <div>
-                        <label className={lbl}>Giá trị dự kiến</label>
-                        <FieldError error={errors.estimatedValue}>
-                            <input type="number" min={0} className={inp} value={form.estimatedValue ?? ''} onChange={e => { setForm(f => ({ ...f, estimatedValue: e.target.value ? +e.target.value : null })); clearError('estimatedValue'); }} />
-                        </FieldError>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>Chức danh</label>
-                            <input className={inp} value={form.title ?? ''} onChange={e => setForm(f => ({ ...f, title: e.target.value || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Phòng ban</label>
-                            <input className={inp} value={form.department ?? ''} onChange={e => setForm(f => ({ ...f, department: e.target.value || null }))} />
-                        </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
@@ -184,25 +199,17 @@ export function LeadEditModal({ item, onClose }: Props) {
                             <input className={inp} value={form.website ?? ''} onChange={e => setForm(f => ({ ...f, website: e.target.value || null }))} />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>Ngành nghề</label>
-                            <input className={inp} value={form.industry ?? ''} onChange={e => setForm(f => ({ ...f, industry: e.target.value || null }))} />
-                        </div>
-                        <div className="flex items-end gap-4 pb-1">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.doNotCall ?? false} onChange={e => setForm(f => ({ ...f, doNotCall: e.target.checked }))} />
-                                <span className="text-sm text-text-main">Không gọi</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.doNotEmail ?? false} onChange={e => setForm(f => ({ ...f, doNotEmail: e.target.checked }))} />
-                                <span className="text-sm text-text-main">Không email</span>
-                            </label>
-                        </div>
+                    <div>
+                        <label className={lbl}>Ngành nghề</label>
+                        <input className={inp} value={form.industry ?? ''} onChange={e => setForm(f => ({ ...f, industry: e.target.value || null }))} />
                     </div>
                     <div>
                         <label className={lbl}>Ghi chú</label>
                         <textarea className={inp} rows={2} value={form.note ?? ''} onChange={e => setForm(f => ({ ...f, note: e.target.value || null }))} />
+                    </div>
+                    <div>
+                        <label className={lbl}>Sản phẩm quan tâm</label>
+                        <LeadItemsPanel leadId={item.id} />
                     </div>
                     <ModalFooter onCancel={onClose} saving={isPending} />
                 </form>

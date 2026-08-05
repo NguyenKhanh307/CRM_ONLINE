@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 // cộng điểm cho tiềm năng (dùng chung cho web tracking + hoạt động); vượt mốc 50 lần đầu
-// thì tự chuyển qualified và báo cho người phụ trách + quản lý trực tiếp (không broadcast toàn bộ)
+// KHÔNG còn tự đổi trạng thái — chỉ báo cho người phụ trách + quản lý trực tiếp (không broadcast
+// toàn bộ) để họ chủ động tiếp cận, việc chuyển đổi tiềm năng vẫn là thao tác tay (xem UpdateLeadUseCase)
 public class AddLeadScoreUseCase {
     public static final int QUALIFY_THRESHOLD = 50;
 
@@ -43,19 +44,14 @@ public class AddLeadScoreUseCase {
         int newScore = oldScore + points;
         boolean crossing = oldScore <= QUALIFY_THRESHOLD && newScore > QUALIFY_THRESHOLD;
 
-        // Tự động: vượt ngưỡng → qualified; tương tác đầu tiên trên tiềm năng còn 'new' → contacting.
-        // Đi qua guard của domain: tiềm năng đã converted/lost giữ nguyên trạng thái (chỉ cộng điểm).
+        // Tự động: tương tác đầu tiên trên tiềm năng còn 'new' → contacting (không liên quan điểm số).
+        // Vượt ngưỡng KHÔNG còn tự đổi trạng thái — chỉ báo cho người phụ trách tiếp cận.
         LeadStatus current = lead.getStatus();
-        LeadStatus newStatus = current;
-        if (crossing && current.canTransitionTo(LeadStatus.qualified)) {
-            newStatus = LeadStatus.qualified;
-        } else if (current == LeadStatus.new_) {
-            newStatus = LeadStatus.contacting;
-        }
+        LeadStatus newStatus = current == LeadStatus.new_ ? LeadStatus.contacting : current;
         Lead updated = lead.toBuilder().score(newScore).status(newStatus).build();
         Lead saved = leadRepo.save(updated);
 
-        if (crossing && newStatus == LeadStatus.qualified) {
+        if (crossing) {
             notifyOwners(saved, newScore);
         }
         return LeadCommandMapper.toResult(saved);
@@ -71,7 +67,7 @@ public class AddLeadScoreUseCase {
         }
         String title = "Tiềm năng nóng: " + lead.getCode();
         String content = "Tiềm năng " + lead.getName() + " (" + lead.getCode() + ") đã đạt "
-                + score + " điểm và được đánh giá đủ điều kiện (qualified).";
-        createNotificationUC.execute(recipients, "lead_hot", title, content, lead.getId(), lead.getId());
+                + score + " điểm — hãy chủ động tiếp cận trao đổi.";
+        createNotificationUC.execute(recipients, "lead_hot", title, content, "lead", lead.getId());
     }
 }

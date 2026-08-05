@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { QUALIFY_THRESHOLD, STORAGE_KEY, SUBMIT_POINTS } from '../config/trackingDemoConfig';
-import { trackingService, type SubmitTrackingPayload } from '../services/trackingService';
-import type { LeadFormState, SessionEvent, TrackedLead } from '../types/trackingTypes';
+import { QUALIFY_THRESHOLD, REQUEST_QUOTE_POINTS, STORAGE_KEY } from '../config/trackingDemoConfig';
+import { trackingService, type RequestQuotePayload } from '../services/trackingService';
+import type { LeadFormState, QuoteRequestItem, SessionEvent, TrackedLead } from '../types/trackingTypes';
 
 // giờ phút hiện tại cho nhật ký hành vi
 const now = () => new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -21,14 +21,19 @@ export function useTrackingSession() {
 
     const apply = useCallback((data: TrackedLead | null) => {
         if (!data) return;
-        setLead(data);
+        // vượt ngưỡng lần đầu KHÔNG còn tự đổi trạng thái (đã bỏ qualified) — chỉ còn thông báo
+        // cho người phụ trách + quản lý, nên so điểm cũ/mới để biết vừa vượt ngưỡng hay chưa
+        setLead((prev) => {
+            const prevScore = prev?.score ?? 0;
+            if (prevScore <= QUALIFY_THRESHOLD && data.score > QUALIFY_THRESHOLD) {
+                setMessage(
+                    `Tiềm năng ${data.code} đã đạt ${data.score} điểm (ngưỡng ${QUALIFY_THRESHOLD}). `
+                    + 'Người phụ trách và quản lý trực tiếp vừa nhận thông báo trong CRM.',
+                );
+            }
+            return data;
+        });
         if (data.code) localStorage.setItem(STORAGE_KEY, data.code);
-        if (data.status === 'qualified') {
-            setMessage(
-                `Tiềm năng ${data.code} đã đạt ${data.score} điểm (ngưỡng ${QUALIFY_THRESHOLD}) → tự chuyển sang "qualified". `
-                + 'Người phụ trách và quản lý trực tiếp vừa nhận thông báo trong CRM.',
-            );
-        }
     }, []);
 
     // Khôi phục phiên cũ nếu trình duyệt đã có mã; chưa có thì chờ khách chọn chiến dịch.
@@ -55,33 +60,37 @@ export function useTrackingSession() {
         }
     }, [apply]);
 
-    // ghi một hành vi và cộng điểm
-    const track = useCallback(async (action: string, label: string, points: number) => {
+    // yêu cầu báo giá: gửi thông tin liên hệ + các sản phẩm đã chọn, ghi lead_items bên backend
+    const requestQuote = useCallback(async (form: LeadFormState, items: QuoteRequestItem[]) => {
         if (!lead) return;
         setBusy(true);
         try {
-            const r = await trackingService.score(lead.code, action, label, points);
+            const payload: RequestQuotePayload = { code: lead.code, ...form, items };
+            const prevScore = lead.score;
+            const r = await trackingService.requestQuote(payload);
             apply(r.data.data);
-            setEvents((prev) => [{ label, points, at: now() }, ...prev]);
+            setEvents((prev) => [
+                { label: `Yêu cầu báo giá ${items.length} sản phẩm`, points: REQUEST_QUOTE_POINTS, at: now() },
+                ...prev,
+            ]);
+            // apply() đã tự hiện thông báo nếu vừa vượt ngưỡng điểm — không thì hiện lời cảm ơn thường
+            const newScore = r.data.data?.score ?? prevScore;
+            if (!(prevScore <= QUALIFY_THRESHOLD && newScore > QUALIFY_THRESHOLD)) {
+                setMessage(`Cảm ơn bạn! Yêu cầu báo giá đã được ghi nhận (+${REQUEST_QUOTE_POINTS} điểm).`);
+            }
         } finally {
             setBusy(false);
         }
     }, [lead, apply]);
 
-    // nộp form liên hệ: điền thông tin thật vào tiềm năng ẩn danh
-    const submit = useCallback(async (form: LeadFormState) => {
+    // ghi nhận lượt xem chi tiết một sản phẩm (im lặng, không set message tránh spam banner)
+    const trackView = useCallback(async (productId: number) => {
         if (!lead) return;
-        setBusy(true);
         try {
-            const payload: SubmitTrackingPayload = { code: lead.code, ...form, points: SUBMIT_POINTS };
-            const r = await trackingService.submit(payload);
+            const r = await trackingService.viewProduct({ code: lead.code, productId });
             apply(r.data.data);
-            setEvents((prev) => [{ label: 'Nộp form liên hệ', points: SUBMIT_POINTS, at: now() }, ...prev]);
-            if (r.data.data?.status !== 'qualified') {
-                setMessage(`Cảm ơn bạn! Thông tin đã được ghi nhận (+${SUBMIT_POINTS} điểm).`);
-            }
-        } finally {
-            setBusy(false);
+        } catch {
+            // bỏ qua lỗi — chỉ là ghi nhận hành vi, không chặn việc xem chi tiết sản phẩm
         }
     }, [lead, apply]);
 
@@ -93,5 +102,5 @@ export function useTrackingSession() {
         setMessage(null);
     }, []);
 
-    return { lead, events, busy, message, restoring, start, track, submit, reset };
+    return { lead, events, busy, message, restoring, start, requestQuote, trackView, reset };
 }

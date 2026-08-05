@@ -12,8 +12,6 @@ import type {
     CreatePricePolicyCustomerPayload,
     PricePolicyProductCategoryResult,
     CreatePricePolicyProductCategoryPayload,
-    PricePolicyEmployeeResult,
-    CreatePricePolicyEmployeePayload,
     ResolvePriceResult,
 } from '../types/pricingTypes';
 
@@ -65,11 +63,4 @@ export const pricingService = {
         axiosInstance.post<ApiResponse<PricePolicyProductCategoryResult>>(`/api/price-policies/${policyId}/product-categories`, payload),
     removeProductCategory: (policyId: number, id: number) =>
         axiosInstance.delete(`/api/price-policies/${policyId}/product-categories/${id}`),
-
-    getEmployees: (policyId: number) =>
-        axiosInstance.get<ApiResponse<PricePolicyEmployeeResult[]>>(`/api/price-policies/${policyId}/employees`),
-    createEmployee: (policyId: number, payload: CreatePricePolicyEmployeePayload) =>
-        axiosInstance.post<ApiResponse<PricePolicyEmployeeResult>>(`/api/price-policies/${policyId}/employees`, payload),
-    removeEmployee: (policyId: number, id: number) =>
-        axiosInstance.delete(`/api/price-policies/${policyId}/employees/${id}`),
 };

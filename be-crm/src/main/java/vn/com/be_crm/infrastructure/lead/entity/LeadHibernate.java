@@ -11,7 +11,6 @@ import vn.com.be_crm.infrastructure.lead.converter.LeadStatusConverter;
 
 import vn.com.be_crm.core.audit.IAuditable;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 // ánh xạ bảng leads
@@ -31,16 +30,10 @@ public class LeadHibernate implements IAuditable {
     private String leadType;
     @Column(name = "owner_id")
     private Long ownerId;
-    @Column(name = "customer_id")
-    private Long customerId;
     @Column(name = "contact_id")
     private Long contactId;
     @Column(name = "converted_opportunity_id")
     private Long convertedOpportunityId;
-    @Column(name = "title", length = 100)
-    private String title;
-    @Column(name = "department", length = 100)
-    private String department;
     @Column(name = "tax_code", length = 15)
     private String taxCode;
     @Column(name = "website", length = 100)
@@ -54,18 +47,12 @@ public class LeadHibernate implements IAuditable {
     @Convert(converter = LeadStatusConverter.class)
     @Column(name = "status", length = 20)
     private LeadStatus status;
-    @Column(name = "estimated_value", precision = 18, scale = 2)
-    private BigDecimal estimatedValue;
     @Column(name = "score", nullable = false)
     private Integer score;
     @Column(name = "phone", length = 11)
     private String phone;
     @Column(name = "email", length = 50)
     private String email;
-    @Column(name = "do_not_call")
-    private boolean doNotCall;
-    @Column(name = "do_not_email")
-    private boolean doNotEmail;
     @Column(name = "note", length = 255)
     private String note;
     // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè

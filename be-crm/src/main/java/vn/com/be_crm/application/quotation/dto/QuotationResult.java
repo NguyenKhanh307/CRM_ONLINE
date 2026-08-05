@@ -11,7 +11,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/** Output DTO cho Quotation. */
+// output cho Quotation. subtotal/discount/tax/total không còn là cột lưu sẵn — tính từ dòng hàng
+// tại thời điểm đọc (xem Get/ListQuotationUseCase + LineItemTotals) trước khi trả về FE.
 @Getter @Setter @Builder(toBuilder = true) @NoArgsConstructor @AllArgsConstructor
 public class QuotationResult {
     private Long id;
@@ -19,15 +20,12 @@ public class QuotationResult {
     private Long customerId;
     private Long contactId;
     private Long opportunityId;
-    private Long campaignId;
     private Long pricePolicyId;
     private Boolean isPrimary;
     private Boolean isLocked;
     private Long ownerId;
     private LocalDate quoteDate;
     private LocalDate validUntil;
-    private String currency;
-    private BigDecimal exchangeRate;
     private QuotationStatus status;
     private BigDecimal subtotal;
     private BigDecimal discount;
@@ -36,8 +34,7 @@ public class QuotationResult {
     private String note;
     private String customerResponse;
     private String customerResponseNote;
-    private LocalDateTime customerRespondedAt;
-    /** Email đã gửi báo giá tới (chỉ điền khi gọi hành động send) — để FE hiển thị xác nhận. */
+    // email đã gửi báo giá tới (chỉ điền khi gọi hành động send) — để FE hiển thị xác nhận
     private String sentToEmail;
     // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
     private Long createdBy;
@@ -48,7 +45,6 @@ public class QuotationResult {
     private String customerName;
     private String contactName;
     private String opportunityName;
-    private String campaignName;
     private String ownerName;
     // Tên người tạo/người sửa — do BE resolve (INameResolver).
     private String createdByName;

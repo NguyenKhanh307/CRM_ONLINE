@@ -34,8 +34,8 @@ interface FormState {
     code: string; name: string; shortName: string; type: string; taxCode: string;
     industry: string; source: string;
     phone: string; email: string; website: string; address: string;
-    creditDays: string; creditLimit: string; bankAccount: string; bankName: string;
-    rating: string; annualRevenue: string; employeeSize: string; isDistributor: boolean;
+    creditDays: string; creditLimit: string;
+    rating: string; employeeSize: string; isDistributor: boolean;
     ownerId: string;
 }
 
@@ -43,7 +43,7 @@ interface FormState {
 const initialState = (ownerId: string): FormState => ({
     code: '', name: '', shortName: '', type: 'company', taxCode: '', industry: '', source: '',
     phone: '', email: '', website: '', address: '', creditDays: '', creditLimit: '',
-    bankAccount: '', bankName: '', rating: '', annualRevenue: '', employeeSize: '', isDistributor: false,
+    rating: '', employeeSize: '', isDistributor: false,
     ownerId,
 });
 
@@ -63,10 +63,7 @@ const toPayload = (f: FormState): CreateCustomerPayload => ({
     source: f.source || null,
     creditDays: num(f.creditDays),
     creditLimit: num(f.creditLimit),
-    bankAccount: f.bankAccount || null,
-    bankName: f.bankName || null,
     rating: f.rating || null,
-    annualRevenue: num(f.annualRevenue),
     employeeSize: f.employeeSize || null,
     isDistributor: f.isDistributor,
     ownerId: f.ownerId ? Number(f.ownerId) : null,
@@ -105,11 +102,10 @@ const CustomerAddPage = () => {
             phone: phoneError(form.phone),
             taxCode: taxCodeError(form.taxCode),
             creditLimit: nonNegativeError(form.creditLimit, 'Hạn mức tín dụng'),
-            annualRevenue: nonNegativeError(form.annualRevenue, 'Doanh thu năm'),
         });
 
     // lưu form — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
-    const submit = async (andNew: boolean) => {
+    const submit = async () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
@@ -119,10 +115,7 @@ const CustomerAddPage = () => {
         if (!(await confirmCreate('khách hàng'))) return;
 
         mutate(toPayload(form), {
-            onSuccess: () => {
-                if (andNew) { setForm(initialState(defaultOwnerId)); showAlert('Đã lưu khách hàng thành công'); }
-                else navigate('/khach-hang');
-            },
+            onSuccess: () => navigate('/khach-hang'),
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Có lỗi xảy ra khi lưu khách hàng';
@@ -132,7 +125,7 @@ const CustomerAddPage = () => {
     };
 
     const formRef = useRef<HTMLDivElement>(null);
-    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+    useFormKeyboardNav(formRef, { onSubmit: () => submit() });
 
     // Cảnh báo (không chặn) khi email/SĐT/MST trùng bản ghi đã có
     const { data: duplicates } = useDuplicateCheck({ email: form.email, phone: form.phone, taxCode: form.taxCode });
@@ -140,7 +133,7 @@ const CustomerAddPage = () => {
     return (
         <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm Khách hàng" saving={isPending}
-                onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
+                onCancel={() => navigate(-1)} onSave={() => submit()} />
 
             <DuplicateWarning matches={duplicates} />
 
@@ -202,16 +195,10 @@ const CustomerAddPage = () => {
                             <FieldRow label="Số ngày được nợ">
                                 <input type="number" min={0} value={form.creditDays} onChange={(e) => set({ creditDays: e.target.value })} className={inputCls} />
                             </FieldRow>
-                            <FieldRow label="Số tài khoản">
-                                <input type="text" value={form.bankAccount} onChange={(e) => set({ bankAccount: e.target.value })} className={inputCls} />
-                            </FieldRow>
                         </div>
                         <div className="space-y-4">
                             <FieldRow label="Hạn mức nợ" error={errors.creditLimit}>
                                 <input type="number" min={0} value={form.creditLimit} onChange={(e) => set({ creditLimit: e.target.value })} className={inputCls} />
-                            </FieldRow>
-                            <FieldRow label="Ngân hàng">
-                                <input type="text" value={form.bankName} onChange={(e) => set({ bankName: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
                     </div>
@@ -222,9 +209,6 @@ const CustomerAddPage = () => {
                         <div className="space-y-4">
                             <FieldRow label="Xếp hạng">
                                 <SearchableSelect value={form.rating} onChange={(v) => set({ rating: v })} options={RATING_OPTIONS} />
-                            </FieldRow>
-                            <FieldRow label="Doanh thu hàng năm" error={errors.annualRevenue}>
-                                <input type="number" min={0} value={form.annualRevenue} onChange={(e) => set({ annualRevenue: e.target.value })} className={inputCls} />
                             </FieldRow>
                         </div>
                         <div className="space-y-4">

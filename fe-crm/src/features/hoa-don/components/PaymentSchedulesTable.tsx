@@ -33,7 +33,7 @@ function ScheduleRow({ invoiceId, s, otherPaid, invoiceTotal }: { invoiceId: num
     const { confirmSave, confirmDelete } = useConfirm();
     const [form, setForm] = useState<PaymentSchedulePayload>({
         installmentNo: s.installmentNo, dueDate: s.dueDate, amount: null,
-        paidAmount: s.paidAmount, status: s.status, paidAt: s.paidAt, note: s.note,
+        paidAmount: s.paidAmount, status: s.status, bankName: s.bankName, bankAccount: s.bankAccount, note: s.note,
     });
     const [error, setError] = useState<string | null>(null);
 
@@ -67,6 +67,12 @@ function ScheduleRow({ invoiceId, s, otherPaid, invoiceTotal }: { invoiceId: num
                 </select>
             </td>
             <td className="px-2 py-1 border-b border-gray-100">
+                <input className={inp} placeholder="Ngân hàng" value={form.bankName ?? ''} onChange={(e) => setForm((f) => ({ ...f, bankName: e.target.value || null }))} />
+            </td>
+            <td className="px-2 py-1 border-b border-gray-100">
+                <input className={inp} placeholder="Số TK" value={form.bankAccount ?? ''} onChange={(e) => setForm((f) => ({ ...f, bankAccount: e.target.value || null }))} />
+            </td>
+            <td className="px-2 py-1 border-b border-gray-100">
                 <input className={inp} value={form.note ?? ''} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value || null }))} />
             </td>
             <td className="px-2 py-1 border-b border-gray-100 text-center whitespace-nowrap">
@@ -92,7 +98,7 @@ export function PaymentSchedulesTable({ invoiceId, invoiceTotal }: Props) {
     const { confirmCreate } = useConfirm();
     const schedules = list.data ?? [];
     const [draft, setDraft] = useState<PaymentSchedulePayload>({
-        installmentNo: null, dueDate: null, amount: null, paidAmount: null, status: 'pending', paidAt: null, note: null,
+        installmentNo: null, dueDate: null, amount: null, paidAmount: null, status: 'pending', bankName: null, bankAccount: null, note: null,
     });
     const [draftError, setDraftError] = useState<string | null>(null);
 
@@ -109,7 +115,7 @@ export function PaymentSchedulesTable({ invoiceId, invoiceTotal }: Props) {
 
         const nextNo = draft.installmentNo ?? (schedules.length + 1);
         add.mutate({ ...draft, amount: null, installmentNo: nextNo }, {
-            onSuccess: () => setDraft({ installmentNo: null, dueDate: null, amount: null, paidAmount: null, status: 'pending', paidAt: null, note: null }),
+            onSuccess: () => setDraft({ installmentNo: null, dueDate: null, amount: null, paidAmount: null, status: 'pending', bankName: null, bankAccount: null, note: null }),
         });
     };
 
@@ -123,6 +129,8 @@ export function PaymentSchedulesTable({ invoiceId, invoiceTotal }: Props) {
                             <th className="px-2 py-2 text-left">Hạn thu</th>
                             <th className="px-2 py-2 text-right">Đã thu</th>
                             <th className="px-2 py-2 text-left" style={{ width: 120 }}>Trạng thái</th>
+                            <th className="px-2 py-2 text-left" style={{ width: 120 }}>Ngân hàng</th>
+                            <th className="px-2 py-2 text-left" style={{ width: 120 }}>Số TK</th>
                             <th className="px-2 py-2 text-left">Ghi chú</th>
                             <th className="px-2 py-2 text-center" style={{ width: 80 }} />
                         </tr>
@@ -133,7 +141,7 @@ export function PaymentSchedulesTable({ invoiceId, invoiceTotal }: Props) {
                                 otherPaid={totalPaid - (s.paidAmount ?? 0)} />
                         ))}
                         {schedules.length === 0 && (
-                            <tr><td colSpan={6} className="px-2 py-3 text-center text-sm text-gray-400">Chưa có đợt thanh toán nào</td></tr>
+                            <tr><td colSpan={8} className="px-2 py-3 text-center text-sm text-gray-400">Chưa có đợt thanh toán nào</td></tr>
                         )}
                         {/* Dòng thêm mới */}
                         <tr className="bg-gray-50">
@@ -148,6 +156,8 @@ export function PaymentSchedulesTable({ invoiceId, invoiceTotal }: Props) {
                                     {STATUS_OPTIONS.map((o) => <option key={o} value={o}>{STATUS_LABELS[o]}</option>)}
                                 </select>
                             </td>
+                            <td className="px-2 py-1"><input className={inp} placeholder="Ngân hàng" value={draft.bankName ?? ''} onChange={(e) => setDraft((f) => ({ ...f, bankName: e.target.value || null }))} /></td>
+                            <td className="px-2 py-1"><input className={inp} placeholder="Số TK" value={draft.bankAccount ?? ''} onChange={(e) => setDraft((f) => ({ ...f, bankAccount: e.target.value || null }))} /></td>
                             <td className="px-2 py-1"><input className={inp} value={draft.note ?? ''} onChange={(e) => setDraft((f) => ({ ...f, note: e.target.value || null }))} /></td>
                             <td className="px-2 py-1 text-center">
                                 <button type="button" title="Thêm đợt" disabled={add.isPending}

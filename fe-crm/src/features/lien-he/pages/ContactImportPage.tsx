@@ -8,17 +8,11 @@ const FIELDS: ImportField[] = [
     { key: 'fullName',      label: 'Họ và tên',   required: true,  type: 'text' },
     { key: 'title',         label: 'Chức danh',                    type: 'text' },
     { key: 'department',    label: 'Phòng ban',                    type: 'text' },
-    { key: 'position',      label: 'Chức vụ',                      type: 'text' },
     { key: 'email',         label: 'Email',                        type: 'text' },
-    { key: 'workEmail',     label: 'Email cơ quan',                type: 'text' },
-    { key: 'personalEmail', label: 'Email cá nhân',                type: 'text' },
     { key: 'zalo',          label: 'Zalo',                         type: 'text' },
     { key: 'source',        label: 'Nguồn gốc',                    type: 'text' },
     { key: 'gender',        label: 'Giới tính',                    type: 'enum', enumValues: ['male', 'female', 'other'] },
     { key: 'dateOfBirth',   label: 'Ngày sinh',                    type: 'date' },
-    { key: 'address',       label: 'Địa chỉ',                      type: 'text' },
-    { key: 'doNotCall',     label: 'Không gọi điện',               type: 'enum', enumValues: ['true', 'false'] },
-    { key: 'doNotEmail',    label: 'Không gửi email',              type: 'enum', enumValues: ['true', 'false'] },
     { key: 'isPrimary',     label: 'Liên hệ chính',                type: 'enum', enumValues: ['true', 'false'] },
 ];
 

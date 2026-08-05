@@ -26,8 +26,6 @@ public class ActivityResult {
     private String priority;
     private String targetType;
     private Long targetId;
-    private String relatedType;
-    private Long relatedId;
     private String location;
     private String callDirection;
     private String callResult;
@@ -35,7 +33,6 @@ public class ActivityResult {
     private Long assignedUserId;
     private ActivityStatus status;
     private LocalDateTime dueAt;
-    private LocalDateTime completedAt;
     // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
     private Long createdBy;
     private Long updatedBy;

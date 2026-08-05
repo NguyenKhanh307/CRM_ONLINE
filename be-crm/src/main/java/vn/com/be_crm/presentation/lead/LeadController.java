@@ -15,8 +15,6 @@ import vn.com.be_crm.core.dto.handover.HandoverBulkCommand;
 import vn.com.be_crm.core.dto.import_.ImportBulkResult;
 import vn.com.be_crm.core.page.PageRequest;
 import vn.com.be_crm.core.util.SecurityUtils;
-import vn.com.be_crm.presentation.lead.request.ConvertLeadRequest;
-import vn.com.be_crm.presentation.lead.request.LeadActionRequest;
 import vn.com.be_crm.core.response.ApiResponse;
 import vn.com.be_crm.core.dto.handover.HandoverBulkRequest;
 import vn.com.be_crm.core.page.PageResponse;
@@ -36,39 +34,35 @@ public class LeadController {
     private final ImportBulkLeadUseCase importBulkUC;
     private final HandoverBulkLeadUseCase handoverBulkUC;
     private final LeadWorkflowUseCase workflowUC;
+    private final CreateLeadItemUseCase createItemUC;
+    private final ListLeadItemUseCase listItemUC;
 
     public LeadController(CreateLeadUseCase createUC, UpdateLeadUseCase updateUC, DeleteLeadUseCase deleteUC,
                            GetLeadUseCase getUC, ListLeadUseCase listUC,
                            ListDeletedLeadsUseCase listDeletedUC, RestoreLeadUseCase restoreUC, PurgeLeadUseCase purgeUC,
                            ImportBulkLeadUseCase importBulkUC, HandoverBulkLeadUseCase handoverBulkUC,
-                           LeadWorkflowUseCase workflowUC) {
+                           LeadWorkflowUseCase workflowUC, CreateLeadItemUseCase createItemUC, ListLeadItemUseCase listItemUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
         this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC; this.workflowUC = workflowUC;
+        this.createItemUC = createItemUC; this.listItemUC = listItemUC;
     }
 
-    // body tùy chọn { customerId?, contactId? }: chỉ định khách hàng/liên hệ đã có để dùng lại
-    // (chống tạo trùng khi phát hiện bản ghi trùng MST/email/SĐT); bỏ trống -> tạo mới như cũ
-    @PreAuthorize("hasAuthority('lead.convert')")
-    @PostMapping("/{id}/convert")
-    public ResponseEntity<ApiResponse<LeadResult>> convert(@PathVariable Long id,
-            @RequestBody(required = false) ConvertLeadRequest body) {
-        return ResponseEntity.ok(ApiResponse.ok(workflowUC.convert(id,
-                body != null ? body.getCustomerId() : null,
-                body != null ? body.getContactId() : null)));
+    // sản phẩm khách quan tâm/đã yêu cầu báo giá — landing page gọi (hiện đặt dưới route đã
+    // đăng nhập giống các sub-resource khác; nếu landing page cần gọi ẩn danh thì chuyển sang
+    // /api/tracking/** ở đợt tích hợp FE sau)
+    @PostMapping("/{leadId}/items")
+    public ResponseEntity<ApiResponse<LeadItemResult>> addItem(@PathVariable Long leadId,
+            @RequestBody CreateLeadItemCommand cmd) {
+        return ResponseEntity.status(201).body(ApiResponse.created(createItemUC.execute(
+                CreateLeadItemCommand.builder().leadId(leadId).productId(cmd.getProductId())
+                        .quantity(cmd.getQuantity()).interestType(cmd.getInterestType()).build())));
     }
 
-    // đủ điều kiện thủ công (new/contacting -> qualified) — không cần đủ 50 điểm
-    @PostMapping("/{id}/qualify")
-    public ResponseEntity<ApiResponse<LeadResult>> qualify(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.ok(workflowUC.qualify(id)));
-    }
-
-    @PostMapping("/{id}/lose")
-    public ResponseEntity<ApiResponse<LeadResult>> lose(@PathVariable Long id,
-            @RequestBody(required = false) LeadActionRequest body) {
-        return ResponseEntity.ok(ApiResponse.ok(workflowUC.lose(id, body != null ? body.getReason() : null)));
+    @GetMapping("/{leadId}/items")
+    public ResponseEntity<ApiResponse<java.util.List<LeadItemResult>>> listItems(@PathVariable Long leadId) {
+        return ResponseEntity.ok(ApiResponse.ok(listItemUC.execute(leadId)));
     }
 
     // nhân viên tự nhận chăm sóc tiềm năng chưa có người phụ trách (pool chung)
@@ -112,14 +106,12 @@ public class LeadController {
         return ResponseEntity.ok(ApiResponse.ok(updateUC.execute(
                 UpdateLeadCommand.builder().id(id).name(cmd.getName())
                         .companyName(cmd.getCompanyName()).leadType(cmd.getLeadType())
-                        .ownerId(cmd.getOwnerId())
-                        .customerId(cmd.getCustomerId()).contactId(cmd.getContactId())
-                        .title(cmd.getTitle()).department(cmd.getDepartment())
+                        .ownerId(cmd.getOwnerId()).contactId(cmd.getContactId())
+                        .convertedOpportunityId(cmd.getConvertedOpportunityId())
                         .taxCode(cmd.getTaxCode()).website(cmd.getWebsite()).industry(cmd.getIndustry())
                         .source(cmd.getSource()).campaignId(cmd.getCampaignId())
-                        .estimatedValue(cmd.getEstimatedValue()).phone(cmd.getPhone())
-                        .email(cmd.getEmail())
-                        .doNotCall(cmd.getDoNotCall()).doNotEmail(cmd.getDoNotEmail())
+                        .status(cmd.getStatus())
+                        .phone(cmd.getPhone()).email(cmd.getEmail())
                         .note(cmd.getNote()).build())));
     }
 

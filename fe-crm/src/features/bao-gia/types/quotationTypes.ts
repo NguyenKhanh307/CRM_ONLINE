@@ -2,19 +2,12 @@ export interface UpdateQuotationPayload {
     customerId: number | null;
     contactId: number | null;
     opportunityId?: number | null;
-    campaignId?: number | null;
     // chính sách giá áp dụng — nguồn đơn giá tự điền cho dòng hàng
     pricePolicyId?: number | null;
     ownerId: number | null;
     quoteDate: string | null;
     validUntil: string | null;
-    currency?: string | null;
-    exchangeRate?: number | null;
     // status: KHÔNG gửi — đổi qua hành động submit/approve/reject/send.
-    subtotal: number | null;
-    discount: number | null;
-    tax: number | null;
-    total: number | null;
     note: string | null;
 }
 
@@ -23,7 +16,6 @@ export interface QuotationApprovalResult {
     id: number;
     quotationId: number;
     approverId: number | null;
-    level: number;
     status: string;
     comment: string | null;
     approvedAt: string | null;
@@ -50,7 +42,7 @@ export interface SendQuotationPayload {
     body: string;
 }
 
-// một dòng hàng gửi kèm khi tạo báo giá
+// một dòng hàng gửi kèm khi tạo/sửa báo giá — không gửi amount, backend tự tính
 export interface QuotationItemPayload {
     productId: number;
     unit: string | null;
@@ -58,8 +50,9 @@ export interface QuotationItemPayload {
     unitPrice: number;
     discount: number;
     taxRate: number;
-    amount: number;
     note: string | null;
+    // khách chấp nhận/từ chối riêng dòng này khi phản hồi báo giá — chỉ dùng khi cập nhật
+    lineStatus?: 'pending' | 'accepted' | 'rejected';
 }
 
 // payload tạo mới báo giá — POST /api/quotations (kèm items[])
@@ -68,19 +61,12 @@ export interface CreateQuotationPayload {
     customerId: number | null;
     contactId: number | null;
     opportunityId: number | null;
-    campaignId: number | null;
     // chính sách giá áp dụng — nguồn đơn giá tự điền cho dòng hàng
     pricePolicyId: number | null;
     ownerId: number | null;
     quoteDate: string | null;
     validUntil: string | null;
-    currency: string;
-    exchangeRate: number;
     // status: KHÔNG gửi — báo giá luôn tạo ở trạng thái Nháp.
-    subtotal: number;
-    discount: number;
-    tax: number;
-    total: number;
     note: string | null;
     items: QuotationItemPayload[];
 }
@@ -96,6 +82,7 @@ export interface QuotationItemResult {
     discount: number;
     taxRate: number;
     amount: number;
+    lineStatus: 'pending' | 'accepted' | 'rejected';
     note: string | null;
 }
 
@@ -105,15 +92,12 @@ export interface QuotationResult {
     customerId: number | null;
     contactId: number | null;
     opportunityId: number | null;
-    campaignId: number | null;
     pricePolicyId: number | null;
     isPrimary: boolean;
     isLocked: boolean;
     ownerId: number | null;
     quoteDate: string | null;
     validUntil: string | null;
-    currency: string | null;
-    exchangeRate: number | null;
     status: string;
     subtotal: number | null;
     discount: number | null;
@@ -122,7 +106,6 @@ export interface QuotationResult {
     note: string | null;
     customerResponse: string | null;
     customerResponseNote: string | null;
-    customerRespondedAt: string | null;
     // email đã gửi báo giá tới — chỉ có khi response của hành động send
     sentToEmail?: string | null;
     createdAt: string;
@@ -131,7 +114,6 @@ export interface QuotationResult {
     customerName: string | null;
     contactName: string | null;
     opportunityName: string | null;
-    campaignName: string | null;
     ownerName: string | null;
     // Audit: BE tự đóng dấu (AuditInterceptor).
     createdBy: number | null;

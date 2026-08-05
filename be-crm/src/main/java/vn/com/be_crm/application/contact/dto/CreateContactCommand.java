@@ -22,17 +22,11 @@ public class CreateContactCommand {
     @NotBlank(message = "Họ tên không được để trống") @Size(max = 100) private String fullName;
     @Size(max = 100) private String title;
     @Size(max = 100) private String department;
-    @Size(max = 100) private String position;
     @Size(max = 50) @Email(message = "Email không hợp lệ") private String email;
-    @Size(max = 100) @Email(message = "Email không hợp lệ") private String workEmail;
-    @Size(max = 100) @Email(message = "Email không hợp lệ") private String personalEmail;
     @Size(max = 20) private String zalo;
     @Size(max = 30) private String source;
     private ContactGender gender;
     private LocalDate dateOfBirth;
-    @Size(max = 255) private String address;
-    private Boolean doNotCall;
-    private Boolean doNotEmail;
     private Boolean isPrimary;
     /** Danh sách số điện thoại tạo kèm liên hệ (contactId bỏ trống). */
     @Valid private List<CreateContactPhoneCommand> phones;

@@ -6,8 +6,6 @@ export interface BoardCard {
     customerName: string | null;
     ownerName: string | null;
     amount: number | null;
-    expectedCloseDate: string | null;
-    probability: number | null;
     stageId: number | null;
 }
 

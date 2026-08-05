@@ -25,8 +25,7 @@ public class CustomerHibernateMapper {
         h.setIndustry(d.getIndustry()); h.setSource(d.getSource());
         h.setStatus(d.getStatus() != null ? d.getStatus() : CustomerStatus.active);
         h.setCreditDays(d.getCreditDays()); h.setCreditLimit(d.getCreditLimit());
-        h.setBankAccount(d.getBankAccount()); h.setBankName(d.getBankName());
-        h.setRating(d.getRating()); h.setAnnualRevenue(d.getAnnualRevenue());
+        h.setRating(d.getRating());
         h.setEmployeeSize(d.getEmployeeSize()); h.setDistributor(d.isDistributor());
         h.setOwnerId(d.getOwnerId());
         h.setDeletedAt(d.getDeletedAt());
@@ -47,8 +46,7 @@ public class CustomerHibernateMapper {
                 .website(h.getWebsite()).address(h.getAddress())
                 .industry(h.getIndustry()).source(h.getSource()).status(h.getStatus())
                 .creditDays(h.getCreditDays()).creditLimit(h.getCreditLimit())
-                .bankAccount(h.getBankAccount()).bankName(h.getBankName())
-                .rating(h.getRating()).annualRevenue(h.getAnnualRevenue())
+                .rating(h.getRating())
                 .employeeSize(h.getEmployeeSize()).isDistributor(h.isDistributor())
                 .ownerId(h.getOwnerId())
                 .createdBy(h.getCreatedBy()).updatedBy(h.getUpdatedBy())

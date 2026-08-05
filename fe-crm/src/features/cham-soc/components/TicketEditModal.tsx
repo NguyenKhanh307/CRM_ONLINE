@@ -7,13 +7,13 @@ import { collectErrors } from '@/shared/utils/validators';
 import { FieldError } from '@/shared/components/form/FormField';
 import { SearchableSelect, type SelectOption } from '@/shared/components/SearchableSelect';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
+import { DerivedContextBox } from '@/shared/components/form/DerivedContextBox';
 import { FieldRow } from '@/shared/components/form/FieldRow';
-import { PrefillHint } from '@/shared/components/form/PrefillHint';
-import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
-import { fetchPrimaryContactId } from '@/shared/lookup/recordPrefill';
-import { invoiceService } from '@/features/hoa-don/services/invoiceService';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
+import { orderService } from '@/features/don-hang/services/orderService';
+import { quotationService } from '@/features/bao-gia/services/quotationService';
+import type { QuotationResult } from '@/features/bao-gia/types/quotationTypes';
 import { useUpdateTicket } from '../hooks/useUpdateTicket';
 import { TYPE_OPTIONS, CHANNEL_OPTIONS, PRIORITY_OPTIONS, REASON_OPTIONS } from '../config/ticketEnums';
 import type {
@@ -22,26 +22,24 @@ import type {
 
 interface Props {
     ticket: TicketResult | null;
-    customerOptions: SelectOption[];
     userOptions: SelectOption[];
-    productOptions: SelectOption[];
     onClose: () => void;
 }
 
 interface FormState {
     type: string; subject: string; description: string; channel: string; priority: string; reason: string;
-    customerId: string; contactId: string; invoiceId: string; productId: string; assignedUserId: string;
+    orderId: string; assignedUserId: string;
 }
 
 const toState = (t: TicketResult): FormState => ({
     type: t.type, subject: t.subject, description: t.description ?? '', channel: t.channel, priority: t.priority,
-    reason: t.reason ?? '', customerId: t.customerId ? String(t.customerId) : '',
-    contactId: t.contactId ? String(t.contactId) : '', invoiceId: t.invoiceId ? String(t.invoiceId) : '',
-    productId: t.productId ? String(t.productId) : '', assignedUserId: t.assignedUserId ? String(t.assignedUserId) : '',
+    reason: t.reason ?? '', orderId: t.orderId ? String(t.orderId) : '',
+    assignedUserId: t.assignedUserId ? String(t.assignedUserId) : '',
 });
 
-// modal chỉnh sửa thông tin phiếu (KHÔNG đổi trạng thái — trạng thái đổi qua nút hành động)
-export function TicketEditModal({ ticket, customerOptions, userOptions, productOptions, onClose }: Props) {
+// modal chỉnh sửa thông tin phiếu (KHÔNG đổi trạng thái — trạng thái đổi qua nút hành động).
+// Phiếu chỉ còn 1 khóa ngoại chính (orderId) — khách hàng/liên hệ tra qua chuỗi đơn hàng -> báo giá
+export function TicketEditModal({ ticket, userOptions, onClose }: Props) {
     const { showAlert } = useAlert();
     const [errors, setErrors] = useState<Record<string, string>>({});
     // xóa lỗi của một ô ngay khi người dùng gõ lại
@@ -51,8 +49,21 @@ export function TicketEditModal({ ticket, customerOptions, userOptions, productO
     const { confirmSave } = useConfirm();
     const { mutate, isPending } = useUpdateTicket();
     const [form, setForm] = useState<FormState | null>(null);
+    const [quotation, setQuotation] = useState<QuotationResult | null>(null);
 
-    useEffect(() => { setForm(ticket ? toState(ticket) : null); }, [ticket]);
+    useEffect(() => {
+        setForm(ticket ? toState(ticket) : null);
+        setQuotation(null);
+        if (ticket?.orderId != null) {
+            orderService.getById(ticket.orderId).then(async (r) => {
+                const o = r.data.data;
+                if (o.quotationId != null) {
+                    const q = await quotationService.getById(o.quotationId);
+                    setQuotation(q.data.data);
+                }
+            });
+        }
+    }, [ticket]);
 
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
@@ -61,33 +72,19 @@ export function TicketEditModal({ ticket, customerOptions, userOptions, productO
         enabled: !!ticket && !!form,
     });
 
-    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
-
     if (!ticket || !form) return null;
     const set = (p: Partial<FormState>) => setForm((s) => (s ? { ...s, ...p } : s));
 
-    // hàm đổi khách hàng -> tự điền liên hệ chính (chỉ khi ô liên hệ còn trống)
-    const onPickCustomer = async (v: string) => {
-        // đổi khách thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai
-        const base = { ...form, customerId: v, contactId: '' };
-        set({ customerId: v, contactId: '' });
-        setPrefillFrom(null);
+    // đổi đơn hàng -> fetch chuỗi order -> quotation để hiển thị khách hàng/liên hệ read-only
+    const onPickOrder = async (v: string) => {
+        set({ orderId: v });
+        setQuotation(null);
         if (!v) return;
-        const patch = fillEmpty(base, { contactId: await fetchPrimaryContactId(Number(v)) });
-        if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customerOptions.find(o => o.value === v)?.label ?? v}»`); }
-    };
-
-    // hàm đổi hóa đơn -> tự điền khách hàng + liên hệ của hóa đơn đó (chỉ ô còn trống)
-    const onPickInvoice = async (v: string) => {
-        set({ invoiceId: v });
-        setPrefillFrom(null);
-        if (!v) return;
-        const inv = (await invoiceService.getById(Number(v))).data.data;
-        const patch = fillEmpty({ ...form, invoiceId: v }, {
-            customerId: inv.customerId ? String(inv.customerId) : '',
-            contactId: inv.contactId ? String(inv.contactId) : '',
-        });
-        if (hasFilled(patch)) { set(patch); setPrefillFrom(`hóa đơn «${inv.code}»`); }
+        const order = (await orderService.getById(Number(v))).data.data;
+        if (order.quotationId != null) {
+            const q = await quotationService.getById(order.quotationId);
+            setQuotation(q.data.data);
+        }
     };
 
     const submit = async (e: FormEvent) => {
@@ -104,10 +101,7 @@ export function TicketEditModal({ ticket, customerOptions, userOptions, productO
             type: form.type as TicketType,
             subject: form.subject.trim(),
             description: form.description || null,
-            customerId: form.customerId ? Number(form.customerId) : null,
-            contactId: form.contactId ? Number(form.contactId) : null,
-            invoiceId: form.invoiceId ? Number(form.invoiceId) : null,
-            productId: form.productId ? Number(form.productId) : null,
+            orderId: form.orderId ? Number(form.orderId) : null,
             channel: form.channel as TicketChannel,
             priority: form.priority as TicketPriority,
             reason: (form.reason || null) as ReturnReason | null,
@@ -144,24 +138,17 @@ export function TicketEditModal({ ticket, customerOptions, userOptions, productO
                     <FieldRow label="Lý do">
                         <SearchableSelect value={form.reason} onChange={(v) => set({ reason: v })} options={REASON_OPTIONS} />
                     </FieldRow>
-                    <FieldRow label="Khách hàng">
-                        <SearchableSelect value={form.customerId} onChange={onPickCustomer} options={customerOptions} fallbackLabel={ticket?.customerName} />
-                        <PrefillHint source={prefillFrom} />
-                    </FieldRow>
-                    <FieldRow label="Liên hệ">
-                        <RecordPicker module="contact" value={form.contactId} onChange={(v) => set({ contactId: v })}
-                            customerId={form.customerId ? Number(form.customerId) : undefined} fallbackLabel={ticket?.contactName} />
-                    </FieldRow>
-                    <FieldRow label="Sản phẩm">
-                        <SearchableSelect value={form.productId} onChange={(v) => set({ productId: v })} options={productOptions} />
-                    </FieldRow>
                     <FieldRow label="Người xử lý">
                         <SearchableSelect value={form.assignedUserId} onChange={(v) => set({ assignedUserId: v })} options={userOptions} fallbackLabel={ticket?.assignedUserName} />
                     </FieldRow>
-                    <FieldRow label="Hóa đơn">
-                        <RecordPicker module="invoice" value={form.invoiceId} onChange={onPickInvoice}
-                            fallbackLabel={ticket?.invoiceCode} />
+                    <FieldRow label="Đơn hàng">
+                        <RecordPicker module="order" value={form.orderId} onChange={onPickOrder}
+                            fallbackLabel={ticket?.orderCode} />
                     </FieldRow>
+                    <DerivedContextBox rows={[
+                        { label: 'Khách hàng', value: quotation?.customerName },
+                        { label: 'Liên hệ', value: quotation?.contactName },
+                    ]} />
                     <FieldRow label="Mô tả" alignTop>
                         <textarea rows={3} value={form.description} onChange={(e) => set({ description: e.target.value })} className={`${inputCls} resize-none`} />
                     </FieldRow>

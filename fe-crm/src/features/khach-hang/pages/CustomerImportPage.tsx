@@ -16,10 +16,7 @@ const FIELDS: ImportField[] = [
     { key: 'status',         label: 'Trạng thái',                     type: 'enum', enumValues: ['active', 'inactive', 'potential'] },
     { key: 'creditDays',     label: 'Số ngày được nợ',                type: 'number' },
     { key: 'creditLimit',    label: 'Hạn mức nợ tối đa',              type: 'number' },
-    { key: 'bankAccount',    label: 'Số tài khoản ngân hàng',         type: 'text' },
-    { key: 'bankName',       label: 'Tên ngân hàng',                  type: 'text' },
     { key: 'rating',         label: 'Xếp hạng',                       type: 'enum', enumValues: ['VIP', 'A', 'B', 'C', 'D'] },
-    { key: 'annualRevenue',  label: 'Doanh thu hàng năm',             type: 'number' },
     { key: 'employeeSize',   label: 'Quy mô nhân sự',                 type: 'text' },
     { key: 'isDistributor',  label: 'Là nhà phân phối',               type: 'enum', enumValues: ['true', 'false'] },
 ];

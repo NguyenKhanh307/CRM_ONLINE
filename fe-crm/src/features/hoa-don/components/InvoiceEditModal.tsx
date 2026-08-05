@@ -10,13 +10,13 @@ import type { InvoiceResult, UpdateInvoicePayload } from '../types/invoiceTypes'
 import { useUpdateInvoice } from '../hooks/useUpdateInvoice';
 import { invoiceService } from '../services/invoiceService';
 import { orderService } from '@/features/don-hang/services/orderService';
+import { quotationService } from '@/features/bao-gia/services/quotationService';
+import type { OrderResult } from '@/features/don-hang/types/orderTypes';
+import type { QuotationResult } from '@/features/bao-gia/types/quotationTypes';
 import { PaymentSchedulesTable } from './PaymentSchedulesTable';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
-import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
-import { SearchableSelect } from '@/shared/components/SearchableSelect';
-import { PrefillHint } from '@/shared/components/form/PrefillHint';
-import { fillEmpty, hasFilled } from '@/shared/utils/prefill';
+import { DerivedContextBox } from '@/shared/components/form/DerivedContextBox';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import { DateInput } from '@/shared/components/form/DateInput';
 import {
@@ -24,7 +24,6 @@ import {
     type ProductOption,
     fromItemResult,
     diffLineItems,
-    computeTotals,
     toItemPayload, validateLineItems } from '@/shared/components/form/productLineItem';
 
 interface Props {
@@ -45,37 +44,35 @@ const PAYMENT_STATUS_COLORS: Record<string, string> = {
     unpaid: 'bg-red-100 text-red-600', partial: 'bg-yellow-100 text-yellow-700', paid: 'bg-green-100 text-green-700',
 };
 
+// Hóa đơn chỉ còn 1 khóa ngoại chính (orderId) — khách hàng/liên hệ/báo giá tra qua đơn hàng ->
+// báo giá, hiển thị read-only để giữ ngữ cảnh
 export function InvoiceEditModal({ item, onClose }: Props) {
     const qc = useQueryClient();
     const { mutateAsync, isPending } = useUpdateInvoice();
     const { data: products = [] } = useProductList();
-    const { data: campaigns = [] } = useCampaignList();
     const [form, setForm] = useState<UpdateInvoicePayload>({
-        customerId: null, contactId: null, campaignId: null, orderId: null, ownerId: null,
-        invoiceDate: null, dueDate: null,
-        currency: 'VND', exchangeRate: 1, billingAddress: null, taxCode: null,
-        subtotal: null, discount: null, tax: null, total: null, note: null,
+        orderId: null, ownerId: null, invoiceDate: null, dueDate: null, note: null,
     });
     const [rows, setRows] = useState<LineItemRow[]>([]);
     const [originalRows, setOriginalRows] = useState<LineItemRow[]>([]);
     const [saving, setSaving] = useState(false);
+    const [order, setOrder] = useState<OrderResult | null>(null);
+    const [quotation, setQuotation] = useState<QuotationResult | null>(null);
 
     const productOptions = useMemo<ProductOption[]>(
         () => products.map((p) => ({ value: String(p.id), label: `${p.sku} — ${p.name}`, unit: p.unit ?? '', price: p.basePrice ?? 0, vatRate: p.vatRate ?? 0 })),
         [products],
     );
-    const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
 
     useEffect(() => {
         if (!item) return;
         setForm({
-            customerId: item.customerId, contactId: item.contactId, quotationId: item.quotationId,
-            opportunityId: item.opportunityId, campaignId: item.campaignId, orderId: item.orderId, ownerId: item.ownerId,
-            invoiceDate: item.invoiceDate, dueDate: item.dueDate,
-            currency: item.currency, exchangeRate: item.exchangeRate,
-            billingAddress: item.billingAddress, taxCode: item.taxCode,
-            subtotal: item.subtotal, discount: item.discount, tax: item.tax, total: item.total, note: item.note,
+            orderId: item.orderId, ownerId: item.ownerId,
+            invoiceDate: item.invoiceDate, dueDate: item.dueDate, note: item.note,
         });
+        setOrder(null);
+        setQuotation(null);
+        if (item.orderId != null) loadOrderContext(item.orderId);
         invoiceService.getItems(item.id).then((r) => {
             const loaded = r.data.data.map(fromItemResult);
             setRows(loaded);
@@ -88,23 +85,25 @@ export function InvoiceEditModal({ item, onClose }: Props) {
     const clearError = (key: string) =>
         setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev));
 
-    // tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Đơn hàng
-    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
+    // tải chuỗi Đơn hàng -> Báo giá để hiển thị khách hàng/liên hệ read-only
+    const loadOrderContext = async (orderId: number) => {
+        const o = (await orderService.getById(orderId)).data.data;
+        setOrder(o);
+        if (o.quotationId != null) {
+            const q = (await quotationService.getById(o.quotationId)).data.data;
+            setQuotation(q);
+        } else {
+            setQuotation(null);
+        }
+    };
 
-    // đổi đơn hàng -> tự điền báo giá/cơ hội/chiến dịch/MST/địa chỉ còn trống (không đè giá trị đã có)
+    // đổi đơn hàng -> fetch chi tiết chuỗi order -> quotation để hiển thị read-only
     const onPickOrder = async (v: string) => {
         setForm(f => ({ ...f, orderId: v ? Number(v) : null }));
-        setPrefillFrom(null);
+        setOrder(null);
+        setQuotation(null);
         if (!v) return;
-        const order = (await orderService.getById(Number(v))).data.data;
-        const patch = fillEmpty({ ...form, orderId: Number(v) }, {
-            campaignId: order.campaignId ?? null,
-            quotationId: order.quotationId ?? null,
-            opportunityId: order.opportunityId ?? null,
-            taxCode: order.taxCode ?? null,
-            billingAddress: order.billingAddress ?? null,
-        });
-        if (hasFilled(patch)) { setForm(f => ({ ...f, ...patch })); setPrefillFrom(`đơn hàng «${order.code}»`); }
+        await loadOrderContext(Number(v));
     };
 
     const { confirmSave } = useConfirm();
@@ -130,11 +129,7 @@ export function InvoiceEditModal({ item, onClose }: Props) {
         if (!(await confirmSave('hóa đơn'))) return;
         setSaving(true);
         try {
-            const totals = computeTotals(rows);
-            await mutateAsync({
-                id: item.id,
-                payload: { ...form, subtotal: totals.subtotal, discount: totals.discount, tax: totals.tax, total: totals.total },
-            });
+            await mutateAsync({ id: item.id, payload: form });
             const { toCreate, toUpdate, toDelete } = diffLineItems(originalRows, rows);
             await Promise.all([
                 ...toCreate.map((r) => invoiceService.createItem(item.id, toItemPayload(r))),
@@ -186,47 +181,18 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                             </FieldError>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>Mã số thuế</label>
-                            <input className={inp} value={form.taxCode ?? ''} onChange={e => setForm(f => ({ ...f, taxCode: e.target.value || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Địa chỉ xuất HĐ</label>
-                            <input className={inp} value={form.billingAddress ?? ''} onChange={e => setForm(f => ({ ...f, billingAddress: e.target.value || null }))} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Đơn hàng</label>
-                            <RecordPicker module="order"
-                                value={form.orderId != null ? String(form.orderId) : ''}
-                                onChange={onPickOrder}
-                                fallbackLabel={item.orderCode} />
-                            <PrefillHint source={prefillFrom} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Báo giá nguồn</label>
-                            <RecordPicker module="quotation"
-                                value={form.quotationId != null ? String(form.quotationId) : ''}
-                                onChange={(v) => setForm(f => ({ ...f, quotationId: v ? Number(v) : null }))}
-                                fallbackLabel={item.quotationCode} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Cơ hội</label>
-                            <RecordPicker module="opportunity"
-                                value={form.opportunityId != null ? String(form.opportunityId) : ''}
-                                onChange={(v) => setForm(f => ({ ...f, opportunityId: v ? Number(v) : null }))}
-                                fallbackLabel={item.opportunityName} />
-                        </div>
-                        <div>
-                            <label className={lbl}>Chiến dịch</label>
-                            <SearchableSelect
-                                value={form.campaignId != null ? String(form.campaignId) : ''}
-                                onChange={(v) => setForm(f => ({ ...f, campaignId: v ? Number(v) : null }))}
-                                options={campaignOptions}
-                                fallbackLabel={item.campaignName}
-                            />
-                        </div>
+                    <div>
+                        <label className={lbl}>Đơn hàng</label>
+                        <RecordPicker module="order"
+                            value={form.orderId != null ? String(form.orderId) : ''}
+                            onChange={onPickOrder}
+                            fallbackLabel={item.orderCode} />
                     </div>
+                    <DerivedContextBox rows={[
+                        { label: 'Khách hàng', value: quotation?.customerName },
+                        { label: 'Liên hệ', value: quotation?.contactName },
+                        { label: 'Báo giá nguồn', value: order?.quotationCode },
+                    ]} />
                     <div>
                         <label className={lbl}>Hàng hóa</label>
                         <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />

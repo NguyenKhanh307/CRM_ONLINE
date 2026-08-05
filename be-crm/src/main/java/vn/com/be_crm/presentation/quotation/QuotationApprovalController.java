@@ -33,7 +33,7 @@ public class QuotationApprovalController {
                                                                         @Valid @RequestBody CreateQuotationApprovalCommand cmd) {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(
                 CreateQuotationApprovalCommand.builder().quotationId(quotationId).approverId(cmd.getApproverId())
-                        .level(cmd.getLevel()).status(cmd.getStatus()).comment(cmd.getComment()).build())));
+                        .status(cmd.getStatus()).comment(cmd.getComment()).build())));
     }
 
     /** Lấy danh sách bước phê duyệt. @param quotationId ID báo giá @return 200 */

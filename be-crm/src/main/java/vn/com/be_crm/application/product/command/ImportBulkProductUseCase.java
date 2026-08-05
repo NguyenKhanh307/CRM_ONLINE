@@ -5,6 +5,7 @@ import vn.com.be_crm.application.product.dto.ImportProductRowCommand;
 import vn.com.be_crm.core.dto.import_.ImportBulkResult;
 import vn.com.be_crm.core.dto.import_.ImportRowError;
 import vn.com.be_crm.domain.product.entity.Product;
+import vn.com.be_crm.domain.product.enums.ProductStatus;
 import vn.com.be_crm.domain.product.enums.ProductType;
 import vn.com.be_crm.domain.product.repository.IProductRepository;
 
@@ -37,6 +38,7 @@ public class ImportBulkProductUseCase {
                     continue;
                 }
                 ProductType type = parseType(row.type());
+                ProductStatus status = parseStatus(row.status());
 
                 // Xác định nhánh thao tác theo importType: CREATE / UPDATE / BOTH
                 boolean isUpdate = "UPDATE".equals(cmd.importType()) || "BOTH".equals(cmd.importType());
@@ -59,8 +61,7 @@ public class ImportBulkProductUseCase {
                             .costPrice(row.costPrice() != null ? row.costPrice() : e.getCostPrice())
                             .vatRate(row.vatRate() != null ? row.vatRate() : e.getVatRate())
                             .description(row.description() != null ? row.description() : e.getDescription())
-                            .isActive(row.isActive() != null ? row.isActive() : e.getIsActive())
-                            .isDiscontinued(row.isDiscontinued() != null ? row.isDiscontinued() : e.getIsDiscontinued())
+                            .status(status != null ? status : e.getStatus())
                             .createdAt(e.getCreatedAt()).build());
                     success++;
                 // Chưa có và được phép tạo mới → thêm mới
@@ -75,8 +76,7 @@ public class ImportBulkProductUseCase {
                             .unit(row.unit()).basePrice(row.basePrice())
                             .costPrice(row.costPrice()).vatRate(row.vatRate())
                             .description(row.description())
-                            .isActive(row.isActive() != null ? row.isActive() : true)
-                            .isDiscontinued(row.isDiscontinued() != null && row.isDiscontinued())
+                            .status(status != null ? status : ProductStatus.active)
                             .build());
                     success++;
                 }
@@ -95,5 +95,11 @@ public class ImportBulkProductUseCase {
         if (v.equalsIgnoreCase("Dịch vụ") || v.equalsIgnoreCase("service")) return ProductType.service;
         if (v.equalsIgnoreCase("Vật tư hàng hóa") || v.equalsIgnoreCase("goods")) return ProductType.goods;
         return null;
+    }
+
+    private ProductStatus parseStatus(String s) {
+        if (s == null || s.isBlank()) return null;
+        try { return ProductStatus.valueOf(s.trim().toLowerCase()); }
+        catch (Exception e) { return null; }
     }
 }

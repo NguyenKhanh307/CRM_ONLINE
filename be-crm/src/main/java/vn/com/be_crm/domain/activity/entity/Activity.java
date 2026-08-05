@@ -39,12 +39,6 @@ public class Activity {
     /** ID đối tượng đích. */
     private Long targetId;
 
-    /** Loại đối tượng liên quan phụ. */
-    private String relatedType;
-
-    /** ID đối tượng liên quan phụ. */
-    private Long relatedId;
-
     /** Địa điểm (lịch hẹn). */
     private String location;
 
@@ -65,9 +59,6 @@ public class Activity {
 
     /** Thời hạn hoàn thành. */
     private LocalDateTime dueAt;
-
-    /** Thời điểm hoàn thành thực tế. */
-    private LocalDateTime completedAt;
 
     /** ID người tạo bản ghi (BE tự đóng dấu, client không gửi lên). */
     private Long createdBy;

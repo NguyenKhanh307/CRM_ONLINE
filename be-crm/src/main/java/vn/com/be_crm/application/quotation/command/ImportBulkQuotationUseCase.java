@@ -14,39 +14,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/** Use case nhập hàng loạt Quotation từ file Excel/CSV. */
+// nhập hàng loạt Quotation từ file Excel/CSV — mỗi dòng xử lý độc lập, lỗi từng dòng được thu
+// thập, không dừng toàn bộ lô
 public class ImportBulkQuotationUseCase {
     private final IQuotationRepository repo;
 
-    /** @param repo port lưu trữ */
     public ImportBulkQuotationUseCase(IQuotationRepository repo) { this.repo = repo; }
 
-    /**
-     * Xử lý nhập hàng loạt Quotation.
-     * @param cmd dữ liệu import @return kết quả nhập
-     */
     public ImportBulkResult execute(ImportBulkQuotationCommand cmd) {
         List<ImportRowError> errors = new ArrayList<>();
         int success = 0;
-        // Duyệt từng dòng; rowNum = i + 2 vì dòng 1 là header trong file Excel
         for (int i = 0; i < cmd.rows().size(); i++) {
-            int rowNum = i + 2;
+            int rowNum = i + 2; // dòng 1 là header trong file Excel
             ImportQuotationRowCommand row = cmd.rows().get(i);
             try {
-                // Xác định owner: gán cố định theo cấu hình hoặc null (lấy từ dòng/bản ghi cũ)
                 Long ownerId = "SPECIFIC".equals(cmd.ownerMode()) ? cmd.specificOwnerId() : null;
                 QuotationStatus status = parseStatus(row.status());
 
-                // Xác định nhánh thao tác theo importType: CREATE / UPDATE / BOTH
                 boolean isUpdate = "UPDATE".equals(cmd.importType()) || "BOTH".equals(cmd.importType());
                 boolean isCreate = "CREATE".equals(cmd.importType()) || "BOTH".equals(cmd.importType());
 
-                // Tìm bản ghi trùng theo khóa duy nhất để cập nhật (chỉ khi cho phép UPDATE)
+                // tìm bản ghi trùng theo khóa duy nhất để cập nhật (chỉ khi cho phép UPDATE)
                 Optional<Quotation> existing = Optional.empty();
                 if (isUpdate && row.code() != null && !row.code().isBlank())
                     existing = repo.findByCode(row.code());
 
-                // Có bản ghi → cập nhật (giữ field cũ, ghi đè field có trong file)
+                // có bản ghi -> cập nhật (giữ field cũ, ghi đè field có trong file)
                 if (existing.isPresent()) {
                     Quotation e = existing.get();
                     repo.save(Quotation.builder()
@@ -54,42 +47,31 @@ public class ImportBulkQuotationUseCase {
                             .customerId(row.customerId() != null ? row.customerId() : e.getCustomerId())
                             .contactId(row.contactId() != null ? row.contactId() : e.getContactId())
                             .opportunityId(row.opportunityId() != null ? row.opportunityId() : e.getOpportunityId())
-                            .campaignId(row.campaignId() != null ? row.campaignId() : e.getCampaignId())
                             .pricePolicyId(row.pricePolicyId() != null ? row.pricePolicyId() : e.getPricePolicyId())
                             .ownerId(ownerId != null ? ownerId : e.getOwnerId())
                             .quoteDate(parseDate(row.quoteDate()) != null ? parseDate(row.quoteDate()) : e.getQuoteDate())
                             .validUntil(parseDate(row.validUntil()) != null ? parseDate(row.validUntil()) : e.getValidUntil())
-                            .currency(row.currency() != null ? row.currency() : e.getCurrency())
-                            .exchangeRate(row.exchangeRate() != null ? row.exchangeRate() : e.getExchangeRate())
                             .status(status != null ? status : e.getStatus())
-                            .subtotal(row.subtotal() != null ? row.subtotal() : e.getSubtotal())
-                            .discount(row.discount() != null ? row.discount() : e.getDiscount())
-                            .tax(row.tax() != null ? row.tax() : e.getTax())
-                            .total(row.total() != null ? row.total() : e.getTotal())
                             .note(row.note() != null ? row.note() : e.getNote())
+                            .customerResponse(e.getCustomerResponse()).customerResponseNote(e.getCustomerResponseNote())
                             .createdAt(e.getCreatedAt()).build());
                     success++;
-                // Chưa có và được phép tạo mới → thêm mới
+                // chưa có và được phép tạo mới -> thêm mới
                 } else if (isCreate) {
                     String code = "BG-" + System.currentTimeMillis() + "-" + rowNum;
                     repo.save(Quotation.builder()
                             .code(code).ownerId(ownerId)
                             .customerId(row.customerId()).contactId(row.contactId())
-                            .opportunityId(row.opportunityId()).campaignId(row.campaignId())
+                            .opportunityId(row.opportunityId())
                             .pricePolicyId(row.pricePolicyId())
                             .quoteDate(parseDate(row.quoteDate()))
                             .validUntil(parseDate(row.validUntil()))
-                            .currency(row.currency() != null ? row.currency() : "VND")
-                            .exchangeRate(row.exchangeRate() != null ? row.exchangeRate() : java.math.BigDecimal.ONE)
                             .status(status != null ? status : QuotationStatus.draft)
-                            .subtotal(row.subtotal()).discount(row.discount())
-                            .tax(row.tax()).total(row.total())
                             .note(row.note())
                             .build());
                     success++;
                 }
             } catch (Exception ex) {
-                // Gom lỗi theo từng dòng, không hủy cả lô — các dòng hợp lệ vẫn được lưu
                 errors.add(new ImportRowError(rowNum, ex.getMessage() != null ? ex.getMessage() : "Lỗi không xác định"));
             }
         }

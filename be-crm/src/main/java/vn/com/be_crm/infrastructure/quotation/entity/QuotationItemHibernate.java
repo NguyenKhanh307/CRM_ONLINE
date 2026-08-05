@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.com.be_crm.domain.quotation.enums.QuotationLineStatus;
 
 import java.math.BigDecimal;
 
-/**
- * Hibernate entity ánh xạ bảng quotation_items.
- */
+// ánh xạ bảng quotation_items. Không có cột "amount" — thành tiền tính từ quantity/unitPrice/
+// discount/taxRate tại thời điểm đọc.
 @Entity
 @Table(name = "quotation_items")
 @Getter @Setter @NoArgsConstructor
@@ -24,6 +24,7 @@ public class QuotationItemHibernate {
     @Column(name = "unit_price", precision = 18, scale = 2) private BigDecimal unitPrice;
     @Column(name = "discount", precision = 18, scale = 2) private BigDecimal discount;
     @Column(name = "tax_rate", precision = 5, scale = 2) private BigDecimal taxRate;
-    @Column(name = "amount", precision = 18, scale = 2) private BigDecimal amount;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "line_status", length = 20) private QuotationLineStatus lineStatus;
     @Column(name = "note", length = 255) private String note;
 }

@@ -13,6 +13,5 @@ public record ImportProductRowCommand(
         BigDecimal costPrice,
         BigDecimal vatRate,
         String description,
-        Boolean isDiscontinued,
-        Boolean isActive
+        String status
 ) {}

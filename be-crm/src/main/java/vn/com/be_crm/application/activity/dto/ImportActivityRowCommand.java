@@ -8,8 +8,6 @@ public record ImportActivityRowCommand(
         String priority,
         String targetType,
         Long targetId,
-        String relatedType,
-        Long relatedId,
         String location,
         String callDirection,
         String callResult,

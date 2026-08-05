@@ -3,7 +3,7 @@ import { InfoRow } from '@/shared/components/detail/InfoRow';
 import { RecordItemsPanel } from '@/shared/components/table/RecordItemsPanel';
 import { getLineItemPanelColumns } from '@/shared/components/table/lineItemPanelColumns';
 import { useProductMap } from '@/features/san-pham/hooks/useProductMap';
-import { formatCurrency, formatNumber } from '@/shared/utils/number';
+import { formatCurrency } from '@/shared/utils/number';
 import { formatISODate } from '@/shared/utils/date';
 import { useOpportunityItems } from '../hooks/useOpportunityItems';
 import type { OpportunityResult } from '../types/opportunityTypes';
@@ -33,9 +33,6 @@ export const OpportunityInfoPanel = ({ opportunity: o }: OpportunityInfoPanelPro
                 <div>
                     <InfoRow label="Người phụ trách" value={o.ownerName} />
                     <InfoRow label="Giá trị" value={o.amount != null ? formatCurrency(o.amount) : null} />
-                    <InfoRow label="Doanh số kỳ vọng" value={o.expectedRevenue != null ? formatCurrency(o.expectedRevenue) : null} />
-                    <InfoRow label="Xác suất thắng" value={o.probability != null ? `${formatNumber(o.probability)}%` : null} />
-                    <InfoRow label="Ngày dự kiến chốt" value={o.expectedCloseDate ? formatISODate(o.expectedCloseDate) : null} />
                     <InfoRow label="Lý do thắng/thua" value={o.winLossReason} />
                     <InfoRow label="Người tạo" value={o.createdByName} />
                     <InfoRow label="Ngày tạo" value={o.createdAt ? formatISODate(o.createdAt) : null} />

@@ -10,13 +10,10 @@ import vn.com.be_crm.domain.order.enums.OrderStatus;
 
 import vn.com.be_crm.core.audit.IAuditable;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Hibernate entity ánh xạ bảng orders.
- */
+// ánh xạ bảng orders
 @Entity
 @Table(name = "orders")
 @Getter @Setter @NoArgsConstructor
@@ -24,24 +21,12 @@ public class OrderHibernate implements IAuditable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "code", nullable = false, unique = true, length = 20) private String code;
-    @Column(name = "customer_id") private Long customerId;
-    @Column(name = "contact_id") private Long contactId;
     @Column(name = "quotation_id") private Long quotationId;
-    @Column(name = "opportunity_id") private Long opportunityId;
-    @Column(name = "campaign_id") private Long campaignId;
     @Column(name = "owner_id") private Long ownerId;
     @Column(name = "order_date") private LocalDate orderDate;
     @Column(name = "delivery_date") private LocalDate deliveryDate;
-    @Column(name = "currency", length = 3) private String currency;
-    @Column(name = "exchange_rate", precision = 18, scale = 6) private BigDecimal exchangeRate;
     @Enumerated(EnumType.STRING) @Column(name = "status", length = 20) private OrderStatus status;
     @Column(name = "is_locked") private boolean isLocked;
-    @Column(name = "billing_address", length = 255) private String billingAddress;
-    @Column(name = "tax_code", length = 15) private String taxCode;
-    @Column(name = "subtotal", precision = 18, scale = 2) private BigDecimal subtotal;
-    @Column(name = "discount", precision = 18, scale = 2) private BigDecimal discount;
-    @Column(name = "tax", precision = 18, scale = 2) private BigDecimal tax;
-    @Column(name = "total", precision = 18, scale = 2) private BigDecimal total;
     @Column(name = "note", length = 255) private String note;
     // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè
     @Column(name = "created_by", updatable = false) private Long createdBy;

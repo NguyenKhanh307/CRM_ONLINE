@@ -23,15 +23,15 @@ export const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
     const { data: notifications } = useNotificationList();
 
     // màu chấm theo module dựa trên thông báo CHƯA ĐỌC (đọc xong -> hết chấm)
-    // tiền tố `type` trùng module key (lead_*, quotation_*, ticket_*…) nên tách trước dấu `_` ra module
+    // module suy từ targetType do backend trả sẵn (không còn tách tiền tố `type`)
     // đỏ = tạo mới/cần hành động, vàng = cập nhật/thay đổi; đỏ ưu tiên hơn vàng nếu module có cả hai
     // màu KHÔNG phụ thuộc mục có đang được chọn hay không
     const moduleDot = useMemo(() => {
         const map = new Map<string, 'red' | 'yellow'>();
         for (const n of notifications ?? []) {
-            if (n.isRead || !n.type) continue;
-            const mod = n.type.split('_')[0];
-            const color: 'red' | 'yellow' = UPDATE_NOTIFICATION_TYPES.has(n.type) ? 'yellow' : 'red';
+            if (n.isRead || !n.targetType) continue;
+            const mod = n.targetType;
+            const color: 'red' | 'yellow' = n.type && UPDATE_NOTIFICATION_TYPES.has(n.type) ? 'yellow' : 'red';
             if (map.get(mod) === 'red') continue;      // đỏ đã chốt, không hạ xuống vàng
             if (color === 'red') map.set(mod, 'red');
             else if (!map.has(mod)) map.set(mod, 'yellow');

@@ -14,16 +14,17 @@ import { useLeadDetail } from '../hooks/useLeadDetail';
 import { useLeadRelated } from '../hooks/useLeadRelated';
 import { LeadInfoPanel } from '../components/LeadInfoPanel';
 import { LeadEditModal } from '../components/LeadEditModal';
+import { LeadItemsPanel } from '../components/LeadItemsPanel';
 
 const STATUS_LABELS: Record<string, string> = {
-    new: 'Mới', contacting: 'Đang liên hệ', qualified: 'Đủ điều kiện', converted: 'Đã chuyển đổi', lost: 'Thất bại',
+    new: 'Mới', contacting: 'Đang liên hệ', converted: 'Đã chuyển đổi',
 };
 const STATUS_COLORS: Record<string, string> = {
-    new: 'bg-gray-100 text-gray-600', contacting: 'bg-blue-100 text-blue-700', qualified: 'bg-green-100 text-green-700',
-    converted: 'bg-emerald-100 text-emerald-700', lost: 'bg-red-100 text-red-600',
+    new: 'bg-gray-100 text-gray-600', contacting: 'bg-blue-100 text-blue-700',
+    converted: 'bg-emerald-100 text-emerald-700',
 };
 
-type TabKey = 'activities' | 'opportunities';
+type TabKey = 'activities' | 'opportunities' | 'items';
 
 // trang chi tiết Tiềm năng — 2 cột: thông tin + hoạt động/cơ hội đã chuyển đổi
 const LeadDetailPage = () => {
@@ -40,6 +41,7 @@ const LeadDetailPage = () => {
     const tabs: TabDef<TabKey>[] = [
         { key: 'activities', label: 'Hoạt động', count: related?.activities.total },
         { key: 'opportunities', label: 'Cơ hội', count: related?.opportunities.total },
+        { key: 'items', label: 'Sản phẩm quan tâm' },
     ];
 
     const stats: StatCard[] = [
@@ -82,6 +84,7 @@ const LeadDetailPage = () => {
                                 <RelatedTable group={related?.opportunities} columns={OPPORTUNITY_COLUMNS} module="opportunity"
                                     emptyText="Tiềm năng chưa chuyển đổi thành cơ hội." />
                             )}
+                            {activeTab === 'items' && <LeadItemsPanel leadId={leadId} />}
                         </div>
                     </div>
                 </main>

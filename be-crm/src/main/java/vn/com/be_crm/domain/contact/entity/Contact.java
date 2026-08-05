@@ -31,14 +31,8 @@ public class Contact {
     private String title;
     /** Phòng ban. */
     private String department;
-    /** Vị trí công tác. */
-    private String position;
     /** Email. */
     private String email;
-    /** Email cơ quan. */
-    private String workEmail;
-    /** Email cá nhân. */
-    private String personalEmail;
     /** Số Zalo. */
     private String zalo;
     /** Nguồn gốc liên hệ. */
@@ -47,12 +41,6 @@ public class Contact {
     private ContactGender gender;
     /** Ngày sinh. */
     private LocalDate dateOfBirth;
-    /** Địa chỉ. */
-    private String address;
-    /** Không gọi điện. */
-    private boolean doNotCall;
-    /** Không gửi email. */
-    private boolean doNotEmail;
     /** Là liên hệ chính của khách hàng. */
     private Boolean isPrimary;
     /** ID người tạo bản ghi (BE tự đóng dấu, client không gửi lên). */

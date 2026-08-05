@@ -20,17 +20,11 @@ public class ContactResult {
     private String fullName;
     private String title;
     private String department;
-    private String position;
     private String email;
-    private String workEmail;
-    private String personalEmail;
     private String zalo;
     private String source;
     private ContactGender gender;
     private LocalDate dateOfBirth;
-    private String address;
-    private boolean doNotCall;
-    private boolean doNotEmail;
     private Boolean isPrimary;
     // Audit: BE tự đóng dấu (AuditInterceptor), client không gửi lên.
     private Long createdBy;

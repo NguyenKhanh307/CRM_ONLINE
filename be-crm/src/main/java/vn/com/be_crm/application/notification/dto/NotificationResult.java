@@ -7,16 +7,17 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/** Output DTO cho Notification. */
+// output cho Notification. "id" là id dòng notification_recipients — dùng cho mark-read/xóa
+// đúng một người nhận.
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
 public class NotificationResult {
     private Long id;
     private String type;
     private String title;
     private String content;
-    private Long leadId;
+    private String targetType;
     private Long targetId;
-    /** Wrapper Boolean (không dùng primitive): Lombok sinh getIsRead() → JSON giữ key "isRead". */
+    // wrapper Boolean (không dùng primitive): Lombok sinh getIsRead() -> JSON giữ key "isRead"
     private Boolean isRead;
     private LocalDateTime createdAt;
 }

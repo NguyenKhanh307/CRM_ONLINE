@@ -21,11 +21,9 @@ export const QuotationInfoPanel = ({ quotation: q }: Props) => (
         <InfoRow label="Khách hàng" value={q.customerName} />
         <InfoRow label="Liên hệ" value={q.contactName} />
         <InfoRow label="Cơ hội" value={q.opportunityName} />
-        <InfoRow label="Chiến dịch" value={q.campaignName} />
         <InfoRow label="Người phụ trách" value={q.ownerName} />
         <InfoRow label="Ngày báo giá" value={q.quoteDate ? formatISODate(q.quoteDate) : null} />
         <InfoRow label="Hiệu lực đến" value={q.validUntil ? formatISODate(q.validUntil) : null} />
-        <InfoRow label="Tiền tệ" value={q.currency} />
         <InfoRow label="Tạm tính" value={q.subtotal != null ? formatCurrency(q.subtotal) : null} />
         <InfoRow label="Chiết khấu" value={q.discount != null ? formatCurrency(q.discount) : null} />
         <InfoRow label="Thuế" value={q.tax != null ? formatCurrency(q.tax) : null} />
@@ -37,7 +35,6 @@ export const QuotationInfoPanel = ({ quotation: q }: Props) => (
             <>
                 <InfoRow label="Khách phản hồi" value={CUSTOMER_RESPONSE_LABEL[q.customerResponse] ?? q.customerResponse} />
                 <InfoRow label="Ghi chú của khách" value={q.customerResponseNote} />
-                <InfoRow label="Thời điểm phản hồi" value={q.customerRespondedAt ? formatISODate(q.customerRespondedAt) : null} />
             </>
         )}
         <InfoRow label="Người tạo" value={q.createdByName} />

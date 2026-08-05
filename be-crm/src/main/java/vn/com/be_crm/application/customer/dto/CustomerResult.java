@@ -29,10 +29,7 @@ public class CustomerResult {
     private CustomerStatus status;
     private Integer creditDays;
     private BigDecimal creditLimit;
-    private String bankAccount;
-    private String bankName;
     private String rating;
-    private BigDecimal annualRevenue;
     private String employeeSize;
     private Boolean isDistributor;
     private Long ownerId;

@@ -1,6 +1,6 @@
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
-import type { CreateLeadPayload, LeadResult, UpdateLeadPayload } from '../types/leadTypes';
+import type { CreateLeadItemPayload, CreateLeadPayload, LeadItemResult, LeadResult, UpdateLeadPayload } from '../types/leadTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 import type { LeadRelatedResult } from '@/shared/types/related';
 
@@ -25,17 +25,14 @@ export const leadService = {
         }),
     handoverBulk: (payload: { ids: number[]; toUserId: number; reason?: string }) =>
         axiosInstance.post('/api/leads/handover-bulk', payload),
-    // bản ghi liên quan cho trang chi tiết (cơ hội đã convert + hoạt động)
+    // bản ghi liên quan cho trang chi tiết (hoạt động)
     getRelated: (id: number) =>
         axiosInstance.get<ApiResponse<LeadRelatedResult>>(`/api/leads/${id}/related`),
-    // chuyển đổi tiềm năng (qualified -> converted); customerId = dùng khách hàng đã có thay vì
-    // tạo mới (chống trùng khi phát hiện KH trùng MST/email/SĐT)
-    convert: (id: number, customerId?: number | null) =>
-        axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/convert`, { customerId: customerId ?? null }),
-    // đánh dấu đủ điều kiện thủ công (new/contacting -> qualified), không cần đủ 50 điểm
-    qualify: (id: number) => axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/qualify`),
-    lose: (id: number, reason?: string) =>
-        axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/lose`, { reason }),
     // nhân viên tự nhận chăm sóc tiềm năng chưa có người phụ trách (pool chung)
     claim: (id: number) => axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/claim`),
+    // sản phẩm quan tâm của tiềm năng (lead_items)
+    getItems: (leadId: number) =>
+        axiosInstance.get<ApiResponse<LeadItemResult[]>>(`/api/leads/${leadId}/items`),
+    createItem: (leadId: number, payload: CreateLeadItemPayload) =>
+        axiosInstance.post<ApiResponse<LeadItemResult>>(`/api/leads/${leadId}/items`, payload),
 };

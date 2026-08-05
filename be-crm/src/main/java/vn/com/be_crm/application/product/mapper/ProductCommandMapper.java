@@ -2,6 +2,7 @@ package vn.com.be_crm.application.product.mapper;
 
 import vn.com.be_crm.application.product.dto.*;
 import vn.com.be_crm.domain.product.entity.Product;
+import vn.com.be_crm.domain.product.enums.ProductStatus;
 import vn.com.be_crm.domain.product.enums.ProductType;
 
 import java.math.BigDecimal;
@@ -22,8 +23,7 @@ public class ProductCommandMapper {
                 .costPrice(cmd.getCostPrice() != null ? cmd.getCostPrice() : BigDecimal.ZERO)
                 .vatRate(cmd.getVatRate() != null ? cmd.getVatRate() : BigDecimal.ZERO)
                 .description(cmd.getDescription())
-                .isDiscontinued(cmd.getIsDiscontinued() != null ? cmd.getIsDiscontinued() : false)
-                .isActive(cmd.getIsActive() != null ? cmd.getIsActive() : true).build();
+                .status(cmd.getStatus() != null ? cmd.getStatus() : ProductStatus.active).build();
     }
 
     /**
@@ -41,8 +41,7 @@ public class ProductCommandMapper {
                 .costPrice(cmd.getCostPrice() != null ? cmd.getCostPrice() : e.getCostPrice())
                 .vatRate(cmd.getVatRate() != null ? cmd.getVatRate() : e.getVatRate())
                 .description(cmd.getDescription() != null ? cmd.getDescription() : e.getDescription())
-                .isDiscontinued(cmd.getIsDiscontinued() != null ? cmd.getIsDiscontinued() : e.getIsDiscontinued())
-                .isActive(cmd.getIsActive() != null ? cmd.getIsActive() : e.getIsActive())
+                .status(cmd.getStatus() != null ? cmd.getStatus() : e.getStatus())
                 .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).build();
     }
@@ -57,8 +56,8 @@ public class ProductCommandMapper {
                 .type(e.getType()).unit(e.getUnit())
                 .basePrice(e.getBasePrice())
                 .costPrice(e.getCostPrice()).vatRate(e.getVatRate())
-                .description(e.getDescription()).isDiscontinued(e.getIsDiscontinued())
-                .isActive(e.getIsActive()).createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
+                .description(e.getDescription()).status(e.getStatus())
+                .createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();
     }
 

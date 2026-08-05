@@ -13,30 +13,24 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Hibernate implementation của IAuditLogRepository — KHÔNG có bảng riêng cho nhật ký.
- * Gộp 5 nguồn dữ liệu đã có trong DB bằng UNION ALL native SQL, tất cả trong MỘT session
- * (TxSupport.read, theo mẫu {@code RelatedRepositoryImpl}):
- * <ol>
- *   <li>{@code quotation_approvals} — duyệt/từ chối báo giá</li>
- *   <li>{@code lead_transfers} — bàn giao tiềm năng</li>
- *   <li>{@code ticket_comments} (type='system') — nhật ký tự động của phiếu chăm sóc</li>
- *   <li>{@code notifications} — thông báo hệ thống đã phát</li>
- *   <li>{@code created_by}/{@code updated_by}/{@code deleted_by} của 6 bảng nghiệp vụ chính
- *       (leads/customers/opportunities/quotations/orders/invoices) — "ai tạo/sửa/xóa gần nhất"</li>
- * </ol>
- */
+// Hibernate implementation của IAuditLogRepository — KHÔNG có bảng riêng cho nhật ký.
+// Gộp 4 nguồn dữ liệu đã có trong DB bằng UNION ALL native SQL, tất cả trong MỘT session
+// (TxSupport.read, theo mẫu RelatedRepositoryImpl):
+// - quotation_approvals — duyệt/từ chối báo giá
+// - notifications — thông báo hệ thống đã phát
+// - created_by/updated_by/deleted_by của 6 bảng nghiệp vụ chính
+//   (leads/customers/opportunities/quotations/orders/invoices) — "ai tạo/sửa/xóa gần nhất"
+// lead_transfers/ticket_comments đã bỏ khỏi schema (bàn giao tiềm năng và nhật ký phiếu chăm sóc
+// không còn bảng riêng) nên 2 nguồn tương ứng bị cắt khỏi UNION.
 @Repository
 public class AuditLogRepositoryImpl implements IAuditLogRepository {
 
     private final SessionFactory sf;
 
-    /** @param sf Hibernate SessionFactory */
     public AuditLogRepositoryImpl(SessionFactory sf) {
         this.sf = sf;
     }
 
-    /** {@inheritDoc} */
     @Override
     @SuppressWarnings("unchecked")
     public PageResult<AuditLogEntry> list(String source, String q, int page, int size) {
@@ -66,13 +60,13 @@ public class AuditLogRepositoryImpl implements IAuditLogRepository {
         });
     }
 
-    /** Gán tham số dùng chung cho cả câu SELECT lẫn COUNT. */
+    // gán tham số dùng chung cho cả câu SELECT lẫn COUNT
     private void bindParams(org.hibernate.query.Query<?> query, String source, String q) {
         if (source != null && !source.isBlank()) query.setParameter("source", source);
         if (q != null && !q.isBlank()) query.setParameter("q", "%" + q.trim() + "%");
     }
 
-    /** Map một dòng 6 cột thành AuditLogEntry. */
+    // map một dòng 6 cột thành AuditLogEntry
     private AuditLogEntry toEntry(Object[] r) {
         return AuditLogEntry.builder()
                 .source(str(r[0])).actorName(str(r[1])).action(str(r[2]))
@@ -84,19 +78,17 @@ public class AuditLogRepositoryImpl implements IAuditLogRepository {
         return v == null ? null : v.toString();
     }
 
-    /** Đổi giá trị cột DATE/DATETIME của MySQL/TiDB sang LocalDateTime. */
+    // đổi giá trị cột DATE/DATETIME của MySQL/TiDB sang LocalDateTime
     private LocalDateTime toDateTime(Object v) {
         if (v == null) return null;
         if (v instanceof Timestamp ts) return ts.toLocalDateTime();
         return (LocalDateTime) v;
     }
 
-    /** UNION ALL của 5 nguồn — mỗi nhánh trả đúng 6 cột: source, actor_name, action, target_label, note, occurred_at. */
+    // UNION ALL của 4 nguồn — mỗi nhánh trả đúng 6 cột: source, actor_name, action, target_label, note, occurred_at
     private String unionSql() {
         return String.join(" UNION ALL ",
                 quotationApprovalSql(),
-                leadTransferSql(),
-                ticketCommentSql(),
                 notificationSql(),
                 recordChangeSql("leads", "Tiềm năng"),
                 recordChangeSql("customers", "Khách hàng"),
@@ -115,39 +107,14 @@ public class AuditLogRepositoryImpl implements IAuditLogRepository {
                 "LEFT JOIN quotations q ON q.id = qa.quotation_id";
     }
 
-    private String leadTransferSql() {
-        return "SELECT 'lead_transfer' AS source, uf.full_name AS actor_name, " +
-                "CONCAT('Bàn giao tiềm năng cho ', COALESCE(ut.full_name, CONCAT('#', lt.to_user_id))) AS action, " +
-                "CONCAT('Tiềm năng ', l.code) AS target_label, lt.reason AS note, lt.transferred_at AS occurred_at " +
-                "FROM lead_transfers lt " +
-                "LEFT JOIN users uf ON uf.id = lt.from_user_id " +
-                "LEFT JOIN users ut ON ut.id = lt.to_user_id " +
-                "LEFT JOIN leads l ON l.id = lt.lead_id";
-    }
-
-    private String ticketCommentSql() {
-        return "SELECT 'ticket_comment' AS source, u.full_name AS actor_name, " +
-                "'Nhật ký phiếu chăm sóc' AS action, CONCAT('Phiếu ', t.code) AS target_label, " +
-                "tc.content AS note, tc.created_at AS occurred_at " +
-                "FROM ticket_comments tc " +
-                "LEFT JOIN users u ON u.id = tc.author_id " +
-                "LEFT JOIN support_tickets t ON t.id = tc.ticket_id " +
-                "WHERE tc.type = 'system'";
-    }
-
     private String notificationSql() {
         return "SELECT 'notification' AS source, NULL AS actor_name, n.type AS action, " +
                 "n.title AS target_label, n.content AS note, n.created_at AS occurred_at " +
                 "FROM notifications n";
     }
 
-    /**
-     * Sự kiện tạo/sửa/xóa gần nhất trên một bảng nghiệp vụ chính (created_by/updated_by/deleted_by
-     * đã có sẵn — không thêm cột/bảng nào). Người thực hiện ưu tiên updated_by, sau đó created_by.
-     *
-     * @param table bảng nguồn (đã có cột code/created_at/updated_at/deleted_at/created_by/updated_by)
-     * @param label nhãn hiển thị tiếng Việt của phân hệ
-     */
+    // sự kiện tạo/sửa/xóa gần nhất trên một bảng nghiệp vụ chính (created_by/updated_by/deleted_by
+    // đã có sẵn — không thêm cột/bảng nào). Người thực hiện ưu tiên updated_by, sau đó created_by
     private String recordChangeSql(String table, String label) {
         return "SELECT 'record_change' AS source, u.full_name AS actor_name, " +
                 "(CASE WHEN t.deleted_at IS NOT NULL THEN 'Xóa bản ghi' " +

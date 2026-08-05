@@ -12,12 +12,12 @@ import java.util.Map;
 
 import static vn.com.be_crm.infrastructure.copilot.repository.CopilotSqlSupport.*;
 
-/**
- * SQL tổng hợp cho ngữ cảnh Copilot: chuỗi doanh thu 24 tháng, các bảng xếp hạng (nhân viên/chiến dịch/
- * sản phẩm/khách hàng) và số lượng bản ghi theo từng phân hệ.
- * <p>Mọi query đều loại bản ghi đã xóa mềm/trong Thùng rác bằng {@code deleted_at IS NULL}
- * (áp cho cả bảng chính lẫn bảng được JOIN vào).
- */
+// SQL tổng hợp cho ngữ cảnh Copilot: chuỗi doanh thu 24 tháng, các bảng xếp hạng (nhân viên/chiến dịch/
+// sản phẩm/khách hàng) và số lượng bản ghi theo từng phân hệ.
+// Mọi query đều loại bản ghi đã xóa mềm/trong Thùng rác bằng deleted_at IS NULL
+// (áp cho cả bảng chính lẫn bảng được JOIN vào).
+// invoices/invoice_items không còn cột total/amount lưu sẵn — mọi tổng tiền tính từ INVOICE_LINE_AMOUNT
+// (xem CopilotSqlSupport), join thẳng invoice_items thay vì đọc cột đã bỏ.
 final class CopilotAnalyticsQueries {
 
     private static final DateTimeFormatter YM = DateTimeFormatter.ofPattern("yyyy-MM");
@@ -27,22 +27,17 @@ final class CopilotAnalyticsQueries {
     private CopilotAnalyticsQueries() {
     }
 
-    /**
-     * Chuỗi doanh thu + số hóa đơn theo từng tháng trong 24 tháng gần nhất (tháng rỗng = 0).
-     *
-     * @param s       session Hibernate
-     * @param ctx     bộ đệm ngữ cảnh
-     * @param ownerId lọc người phụ trách (null = toàn bộ)
-     */
+    // chuỗi doanh thu + số hóa đơn theo từng tháng trong 24 tháng gần nhất (tháng rỗng = 0)
     static void appendMonthlySeries(Session s, StringBuilder ctx, Long ownerId) {
         LocalDate from = LocalDate.now().withDayOfMonth(1).minusMonths(SERIES_MONTHS - 1L);
         Map<String, Object> params = new HashMap<>();
         params.put("f", from);
         if (ownerId != null) params.put("o", ownerId);
 
-        List<Object[]> rs = rows(s, "SELECT DATE_FORMAT(invoice_date, '%Y-%m') p, COALESCE(SUM(total),0) v, COUNT(*) c " +
-                "FROM invoices WHERE status <> 'cancelled' AND deleted_at IS NULL AND invoice_date >= :f" +
-                ownerClause("owner_id", ownerId) + " GROUP BY p ORDER BY p", params);
+        List<Object[]> rs = rows(s, "SELECT DATE_FORMAT(i.invoice_date, '%Y-%m') p, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v, " +
+                "COUNT(DISTINCT i.id) c FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL AND i.invoice_date >= :f" +
+                ownerClause("i.owner_id", ownerId) + " GROUP BY p ORDER BY p", params);
         Map<String, BigDecimal> rev = new HashMap<>();
         Map<String, Long> cnt = new HashMap<>();
         for (Object[] r : rs) {
@@ -63,18 +58,10 @@ final class CopilotAnalyticsQueries {
         ctx.append("\n");
     }
 
-    /**
-     * Bốn bảng xếp hạng doanh thu trong khoảng chỉ định (top 8 mỗi loại).
-     * Khối "theo nhân viên" chỉ dựng cho ADMIN/quản lý.
-     *
-     * @param s            session Hibernate
-     * @param ctx          bộ đệm ngữ cảnh
-     * @param from         mốc bắt đầu
-     * @param to           mốc kết thúc (không bao gồm)
-     * @param rangeLabel   nhãn khoảng để hiển thị
-     * @param ownerId      lọc người phụ trách (null = toàn bộ)
-     * @param isPrivileged true nếu ADMIN/SALES_MANAGER
-     */
+    // bốn bảng xếp hạng doanh thu trong khoảng chỉ định (top 8 mỗi loại) — khối "theo nhân viên"
+    // chỉ dựng cho ADMIN/quản lý. "Theo chiến dịch" suy ra qua chuỗi Invoice -> Order -> Quotation ->
+    // Opportunity -> campaign_id (invoices không còn campaign_id trực tiếp); "theo khách hàng" suy ra
+    // qua Invoice -> Order -> Quotation -> customer_id (invoices không còn customer_id trực tiếp)
     static void appendRankings(Session s, StringBuilder ctx, LocalDate from, LocalDate to,
                                String rangeLabel, Long ownerId, boolean isPrivileged) {
         Map<String, Object> p = dateOwner(from, to, ownerId);
@@ -83,27 +70,35 @@ final class CopilotAnalyticsQueries {
 
         if (isPrivileged) {
             appendRanked(s, ctx, "Doanh thu theo nhân viên",
-                    "SELECT u.full_name, COALESCE(SUM(i.total),0) v FROM invoices i " +
+                    "SELECT u.full_name, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v " +
+                            "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
                             "JOIN users u ON u.id = i.owner_id AND u.deleted_at IS NULL " +
                             "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
                             "AND i.invoice_date >= :f AND i.invoice_date < :t" + ofInv +
                             " GROUP BY u.id, u.full_name ORDER BY v DESC LIMIT " + TOP_N, p, " đ");
         }
         appendRanked(s, ctx, "Doanh thu theo chiến dịch",
-                "SELECT c.name, COALESCE(SUM(i.total),0) v FROM invoices i " +
-                        "JOIN campaigns c ON c.id = i.campaign_id AND c.deleted_at IS NULL " +
+                "SELECT camp.name, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v " +
+                        "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                        "JOIN orders o ON o.id = i.order_id " +
+                        "JOIN quotations q ON q.id = o.quotation_id " +
+                        "JOIN opportunities opp ON opp.id = q.opportunity_id " +
+                        "JOIN campaigns camp ON camp.id = opp.campaign_id AND camp.deleted_at IS NULL " +
                         "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
                         "AND i.invoice_date >= :f AND i.invoice_date < :t" + ofInv +
-                        " GROUP BY c.id, c.name ORDER BY v DESC LIMIT " + TOP_N, p, " đ");
+                        " GROUP BY camp.id, camp.name ORDER BY v DESC LIMIT " + TOP_N, p, " đ");
         appendRanked(s, ctx, "Doanh thu theo khách hàng",
-                "SELECT c.name, COALESCE(SUM(i.total),0) v FROM invoices i " +
-                        "JOIN customers c ON c.id = i.customer_id AND c.deleted_at IS NULL " +
+                "SELECT cust.name, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v " +
+                        "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                        "JOIN orders o ON o.id = i.order_id " +
+                        "JOIN quotations q ON q.id = o.quotation_id " +
+                        "JOIN customers cust ON cust.id = q.customer_id AND cust.deleted_at IS NULL " +
                         "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
                         "AND i.invoice_date >= :f AND i.invoice_date < :t" + ofInv +
-                        " GROUP BY c.id, c.name ORDER BY v DESC LIMIT " + TOP_N, p, " đ");
+                        " GROUP BY cust.id, cust.name ORDER BY v DESC LIMIT " + TOP_N, p, " đ");
 
-        // Sản phẩm: invoice_items KHÔNG có deleted_at → lọc soft-delete qua hóa đơn cha.
-        List<Object[]> prod = rows(s, "SELECT p.name, COALESCE(SUM(ii.amount),0) v, COALESCE(SUM(ii.quantity),0) q " +
+        // sản phẩm: invoice_items KHÔNG có deleted_at → lọc soft-delete qua hóa đơn cha
+        List<Object[]> prod = rows(s, "SELECT p.name, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v, COALESCE(SUM(ii.quantity),0) q " +
                 "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
                 "JOIN products p ON p.id = ii.product_id AND p.deleted_at IS NULL " +
                 "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
@@ -119,15 +114,7 @@ final class CopilotAnalyticsQueries {
         ctx.append("\n");
     }
 
-    /**
-     * Số lượng bản ghi từng phân hệ: tổng cộng và phát sinh trong khoảng.
-     *
-     * @param s          session Hibernate
-     * @param ctx        bộ đệm ngữ cảnh
-     * @param cur        khoảng kỳ hiện tại
-     * @param rangeLabel nhãn khoảng
-     * @param ownerId    lọc người phụ trách (null = toàn bộ)
-     */
+    // số lượng bản ghi từng phân hệ: tổng cộng và phát sinh trong khoảng
     static void appendModuleCounts(Session s, StringBuilder ctx, DateRange cur, String rangeLabel, Long ownerId) {
         ctx.append("=== SỐ LƯỢNG BẢN GHI THEO PHÂN HỆ (tổng | phát sinh ").append(rangeLabel)
                 .append(", theo ngày tạo) ===\n");
@@ -144,7 +131,7 @@ final class CopilotAnalyticsQueries {
         ctx.append("\n");
     }
 
-    /** Chạy một truy vấn xếp hạng [nhãn, giá trị] rồi nối vào ngữ cảnh (bỏ qua nếu rỗng). */
+    // chạy một truy vấn xếp hạng [nhãn, giá trị] rồi nối vào ngữ cảnh (bỏ qua nếu rỗng)
     private static void appendRanked(Session s, StringBuilder ctx, String title, String sql,
                                      Map<String, Object> params, String unit) {
         List<Object[]> rs = rows(s, sql, params);
@@ -154,7 +141,7 @@ final class CopilotAnalyticsQueries {
         ctx.append(String.join("; ", parts)).append("\n");
     }
 
-    /** Đếm tổng + phát sinh trong kỳ cho một bảng nghiệp vụ (luôn loại bản ghi đã xóa). */
+    // đếm tổng + phát sinh trong kỳ cho một bảng nghiệp vụ (luôn loại bản ghi đã xóa)
     private static void appendCount(Session s, StringBuilder ctx, String label, String table,
                                     String ownerCol, DateRange cur, Long ownerId) {
         String of = ownerCol == null ? "" : ownerClause(ownerCol, ownerId);

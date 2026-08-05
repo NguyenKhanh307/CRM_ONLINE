@@ -10,27 +10,23 @@ import vn.com.be_crm.domain.order.repository.IOrderItemRepository;
 import vn.com.be_crm.domain.order.repository.IOrderRepository;
 import vn.com.be_crm.core.tx.port.ITransactionRunner;
 
-/**
- * Wire các UseCase của module Đơn hàng (order, item, trash, handover, import, workflow, xuất hóa đơn) qua @Bean.
- */
+// wire các UseCase của module Đơn hàng (order, item, trash, handover, import, workflow, xuất hóa đơn)
 @Configuration
 public class OrderBeanConfig {
 
     // ===== Order =====
 
-    /** @return CreateOrderUseCase */
-    @Bean public CreateOrderUseCase createOrderUseCase(IOrderRepository r) { return new CreateOrderUseCase(r); }
-    /** @return UpdateOrderUseCase */
-    @Bean public UpdateOrderUseCase updateOrderUseCase(IOrderRepository r, RecomputeOrderTotalsUseCase rc, NotifyAssignmentUseCase n) { return new UpdateOrderUseCase(r, rc, n); }
-    /** @return DeleteOrderUseCase */
+    @Bean public CreateOrderUseCase createOrderUseCase(IOrderRepository r,
+            vn.com.be_crm.application.lead.command.NotifyLeadFirstOrderUseCase notifyLeadFirstOrderUC) {
+        return new CreateOrderUseCase(r, notifyLeadFirstOrderUC);
+    }
+    @Bean public UpdateOrderUseCase updateOrderUseCase(IOrderRepository r, IOrderItemRepository ir, NotifyAssignmentUseCase n) { return new UpdateOrderUseCase(r, ir, n); }
     @Bean public DeleteOrderUseCase deleteOrderUseCase(IOrderRepository r) { return new DeleteOrderUseCase(r); }
-    /** @return GetOrderUseCase */
-    @Bean public GetOrderUseCase getOrderUseCase(IOrderRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new GetOrderUseCase(r, n); }
-    /** @return ListOrderUseCase */
-    @Bean public ListOrderUseCase listOrderUseCase(IOrderRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListOrderUseCase(r, n); }
-    /** @return OrderWorkflowUseCase — luồng trạng thái đơn hàng */
+    @Bean public GetOrderUseCase getOrderUseCase(IOrderRepository r, IOrderItemRepository ir, vn.com.be_crm.core.lookup.port.INameResolver n) { return new GetOrderUseCase(r, ir, n); }
+    @Bean public ListOrderUseCase listOrderUseCase(IOrderRepository r, IOrderItemRepository ir, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListOrderUseCase(r, ir, n); }
+    // luồng trạng thái đơn hàng
     @Bean public OrderWorkflowUseCase orderWorkflowUseCase(IOrderRepository r) { return new OrderWorkflowUseCase(r); }
-    /** @return CreateInvoiceFromOrderUseCase — xuất hóa đơn 1-1 từ đơn hàng */
+    // xuất hóa đơn 1-1 từ đơn hàng
     @Bean public CreateInvoiceFromOrderUseCase createInvoiceFromOrderUseCase(IOrderRepository r, IOrderItemRepository ir, IInvoiceRepository invr,
                                                                              ITransactionRunner tx) {
         return new CreateInvoiceFromOrderUseCase(r, ir, invr, tx);
@@ -38,33 +34,19 @@ public class OrderBeanConfig {
 
     // ===== Order Item =====
 
-    /** @return CreateOrderItemUseCase */
-    @Bean public CreateOrderItemUseCase createOrderItemUseCase(IOrderItemRepository r, RecomputeOrderTotalsUseCase rc) { return new CreateOrderItemUseCase(r, rc); }
-    /** @return UpdateOrderItemUseCase */
-    @Bean public UpdateOrderItemUseCase updateOrderItemUseCase(IOrderItemRepository r, RecomputeOrderTotalsUseCase rc) { return new UpdateOrderItemUseCase(r, rc); }
-    /** @return DeleteOrderItemUseCase */
-    @Bean public DeleteOrderItemUseCase deleteOrderItemUseCase(IOrderItemRepository r, RecomputeOrderTotalsUseCase rc) { return new DeleteOrderItemUseCase(r, rc); }
-    /** @return ListOrderItemUseCase */
+    @Bean public CreateOrderItemUseCase createOrderItemUseCase(IOrderItemRepository r) { return new CreateOrderItemUseCase(r); }
+    @Bean public UpdateOrderItemUseCase updateOrderItemUseCase(IOrderItemRepository r) { return new UpdateOrderItemUseCase(r); }
+    @Bean public DeleteOrderItemUseCase deleteOrderItemUseCase(IOrderItemRepository r) { return new DeleteOrderItemUseCase(r); }
     @Bean public ListOrderItemUseCase listOrderItemUseCase(IOrderItemRepository r) { return new ListOrderItemUseCase(r); }
 
     // ===== Trash =====
 
-    /** @return ListDeletedOrdersUseCase */
     @Bean public ListDeletedOrdersUseCase listDeletedOrdersUseCase(IOrderRepository r) { return new ListDeletedOrdersUseCase(r); }
-    /** @return RestoreOrderUseCase */
     @Bean public RestoreOrderUseCase restoreOrderUseCase(IOrderRepository r) { return new RestoreOrderUseCase(r); }
-    /** @return PurgeOrderUseCase */
     @Bean public PurgeOrderUseCase purgeOrderUseCase(IOrderRepository r) { return new PurgeOrderUseCase(r); }
 
     // ===== Handover & Import =====
 
-    /** @return HandoverBulkOrderUseCase */
     @Bean public HandoverBulkOrderUseCase handoverBulkOrderUseCase(IOrderRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkOrderUseCase(r, n); }
-    /** @return ImportBulkOrderUseCase */
     @Bean public ImportBulkOrderUseCase importBulkOrderUseCase(IOrderRepository r) { return new ImportBulkOrderUseCase(r); }
-
-    /** @return RecomputeOrderTotalsUseCase — tính lại tổng tiền từ dòng hàng (server là nguồn chân lý) */
-    @Bean public RecomputeOrderTotalsUseCase recomputeOrderTotalsUseCase(IOrderRepository r, IOrderItemRepository ir) {
-        return new RecomputeOrderTotalsUseCase(r, ir);
-    }
 }

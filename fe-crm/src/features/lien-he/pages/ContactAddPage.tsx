@@ -30,17 +30,11 @@ const toPayload = (f: ContactFormState): CreateContactPayload => {
         fullName: `${f.hoDem} ${f.ten}`.trim(),
         title: f.title || null,
         department: f.department || null,
-        position: f.position || null,
         email: f.email || null,
-        workEmail: f.workEmail || null,
-        personalEmail: f.personalEmail || null,
         zalo: f.zalo || null,
         source: f.source || null,
         gender: f.gender || null,
         dateOfBirth: f.dateOfBirth || null,
-        address: f.address || null,
-        doNotCall: f.doNotCall,
-        doNotEmail: f.doNotEmail,
         isPrimary: f.isPrimary,
         phones,
     };
@@ -75,13 +69,11 @@ const ContactAddPage = () => {
         collectErrors({
             ten: !form.ten.trim() ? 'Tên không được để trống' : null,
             email: emailError(form.email),
-            workEmail: emailError(form.workEmail),
-            personalEmail: emailError(form.personalEmail),
             mobilePhone: phoneError(form.mobilePhone),
             officePhone: phoneError(form.officePhone),
         });
 
-    const submit = async (andNew: boolean) => {
+    const submit = async () => {
         // Lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ.
         const errs = validate();
         setErrors(errs);
@@ -90,14 +82,7 @@ const ContactAddPage = () => {
         if (!(await confirmCreate('liên hệ'))) return;
 
         mutate(toPayload(form), {
-            onSuccess: () => {
-                if (andNew) {
-                    setForm(initialForm);
-                    showAlert('Đã lưu liên hệ thành công');
-                } else {
-                    navigate('/lien-he');
-                }
-            },
+            onSuccess: () => navigate('/lien-he'),
             onError: (err: unknown) => {
                 const msg =
                     (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -108,7 +93,7 @@ const ContactAddPage = () => {
     };
 
     const formRef = useRef<HTMLDivElement>(null);
-    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+    useFormKeyboardNav(formRef, { onSubmit: () => submit() });
 
     // Cảnh báo (không chặn) khi email/SĐT trùng bản ghi đã có
     const { data: duplicates } = useDuplicateCheck({ email: form.email, phone: form.mobilePhone });
@@ -119,8 +104,7 @@ const ContactAddPage = () => {
                 title="Thêm Liên hệ"
                 saving={isPending}
                 onCancel={() => navigate(-1)}
-                onSave={() => submit(false)}
-                onSaveAndNew={() => submit(true)}
+                onSave={() => submit()}
             />
 
             <DuplicateWarning matches={duplicates} />

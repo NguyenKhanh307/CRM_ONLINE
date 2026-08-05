@@ -34,14 +34,8 @@ public class ContactHibernate implements IAuditable {
     private String title;
     @Column(name = "department", length = 100)
     private String department;
-    @Column(name = "position", length = 100)
-    private String position;
     @Column(name = "email", length = 50)
     private String email;
-    @Column(name = "work_email", length = 100)
-    private String workEmail;
-    @Column(name = "personal_email", length = 100)
-    private String personalEmail;
     @Column(name = "zalo", length = 20)
     private String zalo;
     @Column(name = "source", length = 30)
@@ -51,12 +45,6 @@ public class ContactHibernate implements IAuditable {
     private ContactGender gender;
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
-    @Column(name = "address", length = 255)
-    private String address;
-    @Column(name = "do_not_call")
-    private boolean doNotCall;
-    @Column(name = "do_not_email")
-    private boolean doNotEmail;
     @Column(name = "is_primary")
     private Boolean isPrimary;
     // updatable = false: created_by không bao giờ vào câu UPDATE → merge() không thể NULL đè

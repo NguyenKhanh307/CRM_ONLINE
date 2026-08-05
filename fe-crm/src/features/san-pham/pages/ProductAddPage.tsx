@@ -18,16 +18,22 @@ const TYPE_OPTIONS = [
     { value: 'service', label: 'Dịch vụ' },
 ];
 
+const STATUS_OPTIONS = [
+    { value: 'active', label: 'Đang kinh doanh' },
+    { value: 'inactive', label: 'Ngừng hoạt động' },
+    { value: 'discontinued', label: 'Ngừng kinh doanh' },
+];
+
 interface FormState {
     sku: string; name: string; categoryId: string; type: string;
     unit: string;
     basePrice: string; costPrice: string; vatRate: string;
-    description: string; isDiscontinued: boolean; isActive: boolean;
+    description: string; status: 'active' | 'inactive' | 'discontinued';
 }
 
 const INITIAL: FormState = {
     sku: '', name: '', categoryId: '', type: 'goods', unit: '',
-    basePrice: '', costPrice: '', vatRate: '', description: '', isDiscontinued: false, isActive: true,
+    basePrice: '', costPrice: '', vatRate: '', description: '', status: 'active',
 };
 
 const num = (s: string): number | null => (s.trim() ? Number(s) : null);
@@ -64,7 +70,7 @@ const ProductAddPage = () => {
             vatRate: percentError(form.vatRate, 'Thuế VAT'),
         });
 
-    const submit = async (andNew: boolean) => {
+    const submit = async () => {
         const errs = validate();
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
@@ -78,15 +84,11 @@ const ProductAddPage = () => {
             costPrice: num(form.costPrice),
             vatRate: num(form.vatRate),
             description: form.description || null,
-            isDiscontinued: form.isDiscontinued,
-            isActive: form.isActive,
+            status: form.status,
         };
         if (!(await confirmCreate('hàng hóa'))) return;
         mutate(payload, {
-            onSuccess: () => {
-                if (andNew) { setForm(INITIAL); showAlert('Đã lưu sản phẩm thành công'); }
-                else navigate('/san-pham');
-            },
+            onSuccess: () => navigate('/san-pham'),
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Có lỗi xảy ra khi lưu sản phẩm';
@@ -96,12 +98,12 @@ const ProductAddPage = () => {
     };
 
     const formRef = useRef<HTMLDivElement>(null);
-    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+    useFormKeyboardNav(formRef, { onSubmit: () => submit() });
 
     return (
         <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm Sản phẩm" saving={isPending}
-                onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
+                onCancel={() => navigate(-1)} onSave={() => submit()} />
 
             <div className="bg-white rounded-card shadow-sm p-6 space-y-8">
                 <FormSection title="Thông tin chung">
@@ -151,16 +153,9 @@ const ProductAddPage = () => {
                         <FieldRow label="Mô tả" alignTop>
                             <textarea rows={3} value={form.description} onChange={(e) => set({ description: e.target.value })} className={`${inputCls} resize-none`} />
                         </FieldRow>
-                        <div className="flex items-center gap-8 ml-[160px]">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" checked={form.isActive} onChange={(e) => set({ isActive: e.target.checked })} className="w-4 h-4 accent-primary" />
-                                <span className="text-md text-text-main">Đang kinh doanh</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" checked={form.isDiscontinued} onChange={(e) => set({ isDiscontinued: e.target.checked })} className="w-4 h-4 accent-primary" />
-                                <span className="text-md text-text-main">Ngừng theo dõi</span>
-                            </label>
-                        </div>
+                        <FieldRow label="Trạng thái">
+                            <SearchableSelect value={form.status} onChange={(v) => set({ status: v as FormState['status'] })} options={STATUS_OPTIONS} />
+                        </FieldRow>
                     </div>
                 </FormSection>
             </div>

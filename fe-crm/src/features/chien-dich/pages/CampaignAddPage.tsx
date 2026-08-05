@@ -53,7 +53,6 @@ const CampaignAddPage = () => {
             return next;
         });
     };
-    const reset = () => setForm(initialState(defaultOwnerId));
     const num = (v: string): number | null => (v === '' ? null : Number(v));
 
     // kiểm tra bắt buộc + biên (khớp ràng buộc backend) - trả map field->lỗi
@@ -67,7 +66,7 @@ const CampaignAddPage = () => {
         });
 
     // hàm lưu — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
-    const submit = async (andNew: boolean) => {
+    const submit = async () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
@@ -91,10 +90,7 @@ const CampaignAddPage = () => {
         // bước hỏi xác nhận rồi gọi api lưu
         if (!(await confirmCreate('chiến dịch'))) return;
         mutate(payload, {
-            onSuccess: () => {
-                if (andNew) { reset(); showAlert('Đã lưu Chiến dịch thành công'); }
-                else navigate('/chien-dich');
-            },
+            onSuccess: () => navigate('/chien-dich'),
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Có lỗi xảy ra khi lưu Chiến dịch';
@@ -104,12 +100,12 @@ const CampaignAddPage = () => {
     };
 
     const formRef = useRef<HTMLDivElement>(null);
-    useFormKeyboardNav(formRef, { onSubmit: () => submit(false) });
+    useFormKeyboardNav(formRef, { onSubmit: () => submit() });
 
     return (
         <div ref={formRef} className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
             <FormPageHeader title="Thêm Chiến dịch" saving={isPending}
-                onCancel={() => navigate(-1)} onSave={() => submit(false)} onSaveAndNew={() => submit(true)} />
+                onCancel={() => navigate(-1)} onSave={() => submit()} />
 
             <div className="bg-white rounded-card shadow-sm p-6 space-y-8">
                 <FormSection title="Thông tin chung">

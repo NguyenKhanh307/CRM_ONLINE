@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiSearch, FiCheck, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiSearch, FiCheck, FiChevronDown, FiChevronUp, FiX } from 'react-icons/fi';
 
 export interface SelectOption {
     value: string;
@@ -162,7 +162,7 @@ export const SearchableSelect = ({
                         setOpen(true);
                     }
                 }}
-                className={`${baseCls} flex items-center justify-between pr-8 text-left`}
+                className={`${baseCls} flex items-center justify-between ${selectedLabel ? 'pr-14' : 'pr-8'} text-left`}
             >
                 <span className={selectedLabel ? 'text-text-main' : 'text-gray-400'}>
                     {selectedLabel || placeholder}
@@ -171,6 +171,22 @@ export const SearchableSelect = ({
                     {open ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
                 </span>
             </button>
+
+            {/* Xóa lựa chọn hiện tại — chỉ hiện khi đã chọn giá trị */}
+            {selectedLabel && (
+                <button
+                    type="button"
+                    tabIndex={-1}
+                    title="Xóa lựa chọn"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onChange('');
+                    }}
+                    className="absolute inset-y-0 right-7 flex items-center px-1 text-gray-400 hover:text-danger"
+                >
+                    <FiX size={14} />
+                </button>
+            )}
 
             {/* Dropdown — portal ra body, position: fixed, z cao hơn cả modal (z-[9999]) */}
             {open && rect && createPortal(
@@ -196,6 +212,20 @@ export const SearchableSelect = ({
                             placeholder={searchPlaceholder}
                             className="flex-1 text-md text-text-main placeholder-gray-400 outline-none bg-transparent"
                         />
+                        {search && (
+                            <button
+                                type="button"
+                                title="Xóa nội dung tìm kiếm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSearch('');
+                                    (e.currentTarget.parentElement?.querySelector('input') as HTMLInputElement | null)?.focus();
+                                }}
+                                className="text-gray-400 hover:text-danger flex-shrink-0"
+                            >
+                                <FiX size={14} />
+                            </button>
+                        )}
                         <FiSearch size={14} className="text-gray-400 flex-shrink-0" />
                     </div>
 
