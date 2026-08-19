@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FiCalendar } from 'react-icons/fi';
 import { inputCls } from './formStyles';
-import { formatISODate, parseVNDate } from '@/shared/utils/date';
+import { formatISODate, parseVNDate, maskDate } from '@/shared/utils/date';
 import { Calendar } from './Calendar';
 import { useAnchoredPanel } from './useAnchoredPanel';
 
@@ -13,18 +13,6 @@ interface DateInputProps {
     onChange: (iso: string) => void;
     className?: string;
     placeholder?: string;
-}
-
-// ghép chuỗi số thành mặt nạ dd/mm/yyyy (tự chèn dấu '/')
-function maskDate(raw: string): string {
-    const digits = raw.replace(/\D/g, '').slice(0, 8);
-    const dd = digits.slice(0, 2);
-    const mm = digits.slice(2, 4);
-    const yyyy = digits.slice(4, 8);
-    let out = dd;
-    if (digits.length >= 3) out += '/' + mm;
-    if (digits.length >= 5) out += '/' + yyyy;
-    return out;
 }
 
 // ô nhập ngày hiển thị & nhập theo dd/mm/yyyy, kèm lịch popup, nhưng lưu/emit ISO yyyy-mm-dd
@@ -50,7 +38,7 @@ export const DateInput = ({
         const iso = parseVNDate(raw);
         if (iso) onChange(iso);
     };
-
+    // khi gõ, chỉ cập nhật text hiển thị (chưa commit)
     const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setText(maskDate(e.target.value));
     };

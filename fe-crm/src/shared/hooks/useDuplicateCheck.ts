@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import axiosInstance from '@/core/axios/axiosInstance';
 import type { ApiResponse } from '@/shared/types/api';
 import type { DuplicateCheckParams, DuplicateMatch } from '@/shared/types/duplicate';
@@ -23,16 +23,14 @@ export function useDuplicateCheck(params: DuplicateCheckParams) {
 
     const hasValue = Boolean(debounced.email || debounced.phone || debounced.taxCode);
 
-    return useQuery({
-        queryKey: ['duplicates', debounced, excludeModule, excludeId],
-        queryFn: () => duplicateService.check({
-            email: debounced.email || undefined,
-            phone: debounced.phone || undefined,
-            taxCode: debounced.taxCode || undefined,
-            excludeModule,
-            excludeId,
-        }).then(r => r.data.data),
-        enabled: hasValue,
-        staleTime: 30_000,
-    });
+    // không có staleTime tương đương ở useLiveQuery (chấp nhận đánh đổi) — mỗi lần đổi key đều gọi
+    // lại api, nhưng đã debounce 500ms ở trên nên không gọi dồn dập
+    const key = `duplicates:${JSON.stringify(debounced)}:${excludeModule ?? ''}:${excludeId ?? ''}`;
+    return useLiveQuery(key, () => duplicateService.check({
+        email: debounced.email || undefined,
+        phone: debounced.phone || undefined,
+        taxCode: debounced.taxCode || undefined,
+        excludeModule,
+        excludeId,
+    }).then(r => r.data.data), hasValue);
 }

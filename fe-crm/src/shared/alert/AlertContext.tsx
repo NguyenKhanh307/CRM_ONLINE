@@ -1,7 +1,7 @@
 import { createContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { AlertModal } from '@/shared/components/AlertModal';
 import { setAlertHandler } from './alertBridge';
-
+// context cung cấp showAlert() cho các component con trong cây React
 interface AlertContextValue {
     showAlert: (message: string) => void;
 }

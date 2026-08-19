@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FiCalendar } from 'react-icons/fi';
 import { inputCls } from './formStyles';
-import { formatISODate, parseVNDate } from '@/shared/utils/date';
+import { formatISODate, parseVNDate, maskDate } from '@/shared/utils/date';
 import { Calendar } from './Calendar';
 import { useAnchoredPanel } from './useAnchoredPanel';
 
@@ -13,18 +13,6 @@ interface DateTimeInputProps {
     onChange: (iso: string) => void;
     className?: string;
     placeholder?: string;
-}
-
-// ghép chuỗi số thành mặt nạ dd/mm/yyyy (tự chèn dấu '/')
-function maskDate(raw: string): string {
-    const digits = raw.replace(/\D/g, '').slice(0, 8);
-    const dd = digits.slice(0, 2);
-    const mm = digits.slice(2, 4);
-    const yyyy = digits.slice(4, 8);
-    let out = dd;
-    if (digits.length >= 3) out += '/' + mm;
-    if (digits.length >= 5) out += '/' + yyyy;
-    return out;
 }
 
 // tách ISO datetime "yyyy-mm-ddTHH:mm" thành phần ngày ISO và phần giờ
@@ -81,14 +69,15 @@ export const DateTimeInput = ({
     };
 
     return (
-        <div className={`flex gap-2 ${className}`}>
-            <div ref={containerRef} className="relative flex-1 min-w-[150px]">
+        <div className={`flex gap-1.5 ${className}`}>
+            <div ref={containerRef} className="relative flex-1 min-w-[110px] max-w-[160px]">
                 <input
                     type="text"
                     inputMode="numeric"
                     value={dateText}
                     placeholder={placeholder}
                     onChange={(e) => setDateText(maskDate(e.target.value))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleDateBlur(); }}
                     onBlur={handleDateBlur}
                     className={`${inputCls} pr-9`}
                 />
@@ -112,12 +101,14 @@ export const DateTimeInput = ({
                     document.body,
                 )}
             </div>
-            <input
-                type="time"
-                value={time}
-                onChange={handleTimeChange}
-                className={`${inputCls} w-24`}
-            />
+            <div className="w-[88px] shrink-0">
+                <input
+                    type="time"
+                    value={time}
+                    onChange={handleTimeChange}
+                    className={`${inputCls} px-1.5`}
+                />
+            </div>
         </div>
     );
 };

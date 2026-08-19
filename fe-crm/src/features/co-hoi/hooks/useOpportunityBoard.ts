@@ -1,10 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { opportunityService } from '../services/opportunityService';
 
 // nạp bảng Kanban cơ hội (cột = giai đoạn pipeline, thẻ = cơ hội)
 export function useOpportunityBoard(q?: string) {
-    return useQuery({
-        queryKey: ['opportunities', 'board', q ?? ''],
-        queryFn: () => opportunityService.getBoard(q).then(r => r.data.data),
-    });
+    return useLiveQuery(`opportunities:board:${q ?? ''}`, () => opportunityService.getBoard(q).then(r => r.data.data));
 }

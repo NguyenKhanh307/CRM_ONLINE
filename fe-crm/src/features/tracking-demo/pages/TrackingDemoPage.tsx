@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { HERO_CONTENT, UTM_PARAM } from '../config/trackingDemoConfig';
 import { useTrackingCampaigns } from '../hooks/useTrackingCampaigns';
@@ -27,13 +27,15 @@ const TrackingDemoPage = () => {
     // mã chiến dịch trên url — chiến dịch chỉ đính qua URL, không còn ô chọn tay trên trang
     const utmCode = searchParams.get(UTM_PARAM);
 
-    // Vào bằng link quảng cáo kèm ?utm_campaign=<mã>: tự so khớp chiến dịch và mở phiên luôn.
+    // Tự mở phiên ngay khi vào trang — không bắt khách bấm nút mới xem được sản phẩm.
+    // Có ?utm_campaign=<mã> khớp thì gắn chiến dịch nguồn, không thì mở phiên trơn.
     useEffect(() => {
-        if (restoring || lead || autoStartedRef.current || !utmCode || campaigns.length === 0) return;
-        const match = campaigns.find((c) => c.code.toLowerCase() === utmCode.toLowerCase());
-        if (!match) return;
+        if (restoring || lead || autoStartedRef.current) return;
+        // có utm nhưng danh sách chiến dịch chưa tải xong thì đợi, để gắn đúng nguồn
+        if (utmCode && campaigns.length === 0) return;
         autoStartedRef.current = true;
-        void start(match.id);
+        const match = utmCode ? campaigns.find((c) => c.code.toLowerCase() === utmCode.toLowerCase()) : undefined;
+        void start(match ? match.id : null);
     }, [restoring, lead, utmCode, campaigns, start]);
 
     const handleSubmit = (form: LeadFormState) => {
@@ -52,43 +54,25 @@ const TrackingDemoPage = () => {
                     <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">{message}</div>
                 )}
 
-                {!lead ? (
-                    <section className="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center">
-                        <p className="mb-3 text-sm text-gray-500">
-                            {restoring
-                                ? 'Đang kiểm tra trình duyệt xem đã có mã theo dõi chưa...'
-                                : 'Bấm để xem danh sách sản phẩm và gửi yêu cầu báo giá.'}
-                        </p>
-                        <button
-                            type="button"
-                            disabled={busy || restoring}
-                            onClick={() => void start(null)}
-                            className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            Xem sản phẩm & nhận báo giá
-                        </button>
-                    </section>
-                ) : (
-                    <>
-                        <ProductCatalog
-                            products={products}
-                            isLoading={productsLoading}
-                            quantities={cart.quantities}
-                            onToggle={cart.toggle}
-                            onQuantityChange={cart.setQuantity}
-                            onView={trackView}
-                        />
-                        <QuoteCart
-                            products={products}
-                            quantities={cart.quantities}
-                            onRemove={cart.remove}
-                            onRequestQuote={() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                        />
-                        <div ref={formRef}>
-                            <LeadContactForm busy={busy} itemCount={cart.count} onSubmit={handleSubmit} />
-                        </div>
-                    </>
-                )}
+                <ProductCatalog
+                    products={products}
+                    isLoading={productsLoading}
+                    quantities={cart.quantities}
+                    onToggle={cart.toggle}
+                    onQuantityChange={cart.setQuantity}
+                    onView={trackView}
+                />
+                <QuoteCart
+                    products={products}
+                    quantities={cart.quantities}
+                    onRemove={cart.remove}
+                    onRequestQuote={() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                />
+                <div ref={formRef}>
+                    {/* phiên tracking (lead) có thể chưa kịp mở ngay lúc trang vừa tải — khóa nút gửi
+                        tới khi có phiên, tránh requestQuote() no-op im lặng nếu khách bấm quá nhanh */}
+                    <LeadContactForm busy={busy || !lead} itemCount={cart.count} onSubmit={handleSubmit} />
+                </div>
             </div>
         </div>
     );

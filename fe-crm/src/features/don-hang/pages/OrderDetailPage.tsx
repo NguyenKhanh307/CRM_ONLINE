@@ -64,7 +64,9 @@ const OrderDetailPage = () => {
                     { label: 'Người phụ trách', value: order.ownerName },
                 ]}
                 actions={
-                    <ActionButton variant="outline" icon={FiEdit2} onClick={() => setEditOpen(true)}>Sửa</ActionButton>
+                    !order.isLocked && (
+                        <ActionButton variant="outline" icon={FiEdit2} onClick={() => setEditOpen(true)}>Sửa</ActionButton>
+                    )
                 }
             />
 

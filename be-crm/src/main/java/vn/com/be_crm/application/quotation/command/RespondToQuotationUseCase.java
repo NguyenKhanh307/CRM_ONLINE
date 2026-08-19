@@ -19,13 +19,16 @@ public class RespondToQuotationUseCase {
     private final IQuotationRepository quotationRepo;
     private final CreateNotificationUseCase createNotificationUC;
     private final ConvertQuotationToOrderUseCase convertToOrderUC;
+    private final SetPrimaryQuotationUseCase setPrimaryUC;
     private final ITransactionRunner tx;
 
     public RespondToQuotationUseCase(IQuotationRepository quotationRepo, CreateNotificationUseCase createNotificationUC,
-                                      ConvertQuotationToOrderUseCase convertToOrderUC, ITransactionRunner tx) {
+                                      ConvertQuotationToOrderUseCase convertToOrderUC, SetPrimaryQuotationUseCase setPrimaryUC,
+                                      ITransactionRunner tx) {
         this.quotationRepo = quotationRepo;
         this.createNotificationUC = createNotificationUC;
         this.convertToOrderUC = convertToOrderUC;
+        this.setPrimaryUC = setPrimaryUC;
         this.tx = tx;
     }
 
@@ -76,6 +79,11 @@ public class RespondToQuotationUseCase {
         }
 
         Quotation saved = quotationRepo.save(builder.build());
+
+        // khách đồng ý -> báo giá này tự động thành báo giá đồng bộ (primary) của cơ hội
+        if ("accept".equals(action) && saved.getOpportunityId() != null) {
+            setPrimaryUC.execute(saved.getId());
+        }
 
         if (willAccept && !saved.isLocked()) {
             try {

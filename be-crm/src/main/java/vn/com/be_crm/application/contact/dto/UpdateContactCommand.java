@@ -1,6 +1,7 @@
 package vn.com.be_crm.application.contact.dto;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +23,7 @@ public class UpdateContactCommand {
     @Size(max = 100) private String department;
     @Size(max = 50) @Email(message = "Email không hợp lệ") private String email;
     @Size(max = 20) private String zalo;
+    @Size(max = 11) @Pattern(regexp = "^$|^[0-9+.() -]{8,15}$", message = "Số điện thoại không hợp lệ") private String phone;
     @Size(max = 30) private String source;
     private ContactGender gender;
     private LocalDate dateOfBirth;

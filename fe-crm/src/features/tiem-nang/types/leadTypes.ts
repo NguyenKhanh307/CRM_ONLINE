@@ -74,6 +74,7 @@ export interface LeadItemResult {
     id: number;
     leadId: number;
     productId: number;
+    quantity: number;
     interestType: 'viewed' | 'requested_quote';
     note: string | null;
     createdAt: string;

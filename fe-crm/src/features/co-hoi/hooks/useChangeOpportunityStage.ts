@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { opportunityService } from '../services/opportunityService';
-import type { BoardColumn } from '../types/boardTypes';
 
 interface ChangeStageVars {
     id: number;
@@ -8,55 +8,20 @@ interface ChangeStageVars {
     winLossReason?: string | null;
 }
 
-// chuyển thẻ sang cột mới trong dữ liệu cache: cập nhật cả số lượng và tổng tiền của 2 cột
-function moveCard(columns: BoardColumn[], id: number, toStageId: number): BoardColumn[] {
-    const card = columns.flatMap(c => c.cards).find(c => c.id === id);
-    if (!card) return columns;
-    const amount = card.amount ?? 0;
+// đổi giai đoạn của một cơ hội (kéo-thả trên Kanban) — lớp data ở đây không có cache dùng chung
+// để đọc/ghi trực tiếp như React Query, nên cập nhật lạc quan + rollback được chuyển xuống state
+// cục bộ của OpportunityBoardPage; hook này chỉ lo gọi API + báo làm mới sau khi thành công
+export function useChangeOpportunityStage() {
+    const { mutate: run, isPending } = useLiveMutation(
+        ({ id, stageId, winLossReason }: ChangeStageVars) => opportunityService.changeStage(id, { stageId, winLossReason }));
 
-    return columns.map(col => {
-        if (col.cards.some(c => c.id === id) && col.stageId !== toStageId) {
-            return {
-                ...col,
-                cards: col.cards.filter(c => c.id !== id),
-                total: Math.max(0, col.total - 1),
-                sumAmount: col.sumAmount - amount,
-            };
-        }
-        if (col.stageId === toStageId && !col.cards.some(c => c.id === id)) {
-            return {
-                ...col,
-                cards: [{ ...card, stageId: toStageId }, ...col.cards],
-                total: col.total + 1,
-                sumAmount: col.sumAmount + amount,
-            };
-        }
-        return col;
-    });
-}
+    // notify('opportunities') đánh thức mọi key con — cả bảng Kanban ('opportunities:board:...')
+    // lẫn danh sách cơ hội ('opportunities:paged:...') — kèm trang chi tiết nếu đang mở
+    const mutate: typeof run = (input, callbacks) =>
+        run(input, {
+            ...callbacks,
+            onSuccess: (data) => { notify('opportunities'); notify(`opportunity:${input.id}`); callbacks?.onSuccess?.(data); },
+        });
 
-// đổi giai đoạn của một cơ hội (kéo-thả trên Kanban), cập nhật lạc quan và tự rollback khi lỗi
-// q: từ khóa tìm kiếm hiện tại của bảng — phải khớp queryKey đang hiển thị
-export function useChangeOpportunityStage(q?: string) {
-    const qc = useQueryClient();
-    const key = ['opportunities', 'board', q ?? ''];
-
-    return useMutation({
-        mutationFn: ({ id, stageId, winLossReason }: ChangeStageVars) =>
-            opportunityService.changeStage(id, { stageId, winLossReason }),
-        onMutate: async ({ id, stageId }) => {
-            await qc.cancelQueries({ queryKey: key });
-            const previous = qc.getQueryData<BoardColumn[]>(key);
-            qc.setQueryData<BoardColumn[]>(key, cols => (cols ? moveCard(cols, id, stageId) : cols));
-            return { previous };
-        },
-        onError: (_err, _vars, ctx) => {
-            if (ctx?.previous) qc.setQueryData(key, ctx.previous);
-        },
-        // làm mới cả bảng Kanban lẫn danh sách cơ hội (queryKey ['opportunities'] khớp tiền tố) + trang chi tiết nếu đang mở
-        onSettled: (_d, _e, v) => {
-            qc.invalidateQueries({ queryKey: ['opportunities'] });
-            qc.invalidateQueries({ queryKey: ['opportunity', v.id] });
-        },
-    });
+    return { mutate, isPending };
 }

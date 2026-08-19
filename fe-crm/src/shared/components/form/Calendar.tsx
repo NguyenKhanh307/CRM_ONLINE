@@ -15,6 +15,7 @@ const MONTHS = [
 ];
 
 const pad = (n: number) => String(n).padStart(2, '0');
+// trả về ISO yyyy-mm-dd từ năm, tháng (0..11), ngày
 const toISO = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
 // lưới lịch chọn ngày (dd/mm/yyyy) thuần — không tự dựng portal
@@ -37,7 +38,7 @@ export const Calendar = ({ value, onSelect }: CalendarProps) => {
     }, [value]);
 
     const firstDay = new Date(viewYear, viewMonth, 1).getDay();      // thứ của ngày 1
-    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate(); // số ngày trong tháng
 
     const prevMonth = () => {
         if (viewMonth === 0) { setViewMonth(11); setViewYear((y) => y - 1); }
@@ -50,6 +51,8 @@ export const Calendar = ({ value, onSelect }: CalendarProps) => {
 
     const today = new Date();
     const todayISO = toISO(today.getFullYear(), today.getMonth(), today.getDate());
+    // dải năm cho dropdown: đủ xa quá khứ (ngày sinh) lẫn tương lai gần (hạn hợp đồng...)
+    const yearOptions = Array.from({ length: 111 }, (_, i) => today.getFullYear() + 10 - i);
 
     // các ô: đệm đầu tháng bằng null, rồi 1..daysInMonth
     const cells: (number | null)[] = [
@@ -65,9 +68,26 @@ export const Calendar = ({ value, onSelect }: CalendarProps) => {
                     className="p-1 rounded hover:bg-gray-100 text-text-main">
                     <FiChevronLeft size={16} />
                 </button>
-                <span className="text-md font-medium text-text-main">
-                    {MONTHS[viewMonth]} {viewYear}
-                </span>
+                <div className="flex items-center gap-1">
+                    <select
+                        value={viewMonth}
+                        onChange={(e) => setViewMonth(Number(e.target.value))}
+                        className="text-md font-medium text-text-main bg-transparent rounded hover:bg-gray-100 py-0.5 cursor-pointer focus:outline-none"
+                    >
+                        {MONTHS.map((m, i) => (
+                            <option key={m} value={i}>{m}</option>
+                        ))}
+                    </select>
+                    <select
+                        value={viewYear}
+                        onChange={(e) => setViewYear(Number(e.target.value))}
+                        className="text-md font-medium text-text-main bg-transparent rounded hover:bg-gray-100 py-0.5 cursor-pointer focus:outline-none"
+                    >
+                        {yearOptions.map((y) => (
+                            <option key={y} value={y}>{y}</option>
+                        ))}
+                    </select>
+                </div>
                 <button type="button" onClick={nextMonth}
                     className="p-1 rounded hover:bg-gray-100 text-text-main">
                     <FiChevronRight size={16} />
@@ -93,13 +113,12 @@ export const Calendar = ({ value, onSelect }: CalendarProps) => {
                             key={iso}
                             type="button"
                             onClick={() => onSelect(iso)}
-                            className={`h-8 w-8 mx-auto flex items-center justify-center rounded-full text-md transition-colors ${
-                                isSelected
-                                    ? 'bg-primary text-white'
-                                    : isToday
-                                        ? 'text-primary font-medium hover:bg-gray-100'
-                                        : 'text-text-main hover:bg-gray-100'
-                            }`}
+                            className={`h-8 w-8 mx-auto flex items-center justify-center rounded-full text-md transition-colors ${isSelected
+                                ? 'bg-primary text-white'
+                                : isToday
+                                    ? 'text-primary font-medium hover:bg-gray-100'
+                                    : 'text-text-main hover:bg-gray-100'
+                                }`}
                         >
                             {day}
                         </button>

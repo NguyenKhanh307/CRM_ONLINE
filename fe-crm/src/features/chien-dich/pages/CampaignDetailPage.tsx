@@ -58,6 +58,7 @@ const CampaignDetailPage = () => {
             { label: 'Cơ hội thắng', value: formatNumber(stats.wonOpportunityCount), tone: 'success' },
             { label: 'Đơn hàng', value: formatNumber(stats.orderCount) },
             { label: 'Doanh thu quy về', value: formatCurrency(stats.revenue ?? 0), tone: 'success' },
+            { label: 'Doanh số kỳ vọng', value: formatCurrency(stats.expectedRevenue ?? 0) },
             { label: 'Chi phí thực tế', value: formatCurrency(stats.actualCost ?? 0), tone: 'warning' },
         ]
         : [];
@@ -132,13 +133,16 @@ const CampaignDetailPage = () => {
                                 {stats.leadCount > 0 && (
                                     <div>Tỷ lệ chuyển đổi tiềm năng → cơ hội thắng: <b>{((stats.wonOpportunityCount / stats.leadCount) * 100).toFixed(1)}%</b></div>
                                 )}
+                                {stats.expectedRevenue != null && stats.expectedRevenue > 0 && (
+                                    <div>Tỷ lệ đạt kỳ vọng doanh thu: <b>{(((stats.revenue ?? 0) / stats.expectedRevenue) * 100).toFixed(1)}%</b></div>
+                                )}
                             </div>
                         </div>
                     )}
                 </div>
             </div>
 
-            <SendEmailModal campaignId={campaignId} campaignCode={campaign.code} open={emailOpen} onClose={() => setEmailOpen(false)} />
+            <SendEmailModal campaignId={campaignId} open={emailOpen} onClose={() => setEmailOpen(false)} />
         </div>
     );
 };

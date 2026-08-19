@@ -4,8 +4,8 @@ import vn.com.be_crm.application.lead.dto.LeadResult;
 import vn.com.be_crm.application.lead.dto.RequestProductQuoteCommand;
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
 import vn.com.be_crm.core.lookup.port.INameResolver;
-import vn.com.be_crm.core.notify.port.IManagerResolver;
 import vn.com.be_crm.core.tx.port.ITransactionRunner;
+import vn.com.be_crm.domain.auth.repository.IUserRoleRepository;
 import vn.com.be_crm.domain.lead.entity.Lead;
 import vn.com.be_crm.domain.lead.entity.LeadItem;
 import vn.com.be_crm.domain.lead.entity.LeadTrackingEvent;
@@ -15,16 +15,17 @@ import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadTrackingEventRepository;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 // xử lý "Yêu cầu báo giá" trên landing page công khai: cập nhật thông tin liên hệ (nếu có),
 // ghi các dòng sản phẩm đã chọn vào lead_items (interestType=requested_quote), ghi lịch sử +
-// cộng điểm — cùng khuôn với SubmitTrackingFormUseCase. Ngoài ra LUÔN báo cho người phụ trách +
-// quản lý trực tiếp kèm danh sách mặt hàng được yêu cầu báo giá (độc lập với thông báo "đủ điều
-// kiện" của AddLeadScoreUseCase, thông báo đó chỉ bắn khi điểm vượt ngưỡng)
+// cộng điểm — cùng khuôn với SubmitTrackingFormUseCase. Ngoài ra LUÔN báo cho TOÀN BỘ nhân viên
+// kinh doanh (role SALES_STAFF) kèm danh sách mặt hàng được yêu cầu báo giá — KHÔNG báo quản lý
+// (quản lý chỉ nhận thông báo duyệt/bàn giao/trao đổi nội bộ, không nhận việc khách hàng trực
+// tiếp yêu cầu). Độc lập với thông báo "đủ điều kiện" của AddLeadScoreUseCase, thông báo đó chỉ
+// bắn khi điểm vượt ngưỡng
 public class RequestProductQuoteUseCase {
     private static final int REQUEST_QUOTE_POINTS = 30;
 
@@ -33,16 +34,16 @@ public class RequestProductQuoteUseCase {
     private final ILeadItemRepository leadItemRepo;
     private final AddLeadScoreUseCase addScoreUC;
     private final INameResolver names;
-    private final IManagerResolver managerResolver;
+    private final IUserRoleRepository userRoleRepo;
     private final CreateNotificationUseCase createNotificationUC;
     private final ITransactionRunner tx;
 
     public RequestProductQuoteUseCase(ILeadRepository leadRepo, ILeadTrackingEventRepository eventRepo,
                                       ILeadItemRepository leadItemRepo, AddLeadScoreUseCase addScoreUC,
-                                      INameResolver names, IManagerResolver managerResolver,
+                                      INameResolver names, IUserRoleRepository userRoleRepo,
                                       CreateNotificationUseCase createNotificationUC, ITransactionRunner tx) {
         this.leadRepo = leadRepo; this.eventRepo = eventRepo; this.leadItemRepo = leadItemRepo;
-        this.addScoreUC = addScoreUC; this.names = names; this.managerResolver = managerResolver;
+        this.addScoreUC = addScoreUC; this.names = names; this.userRoleRepo = userRoleRepo;
         this.createNotificationUC = createNotificationUC; this.tx = tx;
     }
 
@@ -81,7 +82,7 @@ public class RequestProductQuoteUseCase {
         });
     }
 
-    // báo cho người phụ trách + quản lý trực tiếp, kèm tên các mặt hàng được yêu cầu báo giá
+    // báo cho toàn bộ nhân viên kinh doanh (SALES_STAFF), kèm tên các mặt hàng được yêu cầu báo giá
     private void notifyQuoteRequested(Lead lead, RequestProductQuoteCommand cmd) {
         List<Long> productIds = cmd.getItems().stream()
                 .map(RequestProductQuoteCommand.Item::getProductId).collect(Collectors.toList());
@@ -91,13 +92,7 @@ public class RequestProductQuoteUseCase {
                         + " x" + (item.getQuantity() != null ? item.getQuantity() : BigDecimal.ONE))
                 .collect(Collectors.joining(", "));
 
-        List<Long> recipients = new ArrayList<>();
-        if (lead.getOwnerId() != null) {
-            recipients.add(lead.getOwnerId());
-            recipients.addAll(managerResolver.managersOf(lead.getOwnerId()));
-        } else {
-            recipients.addAll(managerResolver.managersOf(null));
-        }
+        List<Long> recipients = userRoleRepo.findUserIdsByRoleCodes(List.of("SALES_STAFF"));
 
         String title = "Yêu cầu báo giá: " + lead.getCode();
         String content = "Tiềm năng " + lead.getName() + " (" + lead.getCode() + ") vừa yêu cầu báo giá: " + items;

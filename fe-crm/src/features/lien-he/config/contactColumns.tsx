@@ -13,6 +13,7 @@ export const getContactColumns = (): ColumnDef<ContactResult>[] => [
     { accessorKey: 'title', header: 'Chức danh', size: 140, cell: textCell },
     { accessorKey: 'department', header: 'Phòng ban', size: 140, cell: textCell },
     { accessorKey: 'email', header: 'Email', size: 180, enableSorting: true, cell: textCell },
+    { accessorKey: 'phone', header: 'SĐT', size: 130, cell: textCell },
     { accessorKey: 'zalo', header: 'Zalo', size: 130, cell: textCell },
     { accessorKey: 'source', header: 'Nguồn', size: 120, cell: textCell },
     { accessorKey: 'gender', header: 'Giới tính', size: 100, cell: labelCell(GENDER_LABELS) },

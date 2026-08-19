@@ -4,7 +4,7 @@ import { formatISODate } from '@/shared/utils/date';
 import type { CustomerResult } from '../types/customerTypes';
 
 const TYPE_LABELS: Record<string, string> = {
-    individual: 'Cá nhân', company: 'Công ty', agency: 'Đại lý',
+    individual: 'Cá nhân', company: 'Công ty',
 };
 
 interface CustomerInfoPanelProps {

@@ -1,12 +1,13 @@
-import { useMemo, useRef, useState } from 'react';
-import { collectErrors, dateRangeError, pastDateError } from '@/shared/utils/validators';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { collectErrors, dateRangeError, pastDateError, validateOrWarn } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
+import { PrefillHint } from '@/shared/components/form/PrefillHint';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { DerivedContextBox } from '@/shared/components/form/DerivedContextBox';
 import { quotationService } from '@/features/bao-gia/services/quotationService';
@@ -18,6 +19,7 @@ import {
     type LineItemRow,
     type ProductOption,
     emptyLineItem,
+    fromItemResult,
     toItemPayloads, validateLineItems } from '@/shared/components/form/productLineItem';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
@@ -70,16 +72,42 @@ const OrderAddPage = () => {
         });
     };
 
+    // tên bản ghi vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Báo giá nguồn
+    const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
+
     // chọn báo giá nguồn -> fetch chi tiết để hiển thị khách hàng/liên hệ/cơ hội read-only
-    // (KHÔNG lưu các field này vào Order, chỉ giữ ngữ cảnh cho người dùng)
+    // (KHÔNG lưu các field này vào Order, chỉ giữ ngữ cảnh) + chép dòng hàng (chỉ khi bảng
+    // còn trống, để không xóa thứ đang gõ dở) — đồng nhất với InvoiceAddPage?fromOrder=
     const onPickQuotation = async (v: string) => {
         set({ quotationId: v });
         setQuotation(null);
+        setPrefillFrom(null);
         if (!v) return;
         const q = (await quotationService.getById(Number(v))).data.data;
         setQuotation(q);
         if (!form.ownerId && q.ownerId) set({ ownerId: String(q.ownerId) });
+
+        const emptyTable = rows.every((r) => !r.productId);
+        if (emptyTable) {
+            const items = (await quotationService.getItems(q.id)).data.data;
+            setRows(items.map((it) => ({ ...fromItemResult(it), backendId: undefined })));
+        }
+        setPrefillFrom(emptyTable
+            ? `báo giá «${q.code}» (kèm dòng hàng)`
+            : `báo giá «${q.code}» — giữ nguyên dòng hàng bạn đã nhập`);
     };
+
+    // vào trang qua nút "Chuyển thành đơn hàng" (chuột phải Báo giá, ?fromQuotation=<id>) -> tự
+    // chọn báo giá nguồn + tự điền, chạy đúng 1 lần lúc mount
+    const [searchParams] = useSearchParams();
+    const autoPickedRef = useRef(false);
+    useEffect(() => {
+        const fromQuotation = searchParams.get('fromQuotation');
+        if (!fromQuotation || autoPickedRef.current) return;
+        autoPickedRef.current = true;
+        void onPickQuotation(fromQuotation);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
 
     // kiểm tra bắt buộc + biên (khớp ràng buộc backend) - trả map field->lỗi
     const validate = (): Record<string, string> =>
@@ -96,7 +124,7 @@ const OrderAddPage = () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
-        if (Object.keys(errs).length > 0) return;
+        if (!validateOrWarn(errs, showAlert)) return;
 
         const payload: CreateOrderPayload = {
             code: form.code.trim(),
@@ -110,7 +138,14 @@ const OrderAddPage = () => {
         // bước hỏi xác nhận rồi gọi api lưu
         if (!(await confirmCreate('đơn hàng'))) return;
         mutate(payload, {
-            onSuccess: () => navigate('/don-hang'),
+            onSuccess: async () => {
+                // mở từ nút "Chuyển thành đơn hàng" -> khóa báo giá nguồn + cơ hội Chốt Thắng
+                // (lỗi thì bỏ qua vì đơn hàng đã tạo thành công, đây chỉ là bước phụ trợ trên nguồn)
+                if (form.quotationId && autoPickedRef.current) {
+                    try { await quotationService.markConverted(Number(form.quotationId)); } catch { /* im lặng */ }
+                }
+                navigate('/don-hang');
+            },
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Có lỗi xảy ra khi lưu Đơn hàng';
@@ -147,6 +182,7 @@ const OrderAddPage = () => {
                             </FieldRow>
                             <FieldRow label="Báo giá nguồn">
                                 <RecordPicker module="quotation" value={form.quotationId} onChange={onPickQuotation} />
+                                <PrefillHint source={prefillFrom} />
                             </FieldRow>
                             <DerivedContextBox rows={[
                                 { label: 'Khách hàng', value: quotation?.customerName },

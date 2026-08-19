@@ -90,9 +90,6 @@ const BaoGiaPage = () => {
                 if (action === 'send') {
                     const email = (res as { data?: { data?: { sentToEmail?: string | null } } })?.data?.data?.sentToEmail;
                     showAlert(email ? `Đã gửi báo giá tới email: ${email}` : 'Đã gửi báo giá cho khách hàng');
-                } else if (action === 'convertToOrder') {
-                    showAlert('Đã chuyển báo giá thành đơn hàng');
-                    navigate('/don-hang');
                 }
             },
             onError: (err: unknown) => {
@@ -129,7 +126,10 @@ const BaoGiaPage = () => {
             ? [{ key: 'setPrimary', label: 'Đặt làm báo giá đồng bộ', onClick: () => runAction(q.id, 'setPrimary') }]
             : []),
         ...(q.status === 'accepted' && !q.isLocked && can('quotation', 'edit')
-            ? [{ key: 'convertToOrder', label: 'Chuyển thành đơn hàng', onClick: () => runAction(q.id, 'convertToOrder') }]
+            ? [{ key: 'convertToOrder', label: 'Chuyển thành đơn hàng', onClick: () => navigate(`/don-hang/them-moi?fromQuotation=${q.id}`) }]
+            : []),
+        ...(q.status === 'accepted' && !q.isLocked && can('quotation', 'approve')
+            ? [{ key: 'reopen', label: 'Mở lại', onClick: () => runAction(q.id, 'reopen') }]
             : []),
         ...(!q.isLocked && can('quotation', 'edit')
             ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(q) }]
@@ -237,12 +237,12 @@ const BaoGiaPage = () => {
                 columns={quotationExportColumns}
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={async (keys, format) => {
+                onExport={async (keys) => {
                     // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await quotationService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
-                    exportRows(rows, quotationExportColumns, keys, format, 'bao-gia');
+                    exportRows(rows, quotationExportColumns, keys, 'bao-gia');
                     setExportOpen(false);
                 }}
             />

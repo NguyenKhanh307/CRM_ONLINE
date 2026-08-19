@@ -1,3 +1,4 @@
+// lưu trữ thông tin xác thực trong localStorage
 const TOKEN_KEY = 'crm_access_token';
 const USER_KEY = 'crm_user';
 

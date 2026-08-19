@@ -72,7 +72,9 @@ const QuotationDetailPage = () => {
                     { label: 'Người phụ trách', value: quotation.ownerName },
                 ]}
                 actions={
-                    <ActionButton variant="outline" icon={FiEdit2} onClick={() => setEditOpen(true)}>Sửa</ActionButton>
+                    !quotation.isLocked && (
+                        <ActionButton variant="outline" icon={FiEdit2} onClick={() => setEditOpen(true)}>Sửa</ActionButton>
+                    )
                 }
             />
 

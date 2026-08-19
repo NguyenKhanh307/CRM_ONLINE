@@ -1,7 +1,9 @@
 package vn.com.be_crm.domain.copilot.repository;
 
+import vn.com.be_crm.application.copilot.dto.CopilotChartSegment;
 import vn.com.be_crm.application.copilot.dto.RecordRef;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,4 +33,16 @@ public interface ICopilotContextRepository {
      * @return bản ghi khớp nhất nếu có
      */
     Optional<RecordRef> findRecord(String module, String term, Long ownerId, boolean isPrivileged);
+
+    /**
+     * Dữ liệu {nhãn, giá trị} cho biểu đồ tròn so sánh ở /phan-tich.
+     *
+     * @param topic        chủ đề đã dò được ("employee"/"campaign"/"customer"/"product"), null/không
+     *                     khớp category nào → trả về 2 lát mặc định "Kỳ này"/"Kỳ trước"
+     * @param period       mã kỳ (month/quarter/year)
+     * @param ownerId      lọc theo người phụ trách (null nếu không giới hạn)
+     * @param isPrivileged true nếu ADMIN/SALES_MANAGER (xem toàn bộ)
+     * @return danh sách lát biểu đồ, rỗng nếu không có dữ liệu
+     */
+    List<CopilotChartSegment> chartData(String topic, String period, Long ownerId, boolean isPrivileged);
 }

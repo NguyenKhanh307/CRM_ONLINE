@@ -43,4 +43,22 @@ public class SlaPolicyRepositoryImpl implements ISlaPolicyRepository {
                     .stream().map(mapper::toDomain).findFirst();
         });
     }
+
+    /** Lưu (tạo mới hoặc cập nhật) chính sách SLA. @param policy entity @return đã lưu */
+    @Override public SlaPolicy save(SlaPolicy policy) {
+        return TxSupport.write(sf, s -> mapper.toDomain(s.merge(mapper.toHibernate(policy))));
+    }
+
+    /** Tìm chính sách SLA theo ID. @param id ID @return Optional */
+    @Override public Optional<SlaPolicy> findById(Long id) {
+        return TxSupport.read(sf, s -> Optional.ofNullable(s.find(SlaPolicyHibernate.class, id)).map(mapper::toDomain));
+    }
+
+    /** Xóa chính sách SLA theo ID. @param id ID */
+    @Override public void deleteById(Long id) {
+        TxSupport.writeVoid(sf, s -> {
+            SlaPolicyHibernate h = s.find(SlaPolicyHibernate.class, id);
+            if (h != null) s.remove(h);
+        });
+    }
 }

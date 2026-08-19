@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.core.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.application.customer.command.*;
 import vn.com.be_crm.application.customer.query.*;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
 import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 
 /**
@@ -42,5 +43,5 @@ public class CustomerBeanConfig {
     /** @return HandoverBulkCustomerUseCase */
     @Bean public HandoverBulkCustomerUseCase handoverBulkCustomerUseCase(ICustomerRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkCustomerUseCase(r, n); }
     /** @return ImportBulkCustomerUseCase */
-    @Bean public ImportBulkCustomerUseCase importBulkCustomerUseCase(ICustomerRepository r) { return new ImportBulkCustomerUseCase(r); }
+    @Bean public ImportBulkCustomerUseCase importBulkCustomerUseCase(ICustomerRepository r, ITransactionRunner tx) { return new ImportBulkCustomerUseCase(r, tx); }
 }

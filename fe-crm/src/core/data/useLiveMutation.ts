@@ -3,10 +3,11 @@ import { useAlert } from '@/shared/alert/useAlert';
 
 // đọc message lỗi theo format ApiResponse của backend từ AxiosError
 function extractErrorMessage(err: unknown): string {
+    // nếu là AxiosError thì lấy message từ response.data.message, nếu không có thì trả về thông báo lỗi chung
     const e = err as { response?: { status?: number; data?: { message?: string } } };
     return e?.response?.data?.message ?? 'Có lỗi xảy ra, vui lòng thử lại.';
 }
-
+// callback cho các bước thành công hoặc thất bại của mutate
 export interface MutateCallbacks<TOutput> {
     onSuccess?: (data: TOutput) => void;
     onError?: (err: unknown) => void;
@@ -17,7 +18,7 @@ export interface MutateCallbacks<TOutput> {
 export function useLiveMutation<TInput, TOutput>(mutationFn: (input: TInput) => Promise<TOutput>) {
     const [isPending, setIsPending] = useState(false);
     const { showAlert } = useAlert();
-
+    // gọi API ghi dữ liệu, nhận input và callbacks cho các bước thành công hoặc thất bại
     async function mutate(input: TInput, callbacks?: MutateCallbacks<TOutput>): Promise<TOutput> {
         setIsPending(true);
         try {

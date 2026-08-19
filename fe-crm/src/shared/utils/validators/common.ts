@@ -7,3 +7,14 @@ export const collectErrors = (
     entries: Record<string, string | null>,
 ): Record<string, string> =>
     Object.fromEntries(Object.entries(entries).filter(([, v]) => v !== null)) as Record<string, string>;
+
+// kiểm tra map lỗi từ collectErrors() — còn lỗi thì hiện popup cảnh báo chung (bổ sung cho chữ đỏ
+// dưới từng ô, phòng khi ô lỗi nằm ngoài màn hình) rồi trả về false để chặn submit
+export const validateOrWarn = (
+    errs: Record<string, string>,
+    showAlert: (message: string) => void,
+): boolean => {
+    if (Object.keys(errs).length === 0) return true;
+    showAlert('Vui lòng kiểm tra lại thông tin đã nhập trước khi lưu.');
+    return false;
+};

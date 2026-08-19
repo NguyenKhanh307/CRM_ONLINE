@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
@@ -12,12 +12,39 @@ import { useOpportunityBoard } from '../hooks/useOpportunityBoard';
 import { useChangeOpportunityStage } from '../hooks/useChangeOpportunityStage';
 import { BoardColumn } from '../components/board/BoardColumn';
 import { CardBody } from '../components/board/OpportunityCard';
-import type { BoardCard } from '../types/boardTypes';
+import type { BoardCard, BoardColumn as BoardColumnData } from '../types/boardTypes';
 
 // thẻ vừa kéo vào cột "thua" — giữ lại để hỏi lý do trước khi gọi API
 interface PendingLostMove {
     id: number;
     stageId: number;
+}
+
+// chuyển thẻ sang cột mới trong dữ liệu cục bộ: cập nhật cả số lượng và tổng tiền của 2 cột
+function moveCard(columns: BoardColumnData[], id: number, toStageId: number): BoardColumnData[] {
+    const card = columns.flatMap(c => c.cards).find(c => c.id === id);
+    if (!card) return columns;
+    const amount = card.amount ?? 0;
+
+    return columns.map(col => {
+        if (col.cards.some(c => c.id === id) && col.stageId !== toStageId) {
+            return {
+                ...col,
+                cards: col.cards.filter(c => c.id !== id),
+                total: Math.max(0, col.total - 1),
+                sumAmount: col.sumAmount - amount,
+            };
+        }
+        if (col.stageId === toStageId && !col.cards.some(c => c.id === id)) {
+            return {
+                ...col,
+                cards: [{ ...card, stageId: toStageId }, ...col.cards],
+                total: col.total + 1,
+                sumAmount: col.sumAmount + amount,
+            };
+        }
+        return col;
+    });
 }
 
 // bảng Kanban cơ hội: cột = giai đoạn pipeline, thẻ = cơ hội — kéo thẻ sang cột khác = đổi giai
@@ -34,8 +61,16 @@ const OpportunityBoardPage = () => {
         return () => clearTimeout(t);
     }, [search]);
 
-    const { data: columns = [], isLoading } = useOpportunityBoard(debounced || undefined);
-    const { mutate: changeStage } = useChangeOpportunityStage(debounced || undefined);
+    const { data: serverColumns, isLoading } = useOpportunityBoard(debounced || undefined);
+    const { mutate: changeStage } = useChangeOpportunityStage();
+
+    // state cục bộ để cập nhật lạc quan khi kéo-thả — đồng bộ lại mỗi khi server trả về dữ liệu mới
+    const [columns, setColumns] = useState<BoardColumnData[]>([]);
+    // snapshot trước lần cập nhật lạc quan gần nhất — dùng để rollback khi API lỗi
+    const snapshotRef = useRef<BoardColumnData[] | null>(null);
+    useEffect(() => {
+        if (serverColumns) setColumns(serverColumns);
+    }, [serverColumns]);
 
     // kéo quá 5px mới tính là kéo -> click (không di chuột) vẫn mở được trang chi tiết
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -48,6 +83,15 @@ const OpportunityBoardPage = () => {
 
     const handleDragStart = (e: DragStartEvent) => {
         setDraggingCard(cardsById.get(Number(e.active.id)) ?? null);
+    };
+
+    // cập nhật lạc quan dữ liệu cục bộ rồi gọi API; lỗi thì rollback về snapshot đã lưu
+    const moveAndSave = (id: number, stageId: number, winLossReason?: string | null) => {
+        snapshotRef.current = columns;
+        setColumns(cols => moveCard(cols, id, stageId));
+        changeStage({ id, stageId, winLossReason }, {
+            onError: () => { if (snapshotRef.current) setColumns(snapshotRef.current); },
+        });
     };
 
     const handleDragEnd = (e: DragEndEvent) => {
@@ -65,7 +109,7 @@ const OpportunityBoardPage = () => {
             setPendingLost({ id, stageId });
             return;
         }
-        changeStage({ id, stageId });
+        moveAndSave(id, stageId);
     };
 
     return (
@@ -121,7 +165,7 @@ const OpportunityBoardPage = () => {
                     confirmLabel="Xác nhận"
                     confirmDanger
                     onConfirm={reason => {
-                        changeStage({ ...pendingLost, winLossReason: reason || null });
+                        moveAndSave(pendingLost.id, pendingLost.stageId, reason || null);
                         setPendingLost(null);
                     }}
                     onCancel={() => setPendingLost(null)}

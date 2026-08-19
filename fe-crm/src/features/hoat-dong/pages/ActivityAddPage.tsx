@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useConfirm } from '@/shared/confirm/useConfirm';
-import { collectErrors } from '@/shared/utils/validators';
+import { collectErrors, validateOrWarn } from '@/shared/utils/validators';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { useMemo } from 'react';
@@ -86,6 +86,7 @@ const ActivityAddPage = () => {
     // hàm kiểm tra bắt buộc + biên (khớp ràng buộc backend) — trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
+            type: !form.type.trim() ? 'Loại hoạt động không được để trống' : null,
             subject: !form.subject.trim() ? 'Tiêu đề không được để trống' : null,
         });
 
@@ -94,7 +95,7 @@ const ActivityAddPage = () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
-        if (Object.keys(errs).length > 0) return;
+        if (!validateOrWarn(errs, showAlert)) return;
 
         const payload: CreateActivityPayload = {
             type: form.type,
@@ -134,7 +135,7 @@ const ActivityAddPage = () => {
                 <FormSection title="Thông tin chung">
                     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
                         <div className="space-y-4">
-                            <FieldRow label="Loại hoạt động" required>
+                            <FieldRow label="Loại hoạt động" required error={errors.type}>
                                 <SearchableSelect value={form.type} onChange={(v) => set({ type: v })} options={TYPE_OPTIONS} />
                             </FieldRow>
                             <FieldRow label="Tiêu đề" required error={errors.subject}>

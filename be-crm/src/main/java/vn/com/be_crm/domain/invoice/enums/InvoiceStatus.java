@@ -9,6 +9,8 @@ import java.util.Set;
  * Trạng thái hóa đơn theo vòng đời công nợ:
  * draft → sent → partially_paid → paid; có thể cancelled ở các bước đầu.
  * partially_paid/paid được suy ra tự động từ các đợt thanh toán.
+ * Mở lại (phòng lỡ bấm nhầm): cancelled → draft. Không mở lại `paid` vì trạng thái này không
+ * do bấm tay mà suy tự động từ đợt thanh toán, không có rủi ro "lỡ bấm nhầm".
  */
 public enum InvoiceStatus {
     draft, sent, partially_paid, paid, cancelled;
@@ -19,7 +21,7 @@ public enum InvoiceStatus {
             sent, Set.of(partially_paid, paid, cancelled),
             partially_paid, Set.of(paid, cancelled),
             paid, Set.of(),
-            cancelled, Set.of()
+            cancelled, Set.of(draft)
     );
 
     /**

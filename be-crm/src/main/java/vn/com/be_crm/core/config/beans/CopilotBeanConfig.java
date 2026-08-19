@@ -8,6 +8,7 @@ import vn.com.be_crm.application.copilot.query.SemanticRetriever;
 import vn.com.be_crm.core.ai.port.IAiService;
 import vn.com.be_crm.core.ai.port.IEmbeddingService;
 import vn.com.be_crm.domain.copilot.repository.ICopilotContextRepository;
+import vn.com.be_crm.domain.copilot.repository.INlQueryEngine;
 import vn.com.be_crm.domain.copilot.repository.IVectorStore;
 
 /**
@@ -39,12 +40,14 @@ public class CopilotBeanConfig {
      * @param aiService         port gọi mô hình AI (Gemini)
      * @param contextRepo       port gom ngữ cảnh số liệu CRM
      * @param semanticRetriever nhánh truy hồi ngữ nghĩa
+     * @param nlQueryEngine     nhánh NL2SQL có kiểm soát (câu hỏi số liệu mới ngoài 6 chủ đề đã tối ưu)
      * @return AskCopilotUseCase
      */
     @Bean
     public AskCopilotUseCase askCopilotUseCase(IAiService aiService,
                                                ICopilotContextRepository contextRepo,
-                                               SemanticRetriever semanticRetriever) {
-        return new AskCopilotUseCase(aiService, contextRepo, semanticRetriever);
+                                               SemanticRetriever semanticRetriever,
+                                               INlQueryEngine nlQueryEngine) {
+        return new AskCopilotUseCase(aiService, contextRepo, semanticRetriever, nlQueryEngine);
     }
 }

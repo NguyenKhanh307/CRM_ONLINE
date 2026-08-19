@@ -3,7 +3,7 @@ import type { RelatedColumn } from './RelatedTable';
 
 // cấu hình cột cho từng tab bản ghi liên quan của trang chi tiết 360°
 // dùng chung cho cả trang Khách hàng và Cơ hội (báo giá/đơn/hóa đơn giống hệt nhau)
-
+// nhãn trạng thái tra theo phân hệ của bản ghi liên quan
 const STATUS_LABELS: Record<string, Record<string, string>> = {
     lead: { new: 'Mới', contacting: 'Đang liên hệ', converted: 'Đã chuyển đổi' },
     opportunity: { open: 'Đang mở', won: 'Đã thắng', lost: 'Đã thua' },
@@ -55,11 +55,16 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 // cột trạng thái dạng badge, nhãn tra theo phân hệ của dòng
+// mặc định label là "Trạng thái" nhưng có thể override cho từng tab
 const statusColumn = (label = 'Trạng thái'): RelatedColumn => ({
+    // key dùng để map dữ liệu từ RelatedRecord sang cột, không hiển thị ra UI
     key: 'status',
     label,
+    // hiển thị badge màu theo trạng thái
     render: (row: RelatedRecord) => {
+        // nếu không có trạng thái thì hiện dấu "—"
         if (!row.status) return '—';
+        // nếu không có nhãn trạng thái cho phân hệ của dòng thì hiện chính giá trị status
         const text = STATUS_LABELS[row.module]?.[row.status] ?? row.status;
         return (
             <span className={`inline-block px-2 py-0.5 rounded text-sm font-medium ${STATUS_COLORS[row.status] ?? 'bg-gray-100 text-gray-600'}`}>
@@ -68,7 +73,7 @@ const statusColumn = (label = 'Trạng thái'): RelatedColumn => ({
         );
     },
 });
-
+// các hàm này dùng để export ra cấu hình cột cho từng tab bản ghi liên quan của trang chi tiết 360°
 export const LEAD_COLUMNS: RelatedColumn[] = [
     { key: 'code', label: 'Mã tiềm năng' },
     { key: 'name', label: 'Tên tiềm năng' },

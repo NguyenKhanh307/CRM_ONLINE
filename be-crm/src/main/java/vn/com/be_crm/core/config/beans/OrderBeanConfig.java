@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.core.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.application.order.command.*;
 import vn.com.be_crm.application.order.query.*;
-import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
 import vn.com.be_crm.domain.order.repository.IOrderItemRepository;
 import vn.com.be_crm.domain.order.repository.IOrderRepository;
 import vn.com.be_crm.core.tx.port.ITransactionRunner;
@@ -26,10 +25,9 @@ public class OrderBeanConfig {
     @Bean public ListOrderUseCase listOrderUseCase(IOrderRepository r, IOrderItemRepository ir, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListOrderUseCase(r, ir, n); }
     // luồng trạng thái đơn hàng
     @Bean public OrderWorkflowUseCase orderWorkflowUseCase(IOrderRepository r) { return new OrderWorkflowUseCase(r); }
-    // xuất hóa đơn 1-1 từ đơn hàng
-    @Bean public CreateInvoiceFromOrderUseCase createInvoiceFromOrderUseCase(IOrderRepository r, IOrderItemRepository ir, IInvoiceRepository invr,
-                                                                             ITransactionRunner tx) {
-        return new CreateInvoiceFromOrderUseCase(r, ir, invr, tx);
+    // đánh dấu đơn hàng đã xuất hóa đơn (khóa + hoàn tất) — Hóa đơn được tạo riêng qua AddPage
+    @Bean public MarkOrderConvertedUseCase markOrderConvertedUseCase(IOrderRepository r, ITransactionRunner tx) {
+        return new MarkOrderConvertedUseCase(r, tx);
     }
 
     // ===== Order Item =====
@@ -48,5 +46,5 @@ public class OrderBeanConfig {
     // ===== Handover & Import =====
 
     @Bean public HandoverBulkOrderUseCase handoverBulkOrderUseCase(IOrderRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkOrderUseCase(r, n); }
-    @Bean public ImportBulkOrderUseCase importBulkOrderUseCase(IOrderRepository r) { return new ImportBulkOrderUseCase(r); }
+    @Bean public ImportBulkOrderUseCase importBulkOrderUseCase(IOrderRepository r, ITransactionRunner tx) { return new ImportBulkOrderUseCase(r, tx); }
 }

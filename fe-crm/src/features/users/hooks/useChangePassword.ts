@@ -1,10 +1,8 @@
-import { useMutation } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
 import { userService } from '../services/userService';
 import type { ChangePasswordPayload } from '../types/userTypes';
 
 // đổi mật khẩu của người dùng đang đăng nhập (POST /api/auth/change-password)
 export function useChangePassword() {
-    return useMutation({
-        mutationFn: (payload: ChangePasswordPayload) => userService.changePassword(payload),
-    });
+    return useLiveMutation((payload: ChangePasswordPayload) => userService.changePassword(payload));
 }

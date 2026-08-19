@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from 'react';
 import { useConfirm } from '@/shared/confirm/useConfirm';
-import { collectErrors } from '@/shared/utils/validators';
+import { collectErrors, validateOrWarn } from '@/shared/utils/validators';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
-import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { SearchableSelect, type SelectOption } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
 import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
@@ -12,6 +12,10 @@ import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { orderService } from '@/features/don-hang/services/orderService';
 import { quotationService } from '@/features/bao-gia/services/quotationService';
 import type { QuotationResult } from '@/features/bao-gia/types/quotationTypes';
+import { invoiceService } from '@/features/hoa-don/services/invoiceService';
+import type { InvoiceItemResult } from '@/features/hoa-don/types/invoiceTypes';
+import { useProductMap } from '@/features/san-pham/hooks/useProductMap';
+import { formatNumber } from '@/shared/utils/number';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
@@ -43,10 +47,19 @@ const TicketAddPage = () => {
     const [returnRows, setReturnRows] = useState<ReturnRow[]>([emptyReturnRow()]);
     const { mutate, isPending } = useCreateTicket();
     const [quotation, setQuotation] = useState<QuotationResult | null>(null);
+    const [invoiceItems, setInvoiceItems] = useState<InvoiceItemResult[]>([]);
 
     const { data: users = [] } = useActiveUsers();
+    const productMap = useProductMap();
 
     const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
+
+    // dòng hàng của hóa đơn phát sinh từ đơn hàng đang chọn — dựng dropdown cho bảng "Hàng trả/đổi"
+    const invoiceItemOptions = useMemo<SelectOption[]>(() => invoiceItems.map((it) => {
+        const p = it.productId != null ? productMap.get(it.productId) : undefined;
+        const productLabel = p ? `${p.sku} — ${p.name}` : (it.productId != null ? `Sản phẩm #${it.productId}` : 'Sản phẩm');
+        return { value: String(it.id), label: `${productLabel} (SL: ${formatNumber(it.quantity)})` };
+    }), [invoiceItems, productMap]);
 
     const isReturn = form.type === 'return' || form.type === 'exchange';
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -61,15 +74,23 @@ const TicketAddPage = () => {
         });
     };
 
-    // hàm chọn đơn hàng -> fetch chuỗi order -> quotation để hiển thị khách hàng/liên hệ read-only
+    // hàm chọn đơn hàng -> fetch chuỗi order -> quotation để hiển thị khách hàng/liên hệ read-only,
+    // và tra hóa đơn phát sinh từ đơn hàng đó (1-1) để nạp dòng hàng cho bảng "Hàng trả/đổi"
     const onPickOrder = async (v: string) => {
         set({ orderId: v });
         setQuotation(null);
+        setInvoiceItems([]);
         if (!v) return;
         const order = (await orderService.getById(Number(v))).data.data;
         if (order.quotationId != null) {
             const q = await quotationService.getById(order.quotationId);
             setQuotation(q.data.data);
+        }
+        const related = (await orderService.getRelated(Number(v))).data.data;
+        const invoiceId = related.invoices.items[0]?.id;
+        if (invoiceId != null) {
+            const items = (await invoiceService.getItems(Number(invoiceId))).data.data;
+            setInvoiceItems(items);
         }
     };
 
@@ -85,7 +106,7 @@ const TicketAddPage = () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
-        if (Object.keys(errs).length > 0) return;
+        if (!validateOrWarn(errs, showAlert)) return;
 
         const payload: CreateTicketPayload = {
             code: form.code.trim(),
@@ -155,7 +176,7 @@ const TicketAddPage = () => {
 
                 {isReturn && (
                     <FormSection title="Hàng trả / đổi">
-                        <ReturnItemsTable rows={returnRows} onChange={setReturnRows} />
+                        <ReturnItemsTable rows={returnRows} onChange={setReturnRows} invoiceItemOptions={invoiceItemOptions} />
                     </FormSection>
                 )}
 

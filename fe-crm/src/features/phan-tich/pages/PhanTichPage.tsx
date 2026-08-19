@@ -1,126 +1,49 @@
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { usePermission } from '@/core/permissions/usePermission';
-import { formatMoney, formatNumber, type MoneyUnit } from '@/shared/utils/number';
-import type { DashboardPeriod } from '@/features/dashboard/types/dashboardTypes';
-import { useManagerDashboard } from '@/features/dashboard/hooks/useManagerDashboard';
-import { useSaleDashboard } from '@/features/dashboard/hooks/useSaleDashboard';
-import { PeriodSelect, UnitSelect, PERIOD_LABEL } from '@/features/dashboard/components/Selectors';
-import { COLORS } from '@/features/dashboard/components/chartTheme';
-import { DashCard } from '@/features/dashboard/components/DashCard';
-import { KpiTile } from '@/features/dashboard/components/KpiTile';
+import { useLocation } from 'react-router-dom';
+import { useMemo } from 'react';
 import { DonutChart } from '@/features/dashboard/components/DonutChart';
-import { RevenueCostProfitChart } from '@/features/dashboard/components/RevenueCostProfitChart';
-import { FunnelChart } from '@/features/dashboard/components/FunnelChart';
-import { RankedList } from '@/features/dashboard/components/RankedList';
-import { useRevenueByCampaign } from '../hooks/useRevenueByCampaign';
+import type { DonutSegment } from '@/features/dashboard/types/dashboardTypes';
+import type { CopilotChartData, CopilotChartSegment } from '@/shared/copilot/copilotTypes';
 
-// ép giá trị query param về mã kỳ hợp lệ (mặc định quarter)
-const toPeriod = (v: string | null): DashboardPeriod =>
-    v === 'month' || v === 'year' ? v : 'quarter';
+// map {label,value}[] của Copilot sang DonutSegment[] (count+pct) mà DonutChart cần
+const toSegments = (segs: CopilotChartSegment[]): DonutSegment[] => {
+    const total = segs.reduce((sum, s) => sum + s.value, 0);
+    return segs.map((s) => ({ label: s.label, count: s.value, pct: total === 0 ? 0 : Math.round((s.value / total) * 1000) / 10 }));
+};
 
-// trang "Phân tích so sánh" — đích đến của link trong trợ lý AI Copilot (/phan-tich?period=...)
-// so sánh kỳ này vs kỳ trước (doanh thu/chi phí/lợi nhuận, tỷ lệ thắng, phễu) + so sánh theo
-// nhân viên (chỉ ADMIN/quản lý) và theo chiến dịch; dữ liệu tái dùng API Dashboard -> đồng nhất số liệu
+// đọc biểu đồ đã lưu tạm khi bấm "Xem biểu đồ so sánh" (CopilotWidget#handleActionClick) — dùng
+// làm phương án dự phòng khi router state trống (F5 hoặc vào thẳng URL /phan-tich)
+const readCachedChart = (): CopilotChartData | undefined => {
+    try {
+        const raw = sessionStorage.getItem('copilot:lastChart');
+        return raw ? (JSON.parse(raw) as CopilotChartData) : undefined;
+    } catch {
+        return undefined;
+    }
+};
+
+// trang đích khi bấm nút "Xem biểu đồ so sánh" trong khung chat Copilot — chỉ 1 tiêu đề + 1 biểu đồ
+// tròn, dữ liệu do BE Copilot dò theo đúng nội dung vừa hỏi (xem AskCopilotUseCase). Ưu tiên đọc
+// từ React Router state (nhanh, không cần parse); F5/vào thẳng URL thì state mất -> đọc lại từ
+// sessionStorage (CopilotWidget đã lưu song song lúc điều hướng) để biểu đồ không biến mất
 const PhanTichPage = () => {
-    const { hasRole } = usePermission();
-    const [searchParams, setSearchParams] = useSearchParams();
-    const period = toPeriod(searchParams.get('period'));
-    const [unit, setUnit] = useState<MoneyUnit>('vnd');
-
-    const privileged = hasRole('ADMIN') || hasRole('SALES_MANAGER');
-    const manager = useManagerDashboard(period, privileged);
-    const sale = useSaleDashboard(period, !privileged);
-    const active = privileged ? manager : sale;
-    const campaigns = useRevenueByCampaign(period);
-
-    const data = active.data;
-    const periodLabel = PERIOD_LABEL[period];
-    const fmt = (v: number) => formatMoney(v, unit);
-
-    // đổi kỳ -> ghi lại query param để link chia sẻ được
-    const changePeriod = (p: DashboardPeriod) => setSearchParams({ period: p });
+    const location = useLocation();
+    const stateChart = (location.state as { chart?: CopilotChartData } | null)?.chart;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const chart = useMemo(() => stateChart ?? readCachedChart(), [stateChart]);
 
     return (
         <div className="p-6 bg-bg-main min-h-[calc(100vh-50px)]">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <div>
-                    <h1 className="text-xl font-semibold text-text-main">Phân tích so sánh</h1>
-                    <p className="text-sm text-gray-500">
-                        {periodLabel} so với kỳ trước{privileged ? ' — toàn bộ dữ liệu' : ' — dữ liệu bạn phụ trách'}
-                    </p>
+            {chart ? (
+                <div className="max-w-2xl mx-auto">
+                    <h1 className="text-xl font-semibold text-text-main mb-4 text-center">{chart.title}</h1>
+                    <div className="bg-white rounded-card p-6 shadow-sm">
+                        <DonutChart segments={toSegments(chart.segments)} />
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <UnitSelect value={unit} onChange={setUnit} />
-                    <PeriodSelect value={period} onChange={changePeriod} />
-                </div>
-            </div>
-
-            {active.isLoading && <div className="text-gray-400 py-10 text-center">Đang tải dữ liệu…</div>}
-            {active.isError && <div className="text-danger py-10 text-center">Không tải được dữ liệu phân tích.</div>}
-
-            {data && (
-                <div className="space-y-4">
-                    {/* So sánh tài chính kỳ này vs kỳ trước */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <KpiTile label="Doanh thu" value={fmt(data.totalRevenue.current)}
-                                 growthPct={data.totalRevenue.growthPct} sparkline={data.revenueByMonth}
-                                 color={COLORS.success}>
-                            <p className="text-sm text-gray-400 mt-1">Kỳ trước: {fmt(data.totalRevenue.previous)}</p>
-                        </KpiTile>
-                        <KpiTile label="Chi phí" value={fmt(data.totalCost.current)}
-                                 growthPct={data.totalCost.growthPct} sparkline={data.costByMonth}
-                                 color={COLORS.danger}>
-                            <p className="text-sm text-gray-400 mt-1">Kỳ trước: {fmt(data.totalCost.previous)}</p>
-                        </KpiTile>
-                        <KpiTile label="Lợi nhuận" value={fmt(data.totalProfit.current)}
-                                 growthPct={data.totalProfit.growthPct} sparkline={data.profitByMonth}
-                                 color={COLORS.primary}>
-                            <p className="text-sm text-gray-400 mt-1">Kỳ trước: {fmt(data.totalProfit.previous)}</p>
-                        </KpiTile>
-                    </div>
-
-                    <DashCard title="Xu hướng doanh thu - chi phí - lợi nhuận" periodLabel="12 tháng"
-                              onRefresh={() => active.refetch()}>
-                        <RevenueCostProfitChart revenue={data.revenueByMonth} cost={data.costByMonth}
-                                                profit={data.profitByMonth} format={fmt} />
-                    </DashCard>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <DashCard title="Tỷ lệ cơ hội thắng" periodLabel={periodLabel} onRefresh={() => active.refetch()}>
-                            <div className="flex items-center justify-center">
-                                <div className="text-center mr-6">
-                                    <div className="text-xl font-semibold text-success">{data.winRate.current}%</div>
-                                    <div className="text-sm text-gray-400">
-                                        Kỳ trước: {formatNumber(data.winRate.previous)}%
-                                    </div>
-                                </div>
-                                <DonutChart centerLabel="Cơ hội" segments={[
-                                    { label: 'Thắng', count: data.oppWon.current, pct: data.winRate.current },
-                                    { label: 'Thua', count: data.oppLost.current, pct: 100 - data.winRate.current },
-                                ]} />
-                            </div>
-                        </DashCard>
-                        <DashCard title="Phễu chuyển đổi theo giai đoạn" periodLabel={periodLabel}
-                                  onRefresh={() => active.refetch()}>
-                            <FunnelChart stages={data.conversionFunnel} />
-                        </DashCard>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {privileged && data.revenueByOwner && (
-                            <DashCard title="So sánh doanh thu theo nhân viên" periodLabel={periodLabel}
-                                      onRefresh={() => active.refetch()}>
-                                <RankedList items={data.revenueByOwner} format={fmt} color={COLORS.success} />
-                            </DashCard>
-                        )}
-                        <DashCard title="So sánh doanh thu theo chiến dịch" periodLabel={periodLabel}
-                                  onRefresh={() => campaigns.refetch()}>
-                            {campaigns.isLoading
-                                ? <p className="text-sm text-gray-400 py-8 text-center">Đang tải…</p>
-                                : <RankedList items={campaigns.data ?? []} format={fmt} color={COLORS.warning} />}
-                        </DashCard>
-                    </div>
+            ) : (
+                <div className="text-center text-gray-400 py-20">
+                    Chưa có dữ liệu so sánh. Hãy hỏi trợ lý AI một câu so sánh (vd "So sánh doanh thu
+                    theo chiến dịch") rồi bấm nút "Xem biểu đồ so sánh" trong khung chat.
                 </div>
             )}
         </div>

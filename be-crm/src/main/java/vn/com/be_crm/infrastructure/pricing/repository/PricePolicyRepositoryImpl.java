@@ -5,6 +5,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 import vn.com.be_crm.core.page.PageRequest;
 import vn.com.be_crm.core.page.PageResult;
+import vn.com.be_crm.core.util.ListQueryUtils;
 import vn.com.be_crm.domain.pricing.entity.PricePolicy;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyRepository;
 import vn.com.be_crm.infrastructure.pricing.entity.PricePolicyHibernate;
@@ -59,15 +60,24 @@ public class PricePolicyRepositoryImpl implements IPricePolicyRepository {
             });
     }
 
-    /** Lấy danh sách PricePolicy có phân trang. @param r @return PageResult */
+    /** Lấy danh sách PricePolicy có phân trang, tìm theo mã/tên. @param r @return PageResult */
     @Override public PageResult<PricePolicy> findAll(PageRequest r) {
         return TxSupport.read(sf, s -> {
-            List<PricePolicy> items = s.createQuery(
-                    "FROM PricePolicyHibernate ORDER BY " + r.getSortBy() + " " + r.getSortDir(),
-                    PricePolicyHibernate.class)
+            String searchFilter = ListQueryUtils.likeClause(r.getQ(), "code", "name");
+            var listQuery = s.createQuery(
+                    "FROM PricePolicyHibernate WHERE 1=1" + searchFilter
+                            + " ORDER BY " + r.getSortBy() + " " + r.getSortDir(),
+                    PricePolicyHibernate.class);
+            var countQuery = s.createQuery(
+                    "SELECT COUNT(p) FROM PricePolicyHibernate p WHERE 1=1" + searchFilter, Long.class);
+            if (!searchFilter.isEmpty()) {
+                listQuery.setParameter("q", ListQueryUtils.likeParam(r.getQ()));
+                countQuery.setParameter("q", ListQueryUtils.likeParam(r.getQ()));
+            }
+            List<PricePolicy> items = listQuery
                     .setFirstResult(r.getOffset()).setMaxResults(r.getSize())
                     .list().stream().map(mapper::toDomain).collect(Collectors.toList());
-            long total = s.createQuery("SELECT COUNT(p) FROM PricePolicyHibernate p", Long.class).uniqueResult();
+            long total = countQuery.uniqueResult();
             return PageResult.<PricePolicy>builder().items(items).total(total).page(r.getPage()).size(r.getSize()).build();
         });
     }

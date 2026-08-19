@@ -21,11 +21,14 @@ public class ListPublicProductsUseCase {
         this.names = names;
     }
 
+    // hàm thực thi use case, trả danh sách DTO rút gọn (không lộ costPrice hay
+    // field nội bộ)
     public List<PublicProductResult> execute() {
         var page = repo.findAll(PageRequest.builder()
                 .size(1000).sortBy("name").sortDir("asc").status("true").build());
         List<PublicProductResult> items = page.getItems().stream().map(this::toResult).collect(Collectors.toList());
-        NameEnricher.apply(items, PublicProductResult::getCategoryId, names::productCategories, PublicProductResult::setCategoryName);
+        NameEnricher.apply(items, PublicProductResult::getCategoryId, names::productCategories,
+                PublicProductResult::setCategoryName);
         return items;
     }
 

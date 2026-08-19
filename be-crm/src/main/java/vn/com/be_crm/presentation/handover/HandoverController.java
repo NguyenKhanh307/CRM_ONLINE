@@ -1,11 +1,13 @@
 package vn.com.be_crm.presentation.handover;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import vn.com.be_crm.application.handover.HandoverAllUseCase;
 import vn.com.be_crm.core.dto.handover.HandoverAllCommand;
+import vn.com.be_crm.core.error.frontend.ForbiddenException;
 import vn.com.be_crm.core.util.SecurityUtils;
 import vn.com.be_crm.core.response.ApiResponse;
 import vn.com.be_crm.core.dto.handover.HandoverAllRequest;
@@ -26,16 +28,20 @@ public class HandoverController {
 
     /**
      * Bàn giao toàn bộ công việc từ một user sang user khác.
-     * Chỉ ADMIN hoặc SALES_MANAGER được phép gọi.
+     * ADMIN/SALES_MANAGER chọn tự do cặp fromUserId/toUserId bất kỳ; nhân viên thường chỉ được
+     * bàn giao công việc của chính mình (fromUserId phải trùng userId đang đăng nhập).
      *
      * @param body JSON body chứa fromUserId, toUserId, reason
+     * @param req  HTTP request (lấy userId hiện tại)
      * @return 200 OK
      */
     @PostMapping("/all")
-    public ResponseEntity<ApiResponse<Void>> handoverAll(@Valid @RequestBody HandoverAllRequest body) {
+    public ResponseEntity<ApiResponse<Void>> handoverAll(@Valid @RequestBody HandoverAllRequest body,
+                                                           HttpServletRequest req) {
+        Long currentUserId = (Long) req.getAttribute("userId");
         boolean isAdminOrManager = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
-        if (!isAdminOrManager) {
-            return ResponseEntity.status(403).body(ApiResponse.error("Chỉ Admin hoặc Quản lý mới có quyền bàn giao toàn bộ", 403));
+        if (!isAdminOrManager && !currentUserId.equals(body.getFromUserId())) {
+            throw new ForbiddenException("Bạn chỉ có thể bàn giao công việc của chính mình");
         }
         handoverAllUC.execute(HandoverAllCommand.builder()
                 .fromUserId(body.getFromUserId())

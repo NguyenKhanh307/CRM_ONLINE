@@ -9,10 +9,14 @@ import vn.com.be_crm.core.error.frontend.NotFoundException;
 /** Use case lấy chính sách giá theo ID. */
 public class GetPricePolicyUseCase implements IUseCase<Long, PricePolicyResult> {
     private final IPricePolicyRepository repo;
-    /** @param repo port lưu trữ */
-    public GetPricePolicyUseCase(IPricePolicyRepository repo) { this.repo = repo; }
+    private final PricePolicyExpiryUseCase expiryUC;
+    /** @param repo port lưu trữ @param expiryUC tự đổi trạng thái khi phát hiện quá hạn hiệu lực */
+    public GetPricePolicyUseCase(IPricePolicyRepository repo, PricePolicyExpiryUseCase expiryUC) {
+        this.repo = repo; this.expiryUC = expiryUC;
+    }
     /** Lấy PricePolicy theo ID. @param id @return PricePolicyResult @throws NotFoundException */
     @Override public PricePolicyResult execute(Long id) {
-        return PricePolicyCommandMapper.toResult(repo.findById(id).orElseThrow(() -> new NotFoundException("PricePolicy not found: " + id)));
+        var p = repo.findById(id).orElseThrow(() -> new NotFoundException("PricePolicy not found: " + id));
+        return PricePolicyCommandMapper.toResult(expiryUC.checkAndExpire(p));
     }
 }

@@ -1,7 +1,7 @@
-import { useMemo, useRef, useState } from 'react';
-import { collectErrors, dateRangeError, pastDateError } from '@/shared/utils/validators';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { collectErrors, dateRangeError, pastDateError, validateOrWarn } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
@@ -19,7 +19,9 @@ import {
     type LineItemRow,
     type ProductOption,
     emptyLineItem,
+    fromItemResult,
     toItemPayloads, validateLineItems } from '@/shared/components/form/productLineItem';
+import { quotationService } from '../services/quotationService';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
@@ -96,10 +98,15 @@ const QuoteAddPage = () => {
         if (hasFilled(patch)) { set(patch); setPrefillFrom(`khách hàng «${customer.name}»`); }
     };
 
-    // chọn cơ hội nguồn -> tự điền bên mua, chiến dịch, chính sách giá (KHÔNG chép dòng hàng, xem README)
+    // báo giá đầu tiên của cơ hội đang chọn -> tự đặt làm báo giá đồng bộ (primary) sau khi lưu
+    const isFirstQuoteRef = useRef(false);
+
+    // chọn cơ hội nguồn -> tự điền bên mua, chiến dịch, chính sách giá + chép dòng hàng (chỉ khi
+    // bảng còn trống, để không xóa thứ đang gõ dở) — đồng nhất với InvoiceAddPage?fromOrder=
     const onPickOpportunity = async (v: string) => {
         set({ opportunityId: v });
         setPrefillFrom(null);
+        isFirstQuoteRef.current = false;
         if (!v) return;
         const o = (await opportunityService.getById(Number(v))).data.data;
         const patch = fillEmpty({ ...form, opportunityId: v }, {
@@ -108,8 +115,38 @@ const QuoteAddPage = () => {
             pricePolicyId: o.pricePolicyId ? String(o.pricePolicyId) : '',
             ownerId: o.ownerId ? String(o.ownerId) : '',
         });
-        if (hasFilled(patch)) { set(patch); setPrefillFrom(`cơ hội «${o.code}»`); }
+        if (hasFilled(patch)) set(patch);
+
+        // báo giá đầu tiên của cơ hội -> đặt đồng bộ ngay sau khi tạo (khớp hành vi clone cũ)
+        const related = (await opportunityService.getRelated(Number(v))).data.data;
+        isFirstQuoteRef.current = related.quotations.total === 0;
+
+        // chép dòng hàng của cơ hội — CHỈ khi bảng chưa chọn sản phẩm nào. Dòng hàng Cơ hội không
+        // lưu ĐVT (opportunity_items không có cột unit) -> tra lại theo sản phẩm đã nạp sẵn
+        const emptyTable = rows.every((r) => !r.productId);
+        if (emptyTable) {
+            const items = (await opportunityService.getItems(Number(v))).data.data;
+            setRows(items.map((it) => {
+                const p = products.find((pr) => pr.id === it.productId);
+                return { ...fromItemResult(it), unit: p?.unit ?? '', backendId: undefined };
+            }));
+        }
+        setPrefillFrom(emptyTable
+            ? `cơ hội «${o.code}» (kèm dòng hàng)`
+            : `cơ hội «${o.code}» — giữ nguyên dòng hàng bạn đã nhập`);
     };
+
+    // vào trang qua nút "Tạo báo giá" (chuột phải/trang chi tiết Cơ hội, ?fromOpportunity=<id>) ->
+    // tự chọn cơ hội nguồn + tự điền, chạy đúng 1 lần lúc mount
+    const [searchParams] = useSearchParams();
+    const autoPickedRef = useRef(false);
+    useEffect(() => {
+        const fromOpportunity = searchParams.get('fromOpportunity');
+        if (!fromOpportunity || autoPickedRef.current) return;
+        autoPickedRef.current = true;
+        void onPickOpportunity(fromOpportunity);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
 
     // kiểm tra bắt buộc + biên (khớp ràng buộc backend) - trả map field->lỗi
     const validate = (): Record<string, string> =>
@@ -126,7 +163,7 @@ const QuoteAddPage = () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
-        if (Object.keys(errs).length > 0) return;
+        if (!validateOrWarn(errs, showAlert)) return;
 
         const payload: CreateQuotationPayload = {
             code: form.code.trim(),
@@ -142,7 +179,14 @@ const QuoteAddPage = () => {
         };
         if (!(await confirmCreate('báo giá'))) return;
         mutate(payload, {
-            onSuccess: () => navigate('/bao-gia'),
+            onSuccess: async (res) => {
+                // báo giá đầu tiên của cơ hội -> tự đặt đồng bộ (primary), lỗi thì bỏ qua vì
+                // báo giá đã tạo thành công, đặt primary chỉ là bước phụ trợ
+                if (isFirstQuoteRef.current) {
+                    try { await quotationService.setPrimary(res.data.data.id); } catch { /* im lặng */ }
+                }
+                navigate('/bao-gia');
+            },
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Có lỗi xảy ra khi lưu báo giá';

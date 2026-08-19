@@ -1,10 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { contactService } from '../services/contactService';
 
-/** Lấy danh sách liên hệ (phân trang). */
+// lấy toàn bộ liên hệ (tối đa 500 dòng) — dùng cho dropdown chọn liên hệ
 export function useContactList() {
-    return useQuery({
-        queryKey: ['contacts'],
-        queryFn: () => contactService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items),
-    });
+    return useLiveQuery('contacts', () =>
+        contactService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items));
 }

@@ -9,6 +9,8 @@ import 'tinymce/plugins/lists/plugin';
 import 'tinymce/plugins/link/plugin';
 // Skin cho thanh công cụ (nạp vào <head> của trang).
 import 'tinymce/skins/ui/oxide/skin.min.css';
+// Ép z-index dialog TinyMCE nổi trên modal chứa nó — xem chú thích trong file
+import './RichTextEditor.css';
 // Skin cho vùng nội dung (nạp vào iframe qua content_style).
 import contentUiCss from 'tinymce/skins/ui/oxide/content.min.css?raw';
 import contentCss from 'tinymce/skins/content/default/content.min.css?raw';

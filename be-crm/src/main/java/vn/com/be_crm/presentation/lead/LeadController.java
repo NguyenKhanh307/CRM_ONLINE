@@ -72,6 +72,16 @@ public class LeadController {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.claim(id, userId)));
     }
 
+    // chuyển tiềm năng thành khách hàng chính thức (chỉ khi đã có đơn hàng đầu tiên): tạo Khách
+    // hàng, re-link Cơ hội đang gắn, xóa mềm tiềm năng
+    @PreAuthorize("hasAuthority('lead.convert')")
+    @PostMapping("/{id}/convert")
+    public ResponseEntity<ApiResponse<vn.com.be_crm.application.customer.dto.CustomerResult>> convert(
+            @PathVariable Long id, HttpServletRequest req) {
+        Long userId = (Long) req.getAttribute("userId");
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.convertToCustomer(id, userId)));
+    }
+
     @PreAuthorize("hasAuthority('lead.create')")
     @PostMapping
     public ResponseEntity<ApiResponse<LeadResult>> create(@Valid @RequestBody CreateLeadCommand cmd) {

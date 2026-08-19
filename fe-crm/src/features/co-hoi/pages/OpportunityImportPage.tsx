@@ -15,7 +15,7 @@ const FIELDS: ImportField[] = [
     { key: 'campaignId',        label: 'ID chiến dịch nguồn',              type: 'number' },
     { key: 'winLossReason',     label: 'Lý do thắng/thua',                type: 'text' },
     { key: 'description',       label: 'Mô tả',                            type: 'text' },
-    { key: 'status',            label: 'Trạng thái',                       type: 'enum', enumValues: ['open', 'won', 'lost'] },
+    { key: 'status',            label: 'Trạng thái',                       type: 'enum', enumValues: ['open', 'won', 'lost'], enumLabels: { open: 'Đang mở', won: 'Đã thắng', lost: 'Đã thua' } },
 ];
 
 const OpportunityImportPage = () => {

@@ -71,15 +71,8 @@ const DonHangPage = () => {
 
 
     // chạy một hành động trên Đơn hàng, báo lỗi qua alert nếu bước chuyển không hợp lệ
-    // xuất hóa đơn thành công -> điều hướng sang Hóa đơn (hóa đơn vừa tạo)
     const runAction = (id: number, action: OrderAction) =>
         workflowFn({ id, action }, {
-            onSuccess: () => {
-                if (action === 'createInvoice') {
-                    showAlert('Đã xuất hóa đơn từ đơn hàng');
-                    navigate('/hoa-don');
-                }
-            },
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Không thực hiện được hành động';
@@ -99,13 +92,16 @@ const DonHangPage = () => {
             ? [{ key: 'process', label: 'Bắt đầu xử lý', onClick: () => runAction(o.id, 'process') }]
             : []),
         ...((o.status === 'confirmed' || o.status === 'processing') && can('order', 'create_invoice')
-            ? [{ key: 'createInvoice', label: 'Xuất hóa đơn', onClick: () => runAction(o.id, 'createInvoice') }]
+            ? [{ key: 'createInvoice', label: 'Xuất hóa đơn', onClick: () => navigate(`/hoa-don/them-moi?fromOrder=${o.id}`) }]
             : []),
         ...(o.status === 'processing' && can('order', 'process')
             ? [{ key: 'complete', label: 'Hoàn tất đơn', onClick: () => runAction(o.id, 'complete') }]
             : []),
         ...((o.status === 'draft' || o.status === 'confirmed' || o.status === 'processing') && can('order', 'process')
             ? [{ key: 'cancel', label: 'Hủy đơn', onClick: () => runAction(o.id, 'cancel') }]
+            : []),
+        ...((o.status === 'completed' || o.status === 'cancelled') && !o.isLocked && can('order', 'process')
+            ? [{ key: 'reopen', label: 'Mở lại', onClick: () => runAction(o.id, 'reopen') }]
             : []),
         ...(!o.isLocked && can('order', 'edit')
             ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) }]
@@ -212,12 +208,12 @@ const DonHangPage = () => {
                 columns={orderExportColumns}
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={async (keys, format) => {
+                onExport={async (keys) => {
                     // không tick dòng -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await orderService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
-                    exportRows(rows, orderExportColumns, keys, format, 'don-hang');
+                    exportRows(rows, orderExportColumns, keys, 'don-hang');
                     setExportOpen(false);
                 }}
             />

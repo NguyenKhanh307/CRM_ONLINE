@@ -1,11 +1,13 @@
 package vn.com.be_crm.infrastructure.copilot.repository;
 
 import org.hibernate.Session;
+import vn.com.be_crm.application.copilot.dto.CopilotChartSegment;
 import vn.com.be_crm.domain.dashboard.model.DateRange;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,19 @@ final class CopilotAnalyticsQueries {
     private static final DateTimeFormatter YM = DateTimeFormatter.ofPattern("yyyy-MM");
     private static final int SERIES_MONTHS = 24;
     private static final int TOP_N = 8;
+
+    // số lượng công việc (hoạt động) theo nhân viên trong khoảng — activities không có deleted_at
+    private static final String WORKLOAD_SQL =
+            "SELECT u.full_name, COUNT(*) v FROM activities a " +
+            "JOIN users u ON u.id = a.assigned_user_id AND u.deleted_at IS NULL " +
+            "WHERE a.created_at >= :f AND a.created_at < :t GROUP BY u.id, u.full_name ORDER BY v DESC LIMIT " + TOP_N;
+
+    // tỉ lệ chốt đơn theo nhân viên = số báo giá accepted / tổng báo giá tạo trong khoảng
+    private static final String WINRATE_SQL =
+            "SELECT u.full_name, ROUND(SUM(CASE WHEN q.status = 'accepted' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) v " +
+            "FROM quotations q JOIN users u ON u.id = q.owner_id AND u.deleted_at IS NULL " +
+            "WHERE q.deleted_at IS NULL AND q.created_at >= :f AND q.created_at < :t " +
+            "GROUP BY u.id, u.full_name ORDER BY v DESC LIMIT " + TOP_N;
 
     private CopilotAnalyticsQueries() {
     }
@@ -76,6 +91,8 @@ final class CopilotAnalyticsQueries {
                             "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
                             "AND i.invoice_date >= :f AND i.invoice_date < :t" + ofInv +
                             " GROUP BY u.id, u.full_name ORDER BY v DESC LIMIT " + TOP_N, p, " đ");
+            appendRanked(s, ctx, "Số lượng công việc theo nhân viên", WORKLOAD_SQL, p, " việc");
+            appendRanked(s, ctx, "Tỉ lệ chốt đơn theo nhân viên (báo giá)", WINRATE_SQL, p, "%");
         }
         appendRanked(s, ctx, "Doanh thu theo chiến dịch",
                 "SELECT camp.name, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v " +
@@ -112,6 +129,54 @@ final class CopilotAnalyticsQueries {
             ctx.append(String.join("; ", parts)).append("\n");
         }
         ctx.append("\n");
+    }
+
+    // dữ liệu có cấu trúc (thay vì nối chuỗi) cho biểu đồ tròn so sánh ở /phan-tich — tái dùng nguyên
+    // văn 4 câu SQL của appendRankings (cùng điều kiện lọc owner/thời gian/quyền), chỉ đổi cách trả kết
+    // quả. topic không khớp category nào -> trả rỗng (use case tự fallback "kỳ này vs kỳ trước").
+    static List<CopilotChartSegment> chartRows(Session s, String topic, LocalDate from, LocalDate to,
+                                               Long ownerId, boolean isPrivileged) {
+        Map<String, Object> p = dateOwner(from, to, ownerId);
+        String ofInv = ownerClause("i.owner_id", ownerId);
+        String sql = switch (topic == null ? "" : topic) {
+            case "employee" -> isPrivileged ?
+                    "SELECT u.full_name, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v " +
+                            "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                            "JOIN users u ON u.id = i.owner_id AND u.deleted_at IS NULL " +
+                            "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
+                            "AND i.invoice_date >= :f AND i.invoice_date < :t" + ofInv +
+                            " GROUP BY u.id, u.full_name ORDER BY v DESC LIMIT " + TOP_N : null;
+            case "workload" -> isPrivileged ? WORKLOAD_SQL : null;
+            case "winrate" -> isPrivileged ? WINRATE_SQL : null;
+            case "campaign" -> "SELECT camp.name, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v " +
+                    "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                    "JOIN orders o ON o.id = i.order_id " +
+                    "JOIN quotations q ON q.id = o.quotation_id " +
+                    "JOIN opportunities opp ON opp.id = q.opportunity_id " +
+                    "JOIN campaigns camp ON camp.id = opp.campaign_id AND camp.deleted_at IS NULL " +
+                    "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
+                    "AND i.invoice_date >= :f AND i.invoice_date < :t" + ofInv +
+                    " GROUP BY camp.id, camp.name ORDER BY v DESC LIMIT " + TOP_N;
+            case "customer" -> "SELECT cust.name, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v " +
+                    "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                    "JOIN orders o ON o.id = i.order_id " +
+                    "JOIN quotations q ON q.id = o.quotation_id " +
+                    "JOIN customers cust ON cust.id = q.customer_id AND cust.deleted_at IS NULL " +
+                    "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
+                    "AND i.invoice_date >= :f AND i.invoice_date < :t" + ofInv +
+                    " GROUP BY cust.id, cust.name ORDER BY v DESC LIMIT " + TOP_N;
+            case "product" -> "SELECT p.name, COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) v " +
+                    "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                    "JOIN products p ON p.id = ii.product_id AND p.deleted_at IS NULL " +
+                    "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
+                    "AND i.invoice_date >= :f AND i.invoice_date < :t" + ofInv +
+                    " GROUP BY p.id, p.name ORDER BY v DESC LIMIT " + TOP_N;
+            default -> null;
+        };
+        if (sql == null) return List.of();
+        List<CopilotChartSegment> out = new ArrayList<>();
+        for (Object[] r : rows(s, sql, p)) out.add(new CopilotChartSegment(str(r[0]), toBig(r[1])));
+        return out;
     }
 
     // số lượng bản ghi từng phân hệ: tổng cộng và phát sinh trong khoảng

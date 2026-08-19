@@ -8,12 +8,9 @@ import vn.com.be_crm.core.dto.delete.DeletedItemResult;
 import vn.com.be_crm.core.page.PageRequest;
 import vn.com.be_crm.core.page.PageResult;
 import vn.com.be_crm.domain.contact.entity.Contact;
-import vn.com.be_crm.domain.contact.entity.ContactPhone;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
 import vn.com.be_crm.infrastructure.contact.entity.ContactHibernate;
-import vn.com.be_crm.infrastructure.contact.entity.ContactPhoneHibernate;
 import vn.com.be_crm.infrastructure.contact.mapper.ContactHibernateMapper;
-import vn.com.be_crm.infrastructure.contact.mapper.ContactPhoneHibernateMapper;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -30,43 +27,19 @@ import vn.com.be_crm.core.tx.impl.TxSupport;
 public class ContactRepositoryImpl implements IContactRepository {
     private final SessionFactory sf;
     private final ContactHibernateMapper mapper;
-    private final ContactPhoneHibernateMapper phoneMapper;
 
     /**
-     * @param sf          Hibernate SessionFactory
-     * @param mapper      mapper domain ↔ hibernate
-     * @param phoneMapper mapper số điện thoại domain ↔ hibernate
+     * @param sf     Hibernate SessionFactory
+     * @param mapper mapper domain ↔ hibernate
      */
-    public ContactRepositoryImpl(SessionFactory sf, ContactHibernateMapper mapper,
-                                 ContactPhoneHibernateMapper phoneMapper) {
-        this.sf = sf; this.mapper = mapper; this.phoneMapper = phoneMapper;
+    public ContactRepositoryImpl(SessionFactory sf, ContactHibernateMapper mapper) {
+        this.sf = sf; this.mapper = mapper;
     }
 
     /** Lưu mới hoặc cập nhật Contact. @param c domain entity @return entity sau khi lưu */
     @Override public Contact save(Contact c) {
         return TxSupport.write(sf, s -> {
             ContactHibernate m = s.merge(mapper.toHibernate(c));
-            return mapper.toDomain(m);
-        });
-    }
-
-    /**
-     * Lưu Contact kèm danh sách số điện thoại trong MỘT transaction.
-     * @param c      domain entity liên hệ
-     * @param phones danh sách số điện thoại
-     * @return liên hệ sau khi lưu
-     */
-    @Override public Contact saveWithPhones(Contact c, List<ContactPhone> phones) {
-        return TxSupport.write(sf, s -> {
-            // Lưu liên hệ trước để lấy ID
-            ContactHibernate m = s.merge(mapper.toHibernate(c));
-            // Gán contactId vừa có cho từng số điện thoại rồi lưu trong cùng transaction
-            for (ContactPhone p : phones) {
-                ContactPhoneHibernate ph = phoneMapper.toHibernate(p);
-                ph.setContactId(m.getId());
-                s.merge(ph);
-            }
-            // Commit và trả về domain entity đã lưu
             return mapper.toDomain(m);
         });
     }

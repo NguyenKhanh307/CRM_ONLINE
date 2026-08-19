@@ -17,7 +17,9 @@ public class ListContactUseCase implements IUseCase<PageRequest, PageResult<Cont
     private final IContactRepository repo;
     private final INameResolver names;
     /** @param repo port lưu trữ @param names port tra tên khóa ngoại */
-    public ListContactUseCase(IContactRepository repo, INameResolver names) { this.repo = repo; this.names = names; }
+    public ListContactUseCase(IContactRepository repo, INameResolver names) {
+        this.repo = repo; this.names = names;
+    }
 
     /**
      * Lấy danh sách Contact có phân trang, kèm tên khóa ngoại (khách hàng, người phụ trách).

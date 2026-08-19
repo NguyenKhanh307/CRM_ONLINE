@@ -20,6 +20,7 @@ const RegisterEmployeePage = () => {
     const [roleId, setRoleId] = useState<number | ''>('');
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const mutation = useRegisterEmployee();
     const { data: roles = [] } = useRoleGroups();
@@ -39,6 +40,7 @@ const RegisterEmployeePage = () => {
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setSuccessMsg(null);
+        setApiError(null);
 
         const found = collectErrors({
             email: !email.trim()
@@ -65,14 +67,14 @@ const RegisterEmployeePage = () => {
                     setPhone('');
                     setRoleId(roles.length > 0 ? roles[0].id : '');
                 },
+                // bước hiện lỗi ngay trong form thay vì chỉ dựa vào toast lỗi toàn cục
+                onError: (err) => {
+                    const e = err as { response?: { data?: { message?: string } } };
+                    setApiError(e?.response?.data?.message ?? 'Đã xảy ra lỗi, vui lòng thử lại.');
+                },
             }
         );
     };
-
-    const apiError = mutation.error
-        ? (mutation.error as { response?: { data?: { message?: string } } })
-              ?.response?.data?.message ?? 'Đã xảy ra lỗi, vui lòng thử lại.'
-        : null;
 
     return (
         <CenteredFormCard

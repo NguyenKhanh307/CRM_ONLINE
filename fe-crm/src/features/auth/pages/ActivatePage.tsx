@@ -21,6 +21,7 @@ const ActivatePage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const mutation = useActivateAccount();
 
@@ -44,13 +45,18 @@ const ActivatePage = () => {
         setErrors(found);
         if (Object.keys(found).length > 0) return;
 
-        mutation.mutate({ token, newPassword: password });
+        setApiError(null);
+        mutation.mutate(
+            { token, newPassword: password },
+            {
+                // bước hiện lỗi ngay trong form thay vì chỉ dựa vào toast lỗi toàn cục
+                onError: (err) => {
+                    const e = err as { response?: { data?: { message?: string } } };
+                    setApiError(e?.response?.data?.message ?? 'Đã xảy ra lỗi, vui lòng thử lại.');
+                },
+            },
+        );
     };
-
-    const apiError = mutation.error
-        ? (mutation.error as { response?: { data?: { message?: string } } })
-              ?.response?.data?.message ?? 'Đã xảy ra lỗi, vui lòng thử lại.'
-        : null;
 
     return (
         <div className="min-h-screen bg-blue-200 flex items-center justify-center px-4">

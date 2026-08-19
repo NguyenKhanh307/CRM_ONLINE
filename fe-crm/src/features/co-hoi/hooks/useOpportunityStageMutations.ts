@@ -1,36 +1,34 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { opportunityStageService, type OpportunityStagePayload } from '../services/opportunityStageService';
 
-// invalidate cache danh sách giai đoạn sau mỗi thay đổi
-const useInvalidateStages = () => {
-    const qc = useQueryClient();
-    return () => qc.invalidateQueries({ queryKey: ['opportunity-stages'] });
-};
-
-// tạo giai đoạn pipeline mới
+// tạo giai đoạn pipeline mới — báo danh sách giai đoạn làm mới sau khi thành công
 export function useCreateStage() {
-    const invalidate = useInvalidateStages();
-    return useMutation({
-        mutationFn: (body: OpportunityStagePayload) => opportunityStageService.create(body),
-        onSuccess: invalidate,
-    });
+    const { mutate: run, isPending } = useLiveMutation((body: OpportunityStagePayload) => opportunityStageService.create(body));
+
+    const mutate: typeof run = (body, callbacks) =>
+        run(body, { ...callbacks, onSuccess: (data) => { notify('opportunity-stages'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }
 
-// cập nhật giai đoạn pipeline
+// cập nhật giai đoạn pipeline — báo danh sách giai đoạn làm mới sau khi thành công
 export function useUpdateStage() {
-    const invalidate = useInvalidateStages();
-    return useMutation({
-        mutationFn: ({ id, body }: { id: number; body: OpportunityStagePayload }) =>
-            opportunityStageService.update(id, body),
-        onSuccess: invalidate,
-    });
+    const { mutate: run, isPending } = useLiveMutation(
+        ({ id, body }: { id: number; body: OpportunityStagePayload }) => opportunityStageService.update(id, body));
+
+    const mutate: typeof run = (input, callbacks) =>
+        run(input, { ...callbacks, onSuccess: (data) => { notify('opportunity-stages'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }
 
-// xóa giai đoạn pipeline
+// xóa giai đoạn pipeline — báo danh sách giai đoạn làm mới sau khi thành công
 export function useDeleteStage() {
-    const invalidate = useInvalidateStages();
-    return useMutation({
-        mutationFn: (id: number) => opportunityStageService.remove(id),
-        onSuccess: invalidate,
-    });
+    const { mutate: run, isPending } = useLiveMutation((id: number) => opportunityStageService.remove(id));
+
+    const mutate: typeof run = (id, callbacks) =>
+        run(id, { ...callbacks, onSuccess: (data) => { notify('opportunity-stages'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }

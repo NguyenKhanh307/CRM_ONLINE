@@ -15,11 +15,11 @@ interface Props {
 export const ContactContactSection = ({ value, onChange, errors = {} }: Props) => (
     <div className="grid grid-cols-2 gap-x-10 gap-y-4">
         <div className="space-y-4">
-            <FieldRow label="ĐT di động" error={errors.mobilePhone}>
+            <FieldRow label="Số điện thoại" error={errors.phone}>
                 <input
                     type="text"
-                    value={value.mobilePhone}
-                    onChange={(e) => onChange({ mobilePhone: e.target.value })}
+                    value={value.phone}
+                    onChange={(e) => onChange({ phone: e.target.value })}
                     className={inputCls}
                 />
             </FieldRow>
@@ -34,14 +34,6 @@ export const ContactContactSection = ({ value, onChange, errors = {} }: Props) =
         </div>
 
         <div className="space-y-4">
-            <FieldRow label="ĐT cơ quan" error={errors.officePhone}>
-                <input
-                    type="text"
-                    value={value.officePhone}
-                    onChange={(e) => onChange({ officePhone: e.target.value })}
-                    className={inputCls}
-                />
-            </FieldRow>
             <FieldRow label="Zalo">
                 <input
                     type="text"

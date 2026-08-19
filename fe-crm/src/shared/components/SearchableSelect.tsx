@@ -164,7 +164,7 @@ export const SearchableSelect = ({
                 }}
                 className={`${baseCls} flex items-center justify-between ${selectedLabel ? 'pr-14' : 'pr-8'} text-left`}
             >
-                <span className={selectedLabel ? 'text-text-main' : 'text-gray-400'}>
+                <span className={`block truncate whitespace-nowrap ${selectedLabel ? 'text-text-main' : 'text-gray-400'}`}>
                     {selectedLabel || placeholder}
                 </span>
                 <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 pointer-events-none">

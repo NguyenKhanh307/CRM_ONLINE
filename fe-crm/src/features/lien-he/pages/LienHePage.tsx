@@ -135,12 +135,12 @@ const LienHePage = () => {
                 columns={contactExportColumns}
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={async (keys, format) => {
+                onExport={async (keys) => {
                     // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await contactService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
-                    exportRows(rows, contactExportColumns, keys, format, 'lien-he');
+                    exportRows(rows, contactExportColumns, keys, 'lien-he');
                     setExportOpen(false);
                 }}
             />

@@ -7,6 +7,7 @@ import vn.com.be_crm.domain.invoice.entity.Invoice;
 import vn.com.be_crm.domain.invoice.entity.InvoiceItem;
 import vn.com.be_crm.domain.invoice.entity.InvoicePaymentSchedule;
 import vn.com.be_crm.domain.invoice.enums.InvoiceStatus;
+import vn.com.be_crm.domain.invoice.enums.PaymentScheduleStatus;
 import vn.com.be_crm.domain.invoice.enums.PaymentStatus;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceItemRepository;
 import vn.com.be_crm.domain.invoice.repository.IInvoicePaymentScheduleRepository;
@@ -44,6 +45,14 @@ public class InvoiceWorkflowUseCase {
         return InvoiceCommandMapper.toResult(invoiceRepo.save(o.toBuilder().status(InvoiceStatus.cancelled).build()));
     }
 
+    // mở lại khi lỡ bấm nhầm hủy (cancelled -> draft), mở khóa lại để có thể sửa tiếp
+    public InvoiceResult reopen(Long id) {
+        Invoice o = load(id);
+        o.getStatus().ensureCanTransitionTo(InvoiceStatus.draft);
+        return InvoiceCommandMapper.toResult(invoiceRepo.save(
+                o.toBuilder().status(InvoiceStatus.draft).isLocked(false).build()));
+    }
+
     // tính lại trạng thái thanh toán & trạng thái hóa đơn từ tổng tiền đã trả của các đợt thanh
     // toán so với tổng hóa đơn (tính từ dòng hàng, không còn cột lưu sẵn). Gọi sau mỗi lần tạo/
     // sửa/xóa đợt thanh toán.
@@ -51,6 +60,7 @@ public class InvoiceWorkflowUseCase {
         Invoice o = invoiceRepo.findById(invoiceId).orElse(null);
         if (o == null) return;
         BigDecimal paid = scheduleRepo.findAllByInvoiceId(invoiceId).stream()
+                .filter(s -> s.getStatus() == PaymentScheduleStatus.paid)
                 .map(InvoicePaymentSchedule::getPaidAmount)
                 .filter(a -> a != null)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

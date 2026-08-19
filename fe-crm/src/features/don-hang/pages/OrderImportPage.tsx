@@ -7,7 +7,7 @@ const FIELDS: ImportField[] = [
     { key: 'quotationId',    label: 'ID báo giá',                    type: 'number' },
     { key: 'orderDate',      label: 'Ngày đơn hàng',                 type: 'date' },
     { key: 'deliveryDate',   label: 'Ngày giao dự kiến',             type: 'date' },
-    { key: 'status',         label: 'Trạng thái',                     type: 'enum', enumValues: ['draft', 'confirmed', 'processing', 'completed', 'cancelled'] },
+    { key: 'status',         label: 'Trạng thái',                     type: 'enum', enumValues: ['draft', 'confirmed', 'processing', 'completed', 'cancelled'], enumLabels: { draft: 'Nháp', confirmed: 'Đã xác nhận', processing: 'Đang xử lý', completed: 'Hoàn tất', cancelled: 'Đã hủy' } },
     { key: 'note',           label: 'Ghi chú',                        type: 'text' },
 ];
 

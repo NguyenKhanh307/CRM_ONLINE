@@ -13,7 +13,7 @@ interface SidebarProps {
 // loại thông báo mang tính "cập nhật/thay đổi" -> chấm vàng; còn lại (tạo mới/cần hành động) -> chấm đỏ
 const UPDATE_NOTIFICATION_TYPES = new Set<string>([
     'quotation_approved', 'quotation_rejected', 'quotation_accepted',
-    'quotation_customer_response', 'ticket_resolved',
+    'quotation_customer_response', 'ticket_resolved', 'lead_claimed',
 ]);
 
 // sidebar điều hướng chính — lọc mục theo quyền, hiện chấm thông báo chưa đọc theo module

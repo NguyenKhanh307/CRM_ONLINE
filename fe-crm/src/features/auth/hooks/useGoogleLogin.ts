@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/useAuth';
 import { authService, type GoogleLoginPayload } from '../services/authService';
@@ -7,13 +7,19 @@ import { authService, type GoogleLoginPayload } from '../services/authService';
 export const useGoogleLogin = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
+    const { mutate: run, isPending } = useLiveMutation(
+        (payload: GoogleLoginPayload) => authService.googleLogin(payload));
 
-    return useMutation({
-        mutationFn: (payload: GoogleLoginPayload) => authService.googleLogin(payload),
-        onSuccess: ({ data }) => {
-            const { token, id, email, fullName, avatarUrl, roles, permissions } = data.data;
-            login(token, { id, email, fullName, avatarUrl, roles, permissions });
-            navigate('/', { replace: true });
-        },
-    });
+    const mutate: typeof run = (payload, callbacks) =>
+        run(payload, {
+            ...callbacks,
+            onSuccess: (res) => {
+                const { token, id, email, fullName, avatarUrl, roles, permissions } = res.data.data;
+                login(token, { id, email, fullName, avatarUrl, roles, permissions });
+                navigate('/', { replace: true });
+                callbacks?.onSuccess?.(res);
+            },
+        });
+
+    return { mutate, isPending };
 };

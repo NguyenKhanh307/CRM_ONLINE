@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
 import vn.com.be_crm.application.service.command.*;
 import vn.com.be_crm.application.service.query.*;
+import vn.com.be_crm.core.security.port.ICurrentUser;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
 import vn.com.be_crm.domain.service.repository.ISlaPolicyRepository;
 import vn.com.be_crm.domain.service.repository.ITicketRepository;
 import vn.com.be_crm.domain.service.repository.ITicketReturnItemRepository;
@@ -15,12 +17,12 @@ public class ServiceBeanConfig {
 
     // ===== Ticket CRUD =====
 
-    @Bean public CreateTicketUseCase createTicketUseCase(ITicketRepository r, ISlaPolicyRepository sr) { return new CreateTicketUseCase(r, sr); }
+    @Bean public CreateTicketUseCase createTicketUseCase(ITicketRepository r, ISlaPolicyRepository sr, ICurrentUser cu) { return new CreateTicketUseCase(r, sr, cu); }
     @Bean public UpdateTicketUseCase updateTicketUseCase(ITicketRepository r) { return new UpdateTicketUseCase(r); }
     @Bean public DeleteTicketUseCase deleteTicketUseCase(ITicketRepository r) { return new DeleteTicketUseCase(r); }
     @Bean public GetTicketUseCase getTicketUseCase(ITicketRepository r) { return new GetTicketUseCase(r); }
     @Bean public ListTicketUseCase listTicketUseCase(ITicketRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListTicketUseCase(r, n); }
-    @Bean public ImportBulkTicketUseCase importBulkTicketUseCase(ITicketRepository r) { return new ImportBulkTicketUseCase(r); }
+    @Bean public ImportBulkTicketUseCase importBulkTicketUseCase(ITicketRepository r, ITransactionRunner tx) { return new ImportBulkTicketUseCase(r, tx); }
 
     // ===== Workflow / CSAT =====
 
@@ -49,6 +51,10 @@ public class ServiceBeanConfig {
     // ===== SLA =====
 
     @Bean public ListSlaPolicyUseCase listSlaPolicyUseCase(ISlaPolicyRepository r) { return new ListSlaPolicyUseCase(r); }
+    @Bean public GetSlaPolicyUseCase getSlaPolicyUseCase(ISlaPolicyRepository r) { return new GetSlaPolicyUseCase(r); }
+    @Bean public CreateSlaPolicyUseCase createSlaPolicyUseCase(ISlaPolicyRepository r) { return new CreateSlaPolicyUseCase(r); }
+    @Bean public UpdateSlaPolicyUseCase updateSlaPolicyUseCase(ISlaPolicyRepository r) { return new UpdateSlaPolicyUseCase(r); }
+    @Bean public DeleteSlaPolicyUseCase deleteSlaPolicyUseCase(ISlaPolicyRepository r) { return new DeleteSlaPolicyUseCase(r); }
 
     // ===== Trash & Handover =====
 

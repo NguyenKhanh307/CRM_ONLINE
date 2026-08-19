@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { customerService } from '@/features/khach-hang/services/customerService';
 import { contactService } from '@/features/lien-he/services/contactService';
 import { leadService } from '@/features/tiem-nang/services/leadService';
@@ -45,7 +45,8 @@ const SOURCES: Record<RecordModule, {
     },
     quotation: {
         hint: 'Tìm theo mã báo giá (BG…)',
-        fetch: (p) => quotationService.getList(p).then((r) =>
+        // ô chọn ở form (Đơn hàng/Hóa đơn) — không cho chọn báo giá đã hết hạn
+        fetch: (p) => quotationService.getList({ ...p, excludeExpired: true }).then((r) =>
             r.data.data.items.map((q) => ({
                 value: String(q.id),
                 label: q.customerName ? `${q.code} — ${q.customerName}` : q.code,
@@ -53,19 +54,15 @@ const SOURCES: Record<RecordModule, {
     },
     order: {
         hint: 'Tìm theo mã đơn hàng (DH…)',
+        // OrderResult không có customerName (liên kết khách hàng tra qua quotationId) — chỉ hiện mã
         fetch: (p) => orderService.getList(p).then((r) =>
-            r.data.data.items.map((o) => ({
-                value: String(o.id),
-                label: o.customerName ? `${o.code} — ${o.customerName}` : o.code,
-            }))),
+            r.data.data.items.map((o) => ({ value: String(o.id), label: o.code }))),
     },
     invoice: {
         hint: 'Tìm theo mã hóa đơn (HD…)',
+        // InvoiceResult không có customerName (liên kết khách hàng tra qua orderId) — chỉ hiện mã
         fetch: (p) => invoiceService.getList(p).then((r) =>
-            r.data.data.items.map((i) => ({
-                value: String(i.id),
-                label: i.customerName ? `${i.code} — ${i.customerName}` : i.code,
-            }))),
+            r.data.data.items.map((i) => ({ value: String(i.id), label: i.code }))),
     },
 };
 
@@ -82,9 +79,11 @@ export function useRecordSearch(
     params?: Pick<PageParams, 'customerId'>,
     enabled = true,
 ) {
-    const query = useQuery({
-        queryKey: [module, 'search', q, params?.customerId ?? null],
-        queryFn: () => SOURCES[module as RecordModule].fetch({
+    // key gồm đủ tham số ảnh hưởng kết quả — đổi bất kỳ phần nào cũng tự tải lại
+    const key = `${module}:search:${q}:${params?.customerId ?? 'null'}`;
+    const query = useLiveQuery(
+        key,
+        () => SOURCES[module as RecordModule].fetch({
             q: q || undefined,
             page: 0,
             size: PAGE_SIZE,
@@ -92,8 +91,8 @@ export function useRecordSearch(
             sortDir: 'desc',
             ...params,
         }),
-        enabled: enabled && !!module,
-        placeholderData: keepPreviousData,
-    });
+        enabled && !!module,
+    );
+    // isFetching (không phải isLoading) để giữ danh sách option cũ khi đang gõ tiếp, không giật
     return { options: query.data ?? [], loading: query.isFetching };
 }

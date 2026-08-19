@@ -12,13 +12,17 @@ import java.util.stream.Collectors;
 /** Use case lấy danh sách chính sách giá có phân trang. */
 public class ListPricePolicyUseCase implements IUseCase<PageRequest, PageResult<PricePolicyResult>> {
     private final IPricePolicyRepository repo;
-    /** @param repo port lưu trữ */
-    public ListPricePolicyUseCase(IPricePolicyRepository repo) { this.repo = repo; }
+    private final PricePolicyExpiryUseCase expiryUC;
+    /** @param repo port lưu trữ @param expiryUC tự đổi trạng thái khi phát hiện quá hạn hiệu lực */
+    public ListPricePolicyUseCase(IPricePolicyRepository repo, PricePolicyExpiryUseCase expiryUC) {
+        this.repo = repo; this.expiryUC = expiryUC;
+    }
     /** Lấy danh sách PricePolicy. @param r phân trang @return PageResult */
     @Override public PageResult<PricePolicyResult> execute(PageRequest r) {
         var page = repo.findAll(r);
         return PageResult.<PricePolicyResult>builder()
-                .items(page.getItems().stream().map(PricePolicyCommandMapper::toResult).collect(Collectors.toList()))
+                .items(page.getItems().stream().map(expiryUC::checkAndExpire)
+                        .map(PricePolicyCommandMapper::toResult).collect(Collectors.toList()))
                 .total(page.getTotal()).page(page.getPage()).size(page.getSize()).build();
     }
 }

@@ -10,7 +10,7 @@ const FIELDS: ImportField[] = [
     { key: 'pricePolicyId',  label: 'ID chính sách giá',              type: 'number' },
     { key: 'quoteDate',      label: 'Ngày báo giá',  required: true, type: 'date' },
     { key: 'validUntil',     label: 'Hiệu lực đến',                  type: 'date' },
-    { key: 'status',         label: 'Trạng thái',                     type: 'enum', enumValues: ['draft', 'pending', 'approved', 'rejected', 'sent', 'accepted', 'expired'] },
+    { key: 'status',         label: 'Trạng thái',                     type: 'enum', enumValues: ['draft', 'pending', 'approved', 'rejected', 'sent', 'accepted', 'expired'], enumLabels: { draft: 'Nháp', pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Từ chối', sent: 'Đã gửi', accepted: 'Đã chấp nhận', expired: 'Hết hạn' } },
     { key: 'note',           label: 'Ghi chú',                        type: 'text' },
 ];
 

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Lệnh gửi email báo giá cho khách hàng.
- * Người nhận/CC/BCC do người dùng soạn; bỏ trống `to` thì lấy email của liên hệ/khách hàng trên báo giá.
+ * Người nhận do người dùng soạn; bỏ trống `to` thì lấy email của liên hệ/khách hàng trên báo giá.
  */
 @Getter
 @Builder
@@ -20,12 +20,6 @@ public class SendQuotationCommand {
 
     /** Người nhận chính (bỏ trống → mặc định từ liên hệ/khách hàng). */
     private String to;
-
-    /** Danh sách CC, phân tách bởi dấu phẩy hoặc chấm phẩy. */
-    private String cc;
-
-    /** Danh sách BCC, phân tách bởi dấu phẩy hoặc chấm phẩy. */
-    private String bcc;
 
     /** Tiêu đề (bỏ trống → mặc định). */
     private String subject;

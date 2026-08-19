@@ -1,5 +1,5 @@
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
-import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { SearchableSelect, type SelectOption } from '@/shared/components/SearchableSelect';
 import { inputCls } from '@/shared/components/form/formStyles';
 import type { ReturnReason, TicketReturnItemPayload } from '../types/ticketTypes';
 import { REASON_OPTIONS } from '../config/ticketEnums';
@@ -32,10 +32,13 @@ export const toReturnItemPayloads = (rows: ReturnRow[]): TicketReturnItemPayload
 interface Props {
     rows: ReturnRow[];
     onChange: (rows: ReturnRow[]) => void;
+    // danh sách dòng hàng của hóa đơn phát sinh từ đơn hàng đang chọn — rỗng khi chưa chọn đơn
+    // hàng hoặc đơn chưa xuất hóa đơn
+    invoiceItemOptions: SelectOption[];
 }
 
-// bảng nhập dòng hàng trả/đổi — chọn theo dòng hóa đơn cụ thể (invoiceItemId)/quantity/reason/conditionNote
-export function ReturnItemsTable({ rows, onChange }: Props) {
+// bảng nhập dòng hàng trả/đổi — chọn sản phẩm theo dòng hóa đơn cụ thể (invoiceItemId)/quantity/reason/conditionNote
+export function ReturnItemsTable({ rows, onChange, invoiceItemOptions }: Props) {
     const patch = (key: string, p: Partial<ReturnRow>) =>
         onChange(rows.map(r => (r.key === key ? { ...r, ...p } : r)));
 
@@ -44,7 +47,7 @@ export function ReturnItemsTable({ rows, onChange }: Props) {
             <table className="w-full text-md">
                 <thead>
                     <tr className="text-left text-gray-500 border-b border-gray-200">
-                        <th className="py-2 pr-2 font-medium">ID dòng hóa đơn</th>
+                        <th className="py-2 pr-2 font-medium">Sản phẩm</th>
                         <th className="py-2 px-2 font-medium w-24">Số lượng</th>
                         <th className="py-2 px-2 font-medium w-40">Lý do</th>
                         <th className="py-2 px-2 font-medium">Tình trạng</th>
@@ -54,8 +57,10 @@ export function ReturnItemsTable({ rows, onChange }: Props) {
                 <tbody>
                     {rows.map(r => (
                         <tr key={r.key} className="border-b border-gray-100">
-                            <td className="py-1.5 pr-2 min-w-[140px]">
-                                <input type="number" min={1} value={r.invoiceItemId} onChange={(e) => patch(r.key, { invoiceItemId: e.target.value })} className={inputCls} />
+                            <td className="py-1.5 pr-2 min-w-[220px]">
+                                <SearchableSelect value={r.invoiceItemId} onChange={(v) => patch(r.key, { invoiceItemId: v })}
+                                    options={invoiceItemOptions}
+                                    placeholder={invoiceItemOptions.length > 0 ? '— Chọn sản phẩm —' : '— Chọn đơn hàng có hóa đơn trước —'} />
                             </td>
                             <td className="py-1.5 px-2">
                                 <input type="number" min={0} value={r.quantity} onChange={(e) => patch(r.key, { quantity: Number(e.target.value) })} className={inputCls} />

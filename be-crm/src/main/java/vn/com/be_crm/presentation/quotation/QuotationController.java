@@ -42,40 +42,42 @@ public class QuotationController {
     private final ImportBulkQuotationUseCase importBulkUC;
     private final vn.com.be_crm.application.quotation.command.HandoverBulkQuotationUseCase handoverBulkUC;
     private final QuotationWorkflowUseCase workflowUC;
-    private final CreateQuotationFromOpportunityUseCase fromOpportunityUC;
     private final RefreshQuotationItemsFromOpportunityUseCase refreshItemsUC;
     private final SetPrimaryQuotationUseCase setPrimaryUC;
-    private final ConvertQuotationToOrderUseCase convertToOrderUC;
+    private final MarkQuotationConvertedUseCase markConvertedUC;
     private final GetQuotationEmailDraftUseCase emailDraftUC;
     private final PreviewQuotationPdfUseCase previewPdfUC;
+    private final vn.com.be_crm.application.quotation.command.CreateQuotationFromAdjustmentUseCase createFromAdjustmentUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
      *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
      *  @param handoverBulkUC bàn giao hàng loạt @param workflowUC luồng duyệt báo giá
-     *  @param fromOpportunityUC clone từ cơ hội @param refreshItemsUC cập nhật lại dòng hàng từ cơ hội
-     *  @param setPrimaryUC đặt báo giá đồng bộ @param convertToOrderUC chuyển thành đơn hàng
-     *  @param previewPdfUC xem trước PDF báo giá khi soạn email */
+     *  @param refreshItemsUC cập nhật lại dòng hàng từ cơ hội
+     *  @param setPrimaryUC đặt báo giá đồng bộ @param markConvertedUC đánh dấu đã chuyển thành đơn hàng (khóa + cơ hội won)
+     *  @param previewPdfUC xem trước PDF báo giá khi soạn email
+     *  @param createFromAdjustmentUC tạo báo giá mới từ đề xuất chỉnh sửa của khách */
     public QuotationController(CreateQuotationUseCase createUC, UpdateQuotationUseCase updateUC,
                                 DeleteQuotationUseCase deleteUC, GetQuotationUseCase getUC, ListQuotationUseCase listUC,
                                 ListDeletedQuotationsUseCase listDeletedUC, RestoreQuotationUseCase restoreUC, PurgeQuotationUseCase purgeUC,
                                 ImportBulkQuotationUseCase importBulkUC,
                                 vn.com.be_crm.application.quotation.command.HandoverBulkQuotationUseCase handoverBulkUC,
                                 QuotationWorkflowUseCase workflowUC,
-                                CreateQuotationFromOpportunityUseCase fromOpportunityUC,
                                 RefreshQuotationItemsFromOpportunityUseCase refreshItemsUC,
                                 SetPrimaryQuotationUseCase setPrimaryUC,
-                                ConvertQuotationToOrderUseCase convertToOrderUC,
+                                MarkQuotationConvertedUseCase markConvertedUC,
                                 GetQuotationEmailDraftUseCase emailDraftUC,
-                                PreviewQuotationPdfUseCase previewPdfUC) {
+                                PreviewQuotationPdfUseCase previewPdfUC,
+                                vn.com.be_crm.application.quotation.command.CreateQuotationFromAdjustmentUseCase createFromAdjustmentUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
         this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC; this.workflowUC = workflowUC;
-        this.fromOpportunityUC = fromOpportunityUC; this.refreshItemsUC = refreshItemsUC;
+        this.refreshItemsUC = refreshItemsUC;
         this.setPrimaryUC = setPrimaryUC;
-        this.convertToOrderUC = convertToOrderUC;
+        this.markConvertedUC = markConvertedUC;
         this.emailDraftUC = emailDraftUC;
         this.previewPdfUC = previewPdfUC;
+        this.createFromAdjustmentUC = createFromAdjustmentUC;
     }
 
     /** Tạo mới báo giá. @param cmd JSON body @return 201 */
@@ -91,14 +93,15 @@ public class QuotationController {
             HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "desc") String sortDir,
-            @RequestParam(required = false) String q, @RequestParam(required = false) String status) {
+            @RequestParam(required = false) String q, @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "false") boolean excludeExpired) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
         // Record-level visibility: admin/manager xem tat ca, nhan vien chi xem ban ghi minh phu trach
         Long userId = (Long) req.getAttribute("userId");
         boolean privileged = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
         Long ownerId = privileged ? null : userId;
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listUC.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).ownerId(ownerId).build()))));
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).ownerId(ownerId).excludeExpired(excludeExpired).build()))));
     }
 
     /** Lấy báo giá theo ID. @param id ID @return 200 */
@@ -120,12 +123,6 @@ public class QuotationController {
                         .note(cmd.getNote()).build())));
     }
 
-    /** Clone báo giá từ cơ hội (sao chép sâu KH/LH/chính sách giá + dòng hàng). @param opportunityId ID cơ hội @return 201 */
-    @PostMapping("/from-opportunity/{opportunityId}")
-    public ResponseEntity<ApiResponse<QuotationResult>> fromOpportunity(@PathVariable Long opportunityId) {
-        return ResponseEntity.status(201).body(ApiResponse.created(fromOpportunityUC.execute(opportunityId)));
-    }
-
     /** Cập nhật lại dòng hàng báo giá theo cơ hội nguồn (xóa + clone lại OLI→QLI, giữ liên kết). @param id ID báo giá @return 200 */
     @PostMapping("/{id}/sync-items-from-opportunity")
     public ResponseEntity<ApiResponse<QuotationResult>> syncItemsFromOpportunity(@PathVariable Long id) {
@@ -138,6 +135,13 @@ public class QuotationController {
         return ResponseEntity.ok(ApiResponse.ok(setPrimaryUC.execute(id)));
     }
 
+    /** Tạo báo giá mới từ đề xuất chỉnh sửa của khách (khóa báo giá cũ). @param id ID báo giá cũ @return 201 báo giá mới */
+    @PreAuthorize("hasAuthority('quotation.edit')")
+    @PostMapping("/{id}/create-revision")
+    public ResponseEntity<ApiResponse<QuotationResult>> createRevision(@PathVariable Long id) {
+        return ResponseEntity.status(201).body(ApiResponse.created(createFromAdjustmentUC.execute(id)));
+    }
+
     /** Khách chấp nhận báo giá (sent → accepted). @param id ID @return 200 */
     @PreAuthorize("hasAuthority('quotation.approve')")
     @PostMapping("/{id}/accept")
@@ -145,10 +149,18 @@ public class QuotationController {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.accept(id)));
     }
 
-    /** Chuyển báo giá thành đơn hàng (khóa báo giá + cơ hội Chốt Thắng). @param id ID @return 201 đơn hàng */
-    @PostMapping("/{id}/convert-to-order")
-    public ResponseEntity<ApiResponse<vn.com.be_crm.application.order.dto.OrderResult>> convertToOrder(@PathVariable Long id) {
-        return ResponseEntity.status(201).body(ApiResponse.created(convertToOrderUC.execute(id)));
+    /** Mở lại khi lỡ bấm nhầm chấp nhận (accepted → sent). @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('quotation.approve')")
+    @PostMapping("/{id}/reopen")
+    public ResponseEntity<ApiResponse<QuotationResult>> reopen(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.reopen(id)));
+    }
+
+    /** Đánh dấu báo giá đã chuyển thành đơn hàng (Đơn hàng đã được tạo riêng qua trang thêm mới
+     * ?fromQuotation=; ở đây chỉ khóa báo giá + chuyển cơ hội liên quan sang Chốt Thắng). @param id ID @return 200 */
+    @PostMapping("/{id}/mark-converted")
+    public ResponseEntity<ApiResponse<QuotationResult>> markConverted(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(markConvertedUC.execute(id)));
     }
 
     /** Xóa mềm báo giá. @param id ID @param req HTTP request @return 204 */
@@ -241,7 +253,7 @@ public class QuotationController {
                 .body(pdf);
     }
 
-    /** Nhân viên gửi email báo giá cho khách (approved → sent). @param id ID @param body người nhận/CC/BCC/tiêu đề/nội dung tùy biến @return 200 */
+    /** Nhân viên gửi email báo giá cho khách (approved → sent). @param id ID @param body người nhận/tiêu đề/nội dung tùy biến @return 200 */
     @PreAuthorize("hasAuthority('quotation.send')")
     @PostMapping("/{id}/send")
     public ResponseEntity<ApiResponse<QuotationResult>> send(@PathVariable Long id,
@@ -250,8 +262,6 @@ public class QuotationController {
                 vn.com.be_crm.application.quotation.dto.SendQuotationCommand.builder()
                         .id(id)
                         .to(body != null ? body.getTo() : null)
-                        .cc(body != null ? body.getCc() : null)
-                        .bcc(body != null ? body.getBcc() : null)
                         .subject(body != null ? body.getSubject() : null)
                         .body(body != null ? body.getBody() : null)
                         .build())));

@@ -57,6 +57,14 @@ public class PageRequest {
      */
     private Long customerId;
 
+    /**
+     * Loại bỏ bản ghi đã hết hạn (status='expired') khỏi kết quả — dùng cho ô chọn báo giá ở form
+     * khác (Đơn hàng/Hóa đơn), KHÔNG bật ở trang danh sách quản lý chính (vẫn cần thấy bản ghi hết
+     * hạn để theo dõi/xử lý). Mặc định false.
+     */
+    @Builder.Default
+    private boolean excludeExpired = false;
+
     /** @return offset = page * size */
     public int getOffset() {
         return page * size;

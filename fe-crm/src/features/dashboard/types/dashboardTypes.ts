@@ -61,31 +61,69 @@ export interface AdminDashboard {
     recordTotals: DonutSegment[];
 }
 
-/** Dữ liệu dashboard kinh doanh (manager toàn đội / sale cá nhân). */
+/**
+ * Dữ liệu dashboard kinh doanh (manager toàn đội / sale cá nhân) — mirror
+ * SalesDashboardResult.java bản đã trim. 9 field dưới đây bị BE cắt (comment) vì không FE nào đọc
+ * tới — mở lại đồng thời với BE (SalesDashboardResult.java + DashboardRepositoryImpl.getSales()).
+ */
 export interface SalesDashboard {
-    totalRevenue: KpiMetric;
-    totalCost: KpiMetric;
-    totalProfit: KpiMetric;
-    revenueByMonth: TimeSeriesPoint[];
-    costByMonth: TimeSeriesPoint[];
-    profitByMonth: TimeSeriesPoint[];
+    // totalRevenue: KpiMetric;
+    // totalCost: KpiMetric;
+    // totalProfit: KpiMetric;
+    // revenueByMonth: TimeSeriesPoint[];
+    // costByMonth: TimeSeriesPoint[];
+    // profitByMonth: TimeSeriesPoint[];
     oppTotal: KpiMetric;
     oppOpen: KpiMetric;
     oppWon: KpiMetric;
     oppLost: KpiMetric;
     winRate: KpiMetric;
-    expectedByMonth: TimeSeriesPoint[];
     conversionFunnel: FunnelStage[];
     topOpportunities: RankedItem[];
-    leadsByStatus: DonutSegment[];
     opportunitiesByStatus: DonutSegment[];
     ordersByStatus: DonutSegment[];
     invoicesByStatus: DonutSegment[];
     ticketsByStatus: DonutSegment[];
-    urgentItems: UrgentItem[];
-    teamByOwner: GroupedStatusRow[] | null;
-    revenueByOwner: RankedItem[] | null;
+    // urgentItems: UrgentItem[];
+    // teamByOwner: GroupedStatusRow[] | null;
+    // revenueByOwner: RankedItem[] | null;
 }
 
 /** Mã kỳ thống kê. */
 export type DashboardPeriod = 'month' | 'quarter' | 'year';
+
+/** CAC (chi phí/lead, /cơ hội, /đơn hàng) của một chiến dịch trong kỳ. */
+export interface CampaignCacRow {
+    campaignId: number;
+    name: string;
+    actualCost: number;
+    leadCount: number;
+    opportunityCount: number;
+    orderCount: number;
+    costPerLead: number | null;
+    costPerOpportunity: number | null;
+    costPerOrder: number | null;
+}
+
+/** Danh sách xếp hạng top-N kèm tổng số đầy đủ. */
+export interface CountedRankedList {
+    total: number;
+    items: RankedItem[];
+}
+
+/** Một hàng bảng xếp hạng nhân viên theo hiệu suất chăm sóc cơ hội. */
+export interface EmployeeWinRateRow {
+    userId: number;
+    fullName: string;
+    revenue: number;
+    wonCount: number;
+    lostCount: number;
+    winRatePct: number;
+}
+
+/** So sánh doanh thu kỳ này/kỳ trước của một chiến dịch đang chạy. */
+export interface CampaignRevenueComparisonRow {
+    campaignId: number;
+    name: string;
+    revenue: KpiMetric;
+}

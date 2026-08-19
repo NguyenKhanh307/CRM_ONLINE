@@ -15,30 +15,29 @@ public interface IEmailService {
     void sendActivationEmail(String toEmail, String recipientName, String activationLink);
 
     /**
-     * Gửi email báo giá tới khách hàng/liên hệ — đính kèm PDF + 3 nút phản hồi.
+     * Gửi email báo giá tới khách hàng/liên hệ — đính kèm PDF + 1 nút "Xem chi tiết báo giá".
      * Tiêu đề và phần nội dung message do người dùng soạn (hoặc lấy mặc định) truyền vào;
-     * khối 3 nút phản hồi (kèm token) được tầng gửi tự chèn vào cuối để link luôn đúng.
+     * nút xem chi tiết được tầng gửi tự chèn vào cuối để link luôn đúng.
      *
      * @param toEmail      địa chỉ email nhận
-     * @param cc           danh sách CC (rỗng nếu không có)
-     * @param bcc          danh sách BCC (rỗng nếu không có)
      * @param subject      tiêu đề email
-     * @param bodyHtml     nội dung message (HTML) — không gồm 3 nút phản hồi
-     * @param responseLink URL trang phản hồi công khai (kèm token), email gắn ?action=agree|adjust|reject
+     * @param bodyHtml     nội dung message (HTML) — không gồm nút xem chi tiết
+     * @param responseLink URL trang chi tiết/phản hồi công khai (dùng thẳng mã báo giá)
      * @param pdf          nội dung file PDF bảng báo giá (có thể null nếu không đính kèm)
      * @param pdfFileName  tên file PDF đính kèm
      */
-    void sendQuotationEmail(String toEmail, java.util.List<String> cc, java.util.List<String> bcc,
-                            String subject, String bodyHtml,
+    void sendQuotationEmail(String toEmail, String subject, String bodyHtml,
                             String responseLink, byte[] pdf, String pdfFileName);
 
     /**
-     * Gửi email chiến dịch marketing tới một thành viên (người nhận).
+     * Gửi email chiến dịch marketing tới một thành viên (người nhận) — tự chèn 1 nút "Xem tại đây"
+     * ở cuối email nếu có link tracking, giống cách sendQuotationEmail tự chèn nút xem chi tiết.
      *
      * @param toEmail       địa chỉ email nhận
      * @param recipientName tên hiển thị người nhận (có thể null)
      * @param subject       tiêu đề email chiến dịch
-     * @param body          nội dung email (HTML hoặc text)
+     * @param body          nội dung email (HTML hoặc text) — không gồm nút bấm
+     * @param trackingLink  URL trang landing page gắn mã chiến dịch (có thể null nếu không cần nút)
      */
-    void sendCampaignEmail(String toEmail, String recipientName, String subject, String body);
+    void sendCampaignEmail(String toEmail, String recipientName, String subject, String body, String trackingLink);
 }

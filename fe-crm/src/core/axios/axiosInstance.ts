@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { getToken, clearSession } from '@/core/auth/authStorage';
-
+// tạo instance axios với cấu hình mặc định
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL as string,
-    timeout: 15_000,
+    timeout: 15_000, // 15 giây
     headers: { 'Content-Type': 'application/json' },
 });
 

@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { notify } from '@/core/data/dataBus';
 import { collectErrors, dateRangeError } from '@/shared/utils/validators';
 import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
@@ -15,6 +15,8 @@ import type { OrderResult } from '@/features/don-hang/types/orderTypes';
 import type { QuotationResult } from '@/features/bao-gia/types/quotationTypes';
 import { PaymentSchedulesTable } from './PaymentSchedulesTable';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
+import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { DerivedContextBox } from '@/shared/components/form/DerivedContextBox';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
@@ -47,9 +49,10 @@ const PAYMENT_STATUS_COLORS: Record<string, string> = {
 // Hóa đơn chỉ còn 1 khóa ngoại chính (orderId) — khách hàng/liên hệ/báo giá tra qua đơn hàng ->
 // báo giá, hiển thị read-only để giữ ngữ cảnh
 export function InvoiceEditModal({ item, onClose }: Props) {
-    const qc = useQueryClient();
-    const { mutateAsync, isPending } = useUpdateInvoice();
+    const { mutate, isPending } = useUpdateInvoice();
     const { data: products = [] } = useProductList();
+    const { data: users = [] } = useActiveUsers();
+    const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const [form, setForm] = useState<UpdateInvoicePayload>({
         orderId: null, ownerId: null, invoiceDate: null, dueDate: null, note: null,
     });
@@ -129,14 +132,14 @@ export function InvoiceEditModal({ item, onClose }: Props) {
         if (!(await confirmSave('hóa đơn'))) return;
         setSaving(true);
         try {
-            await mutateAsync({ id: item.id, payload: form });
+            await mutate({ id: item.id, payload: form });
             const { toCreate, toUpdate, toDelete } = diffLineItems(originalRows, rows);
             await Promise.all([
                 ...toCreate.map((r) => invoiceService.createItem(item.id, toItemPayload(r))),
                 ...toUpdate.map((r) => invoiceService.updateItem(item.id, r.backendId as number, toItemPayload(r))),
                 ...toDelete.map((id) => invoiceService.deleteItem(item.id, id)),
             ]);
-            qc.invalidateQueries({ queryKey: ['invoice-items', item.id] });
+            notify(`invoice-items:${item.id}`);
             onClose();
         } finally {
             setSaving(false);
@@ -193,6 +196,15 @@ export function InvoiceEditModal({ item, onClose }: Props) {
                         { label: 'Liên hệ', value: quotation?.contactName },
                         { label: 'Báo giá nguồn', value: order?.quotationCode },
                     ]} />
+                    <div>
+                        <label className={lbl}>Người phụ trách</label>
+                        <SearchableSelect
+                            value={form.ownerId != null ? String(form.ownerId) : ''}
+                            onChange={(v) => setForm(f => ({ ...f, ownerId: v ? Number(v) : null }))}
+                            options={userOptions}
+                            fallbackLabel={item.ownerName}
+                        />
+                    </div>
                     <div>
                         <label className={lbl}>Hàng hóa</label>
                         <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />

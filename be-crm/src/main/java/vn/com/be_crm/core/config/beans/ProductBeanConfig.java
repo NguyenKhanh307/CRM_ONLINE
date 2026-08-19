@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.application.product.command.*;
 import vn.com.be_crm.application.product.query.*;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
 import vn.com.be_crm.domain.product.repository.*;
 
 /**
@@ -52,5 +53,5 @@ public class ProductBeanConfig {
     // ===== Import =====
 
     /** @return ImportBulkProductUseCase */
-    @Bean public ImportBulkProductUseCase importBulkProductUseCase(IProductRepository r) { return new ImportBulkProductUseCase(r); }
+    @Bean public ImportBulkProductUseCase importBulkProductUseCase(IProductRepository r, ITransactionRunner tx) { return new ImportBulkProductUseCase(r, tx); }
 }

@@ -1,10 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { phanQuyenService } from '../services/phanQuyenService';
 
 // lấy danh sách nhóm người dùng từ api
-export const useRoleGroups = () => {
-    return useQuery({
-        queryKey: ['roleGroups'],
-        queryFn: () => phanQuyenService.getRoles().then(res => res.data.data.items),
-    });
-};
+export function useRoleGroups() {
+    return useLiveQuery('role-groups', () => phanQuyenService.getRoles().then(res => res.data.data.items));
+}

@@ -11,6 +11,11 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
 export const orderExportColumns: ExportColumn<OrderResult>[] = [
     { key: 'code', label: 'Mã Đơn hàng' },
     { key: 'status', label: 'Trạng thái', format: r => ORDER_STATUS_LABELS[r.status] ?? r.status },
+    { key: 'quotationCode', label: 'Báo giá', format: r => r.quotationCode ?? '' },
+    { key: 'ownerName', label: 'Người phụ trách', format: r => r.ownerName ?? '' },
+    { key: 'subtotal', label: 'Tạm tính', format: r => r.subtotal ?? '' },
+    { key: 'discount', label: 'Chiết khấu', format: r => r.discount ?? '' },
+    { key: 'tax', label: 'Thuế', format: r => r.tax ?? '' },
     { key: 'total', label: 'Tổng tiền', format: r => r.total ?? '' },
     { key: 'orderDate', label: 'Ngày đơn hàng', format: r => r.orderDate ? formatISODate(r.orderDate) : '' },
     { key: 'deliveryDate', label: 'Ngày giao', format: r => r.deliveryDate ? formatISODate(r.deliveryDate) : '' },

@@ -6,9 +6,11 @@ import vn.com.be_crm.core.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.application.lead.command.*;
 import vn.com.be_crm.application.lead.query.*;
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
+import vn.com.be_crm.domain.customer.repository.ICustomerRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadItemRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadRepository;
 import vn.com.be_crm.domain.lead.repository.ILeadTrackingEventRepository;
+import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 import vn.com.be_crm.domain.product.repository.IProductRepository;
 import vn.com.be_crm.core.tx.port.ITransactionRunner;
 
@@ -23,37 +25,41 @@ public class LeadBeanConfig {
     @Bean public DeleteLeadUseCase deleteLeadUseCase(ILeadRepository r) { return new DeleteLeadUseCase(r); }
     @Bean public GetLeadUseCase getLeadUseCase(ILeadRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new GetLeadUseCase(r, n); }
     @Bean public ListLeadUseCase listLeadUseCase(ILeadRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListLeadUseCase(r, n); }
-    // claim — không còn "convert" tự động tách KH+LH+CH, cũng không còn qualify/lose (đã bỏ)
-    @Bean public LeadWorkflowUseCase leadWorkflowUseCase(ILeadRepository r, ITransactionRunner tx) {
-        return new LeadWorkflowUseCase(r, tx);
+    // claim (báo quản lý — nhân viên chủ động chuyển tin) + convertToCustomer (tạo Khách hàng +
+    // re-link Cơ hội + xóa mềm lead)
+    @Bean public LeadWorkflowUseCase leadWorkflowUseCase(ILeadRepository r, ICustomerRepository cr,
+                                                           IOpportunityRepository or, CreateNotificationUseCase n,
+                                                           vn.com.be_crm.core.notify.port.IManagerResolver mr,
+                                                           ITransactionRunner tx) {
+        return new LeadWorkflowUseCase(r, cr, or, n, mr, tx);
     }
     // báo cân nhắc chuyển đổi khi tiềm năng có đơn hàng đầu tiên — gọi từ ConvertQuotationToOrderUseCase
     // (quotation->order) và CreateOrderUseCase (tạo đơn tay có gắn báo giá)
     @Bean public NotifyLeadFirstOrderUseCase notifyLeadFirstOrderUseCase(ILeadRepository r, CreateNotificationUseCase n,
-                                                                          vn.com.be_crm.core.notify.port.IManagerResolver mr) {
-        return new NotifyLeadFirstOrderUseCase(r, n, mr);
+                                                                          vn.com.be_crm.domain.auth.repository.IUserRoleRepository ur) {
+        return new NotifyLeadFirstOrderUseCase(r, n, ur);
     }
 
     // ===== Sản phẩm quan tâm (lead_items) =====
 
     @Bean public CreateLeadItemUseCase createLeadItemUseCase(ILeadItemRepository r) { return new CreateLeadItemUseCase(r); }
     @Bean public ListLeadItemUseCase listLeadItemUseCase(ILeadItemRepository r) { return new ListLeadItemUseCase(r); }
-    // yêu cầu báo giá từ landing page công khai (gắn sản phẩm quan tâm vào tiềm năng + báo sale/quản lý)
+    // yêu cầu báo giá từ landing page công khai (gắn sản phẩm quan tâm vào tiềm năng + báo toàn bộ SALES_STAFF)
     @Bean public RequestProductQuoteUseCase requestProductQuoteUseCase(ILeadRepository r, ILeadTrackingEventRepository e,
                                                                        ILeadItemRepository li, AddLeadScoreUseCase a,
                                                                        vn.com.be_crm.core.lookup.port.INameResolver n,
-                                                                       vn.com.be_crm.core.notify.port.IManagerResolver mr,
+                                                                       vn.com.be_crm.domain.auth.repository.IUserRoleRepository ur,
                                                                        CreateNotificationUseCase cn, ITransactionRunner tx) {
-        return new RequestProductQuoteUseCase(r, e, li, a, n, mr, cn, tx);
+        return new RequestProductQuoteUseCase(r, e, li, a, n, ur, cn, tx);
     }
 
     // ===== Lead Scoring & Web Tracking =====
 
     // cộng điểm dùng chung (tracking + activity)
     @Bean public AddLeadScoreUseCase addLeadScoreUseCase(ILeadRepository r, CreateNotificationUseCase n,
-                                                         vn.com.be_crm.core.notify.port.IManagerResolver mr,
+                                                         vn.com.be_crm.domain.auth.repository.IUserRoleRepository ur,
                                                          ITransactionRunner tx) {
-        return new AddLeadScoreUseCase(r, n, mr, tx);
+        return new AddLeadScoreUseCase(r, n, ur, tx);
     }
     @Bean public TrackVisitUseCase trackVisitUseCase(ILeadRepository r) { return new TrackVisitUseCase(r); }
     @Bean public RecordTrackingEventUseCase recordTrackingEventUseCase(ILeadRepository r, ILeadTrackingEventRepository e, AddLeadScoreUseCase a,
@@ -80,5 +86,5 @@ public class LeadBeanConfig {
     // ===== Handover & Import =====
 
     @Bean public HandoverBulkLeadUseCase handoverBulkLeadUseCase(ILeadRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkLeadUseCase(r, n); }
-    @Bean public ImportBulkLeadUseCase importBulkLeadUseCase(ILeadRepository r) { return new ImportBulkLeadUseCase(r); }
+    @Bean public ImportBulkLeadUseCase importBulkLeadUseCase(ILeadRepository r, ITransactionRunner tx) { return new ImportBulkLeadUseCase(r, tx); }
 }

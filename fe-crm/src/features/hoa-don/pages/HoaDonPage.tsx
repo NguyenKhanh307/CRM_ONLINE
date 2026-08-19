@@ -91,6 +91,9 @@ const HoaDonPage = () => {
         ...((o.status === 'draft' || o.status === 'sent' || o.status === 'partially_paid') && can('invoice', 'approve')
             ? [{ key: 'cancel', label: 'Hủy hóa đơn', onClick: () => runAction(o.id, 'cancel') }]
             : []),
+        ...(o.status === 'cancelled' && can('invoice', 'approve')
+            ? [{ key: 'reopen', label: 'Mở lại', onClick: () => runAction(o.id, 'reopen') }]
+            : []),
         ...(!o.isLocked && can('invoice', 'edit')
             ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) }]
             : []),
@@ -196,12 +199,12 @@ const HoaDonPage = () => {
                 columns={invoiceExportColumns}
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={async (keys, format) => {
+                onExport={async (keys) => {
                     // không tick dòng -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await invoiceService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
-                    exportRows(rows, invoiceExportColumns, keys, format, 'hoa-don');
+                    exportRows(rows, invoiceExportColumns, keys, 'hoa-don');
                     setExportOpen(false);
                 }}
             />

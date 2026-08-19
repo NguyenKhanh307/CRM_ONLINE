@@ -16,7 +16,8 @@ import java.util.stream.Collectors;
  *
  * <p>
  * Mỗi method chạy một native query {@code SELECT id, <col> FROM 
- * <table>
+ * 
+<table>
  *  WHERE id IN (:ids)}
  * — <b>không</b> lọc {@code deleted_at}/{@code is_purged} nên tên vẫn resolve
  * cho bản ghi đã xóa.
@@ -31,67 +32,68 @@ public class NameResolverImpl implements INameResolver {
         this.sf = sf;
     }
 
-    /** {@inheritDoc} */
+    // hàm resolve tên cho bảng users
     @Override
     public Map<Long, String> users(Collection<Long> ids) {
         return resolve("users", "full_name", ids);
     }
 
-    /** {@inheritDoc} */
+    // hàm resolve tên cho bảng customers
     @Override
     public Map<Long, String> customers(Collection<Long> ids) {
         return resolve("customers", "name", ids);
     }
 
-    /** {@inheritDoc} */
+    // hàm resolve tên cho bảng contacts
     @Override
     public Map<Long, String> contacts(Collection<Long> ids) {
         return resolve("contacts", "full_name", ids);
     }
 
-    /** {@inheritDoc} */
+    // hàm resolve tên cho bảng campaigns
     @Override
     public Map<Long, String> campaigns(Collection<Long> ids) {
         return resolve("campaigns", "name", ids);
     }
 
-    /** {@inheritDoc} */
+    // hàm resolve tên cho bảng opportunities
     @Override
     public Map<Long, String> opportunities(Collection<Long> ids) {
         return resolve("opportunities", "name", ids);
     }
 
-    /** {@inheritDoc} */
+    // hàm resolve tên cho bảng quotations
     @Override
     public Map<Long, String> quotationCodes(Collection<Long> ids) {
         return resolve("quotations", "code", ids);
     }
 
-    /** {@inheritDoc} */
+    // hàm resolve tên cho bảng orders
     @Override
     public Map<Long, String> orderCodes(Collection<Long> ids) {
         return resolve("orders", "code", ids);
     }
 
-    /** {@inheritDoc} */
+    // hàm resolve tên cho bảng invoices, opportunities, product_categories,
+    // products
     @Override
     public Map<Long, String> invoiceCodes(Collection<Long> ids) {
         return resolve("invoices", "code", ids);
     }
 
-    /** {@inheritDoc} */
+    // hàm resolve tên cho bảng opportunity_stages
     @Override
     public Map<Long, String> stages(Collection<Long> ids) {
         return resolve("opportunity_stages", "name", ids);
     }
 
-    /** {@inheritDoc} */
+    // hàm resolve tên cho bảng product_categories
     @Override
     public Map<Long, String> productCategories(Collection<Long> ids) {
         return resolve("product_categories", "name", ids);
     }
 
-    /** {@inheritDoc} */
+    // hàm resolve tên cho bảng products
     @Override
     public Map<Long, String> products(Collection<Long> ids) {
         return resolve("products", "name", ids);

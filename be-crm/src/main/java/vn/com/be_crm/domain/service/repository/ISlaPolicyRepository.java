@@ -17,4 +17,10 @@ public interface ISlaPolicyRepository {
      * @param priority độ ưu tiên @return Optional
      */
     Optional<SlaPolicy> findByPriority(TicketPriority priority);
+    /** Lưu (tạo mới hoặc cập nhật) chính sách SLA. @param s entity @return đã lưu */
+    SlaPolicy save(SlaPolicy s);
+    /** Tìm chính sách SLA theo ID. @param id ID @return Optional */
+    Optional<SlaPolicy> findById(Long id);
+    /** Xóa chính sách SLA theo ID. @param id ID */
+    void deleteById(Long id);
 }

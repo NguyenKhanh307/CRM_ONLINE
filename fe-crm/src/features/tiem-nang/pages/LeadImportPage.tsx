@@ -13,7 +13,7 @@ const FIELDS: ImportField[] = [
     { key: 'email',          label: 'Email',                             type: 'text' },
     { key: 'source',         label: 'Nguồn',                             type: 'text' },
     { key: 'campaignId',     label: 'ID chiến dịch nguồn',                type: 'number' },
-    { key: 'status',         label: 'Trạng thái',                        type: 'enum', enumValues: ['new', 'contacting', 'converted'] },
+    { key: 'status',         label: 'Trạng thái',                        type: 'enum', enumValues: ['new', 'contacting', 'converted'], enumLabels: { new: 'Mới', contacting: 'Đang liên hệ', converted: 'Đã chuyển đổi' } },
     { key: 'note',           label: 'Ghi chú',                           type: 'text' },
 ];
 

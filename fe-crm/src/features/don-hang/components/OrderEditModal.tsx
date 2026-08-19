@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { notify } from '@/core/data/dataBus';
 import { collectErrors, dateRangeError } from '@/shared/utils/validators';
 import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
@@ -12,6 +12,8 @@ import { orderService } from '../services/orderService';
 import { quotationService } from '@/features/bao-gia/services/quotationService';
 import type { QuotationResult } from '@/features/bao-gia/types/quotationTypes';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
+import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { DerivedContextBox } from '@/shared/components/form/DerivedContextBox';
@@ -40,9 +42,10 @@ const ORDER_STATUS_COLORS: Record<string, string> = {
 // modal chỉnh sửa Đơn hàng — kèm bảng dòng hàng (diff create/update/delete khi lưu). Đơn hàng chỉ
 // còn 1 khóa ngoại chính (quotationId) — khách hàng/liên hệ/cơ hội tra qua báo giá, hiển thị read-only
 export function OrderEditModal({ item, onClose }: Props) {
-    const qc = useQueryClient();
-    const { mutateAsync, isPending } = useUpdateOrder();
+    const { mutate, isPending } = useUpdateOrder();
     const { data: products = [] } = useProductList();
+    const { data: users = [] } = useActiveUsers();
+    const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const [form, setForm] = useState<UpdateOrderPayload>({
         quotationId: null, ownerId: null, orderDate: null, deliveryDate: null, note: null,
     });
@@ -114,16 +117,16 @@ export function OrderEditModal({ item, onClose }: Props) {
         setSaving(true);
         try {
             // bước lưu header
-            await mutateAsync({ id: item.id, payload: form });
+            await mutate({ id: item.id, payload: form });
 
-            // bước đồng bộ dòng hàng theo diff rồi làm mới cache
+            // bước đồng bộ dòng hàng theo diff rồi báo bảng dòng hàng làm mới
             const { toCreate, toUpdate, toDelete } = diffLineItems(originalRows, rows);
             await Promise.all([
                 ...toCreate.map((r) => orderService.createItem(item.id, toItemPayload(r))),
                 ...toUpdate.map((r) => orderService.updateItem(item.id, r.backendId as number, toItemPayload(r))),
                 ...toDelete.map((id) => orderService.deleteItem(item.id, id)),
             ]);
-            qc.invalidateQueries({ queryKey: ['order-items', item.id] });
+            notify(`order-items:${item.id}`);
             onClose();
         } finally {
             setSaving(false);
@@ -172,6 +175,15 @@ export function OrderEditModal({ item, onClose }: Props) {
                         { label: 'Liên hệ', value: quotation?.contactName },
                         { label: 'Cơ hội', value: quotation?.opportunityName },
                     ]} />
+                    <div>
+                        <label className={lbl}>Người phụ trách</label>
+                        <SearchableSelect
+                            value={form.ownerId != null ? String(form.ownerId) : ''}
+                            onChange={(v) => setForm(f => ({ ...f, ownerId: v ? Number(v) : null }))}
+                            options={userOptions}
+                            fallbackLabel={item.ownerName}
+                        />
+                    </div>
                     <div>
                         <label className={lbl}>Hàng hóa</label>
                         <ProductLineItemsTable rows={rows} onChange={setRows} productOptions={productOptions} showUnit showTax />

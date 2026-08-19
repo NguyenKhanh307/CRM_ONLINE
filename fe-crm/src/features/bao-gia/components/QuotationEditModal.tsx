@@ -4,13 +4,15 @@ import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
-import { useQueryClient } from '@tanstack/react-query';
+import { notify } from '@/core/data/dataBus';
 import { FiX, FiRefreshCw } from 'react-icons/fi';
 import type { QuotationResult, UpdateQuotationPayload } from '../types/quotationTypes';
 import { useUpdateQuotation } from '../hooks/useUpdateQuotation';
 import { quotationService } from '../services/quotationService';
 import { useAlert } from '@/shared/alert/useAlert';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useEligiblePricePolicies } from '@/features/chinh-sach-gia/hooks/useEligiblePricePolicies';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { RecordPicker } from '@/shared/components/form/RecordPicker';
@@ -40,10 +42,11 @@ const QUOTATION_STATUS_COLORS: Record<string, string> = {
 };
 
 export function QuotationEditModal({ item, onClose }: Props) {
-    const qc = useQueryClient();
     const { showAlert } = useAlert();
-    const { mutateAsync, isPending } = useUpdateQuotation();
+    const { mutate, isPending } = useUpdateQuotation();
     const { data: products = [] } = useProductList();
+    const { data: customers = [] } = useCustomerList();
+    const { data: users = [] } = useActiveUsers();
     const [pulling, setPulling] = useState(false);
     const [form, setForm] = useState<UpdateQuotationPayload>({
         customerId: null, contactId: null, pricePolicyId: null, ownerId: null, quoteDate: null,
@@ -59,6 +62,8 @@ export function QuotationEditModal({ item, onClose }: Props) {
         [products],
     );
     const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
+    const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
+    const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
 
     useEffect(() => {
         if (!item) return;
@@ -95,7 +100,8 @@ export function QuotationEditModal({ item, onClose }: Props) {
         if (hasFilled(patch)) { setForm(f => ({ ...f, ...patch })); setPrefillFrom(`cơ hội «${o.code}»`); }
     };
 
-    const { confirmSave } = useConfirm();
+    const { confirmSave, confirm } = useConfirm();
+    const [creatingRevision, setCreatingRevision] = useState(false);
     const formRef = useRef<HTMLFormElement>(null);
     useFormKeyboardNav(formRef, {
         onSubmit: () => formRef.current?.requestSubmit(),
@@ -104,6 +110,33 @@ export function QuotationEditModal({ item, onClose }: Props) {
     });
 
     if (!item) return null;
+
+    // đổi khách hàng thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai
+    const onPickCustomer = (v: string) => {
+        setForm((f) => ({ ...f, customerId: v ? Number(v) : null, contactId: null }));
+    };
+
+    // nhân viên bấm "Tạo báo giá mới theo yêu cầu khách" — sinh báo giá mới từ đề xuất, khóa báo giá này
+    const handleCreateRevision = async () => {
+        const ok = await confirm({
+            message: 'Tạo báo giá mới theo đề xuất của khách? Báo giá hiện tại sẽ chuyển sang trạng thái khóa.',
+            confirmLabel: 'Tạo báo giá mới',
+        });
+        if (!ok) return;
+        setCreatingRevision(true);
+        try {
+            const res = await quotationService.createRevision(item.id);
+            notify('quotations');
+            showAlert(`Đã tạo báo giá mới: ${res.data.data.code}`);
+            onClose();
+        } catch (err) {
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+                ?? 'Không tạo được báo giá mới';
+            showAlert(msg);
+        } finally {
+            setCreatingRevision(false);
+        }
+    };
 
     // lưu form + diff dòng hàng — lỗi hiện đỏ dưới ô, popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
     const handleSubmit = async (e: FormEvent) => {
@@ -120,7 +153,7 @@ export function QuotationEditModal({ item, onClose }: Props) {
         if (!(await confirmSave('báo giá'))) return;
         setSaving(true);
         try {
-            await mutateAsync({ id: item.id, payload: form });
+            await mutate({ id: item.id, payload: form });
             const { toCreate, toUpdate, toDelete } = diffLineItems(originalRows, rows);
             await Promise.all([
                 ...toCreate.map((r) => quotationService.createItem(item.id, toItemPayload(r))),
@@ -128,10 +161,11 @@ export function QuotationEditModal({ item, onClose }: Props) {
                 ...toDelete.map((id) => quotationService.deleteItem(item.id, id)),
             ]);
             // sửa dòng hàng báo giá primary đồng bộ ngược về cơ hội (amount roll-up) -> làm mới cơ hội + báo giá
-            ['quotations', 'opportunities'].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
-            qc.invalidateQueries({ queryKey: ['quotation', item.id] });
-            qc.invalidateQueries({ queryKey: ['quotation-items', item.id] });
-            if (item.opportunityId != null) qc.invalidateQueries({ queryKey: ['opportunity', item.opportunityId] });
+            notify('quotations');
+            notify('opportunities');
+            notify(`quotation:${item.id}`);
+            notify(`quotation-items:${item.id}`);
+            if (item.opportunityId != null) notify(`opportunity:${item.opportunityId}`);
             onClose();
         } finally {
             setSaving(false);
@@ -148,10 +182,11 @@ export function QuotationEditModal({ item, onClose }: Props) {
             const loaded = r.data.data.map(fromItemResult);
             setRows(loaded);
             setOriginalRows(loaded);
-            ['quotations', 'opportunities'].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
-            qc.invalidateQueries({ queryKey: ['quotation', item.id] });
-            qc.invalidateQueries({ queryKey: ['quotation-items', item.id] });
-            if (item.opportunityId != null) qc.invalidateQueries({ queryKey: ['opportunity', item.opportunityId] });
+            notify('quotations');
+            notify('opportunities');
+            notify(`quotation:${item.id}`);
+            notify(`quotation-items:${item.id}`);
+            if (item.opportunityId != null) notify(`opportunity:${item.opportunityId}`);
             showAlert('Đã cập nhật dòng hàng từ cơ hội');
         } catch (err) {
             const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
@@ -210,6 +245,35 @@ export function QuotationEditModal({ item, onClose }: Props) {
                             />
                         </div>
                     </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Khách hàng</label>
+                            <SearchableSelect
+                                value={form.customerId != null ? String(form.customerId) : ''}
+                                onChange={onPickCustomer}
+                                options={customerOptions}
+                                fallbackLabel={item.customerName}
+                            />
+                        </div>
+                        <div>
+                            <label className={lbl}>Liên hệ</label>
+                            <RecordPicker module="contact"
+                                value={form.contactId != null ? String(form.contactId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, contactId: v ? Number(v) : null }))}
+                                customerId={form.customerId ?? undefined}
+                                fallbackLabel={item.contactName}
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className={lbl}>Người phụ trách</label>
+                        <SearchableSelect
+                            value={form.ownerId != null ? String(form.ownerId) : ''}
+                            onChange={(v) => setForm(f => ({ ...f, ownerId: v ? Number(v) : null }))}
+                            options={userOptions}
+                            fallbackLabel={item.ownerName}
+                        />
+                    </div>
                     <div>
                         <div className="flex items-center justify-between mb-1">
                             <label className={lbl + ' mb-0'}>Hàng hóa</label>
@@ -239,9 +303,18 @@ export function QuotationEditModal({ item, onClose }: Props) {
                                         : 'bg-red-100 text-red-600'
                             }`}>
                                 {item.customerResponse === 'accepted' ? 'Đồng ý'
-                                    : item.customerResponse === 'adjust' ? 'Yêu cầu điều chỉnh' : 'Không đồng ý'}
+                                    : item.customerResponse === 'adjust' ? 'Đề nghị chỉnh sửa dòng hàng' : 'Không đồng ý'}
                             </span>
-                            {item.customerResponseNote && <div className="text-md text-gray-600 mt-1">Nội dung: {item.customerResponseNote}</div>}
+                            {/* customerResponseNote khi adjust là JSON đề xuất (id/số lượng), không phải văn bản — không hiện thô */}
+                            {item.customerResponseNote && item.customerResponse !== 'adjust' && (
+                                <div className="text-md text-gray-600 mt-1">Nội dung: {item.customerResponseNote}</div>
+                            )}
+                            {item.customerResponse === 'adjust' && !item.isLocked && (
+                                <button type="button" onClick={handleCreateRevision} disabled={creatingRevision}
+                                    className="mt-2 px-3 py-1.5 rounded-btn bg-primary text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
+                                    {creatingRevision ? 'Đang tạo...' : 'Tạo báo giá mới theo yêu cầu khách'}
+                                </button>
+                            )}
                         </div>
                     )}
                     <div>

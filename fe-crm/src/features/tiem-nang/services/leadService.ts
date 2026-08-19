@@ -3,6 +3,7 @@ import type { ApiResponse, PageResult, PageParams } from '@/shared/types/api';
 import type { CreateLeadItemPayload, CreateLeadPayload, LeadItemResult, LeadResult, UpdateLeadPayload } from '../types/leadTypes';
 import type { ImportOptions, ImportBulkResult } from '@/shared/components/import/importTypes';
 import type { LeadRelatedResult } from '@/shared/types/related';
+import type { CustomerResult } from '@/features/khach-hang/types/customerTypes';
 
 export const leadService = {
     getList: (params?: PageParams) =>
@@ -30,6 +31,9 @@ export const leadService = {
         axiosInstance.get<ApiResponse<LeadRelatedResult>>(`/api/leads/${id}/related`),
     // nhân viên tự nhận chăm sóc tiềm năng chưa có người phụ trách (pool chung)
     claim: (id: number) => axiosInstance.post<ApiResponse<LeadResult>>(`/api/leads/${id}/claim`),
+    // chuyển tiềm năng thành khách hàng chính thức (chỉ khi đã có đơn hàng đầu tiên) — tạo Khách
+    // hàng, re-link Cơ hội đang gắn, xóa mềm tiềm năng
+    convert: (id: number) => axiosInstance.post<ApiResponse<CustomerResult>>(`/api/leads/${id}/convert`),
     // sản phẩm quan tâm của tiềm năng (lead_items)
     getItems: (leadId: number) =>
         axiosInstance.get<ApiResponse<LeadItemResult[]>>(`/api/leads/${leadId}/items`),

@@ -1,11 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { campaignService } from '../services/campaignService';
 
-// xóa Chiến dịch — invalidate danh sách sau khi thành công
+// xóa Chiến dịch — báo danh sách làm mới sau khi thành công
 export function useDeleteCampaign() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: (id: number) => campaignService.remove(id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['campaigns'] }),
-    });
+    const { mutate: run, isPending } = useLiveMutation((id: number) => campaignService.remove(id));
+
+    const mutate: typeof run = (id, callbacks) =>
+        run(id, { ...callbacks, onSuccess: (data) => { notify('campaigns'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }

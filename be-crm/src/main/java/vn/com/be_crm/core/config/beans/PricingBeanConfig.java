@@ -20,9 +20,10 @@ public class PricingBeanConfig {
     @Bean public CreatePricePolicyUseCase createPricePolicyUseCase(IPricePolicyRepository r) { return new CreatePricePolicyUseCase(r); }
     @Bean public UpdatePricePolicyUseCase updatePricePolicyUseCase(IPricePolicyRepository r) { return new UpdatePricePolicyUseCase(r); }
     @Bean public DeletePricePolicyUseCase deletePricePolicyUseCase(IPricePolicyRepository r) { return new DeletePricePolicyUseCase(r); }
-    @Bean public GetPricePolicyUseCase getPricePolicyUseCase(IPricePolicyRepository r) { return new GetPricePolicyUseCase(r); }
-    @Bean public ListPricePolicyUseCase listPricePolicyUseCase(IPricePolicyRepository r) { return new ListPricePolicyUseCase(r); }
-    @Bean public ImportBulkPricePolicyUseCase importBulkPricePolicyUseCase(IPricePolicyRepository r) { return new ImportBulkPricePolicyUseCase(r); }
+    @Bean public PricePolicyExpiryUseCase pricePolicyExpiryUseCase(IPricePolicyRepository r, vn.com.be_crm.application.notification.command.CreateNotificationUseCase n) { return new PricePolicyExpiryUseCase(r, n); }
+    @Bean public GetPricePolicyUseCase getPricePolicyUseCase(IPricePolicyRepository r, PricePolicyExpiryUseCase eu) { return new GetPricePolicyUseCase(r, eu); }
+    @Bean public ListPricePolicyUseCase listPricePolicyUseCase(IPricePolicyRepository r, PricePolicyExpiryUseCase eu) { return new ListPricePolicyUseCase(r, eu); }
+    @Bean public ImportBulkPricePolicyUseCase importBulkPricePolicyUseCase(IPricePolicyRepository r, ITransactionRunner tx) { return new ImportBulkPricePolicyUseCase(r, tx); }
     // danh sách chính sách hợp lệ cho form (lọc theo khách hàng nếu có)
     @Bean public ListEligiblePricePolicyUseCase listEligiblePricePolicyUseCase(
             IPricePolicyRepository r, IPricePolicyCustomerRepository customerRepo) {

@@ -116,9 +116,10 @@ const PermissionsTab = ({ roleId, roleName, onDirtyChange }: Props) => {
 
         setSaving(true);
         try {
+            // onError rỗng: chặn toast lỗi mặc định, để khối catch bên dưới tự báo một lần
             await Promise.all([
-                ...toAssign.map(id => assign.mutateAsync(id)),
-                ...toRevoke.map(id => revoke.mutateAsync(id)),
+                ...toAssign.map(id => assign.mutate(id, { onError: () => {} })),
+                ...toRevoke.map(id => revoke.mutate(id, { onError: () => {} })),
             ]);
             // đóng thanh "đã thay đổi" ngay lập tức, không đợi refetch — tránh bấm Lưu lần 2
             setOptimisticSavedIds(nextIds);

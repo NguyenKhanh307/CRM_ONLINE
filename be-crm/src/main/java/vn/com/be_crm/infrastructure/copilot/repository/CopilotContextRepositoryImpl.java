@@ -3,6 +3,7 @@ package vn.com.be_crm.infrastructure.copilot.repository;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
+import vn.com.be_crm.application.copilot.dto.CopilotChartSegment;
 import vn.com.be_crm.application.copilot.dto.RecordRef;
 import vn.com.be_crm.application.copilot.intent.CopilotRangeParser;
 import vn.com.be_crm.application.copilot.intent.CopilotRangeParser.Range;
@@ -112,6 +113,28 @@ public class CopilotContextRepositoryImpl implements ICopilotContextRepository {
             Object[] r = rs.get(0);
             return Optional.of(new RecordRef(((Number) r[0]).longValue(),
                     r[1] == null ? null : r[1].toString(), str(r[2])));
+        });
+    }
+
+    @Override
+    public List<CopilotChartSegment> chartData(String topic, String period, Long ownerId, boolean isPrivileged) {
+        DateRange cur = PeriodRanges.current(period);
+        return TxSupport.read(sf, s -> {
+            if (topic != null) {
+                List<CopilotChartSegment> segs = CopilotAnalyticsQueries.chartRows(
+                        s, topic, cur.from(), cur.toExclusive(), ownerId, isPrivileged);
+                if (!segs.isEmpty()) return segs;
+            }
+            // Không khớp chủ đề nào (hoặc chủ đề không có dữ liệu) -> mặc định "kỳ này vs kỳ trước"
+            DateRange prev = PeriodRanges.previous(period);
+            String ofInv = ownerClause("i.owner_id", ownerId);
+            String sql = "SELECT COALESCE(SUM(" + INVOICE_LINE_AMOUNT + "),0) FROM invoices i " +
+                    "JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                    "WHERE i.status <> 'cancelled' AND i.deleted_at IS NULL " +
+                    "AND i.invoice_date >= :f AND i.invoice_date < :t" + ofInv;
+            BigDecimal revCur = sum(s, sql, dateOwner(cur, ownerId));
+            BigDecimal revPrev = sum(s, sql, dateOwner(prev, ownerId));
+            return List.of(new CopilotChartSegment("Kỳ này", revCur), new CopilotChartSegment("Kỳ trước", revPrev));
         });
     }
 

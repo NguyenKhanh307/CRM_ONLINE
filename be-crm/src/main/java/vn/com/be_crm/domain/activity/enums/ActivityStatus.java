@@ -8,6 +8,7 @@ import java.util.Set;
 /**
  * Trạng thái hoạt động. Thay đổi qua hành động (không sửa tay):
  * planned → in_progress → done; hủy ở mọi bước trước done.
+ * Mở lại (phòng lỡ bấm nhầm): done → in_progress, cancelled → planned.
  */
 public enum ActivityStatus {
     planned, in_progress, done, cancelled;
@@ -16,8 +17,8 @@ public enum ActivityStatus {
     private static final Map<ActivityStatus, Set<ActivityStatus>> ALLOWED = Map.of(
             planned, Set.of(in_progress, cancelled),
             in_progress, Set.of(done, cancelled),
-            done, Set.of(),
-            cancelled, Set.of()
+            done, Set.of(in_progress),
+            cancelled, Set.of(planned)
     );
 
     /**

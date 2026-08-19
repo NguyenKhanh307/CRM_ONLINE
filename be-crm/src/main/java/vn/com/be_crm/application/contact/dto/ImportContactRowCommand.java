@@ -8,6 +8,7 @@ public record ImportContactRowCommand(
         String title,
         String department,
         String email,
+        String phone,
         String zalo,
         String source,
         String gender,

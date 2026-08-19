@@ -7,7 +7,9 @@ import java.util.Set;
 
 /**
  * Trạng thái báo giá. Thay đổi qua hành động có kiểm soát (không sửa tay):
- * draft → pending → approved/rejected → sent. Expired suy ra theo ngày hiệu lực.
+ * draft → pending → approved → sent, hoặc từ chối thì pending → draft (quay lại nháp để sửa).
+ * Expired suy ra theo ngày hiệu lực. Mở lại (phòng lỡ bấm nhầm, chỉ khi báo giá chưa khóa): accepted → sent.
+ * `rejected` chỉ dùng cho lịch sử duyệt ({@code QuotationApprovalStatus}), không phải trạng thái header.
  */
 public enum QuotationStatus {
     draft, pending, approved, rejected, sent, accepted, expired;
@@ -15,11 +17,10 @@ public enum QuotationStatus {
     /** Bảng các bước chuyển hợp lệ giữa các trạng thái. */
     private static final Map<QuotationStatus, Set<QuotationStatus>> ALLOWED = Map.of(
             draft, Set.of(pending),
-            pending, Set.of(approved, rejected),
+            pending, Set.of(approved, draft),
             approved, Set.of(sent),
-            rejected, Set.of(draft),
             sent, Set.of(accepted),
-            accepted, Set.of()
+            accepted, Set.of(sent)
     );
 
     /**

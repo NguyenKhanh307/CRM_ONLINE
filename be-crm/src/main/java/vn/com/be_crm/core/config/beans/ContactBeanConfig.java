@@ -4,11 +4,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.application.contact.command.*;
 import vn.com.be_crm.application.contact.query.*;
-import vn.com.be_crm.domain.contact.repository.IContactPhoneRepository;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
 import vn.com.be_crm.domain.contact.repository.IContactRepository;
 
 /**
- * Wire các UseCase của module Contact (contact, phone, trash, import) qua @Bean.
+ * Wire các UseCase của module Contact (contact, trash, import) qua @Bean.
  */
 @Configuration
 public class ContactBeanConfig {
@@ -26,17 +26,6 @@ public class ContactBeanConfig {
     /** @return ListContactUseCase */
     @Bean public ListContactUseCase listContactUseCase(IContactRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListContactUseCase(r, n); }
 
-    // ===== Contact Phone =====
-
-    /** @return CreateContactPhoneUseCase */
-    @Bean public CreateContactPhoneUseCase createContactPhoneUseCase(IContactPhoneRepository r) { return new CreateContactPhoneUseCase(r); }
-    /** @return UpdateContactPhoneUseCase */
-    @Bean public UpdateContactPhoneUseCase updateContactPhoneUseCase(IContactPhoneRepository r) { return new UpdateContactPhoneUseCase(r); }
-    /** @return DeleteContactPhoneUseCase */
-    @Bean public DeleteContactPhoneUseCase deleteContactPhoneUseCase(IContactPhoneRepository r) { return new DeleteContactPhoneUseCase(r); }
-    /** @return ListContactPhoneUseCase */
-    @Bean public ListContactPhoneUseCase listContactPhoneUseCase(IContactPhoneRepository r) { return new ListContactPhoneUseCase(r); }
-
     // ===== Trash =====
 
     /** @return ListDeletedContactsUseCase */
@@ -49,5 +38,5 @@ public class ContactBeanConfig {
     // ===== Import =====
 
     /** @return ImportBulkContactUseCase */
-    @Bean public ImportBulkContactUseCase importBulkContactUseCase(IContactRepository r) { return new ImportBulkContactUseCase(r); }
+    @Bean public ImportBulkContactUseCase importBulkContactUseCase(IContactRepository r, ITransactionRunner tx) { return new ImportBulkContactUseCase(r, tx); }
 }

@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.core.notify.NotifyAssignmentUseCase;
 import vn.com.be_crm.application.opportunity.command.*;
 import vn.com.be_crm.application.opportunity.query.*;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityItemRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityRepository;
 import vn.com.be_crm.domain.opportunity.repository.IOpportunityStageRepository;
@@ -77,5 +78,5 @@ public class OpportunityBeanConfig {
     /** @return HandoverBulkOpportunityUseCase */
     @Bean public HandoverBulkOpportunityUseCase handoverBulkOpportunityUseCase(IOpportunityRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkOpportunityUseCase(r, n); }
     /** @return ImportBulkOpportunityUseCase */
-    @Bean public ImportBulkOpportunityUseCase importBulkOpportunityUseCase(IOpportunityRepository r) { return new ImportBulkOpportunityUseCase(r); }
+    @Bean public ImportBulkOpportunityUseCase importBulkOpportunityUseCase(IOpportunityRepository r, ITransactionRunner tx) { return new ImportBulkOpportunityUseCase(r, tx); }
 }

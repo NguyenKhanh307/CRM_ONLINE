@@ -48,7 +48,7 @@ public class GetQuotationByCodeUseCase {
         for (QuotationItem it : qItems) {
             String productName = it.getProductId() == null ? "" :
                     productRepo.findById(it.getProductId()).map(Product::getName).orElse("#" + it.getProductId());
-            items.add(new PublicQuotationView.Line(productName, it.getUnit(),
+            items.add(new PublicQuotationView.Line(it.getId(), productName, it.getUnit(),
                     it.getQuantity(), it.getUnitPrice(), it.getDiscount(),
                     LineItemTotals.lineAmount(it.getQuantity(), it.getUnitPrice(), it.getDiscount(), it.getTaxRate())));
         }

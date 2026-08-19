@@ -44,9 +44,14 @@ public class TicketWorkflowUseCase {
         return TicketCommandMapper.toResult(saved);
     }
 
-    // bắt đầu xử lý: assigned/reopened -> in_progress, ghi mốc phản hồi đầu tiên (FRT)
+    // bắt đầu xử lý: assigned/reopened -> in_progress, ghi mốc phản hồi đầu tiên (FRT).
+    // support/complaint được bắt đầu thẳng từ new (bỏ bước giao việc) vì người tạo đã mặc định
+    // là người phụ trách; return/exchange vẫn phải qua assigned trước (giữ nguyên bước xác minh)
     public TicketResult start(Long ticketId) {
         Ticket t = load(ticketId);
+        if (t.getStatus() == TicketStatus.new_) {
+            requireType(t, SUPPORT_TYPES, "bắt đầu xử lý trực tiếp (bỏ qua bước giao việc)");
+        }
         t.getStatus().ensureCanTransitionTo(TicketStatus.in_progress);
         Ticket saved = repo.save(t.toBuilder()
                 .status(TicketStatus.in_progress)

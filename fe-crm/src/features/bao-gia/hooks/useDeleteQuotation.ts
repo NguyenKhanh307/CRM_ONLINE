@@ -1,11 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { quotationService } from '../services/quotationService';
 
-// xóa báo giá — invalidate danh sách sau khi thành công
+// xóa báo giá — báo danh sách làm mới sau khi thành công
 export function useDeleteQuotation() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: (id: number) => quotationService.remove(id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['quotations'] }),
-    });
+    const { mutate: run, isPending } = useLiveMutation((id: number) => quotationService.remove(id));
+
+    const mutate: typeof run = (id, callbacks) =>
+        run(id, { ...callbacks, onSuccess: (data) => { notify('quotations'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }

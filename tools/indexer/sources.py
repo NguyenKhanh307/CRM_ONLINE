@@ -13,26 +13,25 @@ QUERIES = {
     "customer": """
         SELECT c.id, c.owner_id AS owner, c.code, c.name, c.short_name, c.type, c.tax_code,
                c.industry, c.phone, c.email, c.website, c.address, c.rating, c.employee_size,
-               c.annual_revenue, c.status, c.created_at, u.full_name AS owner_name
+               c.status, c.created_at, u.full_name AS owner_name
         FROM customers c
         LEFT JOIN users u ON u.id = c.owner_id
         WHERE c.deleted_at IS NULL
     """,
     "contact": """
         SELECT ct.id, ct.assigned_user_id AS owner, ct.full_name, ct.salutation, ct.title,
-               ct.department, ct.position, ct.email, ct.work_email, ct.zalo, ct.address,
+               ct.department, ct.email, ct.zalo,
                ct.source, ct.is_primary, ct.created_at,
                c.name AS customer_name, u.full_name AS owner_name,
-               (SELECT GROUP_CONCAT(p.phone SEPARATOR ', ') FROM contact_phones p
-                 WHERE p.contact_id = ct.id) AS phones
+               ct.phone AS phones
         FROM contacts ct
         LEFT JOIN customers c ON c.id = ct.customer_id AND c.deleted_at IS NULL
         LEFT JOIN users u ON u.id = ct.assigned_user_id
         WHERE ct.deleted_at IS NULL
     """,
     "lead": """
-        SELECT l.id, l.owner_id AS owner, l.code, l.name, l.company_name, l.industry,
-               l.title, l.department, l.tax_code, l.estimated_value,
+        SELECT l.id, l.owner_id AS owner, l.code, l.name, l.company_name, l.lead_type,
+               l.industry, l.tax_code,
                l.email, l.phone, l.website, l.source, l.status, l.score,
                l.note, l.created_at,
                ca.name AS campaign_name, u.full_name AS owner_name
@@ -43,7 +42,7 @@ QUERIES = {
     """,
     "opportunity": """
         SELECT o.id, o.owner_id AS owner, o.code, o.name, o.opportunity_type, o.amount,
-               o.expected_revenue, o.probability, o.expected_close_date, o.source,
+               st.probability, o.source,
                o.win_loss_reason, o.description, o.status, o.created_at,
                c.name AS customer_name, ct.full_name AS contact_name,
                st.name AS stage_name, ca.name AS campaign_name, u.full_name AS owner_name
@@ -57,45 +56,51 @@ QUERIES = {
     """,
     "quotation": """
         SELECT q.id, q.owner_id AS owner, q.code, q.quote_date, q.valid_until, q.status,
-               q.subtotal, q.discount, q.tax, q.total, q.note, q.is_primary, q.is_locked,
+               q.note, q.is_primary, q.is_locked,
                q.customer_response, q.customer_response_note, q.created_at,
                c.name AS customer_name, ct.full_name AS contact_name,
-               o.name AS opportunity_name, ca.name AS campaign_name, u.full_name AS owner_name
+               o.name AS opportunity_name, ca.name AS campaign_name, u.full_name AS owner_name,
+               (SELECT SUM(qi.quantity * qi.unit_price - qi.discount)
+                  FROM quotation_items qi WHERE qi.quotation_id = q.id) AS total
         FROM quotations q
         LEFT JOIN customers c ON c.id = q.customer_id AND c.deleted_at IS NULL
         LEFT JOIN contacts ct ON ct.id = q.contact_id AND ct.deleted_at IS NULL
         LEFT JOIN opportunities o ON o.id = q.opportunity_id AND o.deleted_at IS NULL
-        LEFT JOIN campaigns ca ON ca.id = q.campaign_id AND ca.deleted_at IS NULL
+        LEFT JOIN campaigns ca ON ca.id = o.campaign_id AND ca.deleted_at IS NULL
         LEFT JOIN users u ON u.id = q.owner_id
         WHERE q.deleted_at IS NULL
     """,
     "order": """
         SELECT o.id, o.owner_id AS owner, o.code, o.order_date, o.delivery_date, o.status,
-               o.subtotal, o.discount, o.tax, o.total, o.note, o.billing_address, o.tax_code,
-               o.created_at,
+               o.note, o.created_at,
                c.name AS customer_name, ct.full_name AS contact_name,
                q.code AS quotation_code, op.name AS opportunity_name,
-               ca.name AS campaign_name, u.full_name AS owner_name
+               ca.name AS campaign_name, u.full_name AS owner_name,
+               (SELECT SUM(oi.quantity * oi.unit_price - oi.discount)
+                  FROM order_items oi WHERE oi.order_id = o.id) AS total
         FROM orders o
-        LEFT JOIN customers c ON c.id = o.customer_id AND c.deleted_at IS NULL
-        LEFT JOIN contacts ct ON ct.id = o.contact_id AND ct.deleted_at IS NULL
         LEFT JOIN quotations q ON q.id = o.quotation_id AND q.deleted_at IS NULL
-        LEFT JOIN opportunities op ON op.id = o.opportunity_id AND op.deleted_at IS NULL
-        LEFT JOIN campaigns ca ON ca.id = o.campaign_id AND ca.deleted_at IS NULL
+        LEFT JOIN customers c ON c.id = q.customer_id AND c.deleted_at IS NULL
+        LEFT JOIN contacts ct ON ct.id = q.contact_id AND ct.deleted_at IS NULL
+        LEFT JOIN opportunities op ON op.id = q.opportunity_id AND op.deleted_at IS NULL
+        LEFT JOIN campaigns ca ON ca.id = op.campaign_id AND ca.deleted_at IS NULL
         LEFT JOIN users u ON u.id = o.owner_id
         WHERE o.deleted_at IS NULL
     """,
     "invoice": """
         SELECT v.id, v.owner_id AS owner, v.code, v.invoice_date, v.due_date, v.status,
-               v.payment_status, v.subtotal, v.discount, v.tax, v.total, v.note,
-               v.billing_address, v.tax_code, v.created_at,
+               v.payment_status, v.note, v.created_at,
                c.name AS customer_name, ct.full_name AS contact_name,
-               o.code AS order_code, ca.name AS campaign_name, u.full_name AS owner_name
+               o.code AS order_code, ca.name AS campaign_name, u.full_name AS owner_name,
+               (SELECT SUM(vi.quantity * vi.unit_price - vi.discount)
+                  FROM invoice_items vi WHERE vi.invoice_id = v.id) AS total
         FROM invoices v
-        LEFT JOIN customers c ON c.id = v.customer_id AND c.deleted_at IS NULL
-        LEFT JOIN contacts ct ON ct.id = v.contact_id AND ct.deleted_at IS NULL
         LEFT JOIN orders o ON o.id = v.order_id AND o.deleted_at IS NULL
-        LEFT JOIN campaigns ca ON ca.id = v.campaign_id AND ca.deleted_at IS NULL
+        LEFT JOIN quotations q ON q.id = o.quotation_id AND q.deleted_at IS NULL
+        LEFT JOIN customers c ON c.id = q.customer_id AND c.deleted_at IS NULL
+        LEFT JOIN contacts ct ON ct.id = q.contact_id AND ct.deleted_at IS NULL
+        LEFT JOIN opportunities op ON op.id = q.opportunity_id AND op.deleted_at IS NULL
+        LEFT JOIN campaigns ca ON ca.id = op.campaign_id AND ca.deleted_at IS NULL
         LEFT JOIN users u ON u.id = v.owner_id
         WHERE v.deleted_at IS NULL
     """,
@@ -107,15 +112,14 @@ QUERIES = {
                t.satisfaction_score, t.satisfaction_comment, t.sla_due_at, t.resolved_at,
                t.created_at,
                c.name AS customer_name, ct.full_name AS contact_name,
-               v.code AS invoice_code, p.name AS product_name, u.full_name AS owner_name,
-               (SELECT GROUP_CONCAT(tc.content ORDER BY tc.created_at SEPARATOR ' | ')
-                  FROM ticket_comments tc
-                 WHERE tc.ticket_id = t.id AND tc.type = 'note') AS notes
+               v.code AS invoice_code, u.full_name AS owner_name,
+               NULL AS notes
         FROM support_tickets t
-        LEFT JOIN customers c ON c.id = t.customer_id AND c.deleted_at IS NULL
-        LEFT JOIN contacts ct ON ct.id = t.contact_id AND ct.deleted_at IS NULL
-        LEFT JOIN invoices v ON v.id = t.invoice_id AND v.deleted_at IS NULL
-        LEFT JOIN products p ON p.id = t.product_id AND p.deleted_at IS NULL
+        LEFT JOIN orders o ON o.id = t.order_id AND o.deleted_at IS NULL
+        LEFT JOIN quotations q ON q.id = o.quotation_id AND q.deleted_at IS NULL
+        LEFT JOIN customers c ON c.id = q.customer_id AND c.deleted_at IS NULL
+        LEFT JOIN contacts ct ON ct.id = q.contact_id AND ct.deleted_at IS NULL
+        LEFT JOIN invoices v ON v.order_id = t.order_id AND v.deleted_at IS NULL
         LEFT JOIN users u ON u.id = t.assigned_user_id
         WHERE t.deleted_at IS NULL
     """,
@@ -130,20 +134,20 @@ QUERIES = {
     # San pham dung chung toan cong ty -> owner = NULL (ai cung tim duoc)
     "product": """
         SELECT p.id, NULL AS owner, p.sku, p.name, p.type, p.unit, p.base_price, p.cost_price,
-               p.vat_rate, p.description, p.is_active, p.created_at,
+               p.vat_rate, p.description, p.status, p.created_at,
                pc.name AS category_name
         FROM products p
         LEFT JOIN product_categories pc ON pc.id = p.category_id
         WHERE p.deleted_at IS NULL
     """,
-    # activities KHONG co cot deleted_at (xem crm.sql)
     "activity": """
         SELECT a.id, a.assigned_user_id AS owner, a.type, a.subject, a.content, a.priority,
                a.target_type, a.target_id, a.location, a.call_direction, a.call_result,
-               a.call_duration, a.status, a.due_at, a.completed_at, a.created_at,
+               a.call_duration, a.status, a.due_at, a.created_at,
                u.full_name AS owner_name
         FROM activities a
         LEFT JOIN users u ON u.id = a.assigned_user_id
+        WHERE a.deleted_at IS NULL
     """,
 }
 

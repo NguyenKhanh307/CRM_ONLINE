@@ -43,6 +43,8 @@ export const invoiceService = {
     issue: (id: number) => axiosInstance.post<ApiResponse<InvoiceResult>>(`/api/invoices/${id}/issue`),
     // hủy hóa đơn (-> cancelled)
     cancel: (id: number) => axiosInstance.post<ApiResponse<InvoiceResult>>(`/api/invoices/${id}/cancel`),
+    // mở lại khi lỡ bấm nhầm hủy (cancelled -> draft)
+    reopen: (id: number) => axiosInstance.post<ApiResponse<InvoiceResult>>(`/api/invoices/${id}/reopen`),
 
     // danh sách đợt thanh toán của hóa đơn
     getPaymentSchedules: (invoiceId: number) =>

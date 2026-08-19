@@ -1,10 +1,12 @@
 package vn.com.be_crm.core.config.beans;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.application.campaign.command.*;
 import vn.com.be_crm.application.campaign.query.*;
 import vn.com.be_crm.core.email.port.IEmailService;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
 import vn.com.be_crm.domain.campaign.repository.ICampaignMemberRepository;
 import vn.com.be_crm.domain.campaign.repository.ICampaignRepository;
 
@@ -33,7 +35,10 @@ public class CampaignBeanConfig {
     /** @return GetCampaignStatsUseCase — thống kê ROI */
     @Bean public GetCampaignStatsUseCase getCampaignStatsUseCase(ICampaignRepository r) { return new GetCampaignStatsUseCase(r); }
     /** @return SendCampaignEmailUseCase — gửi email hàng loạt */
-    @Bean public SendCampaignEmailUseCase sendCampaignEmailUseCase(ICampaignMemberRepository mr, IEmailService es) { return new SendCampaignEmailUseCase(mr, es); }
+    @Bean public SendCampaignEmailUseCase sendCampaignEmailUseCase(ICampaignMemberRepository mr, ICampaignRepository cr,
+            IEmailService es, @Value("${app.frontend.base-url}") String frontendBaseUrl) {
+        return new SendCampaignEmailUseCase(mr, cr, es, frontendBaseUrl);
+    }
 
     // ===== Campaign Member =====
 
@@ -60,5 +65,5 @@ public class CampaignBeanConfig {
     /** @return HandoverBulkCampaignUseCase */
     @Bean public HandoverBulkCampaignUseCase handoverBulkCampaignUseCase(ICampaignRepository r) { return new HandoverBulkCampaignUseCase(r); }
     /** @return ImportBulkCampaignUseCase */
-    @Bean public ImportBulkCampaignUseCase importBulkCampaignUseCase(ICampaignRepository r) { return new ImportBulkCampaignUseCase(r); }
+    @Bean public ImportBulkCampaignUseCase importBulkCampaignUseCase(ICampaignRepository r, ITransactionRunner tx) { return new ImportBulkCampaignUseCase(r, tx); }
 }

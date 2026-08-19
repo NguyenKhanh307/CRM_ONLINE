@@ -63,6 +63,28 @@ public final class CopilotPrompts {
             TỪ CHỐI (bằng đúng câu trên) câu hỏi về toàn hệ thống/toàn công ty, doanh thu tổng,
             quản trị/admin, phân quyền, hay dữ liệu của nhân viên khác.""";
 
+    // Hướng dẫn thêm cho luồng NL2SQL có kiểm soát (generateJson) — mô tả CÁCH CHỌN tham số,
+    // KHÔNG mô tả cách viết SQL (mô hình không bao giờ được yêu cầu viết SQL).
+    private static final String STRUCTURED_GUIDE = """
+
+
+            NGOÀI câu trả lời bằng lời (answer), bạn PHẢI luôn điền thêm "queryable"/"queryType"/"spec":
+            - Đặt queryable=true CHỈ KHI câu hỏi map được đúng vào MỘT trong hai dạng dưới, dùng ĐÚNG
+              tên tham số liệt kê (không bịa module/metric/groupBy/condition ngoài danh sách — sai
+              tên coi như không hợp lệ, hệ thống sẽ bỏ qua và chỉ dùng "answer").
+            - AGGREGATE (đếm/tổng/tỉ lệ, có thể so sánh/nhóm theo): spec.module là một trong
+              lead/contact/customer/opportunity/quotation/order/invoice/activity/ticket/campaign/product;
+              spec.metric là COUNT (mặc định, áp mọi module) / SUM_AMOUNT (chỉ opportunity, invoice) /
+              RATE_ACCEPTED (chỉ quotation — tỉ lệ báo giá được chấp nhận); spec.groupBy là NONE
+              (mặc định, một con số) / OWNER (so sánh theo nhân viên — điền tên nhân viên nhắc tới
+              vào spec.employeeNames, giữ nguyên như người dùng gõ) / MONTH / STATUS.
+            - LIST (liệt kê bản ghi khớp một điều kiện đã có sẵn — KHÔNG tự đặt điều kiện mới):
+              spec.condition CHỈ được là EXPIRED (báo giá hết hạn), OVERDUE (phiếu chăm sóc quá hạn
+              SLA), PAYMENT_OVERDUE (hóa đơn quá hạn thanh toán), STALLED (cơ hội đang treo, lâu
+              ngày không chăm sóc) — đi kèm đúng module tương ứng (quotation/ticket/invoice/opportunity).
+            - Câu hỏi KHÔNG khớp dạng nào ở trên (mô tả/định tính, hoặc số liệu ngoài danh sách này)
+              → đặt queryable=false, chỉ trả lời qua "answer" như bình thường.""";
+
     private CopilotPrompts() {
     }
 
@@ -74,5 +96,42 @@ public final class CopilotPrompts {
      */
     public static String buildSystemPrompt(boolean privileged) {
         return privileged ? BASE_PROMPT : BASE_PROMPT + STAFF_SCOPE;
+    }
+
+    /**
+     * System prompt cho luồng NL2SQL có kiểm soát (generateJson) — base prompt + hướng dẫn chọn
+     * tham số. Chỉ ADMIN/SALES_MANAGER được đề cập tên nhân viên khác trong spec.employeeNames;
+     * nhân viên thường hỏi vẫn được, hệ thống tự ép về đúng phạm vi của họ ở tầng thực thi.
+     *
+     * @param privileged true nếu ADMIN/SALES_MANAGER
+     * @return system prompt đầy đủ cho generateJson
+     */
+    public static String buildStructuredSystemPrompt(boolean privileged) {
+        return buildSystemPrompt(privileged) + STRUCTURED_GUIDE;
+    }
+
+    /**
+     * Khuôn JSON (Gemini responseSchema, cú pháp OpenAPI rút gọn) cho luồng NL2SQL có kiểm soát.
+     *
+     * @return schema dạng Map, truyền thẳng cho {@code IAiService.generateJson}
+     */
+    public static java.util.Map<String, Object> buildStructuredSchema() {
+        java.util.Map<String, Object> spec = java.util.Map.of(
+                "type", "object",
+                "properties", java.util.Map.of(
+                        "module", java.util.Map.of("type", "string"),
+                        "metric", java.util.Map.of("type", "string"),
+                        "groupBy", java.util.Map.of("type", "string"),
+                        "condition", java.util.Map.of("type", "string"),
+                        "employeeNames", java.util.Map.of("type", "array", "items", java.util.Map.of("type", "string")),
+                        "status", java.util.Map.of("type", "string")));
+        return java.util.Map.of(
+                "type", "object",
+                "properties", java.util.Map.of(
+                        "queryable", java.util.Map.of("type", "boolean"),
+                        "queryType", java.util.Map.of("type", "string"),
+                        "spec", spec,
+                        "answer", java.util.Map.of("type", "string")),
+                "required", java.util.List.of("queryable", "answer"));
     }
 }

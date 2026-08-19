@@ -8,7 +8,7 @@ import { FormSection } from '@/shared/components/form/FormSection';
 import { FieldRow } from '@/shared/components/form/FieldRow';
 import { inputCls } from '@/shared/components/form/formStyles';
 import { useAlert } from '@/shared/alert/useAlert';
-import { collectErrors, nonNegativeError, percentError, sellPriceError } from '@/shared/utils/validators';
+import { collectErrors, nonNegativeError, percentError, sellPriceError, validateOrWarn } from '@/shared/utils/validators';
 import { useProductCategories } from '../hooks/useProductCategories';
 import { useCreateProduct } from '../hooks/useCreateProduct';
 import type { CreateProductPayload } from '../types/productTypes';
@@ -73,7 +73,7 @@ const ProductAddPage = () => {
     const submit = async () => {
         const errs = validate();
         setErrors(errs);
-        if (Object.keys(errs).length > 0) return;
+        if (!validateOrWarn(errs, showAlert)) return;
         const payload: CreateProductPayload = {
             sku: form.sku.trim(),
             name: form.name.trim(),

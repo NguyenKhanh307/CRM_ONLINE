@@ -18,6 +18,7 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [apiError, setApiError] = useState<string | null>(null);
 
     // Reset form khi vào trang login (sau logout) — chặn autofill giữ lại email/mật khẩu cũ trên máy dùng chung
     useEffect(() => {
@@ -47,13 +48,18 @@ const LoginPage = () => {
         setErrors(found);
         if (Object.keys(found).length > 0) return;
 
-        loginMutation.mutate({ email: email.trim(), password });
+        setApiError(null);
+        loginMutation.mutate(
+            { email: email.trim(), password },
+            {
+                // bước hiện lỗi ngay trong form thay vì chỉ dựa vào toast lỗi toàn cục
+                onError: (err) => {
+                    const e = err as { response?: { data?: { message?: string } } };
+                    setApiError(e?.response?.data?.message ?? 'Tên tài khoản hoặc mật khẩu không đúng.');
+                },
+            },
+        );
     };
-
-    const apiError = loginMutation.error
-        ? (loginMutation.error as { response?: { data?: { message?: string } } })
-              ?.response?.data?.message ?? 'Tên tài khoản hoặc mật khẩu không đúng.'
-        : null;
 
     return (
         <div className="min-h-screen bg-blue-200 flex items-center justify-center px-4">

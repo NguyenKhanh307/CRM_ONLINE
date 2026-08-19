@@ -38,14 +38,14 @@ export const ContactGeneralSection = ({ value, onChange, errors = {} }: Props) =
     /** Tên tổ chức vừa kéo dữ liệu về — hiện dòng gợi ý dưới ô Tổ chức. */
     const [prefillFrom, setPrefillFrom] = useState<string | null>(null);
 
-    /** Chọn tổ chức → tự điền địa chỉ, SĐT cơ quan, nguồn gốc (chỉ ô còn trống). */
+    /** Chọn tổ chức → tự điền số điện thoại, nguồn gốc (chỉ ô còn trống). */
     const onPickCustomer = (v: string) => {
         onChange({ customerId: v });
         setPrefillFrom(null);
         const customer = customers.find((c) => String(c.id) === v);
         if (!customer) return;
         const patch = fillEmpty(value, {
-            officePhone: customer.phone ?? '',
+            phone: customer.phone ?? '',
             source: customer.source ?? '',
         });
         if (hasFilled(patch)) { onChange(patch); setPrefillFrom(`tổ chức «${customer.name}»`); }
@@ -54,21 +54,12 @@ export const ContactGeneralSection = ({ value, onChange, errors = {} }: Props) =
     return (
         <div className="grid grid-cols-2 gap-x-10 gap-y-4">
             <div className="space-y-4">
-                <FieldRow label="Họ và đệm">
+                <FieldRow label="Họ và tên" required error={errors.hoTen}>
                     <input
                         type="text"
-                        value={value.hoDem}
-                        onChange={(e) => onChange({ hoDem: e.target.value })}
+                        value={value.hoTen}
+                        onChange={(e) => onChange({ hoTen: e.target.value })}
                         className={inputCls}
-                    />
-                </FieldRow>
-                <FieldRow label="Họ và tên">
-                    <input
-                        type="text"
-                        value={`${value.hoDem} ${value.ten}`.trim()}
-                        readOnly
-                        tabIndex={-1}
-                        className={`${inputCls} bg-gray-50 cursor-default`}
                     />
                 </FieldRow>
                 <FieldRow label="Phòng ban">
@@ -94,14 +85,6 @@ export const ContactGeneralSection = ({ value, onChange, errors = {} }: Props) =
                         value={value.salutation}
                         onChange={(v) => onChange({ salutation: v })}
                         options={SALUTATION_OPTIONS}
-                    />
-                </FieldRow>
-                <FieldRow label="Tên" required error={errors.ten}>
-                    <input
-                        type="text"
-                        value={value.ten}
-                        onChange={(e) => onChange({ ten: e.target.value })}
-                        className={inputCls}
                     />
                 </FieldRow>
                 <FieldRow label="Chức danh">

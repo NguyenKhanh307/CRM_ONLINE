@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { FiPlus } from 'react-icons/fi';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { formatISODate } from '@/shared/utils/date';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { useProductMap } from '@/features/san-pham/hooks/useProductMap';
@@ -24,7 +24,6 @@ export const LeadItemsPanel = ({ leadId }: Props) => {
     const { data: items = [], isLoading } = useLeadItems(leadId);
     const { data: products = [] } = useProductList();
     const productMap = useProductMap();
-    const queryClient = useQueryClient();
     const { mutate: createItem, isPending } = useLiveMutation(
         (payload: { productId: number; interestType: 'viewed' | 'requested_quote'; note?: string | null }) =>
             leadService.createItem(leadId, payload),
@@ -43,7 +42,7 @@ export const LeadItemsPanel = ({ leadId }: Props) => {
             { productId: Number(productId), interestType, note: note || null },
             {
                 onSuccess: () => {
-                    queryClient.invalidateQueries({ queryKey: ['lead-items', leadId] });
+                    notify(`lead-items:${leadId}`);
                     setAdding(false);
                     setProductId('');
                     setInterestType('viewed');

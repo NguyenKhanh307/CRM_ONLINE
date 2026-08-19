@@ -173,12 +173,12 @@ const ChienDichPage = () => {
                 columns={campaignExportColumns}
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={async (keys, format) => {
+                onExport={async (keys) => {
                     // không tick dòng -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await campaignService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
-                    exportRows(rows, campaignExportColumns, keys, format, 'chien-dich');
+                    exportRows(rows, campaignExportColumns, keys, 'chien-dich');
                     setExportOpen(false);
                 }}
             />

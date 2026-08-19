@@ -1,11 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { contactService } from '../services/contactService';
 
-/** Lấy chi tiết một liên hệ theo ID (trang chi tiết). */
+// lấy chi tiết một liên hệ theo ID (trang chi tiết)
 export function useContactDetail(id: number | undefined) {
-    return useQuery({
-        queryKey: ['contact', id],
-        queryFn: () => contactService.getById(id as number).then(r => r.data.data),
-        enabled: id != null && !Number.isNaN(id),
-    });
+    const enabled = id != null && !Number.isNaN(id);
+    return useLiveQuery(`contact:${id}`, () => contactService.getById(id as number).then(r => r.data.data), enabled);
 }

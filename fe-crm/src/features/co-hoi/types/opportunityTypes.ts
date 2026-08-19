@@ -14,13 +14,14 @@ export interface UpdateOpportunityPayload {
     // status/probability: KHÔNG gửi — backend suy ra từ giai đoạn pipeline.
 }
 
-// một dòng hàng gửi kèm khi tạo cơ hội
+// một dòng hàng gửi kèm khi tạo cơ hội — không gửi amount, backend tự tính từ quantity/unitPrice/discount
 export interface OpportunityItemPayload {
     productId: number;
+    unit: string | null;
     quantity: number;
     unitPrice: number;
     discount: number;
-    amount: number;
+    taxRate: number;
     note: string | null;
 }
 

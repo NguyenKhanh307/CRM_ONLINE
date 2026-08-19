@@ -188,7 +188,7 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| `POST` | `/api/contacts` | Tạo liên hệ — nhận `phones[]` để lưu kèm SĐT trong 1 transaction; bổ sung field V6 (salutation, title, department, workEmail, personalEmail, zalo, source, doNotCall, doNotEmail) |
+| `POST` | `/api/contacts` | Tạo liên hệ — trường `phone` là 1 SĐT duy nhất (cột `contacts.phone`, bỏ bảng con `contact_phones` — 2026-08-07) |
 | `GET` | `/api/contacts` | Danh sách liên hệ (phân trang) |
 | `GET` | `/api/contacts/{id}` | Lấy liên hệ theo ID (kèm tên khóa ngoại) |
 | `GET` | `/api/contacts/{id}/related` | **MỚI** — bản ghi liên quan cho trang chi tiết: cơ hội / báo giá / đơn / hóa đơn / phiếu CS / hoạt động (theo `contact_id`). Kiểm quyền một lần trên liên hệ (`assignedUserId`) → 403 |
@@ -198,15 +198,6 @@ Tất cả các endpoint khác đều yêu cầu header: `Authorization: Bearer 
 | `POST` | `/api/contacts/{id}/restore` | Khôi phục liên hệ từ thùng rác |
 | `DELETE` | `/api/contacts/{id}/purge` | Xóa vĩnh viễn khỏi thùng rác |
 | `POST` | `/api/contacts/import-bulk` | Nhập hàng loạt liên hệ từ file Excel/CSV |
-
-#### Số điện thoại — `/api/contacts/{contactId}/phones`
-
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `POST` | `/api/contacts/{contactId}/phones` | Thêm số điện thoại cho liên hệ |
-| `GET` | `/api/contacts/{contactId}/phones` | Danh sách SĐT của liên hệ |
-| `PUT` | `/api/contacts/{contactId}/phones/{id}` | Cập nhật số điện thoại |
-| `DELETE` | `/api/contacts/{contactId}/phones/{id}` | Xóa số điện thoại |
 
 ---
 
@@ -914,17 +905,13 @@ be-crm/src/main/java/vn/com/be_crm/
 
 | File / Folder | Tầng | Công dụng |
 |---------------|------|-----------|
-| `domain/contact/entity/Contact.java` | Domain | Entity liên hệ (soft delete) |
-| `domain/contact/entity/ContactPhone.java` | Domain | Số điện thoại của liên hệ |
+| `domain/contact/entity/Contact.java` | Domain | Entity liên hệ (soft delete), có field `phone` phẳng (2026-08-07, bỏ bảng con `contact_phones`) |
 | `domain/contact/enums/ContactGender.java` | Domain | Giới tính |
-| `domain/contact/enums/PhoneType.java` | Domain | Loại số điện thoại (mobile, work...) |
 | `domain/contact/repository/IContactRepository.java` | Domain | Interface thao tác DB cho Contact |
-| `domain/contact/repository/IContactPhoneRepository.java` | Domain | Interface thao tác DB cho ContactPhone |
-| `application/contact/command|query/...UseCase.java` | Application | Use case CRUD + query cho Contact & Phone |
+| `application/contact/command|query/...UseCase.java` | Application | Use case CRUD + query cho Contact |
 | `application/contact/dto/*.java` | Application | Input/Output DTO |
 | `application/contact/mapper/*.java` | Application | Mapper |
 | `presentation/contact/ContactController.java` | Presentation | REST endpoint `/api/contacts` |
-| `presentation/contact/ContactPhoneController.java` | Presentation | REST endpoint `/api/contacts/{contactId}/phones` |
 | `infrastructure/contact/...` | Infrastructure | Hibernate entity, mapper, repository impl |
 
 ### 3.5 Module Customer

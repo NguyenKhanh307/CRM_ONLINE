@@ -8,24 +8,29 @@ import { ScrollFrame } from '../table/ScrollFrame';
 
 // cột hiển thị của bảng bản ghi liên quan — mỗi tab tự chọn cột và nhãn phù hợp
 export interface RelatedColumn {
+    // key của bản ghi liên quan (cột dữ liệu)
     key: keyof RelatedRecord;
     label: string;
     align?: 'left' | 'right';
     // ghi đè cách render (mặc định: date -> dd/mm/yyyy, amount -> tiền tệ, còn lại -> chuỗi)
     render?: (row: RelatedRecord) => ReactNode;
 }
-
+// props của bảng bản ghi liên quan
 interface RelatedTableProps {
+    // nhóm bản ghi liên quan (danh sách rút gọn + tổng số thật trong DB)
     group: RelatedGroup | undefined;
+    // cột hiển thị của bảng bản ghi liên quan
     columns: RelatedColumn[];
     // phân hệ — dùng cho link "xem trong danh sách" khi số bản ghi vượt quá số dòng đã nạp
     module: RelatedModule;
+    // thông báo khi không có bản ghi liên quan nào
     emptyText: string;
     // số dòng thấy được mà không cần cuộn; phần dư cuộn trong khung riêng của bảng
     visibleRows?: number;
 }
 
 // giá trị mặc định của một ô theo kiểu dữ liệu
+// null/undefined/empty -> '—', date -> dd/mm/yyyy, amount -> tiền tệ, còn lại -> chuỗi
 const defaultCell = (row: RelatedRecord, key: keyof RelatedRecord): ReactNode => {
     const v = row[key];
     if (v === null || v === undefined || v === '') return '—';
@@ -37,10 +42,13 @@ const defaultCell = (row: RelatedRecord, key: keyof RelatedRecord): ReactNode =>
 // bảng bản ghi liên quan (chỉ đọc) trên trang chi tiết 360°
 // bấm một dòng -> mở bản ghi đó (trang chi tiết nếu có, ngược lại nhảy về danh sách + focus dòng)
 export const RelatedTable = ({ group, columns, module, emptyText, visibleRows = 10 }: RelatedTableProps) => {
+    // hook điều hướng trang
     const navigate = useNavigate();
+    // danh sách bản ghi liên quan (tối đa 50 dòng) — có thể rỗng
     const items = group?.items ?? [];
+    // tổng số bản ghi thật trong DB (có thể lớn hơn số dòng đã nạp)
     const total = group?.total ?? 0;
-
+    // thông báo khi không có bản ghi liên quan nào
     if (items.length === 0) {
         return <div className="py-8 text-center text-sm text-gray-400">{emptyText}</div>;
     }
@@ -62,10 +70,12 @@ export const RelatedTable = ({ group, columns, module, emptyText, visibleRows = 
                         {items.map(row => (
                             <tr
                                 key={row.id}
+                                // bấm một dòng -> mở bản ghi đó (trang chi tiết nếu có, ngược lại nhảy về danh sách + focus dòng)
                                 onClick={() => navigate(recordPath(row.module, row.id))}
                                 className="border-b border-gray-100 last:border-0 hover:bg-blue-50 cursor-pointer"
                             >
                                 {columns.map(c => (
+                                    // hiển thị một ô dữ liệu
                                     <td key={String(c.key)} className={`py-2 px-3 text-text-main ${c.align === 'right' ? 'text-right' : ''}`}>
                                         {c.render ? c.render(row) : defaultCell(row, c.key)}
                                     </td>
@@ -75,7 +85,7 @@ export const RelatedTable = ({ group, columns, module, emptyText, visibleRows = 
                     </tbody>
                 </table>
             </ScrollFrame>
-
+            {/* nếu tổng số bản ghi thật trong DB lớn hơn số dòng đã nạp, hiển thị link "xem trong danh sách" */}
             {total > items.length && (
                 <div className="pt-3 text-sm text-gray-500">
                     Còn {total - items.length} bản ghi nữa —{' '}

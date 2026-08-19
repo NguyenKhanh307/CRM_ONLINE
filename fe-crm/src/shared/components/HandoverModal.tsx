@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { FiX } from 'react-icons/fi';
-import { userService } from '@/features/users/services/userService';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { DialogFooter } from '@/shared/components/ModalFooter';
 import { useDialogKeyboardNav } from '@/shared/keyboard/useDialogKeyboardNav';
 
@@ -18,11 +17,8 @@ export const HandoverModal = ({ open, count, onClose, onConfirm, isLoading }: Ha
     const [toUserId, setToUserId] = useState<number | ''>('');
     const [reason, setReason] = useState('');
 
-    const { data } = useQuery({
-        queryKey: ['users-active'],
-        queryFn: () => userService.listActive().then(r => r.data.data.items),
-        enabled: open,
-    });
+    // dùng chung hook lookup người dùng active — tránh 2 nguồn sự thật cho cùng dữ liệu
+    const { data } = useActiveUsers(open);
 
     const ref = useRef<HTMLDivElement>(null);
     // không tự focus nút — người dùng phải chọn người nhận trước

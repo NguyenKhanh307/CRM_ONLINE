@@ -1,16 +1,18 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { invoiceService } from '../services/invoiceService';
 import type { UpdateInvoicePayload } from '../types/invoiceTypes';
 
-// cập nhật Hóa đơn — invalidate danh sách sau khi thành công
+// cập nhật Hóa đơn — báo danh sách VÀ trang chi tiết đang mở làm mới sau khi thành công
 export function useUpdateInvoice() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, payload }: { id: number; payload: UpdateInvoicePayload }) =>
-            invoiceService.update(id, payload),
-        onSuccess: (_d, v) => {
-            qc.invalidateQueries({ queryKey: ['invoices'] });
-            qc.invalidateQueries({ queryKey: ['invoice', v.id] });
-        },
-    });
+    const { mutate: run, isPending } = useLiveMutation(
+        ({ id, payload }: { id: number; payload: UpdateInvoicePayload }) => invoiceService.update(id, payload));
+
+    const mutate: typeof run = (input, callbacks) =>
+        run(input, {
+            ...callbacks,
+            onSuccess: (data) => { notify('invoices'); notify(`invoice:${input.id}`); callbacks?.onSuccess?.(data); },
+        });
+
+    return { mutate, isPending };
 }

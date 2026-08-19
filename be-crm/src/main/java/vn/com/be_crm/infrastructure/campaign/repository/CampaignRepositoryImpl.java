@@ -168,16 +168,32 @@ public class CampaignRepositoryImpl implements ICampaignRepository {
             long leadCount = count(s, "SELECT COUNT(*) FROM leads WHERE campaign_id = :id AND deleted_at IS NULL", campaignId);
             long oppCount = count(s, "SELECT COUNT(*) FROM opportunities WHERE campaign_id = :id AND deleted_at IS NULL", campaignId);
             long wonOppCount = count(s, "SELECT COUNT(*) FROM opportunities WHERE campaign_id = :id AND status = 'won' AND deleted_at IS NULL", campaignId);
-            long orderCount = count(s, "SELECT COUNT(*) FROM orders WHERE campaign_id = :id AND deleted_at IS NULL", campaignId);
-            Object revObj = s.createNativeQuery("SELECT COALESCE(SUM(total),0) FROM orders WHERE campaign_id = :id AND status <> 'cancelled' AND deleted_at IS NULL", Object.class)
+            // orders/quotations không có cột campaign_id/total riêng — quy kết qua chuỗi
+            // orders -> quotations -> opportunities.campaign_id, doanh thu tính từ dòng hàng hóa
+            // đơn (giống campaignRevenueSubquery() trong DashboardRepositoryImpl)
+            long orderCount = ((Number) s.createNativeQuery(
+                    "SELECT COUNT(*) FROM orders o " +
+                            "JOIN quotations q ON q.id = o.quotation_id " +
+                            "JOIN opportunities opp ON opp.id = q.opportunity_id " +
+                            "WHERE opp.campaign_id = :id AND o.deleted_at IS NULL", Object.class)
+                    .setParameter("id", campaignId).uniqueResult()).longValue();
+            Object revObj = s.createNativeQuery(
+                    "SELECT COALESCE(SUM((ii.quantity * ii.unit_price - ii.discount) * (1 + ii.tax_rate / 100)),0) " +
+                            "FROM invoices i JOIN invoice_items ii ON ii.invoice_id = i.id " +
+                            "JOIN orders o ON o.id = i.order_id " +
+                            "JOIN quotations q ON q.id = o.quotation_id " +
+                            "JOIN opportunities opp ON opp.id = q.opportunity_id " +
+                            "WHERE opp.campaign_id = :id AND i.status <> 'cancelled' AND i.deleted_at IS NULL", Object.class)
                     .setParameter("id", campaignId).uniqueResult();
             BigDecimal revenue = revObj instanceof BigDecimal bd ? bd : new BigDecimal(revObj.toString());
             CampaignHibernate c = s.find(CampaignHibernate.class, campaignId);
             BigDecimal actualCost = c != null ? c.getActualCost() : null;
+            BigDecimal expectedRevenue = c != null ? c.getExpectedRevenue() : null;
             return CampaignStatsResult.builder()
                     .campaignId(campaignId).memberCount(memberCount).sentCount(sentCount)
                     .leadCount(leadCount).opportunityCount(oppCount).wonOpportunityCount(wonOppCount)
-                    .orderCount(orderCount).revenue(revenue).actualCost(actualCost).build();
+                    .orderCount(orderCount).revenue(revenue).actualCost(actualCost)
+                    .expectedRevenue(expectedRevenue).build();
         });
     }
 

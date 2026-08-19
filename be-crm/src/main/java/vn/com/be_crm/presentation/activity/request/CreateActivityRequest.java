@@ -10,9 +10,7 @@ import vn.com.be_crm.domain.activity.enums.ActivityType;
 
 import java.time.LocalDateTime;
 
-/**
- * JSON input khi tạo mới hoạt động.
- */
+// JSON input yêu cầu từ client khi tạo mới hoạt động.
 @Getter
 @NoArgsConstructor
 public class CreateActivityRequest {

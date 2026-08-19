@@ -23,8 +23,10 @@ public record PublicQuotationView(
         String customerResponseNote,
         List<Line> items
 ) {
-    // dòng hàng hiển thị công khai: productName/unit/quantity/unitPrice/discount/amount (thành tiền)
+    // dòng hàng hiển thị công khai: id (để khách tham chiếu khi đề xuất sửa/xóa),
+    // productName/unit/quantity/unitPrice/discount/amount (thành tiền)
     public record Line(
+            Long id,
             String productName,
             String unit,
             BigDecimal quantity,

@@ -1,10 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { opportunityService } from '../services/opportunityService';
 
-// lấy danh sách cơ hội (phân trang)
+// lấy toàn bộ cơ hội (tối đa 500 dòng) — dùng cho dropdown chọn cơ hội
 export function useOpportunityList() {
-    return useQuery({
-        queryKey: ['opportunities'],
-        queryFn: () => opportunityService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items),
-    });
+    return useLiveQuery('opportunities', () =>
+        opportunityService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items));
 }

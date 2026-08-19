@@ -172,12 +172,12 @@ const KhachHangPage = () => {
                 columns={customerExportColumns}
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={async (keys, format) => {
+                onExport={async (keys) => {
                     // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await customerService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
-                    exportRows(rows, customerExportColumns, keys, format, 'khach-hang');
+                    exportRows(rows, customerExportColumns, keys, 'khach-hang');
                     setExportOpen(false);
                 }}
             />

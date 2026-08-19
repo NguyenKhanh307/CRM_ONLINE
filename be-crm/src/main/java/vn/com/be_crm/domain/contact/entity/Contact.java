@@ -35,6 +35,8 @@ public class Contact {
     private String email;
     /** Số Zalo. */
     private String zalo;
+    /** Số điện thoại. */
+    private String phone;
     /** Nguồn gốc liên hệ. */
     private String source;
     /** Giới tính. */

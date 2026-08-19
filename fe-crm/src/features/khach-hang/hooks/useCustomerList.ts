@@ -1,10 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { customerService } from '../services/customerService';
 
-// lấy danh sách khách hàng (phân trang)
+// lấy toàn bộ khách hàng (tối đa 500 dòng) — dùng cho dropdown chọn khách hàng
 export function useCustomerList() {
-    return useQuery({
-        queryKey: ['customers'],
-        queryFn: () => customerService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items),
-    });
+    return useLiveQuery('customers', () =>
+        customerService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items));
 }

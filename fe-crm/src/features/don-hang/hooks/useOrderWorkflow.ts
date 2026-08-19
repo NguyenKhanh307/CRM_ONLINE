@@ -1,19 +1,22 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { orderService } from '../services/orderService';
 
-// loại hành động chuyển trạng thái Đơn hàng + xuất hóa đơn
-export type OrderAction = 'confirm' | 'process' | 'complete' | 'cancel' | 'createInvoice';
+// loại hành động chuyển trạng thái Đơn hàng
+export type OrderAction = 'confirm' | 'process' | 'complete' | 'cancel' | 'reopen';
 
-// hook thực hiện hành động trên Đơn hàng: confirm/process/complete/cancel (chuyển trạng thái)
-// và createInvoice (xuất hóa đơn 1-1)
+// hook thực hiện hành động chuyển trạng thái Đơn hàng: confirm/process/complete/cancel/reopen.
+// Xuất hóa đơn không còn ở đây — xem InvoiceAddPage?fromOrder= (tạo hóa đơn) +
+// orderService.markConverted (khóa nguồn)
 export function useOrderWorkflow() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, action }: { id: number; action: OrderAction }) => orderService[action](id),
-        onSuccess: (_d, v) => {
-            qc.invalidateQueries({ queryKey: ['orders'] });
-            qc.invalidateQueries({ queryKey: ['order', v.id] });
-            qc.invalidateQueries({ queryKey: ['invoices'] });
-        },
-    });
+    const { mutate: run, isPending } = useLiveMutation(
+        ({ id, action }: { id: number; action: OrderAction }) => orderService[action](id));
+
+    const mutate: typeof run = (input, callbacks) =>
+        run(input, {
+            ...callbacks,
+            onSuccess: (data) => { notify('orders'); notify(`order:${input.id}`); callbacks?.onSuccess?.(data); },
+        });
+
+    return { mutate, isPending };
 }

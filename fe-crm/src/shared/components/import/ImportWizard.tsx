@@ -23,7 +23,7 @@ const STEPS = [
     { num: 4, label: 'Hoàn tất',           desc: '' },
 ];
 
-// ô ngày sau khi đọc bằng `cellDates:true` có thể là Date object (Excel) hoặc chuỗi dd/mm/yyyy (CSV/gõ tay)
+// ô ngày sau khi đọc bằng `cellDates:true` có thể là Date object (Excel) hoặc chuỗi dd/mm/yyyy (ô định dạng text)
 function dateCellToVNString(raw: unknown): string {
     if (raw instanceof Date) {
         const pad = (n: number) => String(n).padStart(2, '0');
@@ -32,15 +32,16 @@ function dateCellToVNString(raw: unknown): string {
     return String(raw ?? '');
 }
 
-// ghép dữ liệu file theo mapping cột -> field. Ngày được parse dd/mm/yyyy -> ISO để gửi BE;
-// ngày sai định dạng bị bỏ qua (null) và ghi vào `dateErrors` để cảnh báo người dùng thay vì âm thầm mất dữ liệu
+// ghép dữ liệu file theo mapping cột -> field, đồng thời validate luôn ở client (đỡ mất công gọi
+// API cho file chắc chắn sai). File có bất kỳ dòng nào lỗi thì KHÔNG được nhập — errors trả về đây
+// dùng để chặn gọi onImport() ở handleImport() bên dưới, không phải cảnh báo mềm.
 function buildRows(
     fileRows: Record<string, string>[],
     mappings: ColumnMapping[],
     fields: ImportField[],
     options: ImportOptions,
-): { rows: Record<string, unknown>[]; dateErrors: ImportRowError[] } {
-    const dateErrors: ImportRowError[] = [];
+): { rows: Record<string, unknown>[]; errors: ImportRowError[] } {
+    const errors: ImportRowError[] = [];
     const rows = fileRows.map((row, idx) => {
         const rowNum = idx + 2; // dòng 1 là header trong file Excel
         const out: Record<string, unknown> = {};
@@ -49,7 +50,34 @@ function buildRows(
             const field = fields.find(f => f.key === m.fieldKey);
             const raw = row[m.fileColumn] ?? '';
             if (field?.type === 'number') {
-                out[m.fieldKey] = raw !== '' ? Number(raw) : null;
+                if (raw === '') {
+                    out[m.fieldKey] = null;
+                } else {
+                    const n = Number(raw);
+                    if (Number.isNaN(n)) {
+                        errors.push({ row: rowNum, message: `Trường "${field.label}" không phải số hợp lệ: "${raw}"` });
+                    }
+                    out[m.fieldKey] = n;
+                }
+            } else if (field?.type === 'enum') {
+                if (raw === '') {
+                    out[m.fieldKey] = null;
+                } else {
+                    const text = raw.trim();
+                    const matchedRaw = field.enumValues?.find(v => v.toLowerCase() === text.toLowerCase());
+                    // không khớp raw thì thử khớp nhãn tiếng Việt (khớp thì chuẩn hóa về raw trước khi gửi API)
+                    const matchedLabel = !matchedRaw && field.enumLabels
+                        ? Object.entries(field.enumLabels).find(([, label]) => label.toLowerCase() === text.toLowerCase())?.[0]
+                        : undefined;
+                    if (matchedRaw) {
+                        out[m.fieldKey] = matchedRaw;
+                    } else if (matchedLabel) {
+                        out[m.fieldKey] = matchedLabel;
+                    } else {
+                        errors.push({ row: rowNum, message: `Trường "${field.label}" giá trị không hợp lệ (phải là một trong: ${(field.enumValues ?? []).join(', ')}): "${raw}"` });
+                        out[m.fieldKey] = raw;
+                    }
+                }
             } else if (field?.type === 'date') {
                 const text = dateCellToVNString(raw);
                 if (text === '') {
@@ -57,7 +85,7 @@ function buildRows(
                 } else {
                     const iso = parseVNDate(text);
                     if (iso === null) {
-                        dateErrors.push({ row: rowNum, message: `Trường "${field.label}" sai định dạng ngày (cần dd/mm/yyyy): "${text}"` });
+                        errors.push({ row: rowNum, message: `Trường "${field.label}" sai định dạng ngày (cần dd/mm/yyyy): "${text}"` });
                         out[m.fieldKey] = null;
                     } else {
                         out[m.fieldKey] = iso;
@@ -72,7 +100,7 @@ function buildRows(
         }
         return out;
     });
-    return { rows, dateErrors };
+    return { rows, errors };
 }
 
 // wizard nhập file 4 bước dùng chung cho mọi phân hệ: tải file -> ghép cột -> tùy chọn -> kết quả
@@ -84,7 +112,6 @@ export const ImportWizard = ({ title, fields, onImport, backPath }: Props) => {
     const [mappings, setMappings] = useState<ColumnMapping[]>([]);
     const [options, setOptions] = useState<ImportOptions>({ importType: 'CREATE', ownerMode: 'SPECIFIC' });
     const [result, setResult] = useState<ImportBulkResult | null>(null);
-    const [dateWarnings, setDateWarnings] = useState<ImportRowError[]>([]);
     const [isImporting, setIsImporting] = useState(false);
     const [importError, setImportError] = useState<string | null>(null);
 
@@ -106,10 +133,14 @@ export const ImportWizard = ({ title, fields, onImport, backPath }: Props) => {
         setIsImporting(true);
         setImportError(null);
         try {
-            const { rows, dateErrors } = buildRows(fileData.rows, mappings, fields, options);
-            const res = await onImport(rows, options);
-            setResult(res);
-            setDateWarnings(dateErrors);
+            const { rows, errors } = buildRows(fileData.rows, mappings, fields, options);
+            if (errors.length > 0) {
+                // file có dòng lỗi -> không gọi API, không nhập dòng nào, để người dùng sửa file rồi tải lại
+                setResult({ successCount: 0, failedCount: errors.length, errors });
+            } else {
+                const res = await onImport(rows, options);
+                setResult(res);
+            }
             setStep(4);
         } catch {
             setImportError('Có lỗi xảy ra khi nhập dữ liệu. Vui lòng thử lại.');
@@ -124,7 +155,6 @@ export const ImportWizard = ({ title, fields, onImport, backPath }: Props) => {
         setMappings([]);
         setOptions({ importType: 'CREATE', ownerMode: 'SPECIFIC' });
         setResult(null);
-        setDateWarnings([]);
         setImportError(null);
     };
 
@@ -205,7 +235,7 @@ export const ImportWizard = ({ title, fields, onImport, backPath }: Props) => {
                         />
                     )}
                     {step === 4 && result && (
-                        <StepResult result={result} dateWarnings={dateWarnings} backPath={backPath} onReset={reset} />
+                        <StepResult result={result} backPath={backPath} onReset={reset} />
                     )}
 
                     {importError && (

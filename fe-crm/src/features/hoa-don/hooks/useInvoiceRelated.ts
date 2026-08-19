@@ -1,11 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { invoiceService } from '../services/invoiceService';
 
 // lấy bản ghi liên quan của một hóa đơn (trang chi tiết)
 export function useInvoiceRelated(id: number | undefined) {
-    return useQuery({
-        queryKey: ['invoice', id, 'related'],
-        queryFn: () => invoiceService.getRelated(id as number).then(r => r.data.data),
-        enabled: id != null && !Number.isNaN(id),
-    });
+    const enabled = id != null && !Number.isNaN(id);
+    return useLiveQuery(`invoice:${id}:related`, () => invoiceService.getRelated(id as number).then(r => r.data.data), enabled);
 }

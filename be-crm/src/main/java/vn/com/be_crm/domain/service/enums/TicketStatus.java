@@ -11,9 +11,12 @@ import java.util.Set;
  * Trạng thái phiếu hỗ trợ. Thay đổi qua hành động có kiểm soát (không sửa tay).
  * 'new' là từ khóa Java nên dùng hằng new_ với ánh xạ JSON/DB về "new".
  *
- * <p>Luồng support/complaint: new → assigned → in_progress → resolved → closed.
- * Luồng return/exchange: new → assigned → in_progress → approved → received → inspected → resolved → closed
- * (hoặc in_progress → rejected → closed). Mở lại: resolved/closed → reopened → (resolve/approve/reject).</p>
+ * <p>Luồng support/complaint (2026-08, đã rút gọn): new → in_progress → resolved — người tạo
+ * mặc định là người phụ trách nên bỏ qua bước "giao việc" (assigned) và bước "đóng" (closed),
+ * `resolved` là "Hoàn thành" cuối cùng. Vẫn cho phép new → assigned nếu cần giao lại cho người khác.
+ * Luồng return/exchange (không đổi): new → assigned → in_progress → approved → received → inspected → resolved → closed
+ * (hoặc in_progress → rejected → closed). Mở lại: resolved/closed → reopened → (resolve/approve/reject),
+ * reopened → in_progress để tiếp tục xử lý.</p>
  */
 public enum TicketStatus {
     new_, assigned, in_progress, approved, rejected, received, inspected, resolved, closed, reopened;
@@ -33,7 +36,7 @@ public enum TicketStatus {
 
     /** Bảng các bước chuyển hợp lệ giữa các trạng thái. */
     private static final Map<TicketStatus, Set<TicketStatus>> ALLOWED = Map.of(
-            new_, Set.of(assigned),
+            new_, Set.of(assigned, in_progress),
             assigned, Set.of(in_progress),
             in_progress, Set.of(resolved, approved, rejected),
             approved, Set.of(received),

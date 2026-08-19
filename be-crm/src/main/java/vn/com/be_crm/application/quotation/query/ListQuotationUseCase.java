@@ -8,6 +8,7 @@ import vn.com.be_crm.core.lookup.port.INameResolver;
 import vn.com.be_crm.core.lookup.NameEnricher;
 import vn.com.be_crm.core.usecase.IUseCase;
 import vn.com.be_crm.core.util.LineItemTotals;
+import vn.com.be_crm.domain.quotation.entity.Quotation;
 import vn.com.be_crm.domain.quotation.entity.QuotationItem;
 import vn.com.be_crm.domain.quotation.repository.IQuotationItemRepository;
 import vn.com.be_crm.domain.quotation.repository.IQuotationRepository;
@@ -22,14 +23,17 @@ public class ListQuotationUseCase implements IUseCase<PageRequest, PageResult<Qu
     private final IQuotationRepository repo;
     private final IQuotationItemRepository itemRepo;
     private final INameResolver names;
+    private final QuotationExpiryUseCase expiryUC;
 
-    public ListQuotationUseCase(IQuotationRepository repo, IQuotationItemRepository itemRepo, INameResolver names) {
-        this.repo = repo; this.itemRepo = itemRepo; this.names = names;
+    public ListQuotationUseCase(IQuotationRepository repo, IQuotationItemRepository itemRepo, INameResolver names,
+                                 QuotationExpiryUseCase expiryUC) {
+        this.repo = repo; this.itemRepo = itemRepo; this.names = names; this.expiryUC = expiryUC;
     }
 
     @Override public PageResult<QuotationResult> execute(PageRequest r) {
         var page = repo.findAll(r);
-        List<QuotationResult> items = page.getItems().stream().map(QuotationCommandMapper::toResult).collect(Collectors.toList());
+        List<Quotation> checked = page.getItems().stream().map(expiryUC::checkAndExpire).collect(Collectors.toList());
+        List<QuotationResult> items = checked.stream().map(QuotationCommandMapper::toResult).collect(Collectors.toList());
         for (QuotationResult res : items) {
             List<QuotationItem> qItems = itemRepo.findAllByQuotationId(res.getId());
             LineItemTotals.Totals t = LineItemTotals.compute(qItems,

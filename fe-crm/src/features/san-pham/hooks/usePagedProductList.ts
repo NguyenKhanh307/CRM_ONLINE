@@ -1,12 +1,8 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import type { PageParams } from '@/shared/types/api';
 import { productService } from '../services/productService';
 
-/** Danh sách sản phẩm phân trang server-side (search `q` + tag lọc `status` trong PageParams). */
+// danh sách sản phẩm phân trang server-side (search `q` + tag lọc `status` trong PageParams)
 export function usePagedProductList(params: PageParams) {
-    return useQuery({
-        queryKey: ['products', 'paged', params],
-        queryFn: () => productService.getList(params).then(r => r.data.data),
-        placeholderData: keepPreviousData,
-    });
+    return useLiveQuery(`products:paged:${JSON.stringify(params)}`, () => productService.getList(params).then(r => r.data.data));
 }

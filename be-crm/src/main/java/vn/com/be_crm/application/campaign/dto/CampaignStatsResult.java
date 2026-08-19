@@ -28,4 +28,6 @@ public class CampaignStatsResult {
     private BigDecimal revenue;
     /** Chi phí thực tế của chiến dịch. */
     private BigDecimal actualCost;
+    /** Doanh số kỳ vọng — số kế hoạch nhập tay lúc tạo chiến dịch, so sánh với revenue thật. */
+    private BigDecimal expectedRevenue;
 }

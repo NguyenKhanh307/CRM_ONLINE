@@ -137,12 +137,12 @@ const ChinhSachGiaPage = () => {
                 columns={pricingExportColumns}
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={async (keys, format) => {
+                onExport={async (keys) => {
                     // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await pricingService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined })).data.data.items;
-                    exportRows(rows, pricingExportColumns, keys, format, 'chinh-sach-gia');
+                    exportRows(rows, pricingExportColumns, keys, 'chinh-sach-gia');
                     setExportOpen(false);
                 }}
             />

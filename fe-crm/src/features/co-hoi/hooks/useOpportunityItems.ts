@@ -1,11 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { opportunityService } from '../services/opportunityService';
 
 // lấy danh sách dòng hàng của một cơ hội (bảng dưới ở bố cục 2 bảng)
 export function useOpportunityItems(opportunityId: number | null) {
-    return useQuery({
-        queryKey: ['opportunity-items', opportunityId],
-        queryFn: () => opportunityService.getItems(opportunityId as number).then(r => r.data.data),
-        enabled: opportunityId != null,
-    });
+    return useLiveQuery(
+        `opportunity-items:${opportunityId}`,
+        () => opportunityService.getItems(opportunityId as number).then(r => r.data.data),
+        opportunityId != null,
+    );
 }

@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.application.invoice.command.*;
 import vn.com.be_crm.application.invoice.query.*;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceItemRepository;
 import vn.com.be_crm.domain.invoice.repository.IInvoicePaymentScheduleRepository;
 import vn.com.be_crm.domain.invoice.repository.IInvoiceRepository;
@@ -45,5 +46,5 @@ public class InvoiceBeanConfig {
     // ===== Handover & Import =====
 
     @Bean public HandoverBulkInvoiceUseCase handoverBulkInvoiceUseCase(IInvoiceRepository r) { return new HandoverBulkInvoiceUseCase(r); }
-    @Bean public ImportBulkInvoiceUseCase importBulkInvoiceUseCase(IInvoiceRepository r) { return new ImportBulkInvoiceUseCase(r); }
+    @Bean public ImportBulkInvoiceUseCase importBulkInvoiceUseCase(IInvoiceRepository r, ITransactionRunner tx) { return new ImportBulkInvoiceUseCase(r, tx); }
 }

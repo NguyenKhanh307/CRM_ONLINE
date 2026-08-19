@@ -72,7 +72,9 @@ const InvoiceDetailPage = () => {
                     { label: 'Người phụ trách', value: invoice.ownerName },
                 ]}
                 actions={
-                    <ActionButton variant="outline" icon={FiEdit2} onClick={() => setEditOpen(true)}>Sửa</ActionButton>
+                    !invoice.isLocked && (
+                        <ActionButton variant="outline" icon={FiEdit2} onClick={() => setEditOpen(true)}>Sửa</ActionButton>
+                    )
                 }
             />
 

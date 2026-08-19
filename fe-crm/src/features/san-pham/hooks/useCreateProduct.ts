@@ -1,12 +1,14 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { productService } from '../services/productService';
 import type { CreateProductPayload } from '../types/productTypes';
 
-/** Tạo mới sản phẩm — invalidate danh sách sau khi thành công. */
+// tạo mới sản phẩm — báo danh sách làm mới sau khi thành công
 export function useCreateProduct() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: (payload: CreateProductPayload) => productService.create(payload),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
-    });
+    const { mutate: run, isPending } = useLiveMutation((payload: CreateProductPayload) => productService.create(payload));
+
+    const mutate: typeof run = (payload, callbacks) =>
+        run(payload, { ...callbacks, onSuccess: (data) => { notify('products'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }

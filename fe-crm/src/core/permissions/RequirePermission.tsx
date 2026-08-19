@@ -11,11 +11,11 @@ interface Props {
     children: ReactNode;
 }
 
-// guard route theo quyền — thiếu quyền thì chuyển hướng về /forbidden
-// đặt BÊN TRONG RequireAuth (đã đảm bảo đăng nhập), dùng cho route
+// component bảo vệ route, chỉ cho phép truy cập nếu user có quyền thao tác trên module
 // /{module}/them-moi và /{module}/nhap-file để chặn gõ URL trực tiếp
 export function RequirePermission({ module, action = 'create', children }: Props) {
     const { can } = usePermission();
+    // nếu user không có quyền thao tác trên module thì redirect về trang forbidden
     if (!can(module, action)) {
         return <Navigate to="/forbidden" replace />;
     }

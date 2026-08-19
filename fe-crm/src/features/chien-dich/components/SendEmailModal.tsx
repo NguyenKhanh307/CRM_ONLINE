@@ -7,28 +7,24 @@ import { ModalFooter } from '@/shared/components/ModalFooter';
 import { FormField } from '@/shared/components/form/FormField';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { collectErrors } from '@/shared/utils/validators';
-import { UTM_PARAM } from '@/features/tracking-demo/config/trackingDemoConfig';
 import { useSendCampaignEmail } from '../hooks/useSendCampaignEmail';
 
 interface Props {
     campaignId: number;
-    // mã chiến dịch — dùng để dựng link tracking-demo gắn đúng nguồn
-    campaignCode: string;
     open: boolean;
     onClose: () => void;
 }
 
-// nội dung mẫu ban đầu: mời khách trải nghiệm, kèm link landing page gắn mã chiến dịch
-const buildDefaultBody = (campaignCode: string): string => {
-    const trackingUrl = `${window.location.origin}/tracking-demo?${UTM_PARAM}=${campaignCode}`;
-    return `<p>Xin chào,</p><p>Mời bạn tìm hiểu thêm giải pháp của chúng tôi tại đây: <a href="${trackingUrl}">${trackingUrl}</a></p><p>Trân trọng.</p>`;
-};
+// nội dung mẫu ban đầu — nút "Xem tại đây" (gắn link landing page + mã chiến dịch) do backend tự
+// chèn vào cuối email, không nằm trong phần nội dung soạn ở đây
+const buildDefaultBody = (): string =>
+    '<p>Xin chào,</p><p>Mời bạn tìm hiểu thêm giải pháp của chúng tôi.</p><p>Trân trọng.</p>';
 
 // modal soạn + gửi email hàng loạt cho thành viên chiến dịch
-export function SendEmailModal({ campaignId, campaignCode, open, onClose }: Props) {
+export function SendEmailModal({ campaignId, open, onClose }: Props) {
     const { showAlert } = useAlert();
     const { confirm } = useConfirm();
-    const { mutateAsync, isPending } = useSendCampaignEmail(campaignId);
+    const { mutate, isPending } = useSendCampaignEmail(campaignId);
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -43,7 +39,7 @@ export function SendEmailModal({ campaignId, campaignCode, open, onClose }: Prop
 
     // mở modal lần đầu (nội dung còn trống) -> nạp sẵn mẫu kèm link tracking-demo, người dùng vẫn sửa được
     useEffect(() => {
-        if (open && !body) setBody(buildDefaultBody(campaignCode));
+        if (open && !body) setBody(buildDefaultBody());
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open]);
 
@@ -72,7 +68,7 @@ export function SendEmailModal({ campaignId, campaignCode, open, onClose }: Prop
         if (!ok) return;
 
         try {
-            const sent = await mutateAsync({ subject: subject.trim(), body: body.trim() });
+            const sent = await mutate({ subject: subject.trim(), body: body.trim() });
             showAlert(`Đã gửi ${sent} email cho thành viên chiến dịch`);
             setSubject(''); setBody('');
             onClose();
@@ -100,7 +96,7 @@ export function SendEmailModal({ campaignId, campaignCode, open, onClose }: Prop
                         label="Nội dung"
                         required
                         error={errors.body}
-                        hint="Email sẽ gửi tới tất cả thành viên có email hợp lệ và chưa hủy đăng ký. Đã kèm sẵn link trang landing page gắn đúng mã chiến dịch — có thể sửa lại nội dung tùy ý."
+                        hint="Email sẽ gửi tới tất cả thành viên có email hợp lệ và chưa hủy đăng ký. Nút &quot;Xem tại đây&quot; trỏ về landing page gắn đúng mã chiến dịch sẽ tự động được chèn vào cuối email."
                     >
                         <RichTextEditor value={body} onChange={(html) => { setBody(html); clearError('body'); }} height={280} />
                     </FormField>

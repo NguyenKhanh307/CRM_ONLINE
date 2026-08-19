@@ -37,7 +37,7 @@ public class OpportunityItemController {
         OpportunityItemResult result = createUC.execute(
                 CreateOpportunityItemCommand.builder().opportunityId(opportunityId).productId(cmd.getProductId())
                         .quantity(cmd.getQuantity()).unitPrice(cmd.getUnitPrice()).discount(cmd.getDiscount())
-                        .amount(cmd.getAmount()).note(cmd.getNote()).build());
+                        .note(cmd.getNote()).build());
         recomputeUC.execute(opportunityId);
         return ResponseEntity.status(201).body(ApiResponse.created(result));
     }
@@ -56,7 +56,7 @@ public class OpportunityItemController {
         OpportunityItemResult result = updateUC.execute(
                 UpdateOpportunityItemCommand.builder().id(id).productId(cmd.getProductId())
                         .quantity(cmd.getQuantity()).unitPrice(cmd.getUnitPrice()).discount(cmd.getDiscount())
-                        .amount(cmd.getAmount()).note(cmd.getNote()).build());
+                        .note(cmd.getNote()).build());
         recomputeUC.execute(opportunityId);
         return ResponseEntity.ok(ApiResponse.ok(result));
     }

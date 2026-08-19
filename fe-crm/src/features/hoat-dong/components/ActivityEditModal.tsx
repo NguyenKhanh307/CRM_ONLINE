@@ -1,9 +1,13 @@
-import { useRef, useState, type FormEvent, useEffect } from 'react';
+import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { collectErrors } from '@/shared/utils/validators';
 import { FieldError } from '@/shared/components/form/FormField';
+import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
+import type { RecordModule } from '@/shared/lookup/useRecordSearch';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { FiX } from 'react-icons/fi';
 import type { ActivityResult, UpdateActivityPayload } from '../types/activityTypes';
 import { useUpdateActivity } from '../hooks/useUpdateActivity';
@@ -25,9 +29,18 @@ const ACTIVITY_STATUS_COLORS: Record<string, string> = {
     planned: 'bg-gray-100 text-gray-600', in_progress: 'bg-yellow-100 text-yellow-700',
     done: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600',
 };
+const TARGET_TYPE_OPTIONS = [
+    { value: 'customer', label: 'Khách hàng' },
+    { value: 'lead', label: 'Tiềm năng' },
+    { value: 'opportunity', label: 'Cơ hội' },
+    { value: 'contact', label: 'Liên hệ' },
+    { value: 'order', label: 'Đơn hàng' },
+];
 
 export function ActivityEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateActivity();
+    const { data: users = [] } = useActiveUsers();
+    const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const [form, setForm] = useState<UpdateActivityPayload>({
         type: 'call', subject: '', content: null, targetType: null,
         targetId: null, assignedUserId: null, dueAt: null,
@@ -101,23 +114,45 @@ export function ActivityEditModal({ item, onClose }: Props) {
                             </span>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lbl}>Mức ưu tiên</label>
-                            <select className={inp} value={form.priority ?? 'medium'} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}>
-                                <option value="low">Thấp</option>
-                                <option value="medium">Trung bình</option>
-                                <option value="high">Cao</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className={lbl}>Hạn chót</label>
-                            <DateTimeInput value={form.dueAt ?? ''} onChange={v => setForm(f => ({ ...f, dueAt: v || null }))} />
-                        </div>
+                    <div>
+                        <label className={lbl}>Mức ưu tiên</label>
+                        <select className={inp} value={form.priority ?? 'medium'} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}>
+                            <option value="low">Thấp</option>
+                            <option value="medium">Trung bình</option>
+                            <option value="high">Cao</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className={lbl}>Hạn chót</label>
+                        <DateTimeInput value={form.dueAt ?? ''} onChange={v => setForm(f => ({ ...f, dueAt: v || null }))} />
                     </div>
                     <div>
                         <label className={lbl}>Địa điểm</label>
                         <input className={inp} value={form.location ?? ''} onChange={e => setForm(f => ({ ...f, location: e.target.value || null }))} />
+                    </div>
+                    <div>
+                        <label className={lbl}>Người thực hiện</label>
+                        <SearchableSelect
+                            value={form.assignedUserId != null ? String(form.assignedUserId) : ''}
+                            onChange={(v) => setForm(f => ({ ...f, assignedUserId: v ? Number(v) : null }))}
+                            options={userOptions}
+                            fallbackLabel={item.assignedUserName}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Loại đối tượng</label>
+                            {/* Đổi loại thì xóa id cũ — id của phân hệ khác gắn lại là dữ liệu rác */}
+                            <SearchableSelect value={form.targetType ?? ''}
+                                onChange={(v) => setForm(f => ({ ...f, targetType: v || null, targetId: null }))}
+                                options={TARGET_TYPE_OPTIONS} />
+                        </div>
+                        <div>
+                            <label className={lbl}>Đối tượng</label>
+                            <RecordPicker module={(form.targetType ?? '') as RecordModule | ''}
+                                value={form.targetId != null ? String(form.targetId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, targetId: v ? Number(v) : null }))} />
+                        </div>
                     </div>
                     {form.type === 'call' && (
                         <div className="grid grid-cols-3 gap-3">

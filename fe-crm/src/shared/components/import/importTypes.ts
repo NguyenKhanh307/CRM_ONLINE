@@ -4,6 +4,9 @@ export interface ImportField {
     required?: boolean;
     type: 'text' | 'number' | 'date' | 'enum';
     enumValues?: string[];
+    // nhãn tiếng Việt khớp đúng format() của *ExportColumns.ts cùng phân hệ — cho phép nhập lại
+    // file vừa xuất ra mà không bị chặn "giá trị không hợp lệ"
+    enumLabels?: Record<string, string>;
 }
 
 export interface ImportOptions {

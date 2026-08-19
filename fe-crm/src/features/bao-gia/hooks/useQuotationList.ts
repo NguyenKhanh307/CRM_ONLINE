@@ -1,10 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { quotationService } from '../services/quotationService';
 
-// lấy danh sách báo giá (phân trang)
+// lấy toàn bộ báo giá (tối đa 500 dòng) — dùng cho dropdown chọn báo giá
 export function useQuotationList() {
-    return useQuery({
-        queryKey: ['quotations'],
-        queryFn: () => quotationService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items),
-    });
+    return useLiveQuery('quotations', () =>
+        quotationService.getList({ page: 0, size: 500, sortBy: 'createdAt', sortDir: 'desc' }).then(r => r.data.data.items));
 }

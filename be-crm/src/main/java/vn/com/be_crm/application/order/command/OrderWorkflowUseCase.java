@@ -5,6 +5,7 @@ import vn.com.be_crm.application.order.mapper.OrderCommandMapper;
 import vn.com.be_crm.domain.order.entity.Order;
 import vn.com.be_crm.domain.order.enums.OrderStatus;
 import vn.com.be_crm.domain.order.repository.IOrderRepository;
+import vn.com.be_crm.core.error.frontend.DomainException;
 import vn.com.be_crm.core.error.frontend.NotFoundException;
 
 /**
@@ -58,6 +59,21 @@ public class OrderWorkflowUseCase {
         Order o = load(id);
         o.getStatus().ensureCanTransitionTo(OrderStatus.cancelled);
         return OrderCommandMapper.toResult(orderRepo.save(o.toBuilder().status(OrderStatus.cancelled).build()));
+    }
+
+    /**
+     * Mở lại khi lỡ bấm nhầm (completed → processing, cancelled → draft). Chặn nếu đơn đã khóa
+     * (đã xuất hóa đơn từ đơn này) — không thể mở lại đơn đã phát sinh hóa đơn.
+     * @param id ID đơn hàng @return đơn hàng sau cập nhật
+     */
+    public OrderResult reopen(Long id) {
+        Order o = load(id);
+        if (o.isLocked()) {
+            throw new DomainException("Đơn hàng đã khóa (đã xuất hóa đơn), không thể mở lại");
+        }
+        OrderStatus target = o.getStatus() == OrderStatus.cancelled ? OrderStatus.draft : OrderStatus.processing;
+        o.getStatus().ensureCanTransitionTo(target);
+        return OrderCommandMapper.toResult(orderRepo.save(o.toBuilder().status(target).build()));
     }
 
     /** Tải đơn hàng theo ID hoặc ném NotFoundException. */

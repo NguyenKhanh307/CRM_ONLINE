@@ -7,11 +7,9 @@ import { Tabs, type TabDef } from '@/shared/components/detail/Tabs';
 import { RelatedTable } from '@/shared/components/detail/RelatedTable';
 import { Timeline } from '@/shared/components/detail/Timeline';
 import { INVOICE_COLUMNS, ORDER_COLUMNS, QUOTATION_COLUMNS } from '@/shared/components/detail/relatedColumns';
-import { useAlert } from '@/shared/alert/useAlert';
 import { formatCurrency } from '@/shared/utils/number';
 import { useOpportunityDetail } from '../hooks/useOpportunityDetail';
 import { useOpportunityRelated } from '../hooks/useOpportunityRelated';
-import { useCreateQuotationFromOpportunity } from '../hooks/useCreateQuotationFromOpportunity';
 import { OpportunityInfoPanel } from '../components/OpportunityInfoPanel';
 import { OpportunityEditModal } from '../components/OpportunityEditModal';
 
@@ -27,10 +25,8 @@ const OpportunityDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const opportunityId = Number(id);
     const navigate = useNavigate();
-    const { showAlert } = useAlert();
     const { data: opportunity, isLoading } = useOpportunityDetail(opportunityId);
     const { data: related } = useOpportunityRelated(opportunityId);
-    const { mutate: createQuotation, isPending } = useCreateQuotationFromOpportunity();
     const [activeTab, setActiveTab] = useState<TabKey>('overview');
     const [editOpen, setEditOpen] = useState(false);
 
@@ -44,15 +40,6 @@ const OpportunityDetailPage = () => {
         { key: 'invoices', label: 'Hóa đơn', count: related?.invoices.total },
         { key: 'activities', label: 'Hoạt động', count: related?.activities.total },
     ];
-
-    const handleCreateQuotation = () => {
-        createQuotation(opportunityId, {
-            onSuccess: () => {
-                showAlert('Đã tạo báo giá từ cơ hội này.');
-                navigate('/bao-gia');
-            },
-        });
-    };
 
     return (
         <div className="p-6 bg-bg-main">
@@ -73,7 +60,7 @@ const OpportunityDetailPage = () => {
                 ]}
                 actions={
                     <>
-                        <ActionButton variant="outline" icon={FiFileText} onClick={handleCreateQuotation} disabled={isPending}>
+                        <ActionButton variant="outline" icon={FiFileText} onClick={() => navigate(`/bao-gia/them-moi?fromOpportunity=${opportunityId}`)}>
                             Tạo báo giá
                         </ActionButton>
                         <ActionButton variant="outline" icon={FiEdit2} onClick={() => setEditOpen(true)}>

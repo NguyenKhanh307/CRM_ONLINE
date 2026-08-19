@@ -1,0 +1,8 @@
+/* TinyMCE tự chèn dialog (vd hộp thoại chèn link) thẳng vào document.body, ngoài DOM của modal
+   chứa editor. Z-index mặc định trong skin (~1300) thấp hơn z-[9999] của modal
+   (SendEmailModal/SendQuotationModal) nên dialog bị modal đè lên, vô hình dù vẫn mở bình thường.
+   Ép z-index cao hơn 9999 bằng !important vì đây là CSS lấy từ thư viện, không sửa được tại nguồn. */
+.tox-tinymce-aux,
+.tox-dialog-wrap {
+    z-index: 10050 !important;
+}

@@ -38,6 +38,8 @@ public class ContactHibernate implements IAuditable {
     private String email;
     @Column(name = "zalo", length = 20)
     private String zalo;
+    @Column(name = "phone", length = 11)
+    private String phone;
     @Column(name = "source", length = 30)
     private String source;
     @Enumerated(EnumType.STRING)

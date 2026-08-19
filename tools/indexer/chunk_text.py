@@ -86,8 +86,7 @@ def _customer(r):
         _line([_kv("Mã số thuế", r["tax_code"]), _kv("Điện thoại", r["phone"]),
                _kv("Email", r["email"]), _kv("Website", r["website"])]),
         _kv("Địa chỉ", r["address"]),
-        _line([_kv("Quy mô nhân sự", r["employee_size"]),
-               _kv("Doanh thu năm", _money(r["annual_revenue"]))]),
+        _kv("Quy mô nhân sự", r["employee_size"]),
         _line([_kv("Người phụ trách", r["owner_name"]), _kv("Ngày tạo", _date(r["created_at"]))]),
     ])
 
@@ -97,11 +96,9 @@ def _contact(r):
     return _join(title, [
         _line([_kv("Công ty", r["customer_name"]),
                "Là liên hệ chính của công ty" if r["is_primary"] else None]),
-        _line([_kv("Chức danh", r["title"]), _kv("Phòng ban", r["department"]),
-               _kv("Vị trí", r["position"])]),
+        _line([_kv("Chức danh", r["title"]), _kv("Phòng ban", r["department"])]),
         _line([_kv("Điện thoại", r["phones"]), _kv("Email", r["email"]),
-               _kv("Email công việc", r["work_email"]), _kv("Zalo", r["zalo"])]),
-        _kv("Địa chỉ", r["address"]),
+               _kv("Zalo", r["zalo"])]),
         _line([_kv("Nguồn", r["source"]), _kv("Người phụ trách", r["owner_name"])]),
     ])
 
@@ -111,9 +108,7 @@ def _lead(r):
     return _join(title, [
         _line([_kv("Công ty", r["company_name"]), _kv("Ngành", r["industry"]),
                _kv("Trạng thái", r["status"], LEAD_STATUS), _kv("Điểm", r["score"])]),
-        _line([_kv("Chức danh", r["title"]), _kv("Phòng ban", r["department"]),
-               _kv("Mã số thuế", r["tax_code"]),
-               _kv("Giá trị ước tính", _money(r["estimated_value"]))]),
+        _line([_kv("Loại tiềm năng", r["lead_type"]), _kv("Mã số thuế", r["tax_code"])]),
         _line([_kv("Điện thoại", r["phone"]), _kv("Email", r["email"]),
                _kv("Website", r["website"])]),
         _line([_kv("Nguồn", r["source"]), _kv("Chiến dịch", r["campaign_name"]),
@@ -128,9 +123,7 @@ def _opportunity(r):
         _line([_kv("Khách hàng", r["customer_name"]), _kv("Liên hệ", r["contact_name"])]),
         _line([_kv("Giai đoạn", r["stage_name"]), _kv("Trạng thái", r["status"], OPP_STATUS),
                _kv("Xác suất", f"{r['probability']}%" if r["probability"] is not None else None)]),
-        _line([_kv("Giá trị", _money(r["amount"])),
-               _kv("Doanh thu kỳ vọng", _money(r["expected_revenue"])),
-               _kv("Dự kiến chốt", _date(r["expected_close_date"]))]),
+        _kv("Giá trị", _money(r["amount"])),
         _line([_kv("Loại", r["opportunity_type"]), _kv("Nguồn", r["source"]),
                _kv("Chiến dịch", r["campaign_name"]), _kv("Người phụ trách", r["owner_name"])]),
         _kv("Lý do thắng/thua", r["win_loss_reason"]),
@@ -148,8 +141,7 @@ def _quotation(r):
                "Đã khóa (đã chuyển thành đơn hàng)" if r["is_locked"] else None]),
         _line([_kv("Ngày báo giá", _date(r["quote_date"])),
                _kv("Hiệu lực đến", _date(r["valid_until"]))]),
-        _line([_kv("Tạm tính", _money(r["subtotal"])), _kv("Chiết khấu", _money(r["discount"])),
-               _kv("Thuế", _money(r["tax"])), _kv("Tổng cộng", _money(r["total"]))]),
+        _kv("Tổng cộng", _money(r["total"])),
         _line([_kv("Phản hồi của khách", r["customer_response"], QUO_RESPONSE),
                _kv("Chiến dịch", r["campaign_name"]),
                _kv("Người phụ trách", r["owner_name"])]),
@@ -165,12 +157,10 @@ def _order(r):
         _line([_kv("Trạng thái", r["status"], ORD_STATUS),
                _kv("Ngày đặt", _date(r["order_date"])),
                _kv("Ngày giao", _date(r["delivery_date"]))]),
-        _line([_kv("Tạm tính", _money(r["subtotal"])), _kv("Chiết khấu", _money(r["discount"])),
-               _kv("Thuế", _money(r["tax"])), _kv("Tổng cộng", _money(r["total"]))]),
+        _kv("Tổng cộng", _money(r["total"])),
         _line([_kv("Từ báo giá", r["quotation_code"]), _kv("Cơ hội", r["opportunity_name"]),
                _kv("Chiến dịch", r["campaign_name"]),
                _kv("Người phụ trách", r["owner_name"])]),
-        _kv("Địa chỉ xuất hóa đơn", r["billing_address"]),
         _kv("Ghi chú", r["note"]),
     ])
 
@@ -183,8 +173,7 @@ def _invoice(r):
                _kv("Tình trạng thanh toán", r["payment_status"], PAY_STATUS)]),
         _line([_kv("Ngày hóa đơn", _date(r["invoice_date"])),
                _kv("Hạn thanh toán", _date(r["due_date"]))]),
-        _line([_kv("Tạm tính", _money(r["subtotal"])), _kv("Chiết khấu", _money(r["discount"])),
-               _kv("Thuế", _money(r["tax"])), _kv("Tổng cộng", _money(r["total"]))]),
+        _kv("Tổng cộng", _money(r["total"])),
         _line([_kv("Từ đơn hàng", r["order_code"]), _kv("Chiến dịch", r["campaign_name"]),
                _kv("Người phụ trách", r["owner_name"])]),
         _kv("Ghi chú", r["note"]),
@@ -198,8 +187,7 @@ def _ticket(r):
                _kv("Mức ưu tiên", r["priority"], PRIORITY),
                _kv("Kênh tiếp nhận", r["channel"], CHANNEL)]),
         _line([_kv("Khách hàng", r["customer_name"]), _kv("Liên hệ", r["contact_name"]),
-               _kv("Hóa đơn liên quan", r["invoice_code"]),
-               _kv("Sản phẩm", r["product_name"])]),
+               _kv("Hóa đơn liên quan", r["invoice_code"])]),
         _kv("Lý do", r["reason"], TK_REASON),
         _kv("Mô tả", r["description"]),
         _kv("Hình thức giải quyết", r["resolution_type"], TK_RESOLUTION),
@@ -235,7 +223,7 @@ def _product(r):
                _kv("Đơn vị tính", r["unit"])]),
         _line([_kv("Giá bán", _money(r["base_price"])), _kv("Giá vốn", _money(r["cost_price"])),
                _kv("Thuế VAT", f"{r['vat_rate']}%" if r["vat_rate"] is not None else None)]),
-        None if r["is_active"] else "Trạng thái: Ngừng kinh doanh",
+        None if r["status"] == "active" else _kv("Trạng thái", r["status"]),
         _kv("Mô tả", r["description"]),
     ])
 
@@ -246,8 +234,7 @@ def _activity(r):
         _line([_kv("Trạng thái", r["status"], ACT_STATUS),
                _kv("Mức ưu tiên", r["priority"], PRIORITY),
                _kv("Gắn với", r["target_type"], ACT_TARGET)]),
-        _line([_kv("Hạn", _date(r["due_at"])), _kv("Hoàn thành", _date(r["completed_at"])),
-               _kv("Địa điểm", r["location"])]),
+        _line([_kv("Hạn", _date(r["due_at"])), _kv("Địa điểm", r["location"])]),
         _line([_kv("Chiều gọi", {"in": "Khách gọi đến", "out": "Gọi cho khách"}.get(
             r["call_direction"])), _kv("Kết quả gọi", r["call_result"]),
                _kv("Thời lượng", f"{r['call_duration']} giây" if r["call_duration"] else None)]),

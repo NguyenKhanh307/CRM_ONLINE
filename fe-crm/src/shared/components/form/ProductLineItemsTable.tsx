@@ -47,11 +47,12 @@ export const ProductLineItemsTable = ({
     pricePolicyId,
     customerId,
 }: Props) => {
+    // hàm tính tổng subtotal/discount/tax/total của toàn bộ dòng — dùng useMemo() để tránh tính lại khi rows không đổi
     const totals = useMemo(() => computeTotals(rows), [rows]);
 
     const { priceRow, priceRowDebounced, hints } = usePolicyPricing(pricePolicyId, rows, productOptions, onChange, customerId);
-
     const changeRow = (id: string, patch: Partial<LineItemRow>) =>
+        // patch một dòng theo id, dùng onChange() dạng callback để luôn đọc được trạng thái mới nhất
         onChange((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
 
     // chọn sản phẩm
@@ -71,6 +72,7 @@ export const ProductLineItemsTable = ({
     // đổi số lượng có thể vượt/tụt qua ngưỡng min_qty của chính sách -> tra lại giá
     const changeQuantity = (row: LineItemRow, quantity: number) => {
         changeRow(row.id, { quantity });
+        // nếu đã chọn sản phẩm thì tra giá theo chính sách, debounce 500ms để tránh tra giá quá nhiều khi gõ số lượng
         if (row.productId) priceRowDebounced(row.id, row.productId, quantity);
     };
 

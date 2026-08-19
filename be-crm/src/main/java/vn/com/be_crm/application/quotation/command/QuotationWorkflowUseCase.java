@@ -1,7 +1,6 @@
 package vn.com.be_crm.application.quotation.command;
 
 import vn.com.be_crm.application.notification.command.CreateNotificationUseCase;
-import vn.com.be_crm.application.order.dto.OrderResult;
 import vn.com.be_crm.application.quotation.dto.QuotationEmailDraft;
 import vn.com.be_crm.application.quotation.dto.QuotationResult;
 import vn.com.be_crm.application.quotation.dto.SendQuotationCommand;
@@ -41,14 +40,13 @@ public class QuotationWorkflowUseCase {
     private final QuotationEmailComposer emailComposer;
     private final String frontendBaseUrl;
     private final ITransactionRunner tx;
-    private final ConvertQuotationToOrderUseCase convertToOrderUC;
 
     public QuotationWorkflowUseCase(IQuotationRepository quotationRepo, IQuotationApprovalRepository approvalRepo,
                                     CreateNotificationUseCase createNotificationUC, IManagerResolver managerResolver,
                                     IEmailService emailService, IContactRepository contactRepo,
                                     IQuotationPdfService pdfService, QuotationPdfDataBuilder pdfDataBuilder,
                                     QuotationEmailComposer emailComposer, String frontendBaseUrl,
-                                    ITransactionRunner tx, ConvertQuotationToOrderUseCase convertToOrderUC) {
+                                    ITransactionRunner tx) {
         this.quotationRepo = quotationRepo;
         this.approvalRepo = approvalRepo;
         this.createNotificationUC = createNotificationUC;
@@ -60,7 +58,6 @@ public class QuotationWorkflowUseCase {
         this.emailComposer = emailComposer;
         this.frontendBaseUrl = frontendBaseUrl;
         this.tx = tx;
-        this.convertToOrderUC = convertToOrderUC;
     }
 
     // nhân viên gửi báo giá lên quản lý duyệt: draft -> pending, tạo bước duyệt + thông báo quản
@@ -129,8 +126,6 @@ public class QuotationWorkflowUseCase {
             throw new DomainException("Báo giá chưa có email khách hàng/liên hệ để gửi");
         }
         requireValidEmails(to);
-        List<String> cc = parseEmailList(cmd.getCc());
-        List<String> bcc = parseEmailList(cmd.getBcc());
 
         String finalSubject = (cmd.getSubject() != null && !cmd.getSubject().isBlank()) ? cmd.getSubject() : draft.subject();
         String finalBody = (cmd.getBody() != null && !cmd.getBody().isBlank()) ? cmd.getBody() : draft.body();
@@ -138,7 +133,7 @@ public class QuotationWorkflowUseCase {
         String responseLink = trimTrailingSlash(frontendBaseUrl) + "/bao-gia-phan-hoi/" + q.getCode();
         byte[] pdf = pdfService.render(pdfDataBuilder.build(q, draft.recipientName()));
 
-        emailService.sendQuotationEmail(to, cc, bcc, finalSubject, finalBody,
+        emailService.sendQuotationEmail(to, finalSubject, finalBody,
                 responseLink, pdf, "BaoGia-" + q.getCode() + ".pdf");
 
         Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.sent).build());
@@ -156,19 +151,6 @@ public class QuotationWorkflowUseCase {
         return QuotationCommandMapper.toResult(saved);
     }
 
-    // tách chuỗi email phân tách bởi dấu phẩy/chấm phẩy thành danh sách đã kiểm định dạng
-    private List<String> parseEmailList(String raw) {
-        if (raw == null || raw.isBlank()) return List.of();
-        List<String> out = new ArrayList<>();
-        for (String part : raw.split("[,;]")) {
-            String e = part.trim();
-            if (e.isEmpty()) continue;
-            requireValidEmails(e);
-            out.add(e);
-        }
-        return out;
-    }
-
     // kiểm định dạng một địa chỉ email, sai thì ném DomainException (HTTP 400)
     private void requireValidEmails(String email) {
         if (!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
@@ -182,32 +164,31 @@ public class QuotationWorkflowUseCase {
         return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
     }
 
-    // khách hàng chấp nhận báo giá: sent -> accepted. Tự động sinh Đơn hàng (giữ trạng thái nháp
-    // để nhân viên xác nhận->xử lý->hoàn tất->xuất hóa đơn như quy trình thủ công bình thường) —
-    // cả bước đổi trạng thái lẫn tạo đơn chạy trong MỘT transaction
+    // khách hàng chấp nhận báo giá: sent -> accepted. KHÔNG tự sinh Đơn hàng (đã tách riêng
+    // 2026-08 — muốn tạo đơn phải bấm "Chuyển sang đơn hàng" thủ công qua convertToOrder)
     public QuotationResult accept(Long quotationId) {
         return tx.call(() -> {
             Quotation q = load(quotationId);
             q.getStatus().ensureCanTransitionTo(QuotationStatus.accepted);
             Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.accepted).build());
-            String orderNote = autoCreateOrder(saved);
             notifyOwner(saved, "quotation_accepted", "Báo giá được chấp nhận: " + saved.getCode(),
-                    "Báo giá " + saved.getCode() + " đã được khách hàng chấp nhận." + orderNote);
+                    "Báo giá " + saved.getCode() + " đã được khách hàng chấp nhận.");
             return QuotationCommandMapper.toResult(saved);
         });
     }
 
-    // tự động chuyển báo giá vừa chấp nhận thành đơn hàng — idempotent: nếu báo giá đã khóa (đã
-    // có đơn hàng từ trước) thì bỏ qua, tránh lỗi khi accept được gọi lại hoặc dữ liệu cũ
-    private String autoCreateOrder(Quotation q) {
-        if (q.isLocked()) return "";
-        try {
-            OrderResult order = convertToOrderUC.execute(q.getId());
-            return " Đơn hàng " + order.getCode() + " đã được tạo tự động — bạn có thể xác nhận và xử lý.";
-        } catch (DomainException e) {
-            // báo giá đã có đơn hàng (race/dữ liệu cũ) — không chặn việc chấp nhận báo giá
-            return "";
-        }
+    // mở lại khi lỡ bấm nhầm chấp nhận (accepted -> sent). Chặn nếu đã bấm "Chuyển sang đơn hàng"
+    // thủ công (isLocked=true) — không thể mở lại báo giá đã phát sinh đơn hàng
+    public QuotationResult reopen(Long quotationId) {
+        return tx.call(() -> {
+            Quotation q = load(quotationId);
+            if (q.isLocked()) {
+                throw new DomainException("Báo giá đã khóa (đã chuyển sang đơn hàng), không thể mở lại");
+            }
+            q.getStatus().ensureCanTransitionTo(QuotationStatus.sent);
+            Quotation saved = quotationRepo.save(q.toBuilder().status(QuotationStatus.sent).build());
+            return QuotationCommandMapper.toResult(saved);
+        });
     }
 
     private Quotation load(Long id) {

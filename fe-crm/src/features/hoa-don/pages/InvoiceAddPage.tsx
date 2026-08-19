@@ -1,7 +1,7 @@
-import { useMemo, useRef, useState } from 'react';
-import { collectErrors, dateRangeError, pastDateError } from '@/shared/utils/validators';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { collectErrors, dateRangeError, pastDateError, validateOrWarn } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { FormPageHeader } from '@/shared/components/form/FormPageHeader';
@@ -102,6 +102,18 @@ const InvoiceAddPage = () => {
             : `đơn hàng «${order.code}» — giữ nguyên dòng hàng bạn đã nhập`);
     };
 
+    // vào trang qua nút "Xuất hóa đơn" (chuột phải Đơn hàng, ?fromOrder=<id>) -> tự chọn đơn hàng
+    // nguồn + tự điền, chạy đúng 1 lần lúc mount
+    const [searchParams] = useSearchParams();
+    const autoPickedRef = useRef(false);
+    useEffect(() => {
+        const fromOrder = searchParams.get('fromOrder');
+        if (!fromOrder || autoPickedRef.current) return;
+        autoPickedRef.current = true;
+        void onPickOrder(fromOrder);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
     // kiểm tra bắt buộc + biên (khớp ràng buộc backend) - trả map field->lỗi
     const validate = (): Record<string, string> =>
         collectErrors({
@@ -116,7 +128,7 @@ const InvoiceAddPage = () => {
         // lỗi nhập liệu hiện đỏ dưới ô; popup xác nhận chỉ mở khi dữ liệu đã hợp lệ
         const errs = validate();
         setErrors(errs);
-        if (Object.keys(errs).length > 0) return;
+        if (!validateOrWarn(errs, showAlert)) return;
 
         const payload: CreateInvoicePayload = {
             code: form.code.trim(),
@@ -129,7 +141,14 @@ const InvoiceAddPage = () => {
         };
         if (!(await confirmCreate('hóa đơn'))) return;
         mutate(payload, {
-            onSuccess: () => navigate('/hoa-don'),
+            onSuccess: async () => {
+                // mở từ nút "Xuất hóa đơn" -> khóa đơn hàng nguồn + chuyển sang Hoàn tất (lỗi thì
+                // bỏ qua vì hóa đơn đã tạo thành công, đây chỉ là bước phụ trợ trên nguồn)
+                if (form.orderId && autoPickedRef.current) {
+                    try { await orderService.markConverted(Number(form.orderId)); } catch { /* im lặng */ }
+                }
+                navigate('/hoa-don');
+            },
             onError: (err: unknown) => {
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
                     ?? 'Có lỗi xảy ra khi lưu Hóa đơn';

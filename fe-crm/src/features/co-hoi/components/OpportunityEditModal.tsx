@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent, useEffect, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { notify } from '@/core/data/dataBus';
 import { formatNumber } from '@/shared/utils/number';
 import { ModalFooter } from '@/shared/components/ModalFooter';
 import { useConfirm } from '@/shared/confirm/useConfirm';
@@ -12,7 +12,11 @@ import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
 import { useEligiblePricePolicies } from '@/features/chinh-sach-gia/hooks/useEligiblePricePolicies';
 import { opportunityService } from '../services/opportunityService';
 import { useProductList } from '@/features/san-pham/hooks/useProductList';
+import { useCustomerList } from '@/features/khach-hang/hooks/useCustomerList';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { SearchableSelect } from '@/shared/components/SearchableSelect';
+import { OPPORTUNITY_TYPE_OPTIONS } from '../config/opportunityOptions';
+import { RecordPicker } from '@/shared/components/form/RecordPicker';
 import { ProductLineItemsTable } from '@/shared/components/form/ProductLineItemsTable';
 import {
     type LineItemRow,
@@ -32,13 +36,21 @@ const OPP_STATUS_LABELS: Record<string, string> = { open: 'Đang mở', won: 'Th
 const OPP_STATUS_COLORS: Record<string, string> = {
     open: 'bg-blue-100 text-blue-700', won: 'bg-green-100 text-green-700', lost: 'bg-red-100 text-red-600',
 };
+const SOURCE_OPTIONS = [
+    { value: 'website', label: 'Website' },
+    { value: 'gioi-thieu', label: 'Giới thiệu' },
+    { value: 'dien-thoai', label: 'Điện thoại' },
+    { value: 'email', label: 'Email' },
+    { value: 'khac', label: 'Khác' },
+];
 
 export function OpportunityEditModal({ item, onClose }: Props) {
-    const qc = useQueryClient();
-    const { mutateAsync, isPending } = useUpdateOpportunity();
+    const { mutate, isPending } = useUpdateOpportunity();
     const { data: products = [] } = useProductList();
     const { data: stages = [] } = useOpportunityStages();
     const { data: campaigns = [] } = useCampaignList();
+    const { data: customers = [] } = useCustomerList();
+    const { data: users = [] } = useActiveUsers();
     const [form, setForm] = useState<UpdateOpportunityPayload>({
         name: '', opportunityType: null, customerId: null, contactId: null, ownerId: null,
         stageId: null, campaignId: null, pricePolicyId: null, amount: null,
@@ -55,6 +67,8 @@ export function OpportunityEditModal({ item, onClose }: Props) {
     );
     const stageOptions = useMemo(() => stages.map((s) => ({ value: String(s.id), label: s.name })), [stages]);
     const campaignOptions = useMemo(() => campaigns.map((c) => ({ value: String(c.id), label: c.name })), [campaigns]);
+    const customerOptions = useMemo(() => customers.map((c) => ({ value: String(c.id), label: c.name })), [customers]);
+    const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const pricePolicyOptions = useMemo(() => pricePolicies.map((p) => ({ value: String(p.id), label: p.name })), [pricePolicies]);
     // giai đoạn đang chọn — nguồn của xác suất thắng; đổi giai đoạn thì số đổi ngay trước cả khi lưu
     const selectedStage = useMemo(() => stages.find((s) => s.id === form.stageId), [stages, form.stageId]);
@@ -86,12 +100,17 @@ export function OpportunityEditModal({ item, onClose }: Props) {
 
     if (!item) return null;
 
+    // đổi khách hàng thì bỏ liên hệ cũ — liên hệ của khách khác gắn vào đây là dữ liệu sai
+    const onPickCustomer = (v: string) => {
+        setForm((f) => ({ ...f, customerId: v ? Number(v) : null, contactId: null }));
+    };
+
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (!(await confirmSave('cơ hội'))) return;
         setSaving(true);
         try {
-            await mutateAsync({ id: item.id, payload: { ...form, amount } });
+            await mutate({ id: item.id, payload: { ...form, amount } });
             const { toCreate, toUpdate, toDelete } = diffLineItems(originalRows, rows);
             await Promise.all([
                 ...toCreate.map((r) => opportunityService.createItem(item.id, toItemPayload(r))),
@@ -99,9 +118,9 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                 ...toDelete.map((id) => opportunityService.deleteItem(item.id, id)),
             ]);
             // dòng hàng đổi -> BE roll-up lại amount cơ hội -> làm mới cả dòng hàng lẫn header
-            qc.invalidateQueries({ queryKey: ['opportunity-items', item.id] });
-            qc.invalidateQueries({ queryKey: ['opportunities'] });
-            qc.invalidateQueries({ queryKey: ['opportunity', item.id] });
+            notify(`opportunity-items:${item.id}`);
+            notify('opportunities');
+            notify(`opportunity:${item.id}`);
             onClose();
         } finally {
             setSaving(false);
@@ -127,7 +146,48 @@ export function OpportunityEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Loại cơ hội</label>
-                            <input className={inp} value={form.opportunityType ?? ''} onChange={e => setForm(f => ({ ...f, opportunityType: e.target.value || null }))} />
+                            <SearchableSelect options={OPPORTUNITY_TYPE_OPTIONS} value={form.opportunityType ?? ''}
+                                onChange={v => setForm(f => ({ ...f, opportunityType: v || null }))}
+                                fallbackLabel={form.opportunityType} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Khách hàng</label>
+                            <SearchableSelect
+                                value={form.customerId != null ? String(form.customerId) : ''}
+                                onChange={onPickCustomer}
+                                options={customerOptions}
+                                fallbackLabel={item.customerName}
+                            />
+                        </div>
+                        <div>
+                            <label className={lbl}>Liên hệ</label>
+                            <RecordPicker module="contact"
+                                value={form.contactId != null ? String(form.contactId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, contactId: v ? Number(v) : null }))}
+                                customerId={form.customerId ?? undefined}
+                                fallbackLabel={item.contactName}
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className={lbl}>Người phụ trách</label>
+                            <SearchableSelect
+                                value={form.ownerId != null ? String(form.ownerId) : ''}
+                                onChange={(v) => setForm(f => ({ ...f, ownerId: v ? Number(v) : null }))}
+                                options={userOptions}
+                                fallbackLabel={item.ownerName}
+                            />
+                        </div>
+                        <div>
+                            <label className={lbl}>Nguồn gốc</label>
+                            <SearchableSelect
+                                value={form.source ?? ''}
+                                onChange={(v) => setForm(f => ({ ...f, source: v || null }))}
+                                options={SOURCE_OPTIONS}
+                            />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">

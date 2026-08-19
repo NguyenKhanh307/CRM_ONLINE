@@ -180,7 +180,10 @@ public class QuotationRepositoryImpl implements IQuotationRepository {
             String searchFilter = ListQueryUtils.likeClause(r.getQ(), "code");
             var statusVal = ListQueryUtils.parseEnum(vn.com.be_crm.domain.quotation.enums.QuotationStatus.class, r.getStatus());
             String statusFilter = statusVal != null ? " AND status = :status" : "";
-            String where = " WHERE deletedAt IS NULL" + yearFilter + ownerFilter + searchFilter + statusFilter;
+            // ô chọn báo giá ở form khác (Đơn hàng/Hóa đơn) bật cờ này để loại bản ghi đã hết hạn —
+            // trang danh sách chính /bao-gia KHÔNG bật (vẫn cần thấy bản ghi hết hạn để theo dõi)
+            String expiredFilter = r.isExcludeExpired() ? " AND status <> :expiredStatus" : "";
+            String where = " WHERE deletedAt IS NULL" + yearFilter + ownerFilter + searchFilter + statusFilter + expiredFilter;
             String orderBy = " ORDER BY " + ListQueryUtils.safeSortBy(r.getSortBy(), "createdAt") + " " + ListQueryUtils.safeSortDir(r.getSortDir());
             var q = s.createQuery("FROM QuotationHibernate" + where + orderBy, QuotationHibernate.class)
                     .setFirstResult(r.getOffset()).setMaxResults(r.getSize());
@@ -190,6 +193,7 @@ public class QuotationRepositoryImpl implements IQuotationRepository {
                 if (r.getOwnerId() != null) query.setParameter("ownerId", r.getOwnerId());
                 if (!searchFilter.isEmpty()) query.setParameter("q", ListQueryUtils.likeParam(r.getQ()));
                 if (statusVal != null) query.setParameter("status", statusVal);
+                if (r.isExcludeExpired()) query.setParameter("expiredStatus", vn.com.be_crm.domain.quotation.enums.QuotationStatus.expired);
             }
             List<Quotation> items = q.list().stream().map(mapper::toDomain).collect(Collectors.toList());
             long total = cq.uniqueResult();

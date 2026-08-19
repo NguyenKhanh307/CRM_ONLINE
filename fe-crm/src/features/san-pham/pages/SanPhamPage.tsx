@@ -141,12 +141,12 @@ const SanPhamPage = () => {
                 columns={productExportColumns}
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={async (keys, format) => {
+                onExport={async (keys) => {
                     // Không tick dòng → tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await productService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
-                    exportRows(rows, productExportColumns, keys, format, 'san-pham');
+                    exportRows(rows, productExportColumns, keys, 'san-pham');
                     setExportOpen(false);
                 }}
             />

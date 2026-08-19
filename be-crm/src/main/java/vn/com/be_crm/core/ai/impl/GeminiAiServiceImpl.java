@@ -54,10 +54,20 @@ public class GeminiAiServiceImpl implements IAiService {
      */
     @Override
     public String generate(String systemPrompt, String userPrompt) {
+        return callGemini(buildRequestBody(systemPrompt, userPrompt));
+    }
+
+    /** Sinh JSON đúng khuôn schema (structured output) — dùng cho luồng NL2SQL có kiểm soát. */
+    @Override
+    public String generateJson(String systemPrompt, String userPrompt, Map<String, Object> jsonSchema) {
+        return callGemini(buildJsonRequestBody(systemPrompt, userPrompt, jsonSchema));
+    }
+
+    /** Gọi Gemini với body đã dựng sẵn — dùng chung cho cả generate() và generateJson(). */
+    private String callGemini(Map<String, Object> body) {
         if (apiKey == null || apiKey.isBlank()) {
             throw new DomainException("Chưa cấu hình khóa API cho trợ lý AI (app.ai.api-key).");
         }
-        Map<String, Object> body = buildRequestBody(systemPrompt, userPrompt);
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> res = restClient.post()
@@ -110,6 +120,22 @@ public class GeminiAiServiceImpl implements IAiService {
         Map<String, Object> body = new java.util.HashMap<>();
         body.put("contents", List.of(content));
         body.put("generationConfig", Map.of("temperature", 0.3));
+        if (systemPrompt != null && !systemPrompt.isBlank()) {
+            body.put("systemInstruction", Map.of("parts", List.of(Map.of("text", systemPrompt))));
+        }
+        return body;
+    }
+
+    /** Dựng request body ép Gemini trả JSON đúng schema (responseMimeType + responseSchema). */
+    private Map<String, Object> buildJsonRequestBody(String systemPrompt, String userPrompt, Map<String, Object> schema) {
+        Map<String, Object> content = Map.of("parts", List.of(Map.of("text", userPrompt == null ? "" : userPrompt)));
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("contents", List.of(content));
+        Map<String, Object> genConfig = new java.util.HashMap<>();
+        genConfig.put("temperature", 0.2);
+        genConfig.put("responseMimeType", "application/json");
+        genConfig.put("responseSchema", schema);
+        body.put("generationConfig", genConfig);
         if (systemPrompt != null && !systemPrompt.isBlank()) {
             body.put("systemInstruction", Map.of("parts", List.of(Map.of("text", systemPrompt))));
         }

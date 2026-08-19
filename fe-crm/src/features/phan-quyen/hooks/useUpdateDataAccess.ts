@@ -1,12 +1,14 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { phanQuyenService } from '../services/phanQuyenService';
 
-// cập nhật năm được xem data cho nhân viên, cập nhật cache danh sách thành viên
-export const useUpdateDataAccess = (roleId: number) => {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ userId, year }: { userId: number; year: number | null }) =>
-            phanQuyenService.updateUserDataAccess(userId, year),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['roleMembers', roleId] }),
-    });
-};
+// cập nhật năm được xem data cho nhân viên — báo danh sách thành viên của nhóm làm mới sau khi thành công
+export function useUpdateDataAccess(roleId: number) {
+    const { mutate: run, isPending } = useLiveMutation(
+        ({ userId, year }: { userId: number; year: number | null }) => phanQuyenService.updateUserDataAccess(userId, year));
+
+    const mutate: typeof run = (input, callbacks) =>
+        run(input, { ...callbacks, onSuccess: (data) => { notify(`role-members:${roleId}`); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
+}

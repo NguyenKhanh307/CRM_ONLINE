@@ -20,6 +20,7 @@ const basePriceOf = (productOptions: ProductOption[], productId: string) => {
 export function usePolicyPricing(
     pricePolicyId: number | null | undefined,
     rows: LineItemRow[],
+    // danh sách sản phẩm để tra giá gốc khi sản phẩm ngoài chính sách
     productOptions: ProductOption[],
     onChange: Dispatch<SetStateAction<LineItemRow[]>>,
     customerId?: number | null,
@@ -30,9 +31,9 @@ export function usePolicyPricing(
     // lý do chính sách giá chưa áp cho từng dòng, hiển thị dưới ô hàng hóa
     // giữ ngoài `LineItemRow` để không lẫn vào payload gửi backend
     const [hints, setHints] = useState<Record<string, string>>({});
-
     const setHint = useCallback((rowId: string, text: string | null) => {
         setHints((prev) => {
+            // dọn dòng đã xóa khỏi hints, hoặc đổi text mới, hoặc giữ nguyên nếu không đổi
             if (!text) {
                 if (!(rowId in prev)) return prev;
                 const next = { ...prev }; delete next[rowId]; return next;

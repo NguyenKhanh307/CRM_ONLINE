@@ -11,6 +11,7 @@ import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import type { CampaignResult, UpdateCampaignPayload } from '../types/campaignTypes';
 import { useUpdateCampaign } from '../hooks/useUpdateCampaign';
 import { CAMPAIGN_STATUS_LABELS, CAMPAIGN_TYPE_LABELS } from '../config/campaignColumns';
+import { CHANNEL_OPTIONS } from '../config/campaignOptions';
 
 interface Props {
     item: CampaignResult | null;
@@ -20,7 +21,7 @@ interface Props {
 const TYPE_OPTIONS = Object.entries(CAMPAIGN_TYPE_LABELS).map(([value, label]) => ({ value, label }));
 
 export function CampaignEditModal({ item, onClose }: Props) {
-    const { mutateAsync, isPending } = useUpdateCampaign();
+    const { mutate, isPending } = useUpdateCampaign();
     const { data: users = [] } = useActiveUsers();
     const [form, setForm] = useState<UpdateCampaignPayload>({
         name: '', type: 'other', channel: null, startDate: null, endDate: null,
@@ -68,7 +69,7 @@ export function CampaignEditModal({ item, onClose }: Props) {
 
         // bước hỏi xác nhận rồi gọi api lưu
         if (!(await confirmSave('chiến dịch'))) return;
-        await mutateAsync({ id: item.id, payload: form });
+        await mutate({ id: item.id, payload: form });
         onClose();
     };
 
@@ -100,7 +101,9 @@ export function CampaignEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Kênh</label>
-                            <input className={inp} value={form.channel ?? ''} onChange={e => setForm(f => ({ ...f, channel: e.target.value || null }))} />
+                            <SearchableSelect options={CHANNEL_OPTIONS} value={form.channel ?? ''}
+                                onChange={v => setForm(f => ({ ...f, channel: v || null }))}
+                                fallbackLabel={form.channel} />
                         </div>
                         <div>
                             <label className={lbl}>Người phụ trách</label>

@@ -38,6 +38,17 @@ public class ActivityWorkflowUseCase {
         return ActivityCommandMapper.toResult(repo.save(a.toBuilder().status(ActivityStatus.cancelled).build()));
     }
 
+    /**
+     * Mở lại khi lỡ bấm nhầm chuyển trạng thái: done → in_progress, cancelled → planned.
+     * @param id ID @return hoạt động sau cập nhật
+     */
+    public ActivityResult reopen(Long id) {
+        Activity a = load(id);
+        ActivityStatus target = a.getStatus() == ActivityStatus.cancelled ? ActivityStatus.planned : ActivityStatus.in_progress;
+        a.getStatus().ensureCanTransitionTo(target);
+        return ActivityCommandMapper.toResult(repo.save(a.toBuilder().status(target).build()));
+    }
+
     /** Tải hoạt động theo ID hoặc ném NotFoundException. */
     private Activity load(Long id) {
         return repo.findById(id).orElseThrow(() -> new NotFoundException("Activity not found: " + id));

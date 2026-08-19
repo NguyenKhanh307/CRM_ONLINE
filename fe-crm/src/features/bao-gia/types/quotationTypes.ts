@@ -34,10 +34,6 @@ export interface QuotationEmailDraft {
 export interface SendQuotationPayload {
     // người nhận chính (bỏ trống -> BE lấy email của liên hệ/khách hàng trên báo giá)
     to?: string;
-    // CC — nhiều email cách nhau bởi dấu phẩy/chấm phẩy
-    cc?: string;
-    // BCC — nhiều email cách nhau bởi dấu phẩy/chấm phẩy
-    bcc?: string;
     subject: string;
     body: string;
 }

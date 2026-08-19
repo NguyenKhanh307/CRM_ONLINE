@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * Domain entity đại diện cho chính sách giá.
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class PricePolicy {

@@ -1,11 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { productService } from '../services/productService';
 
-/** Xóa sản phẩm — invalidate danh sách sau khi thành công. */
+// xóa sản phẩm — báo danh sách làm mới sau khi thành công
 export function useDeleteProduct() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: (id: number) => productService.remove(id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
-    });
+    const { mutate: run, isPending } = useLiveMutation((id: number) => productService.remove(id));
+
+    const mutate: typeof run = (id, callbacks) =>
+        run(id, { ...callbacks, onSuccess: (data) => { notify('products'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }

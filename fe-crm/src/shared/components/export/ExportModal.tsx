@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { FiX, FiDownload } from 'react-icons/fi';
 import { DialogFooter } from '@/shared/components/ModalFooter';
 import { useDialogKeyboardNav } from '@/shared/keyboard/useDialogKeyboardNav';
-import type { ExportColumn, ExportFormat } from './exportTypes';
+import type { ExportColumn } from './exportTypes';
 
 interface ExportModalProps<T> {
     open: boolean;
@@ -10,22 +10,21 @@ interface ExportModalProps<T> {
     columns: ExportColumn<T>[];
     // số dòng sẽ được xuất
     rowCount: number;
-    onClose: () => void;
-    onExport: (selectedKeys: string[], format: ExportFormat) => void;
+    onClose: () => void; // đóng modal
+    // bấm "Xuất file" -> gọi hàm này với cột đã tick (luôn xuất .xlsx)
+    onExport: (selectedKeys: string[]) => void;
 }
 
-// modal cho người dùng chọn cột + định dạng trước khi xuất file
+// modal cho người dùng chọn cột trước khi xuất file Excel
 // mặc định tick toàn bộ cột
 export function ExportModal<T>({ open, columns, rowCount, onClose, onExport }: ExportModalProps<T>) {
     const allKeys = columns.map(c => c.key);
     const [selected, setSelected] = useState<string[]>(allKeys);
-    const [format, setFormat] = useState<ExportFormat>('xlsx');
 
     // khi mở lại, reset về tick tất cả
     useEffect(() => {
         if (open) {
             setSelected(columns.map(c => c.key));
-            setFormat('xlsx');
         }
     }, [open, columns]);
 
@@ -36,6 +35,7 @@ export function ExportModal<T>({ open, columns, rowCount, onClose, onExport }: E
     if (!open) return null;
 
     const toggle = (key: string) =>
+        // nếu đã tick -> bỏ tick, ngược lại -> tick
         setSelected(prev => (prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]));
 
     const allChecked = selected.length === columns.length;
@@ -78,38 +78,12 @@ export function ExportModal<T>({ open, columns, rowCount, onClose, onExport }: E
                         ))}
                     </div>
 
-                    <div className="space-y-1.5">
-                        <span className="text-sm text-gray-600">Định dạng</span>
-                        <div className="flex gap-4">
-                            <label className="flex items-center gap-1.5 cursor-pointer text-sm text-text-main">
-                                <input
-                                    type="radio"
-                                    name="export-format"
-                                    checked={format === 'xlsx'}
-                                    onChange={() => setFormat('xlsx')}
-                                    className="accent-primary"
-                                />
-                                Excel (.xlsx)
-                            </label>
-                            <label className="flex items-center gap-1.5 cursor-pointer text-sm text-text-main">
-                                <input
-                                    type="radio"
-                                    name="export-format"
-                                    checked={format === 'csv'}
-                                    onChange={() => setFormat('csv')}
-                                    className="accent-primary"
-                                />
-                                CSV (.csv)
-                            </label>
-                        </div>
-                    </div>
-
-                    <p className="text-sm text-gray-400">Sẽ xuất {rowCount} dòng</p>
+                    <p className="text-sm text-gray-400">Sẽ xuất {rowCount} dòng (định dạng Excel .xlsx)</p>
                 </div>
 
                 <DialogFooter
                     onCancel={onClose}
-                    onConfirm={() => onExport(allKeys.filter(k => selected.includes(k)), format)}
+                    onConfirm={() => onExport(allKeys.filter(k => selected.includes(k)))}
                     confirmLabel="Xuất file"
                     confirmIcon={FiDownload}
                     confirmDisabled={selected.length === 0}

@@ -95,20 +95,29 @@ public class OpportunityController {
         return ResponseEntity.status(201).body(ApiResponse.created(createUC.execute(cmd)));
     }
 
-    /** Lấy danh sách cơ hội. @return 200 */
+    /**
+     * Lấy danh sách cơ hội. Tham số {@code ownerId} chỉ có tác dụng với ADMIN/SALES_MANAGER (cho phép
+     * xem cơ hội của 1 nhân viên cụ thể, vd drill-down ở trang phân tích) — nhân viên thường luôn bị
+     * ép về chính họ bất kể truyền gì, giữ nguyên bảo mật hiện có. Không truyền {@code ownerId} khi
+     * privileged → hành vi cũ (xem toàn bộ), không đổi cho Kanban/danh sách chính.
+     *
+     * @return 200
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<OpportunityResult>>> list(
             HttpServletRequest req,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy, @RequestParam(defaultValue = "desc") String sortDir,
-            @RequestParam(required = false) String q, @RequestParam(required = false) String status) {
+            @RequestParam(required = false) String q, @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long ownerId) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
-        // Record-level visibility: admin/manager xem tat ca, nhan vien chi xem ban ghi minh phu trach
+        // Record-level visibility: admin/manager xem tat ca (hoac 1 nhan vien cu the neu truyen ownerId),
+        // nhan vien chi xem ban ghi minh phu trach
         Long userId = (Long) req.getAttribute("userId");
         boolean privileged = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
-        Long ownerId = privileged ? null : userId;
+        Long effectiveOwnerId = privileged ? ownerId : userId;
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(listUC.execute(
-                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).ownerId(ownerId).build()))));
+                PageRequest.builder().page(page).size(size).sortBy(sortBy).sortDir(sortDir).dataAccessFromYear(fromYear).q(q).status(status).ownerId(effectiveOwnerId).build()))));
     }
 
     /** Lấy cơ hội theo ID. @param id ID @return 200 */

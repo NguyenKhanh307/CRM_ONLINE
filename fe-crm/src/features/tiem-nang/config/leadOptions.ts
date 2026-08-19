@@ -1,3 +1,10 @@
+// loại tiềm năng — dùng chung cho NewLeadPage và LeadEditModal
+export const LEAD_TYPE_OPTIONS = [
+    { value: 'ca-nhan', label: 'Cá nhân' },
+    { value: 'doanh-nghiep', label: 'Doanh nghiệp' },
+    { value: 'ho-kinh-doanh', label: 'Hộ kinh doanh' },
+];
+
 // nguồn gốc tiềm năng — dùng chung cho NewLeadPage và LeadEditModal
 export const SOURCE_OPTIONS = [
     { value: 'website', label: 'Website' },

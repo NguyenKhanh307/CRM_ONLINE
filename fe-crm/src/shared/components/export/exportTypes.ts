@@ -1,8 +1,4 @@
-// định dạng file xuất ra: Excel (.xlsx) hoặc CSV (.csv)
-export type ExportFormat = 'xlsx' | 'csv';
-
 // mô tả một cột có thể xuất ra file của một phân hệ
-// tương tự `ImportField` nhưng dùng cho chiều xuất dữ liệu
 export interface ExportColumn<T> {
     // định danh cột (duy nhất trong cùng một phân hệ)
     key: string;

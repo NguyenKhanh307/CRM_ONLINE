@@ -32,6 +32,15 @@ import { ColumnVisibilityPanel } from './ColumnVisibilityPanel';
 import { TablePagination } from './TablePagination';
 import { tableScrollMaxHeight } from './tableMetrics';
 
+// ----- Bản tìm kiếm CHÍNH XÁC (đang tắt, mở khi cần dùng) -----
+// so khớp chính xác (không phân biệt hoa/thường), thay cho 'includesString' của TanStack
+// import type { FilterFn } from '@tanstack/react-table';
+// const exactMatchFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
+//     const cellValue = row.getValue(columnId);
+//     if (cellValue == null || filterValue == null || filterValue === '') return true;
+//     return String(cellValue).trim().toLowerCase() === String(filterValue).trim().toLowerCase();
+// };
+
 interface DataTableProps<T> {
     data: T[];
     columns: ColumnDef<T>[];
@@ -84,6 +93,7 @@ export const DataTable = <T extends object>({
     const [menu, setMenu] = useState<{ x: number; y: number; actions: RowAction[] } | null>(null);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+
     const [globalFilter, setGlobalFilter] = useState('');
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
     const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
@@ -208,7 +218,9 @@ export const DataTable = <T extends object>({
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        // fuzzy match: "abc def" sẽ match "def abc" nhưng không match "abc" hoặc "def" riêng lẻ, trong khi includesString sẽ match cả 3
         globalFilterFn: 'includesString',
+        // globalFilterFn: exactMatchFilterFn,
     });
 
     useEffect(() => {
@@ -352,6 +364,7 @@ export const DataTable = <T extends object>({
             {/* Toolbar + panels dropdown (relative anchor) */}
             <div className="relative">
                 <TableToolbar
+                    // 
                     globalFilter={isServer ? searchInput : globalFilter}
                     onGlobalFilterChange={isServer ? setSearchInput : setGlobalFilter}
                     quickFilters={toolbarQuickFilters}
@@ -481,10 +494,10 @@ export const DataTable = <T extends object>({
                                             isHighlighted
                                                 ? 'bg-blue-50 border-l-primary'
                                                 : rowColor
-                                                  ? 'border-l-transparent hover:brightness-95'
-                                                  : isEven
-                                                    ? 'bg-white border-l-transparent hover:bg-blue-50'
-                                                    : 'bg-gray-50 border-l-transparent hover:bg-blue-50',
+                                                    ? 'border-l-transparent hover:brightness-95'
+                                                    : isEven
+                                                        ? 'bg-white border-l-transparent hover:bg-blue-50'
+                                                        : 'bg-gray-50 border-l-transparent hover:bg-blue-50',
                                         ].join(' ')}
                                     >
                                         {row.getVisibleCells().map((cell) => {

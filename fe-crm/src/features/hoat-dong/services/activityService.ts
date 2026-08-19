@@ -28,4 +28,6 @@ export const activityService = {
     complete: (id: number) => axiosInstance.post<ApiResponse<ActivityResult>>(`/api/activities/${id}/complete`),
     // hủy hoạt động (-> cancelled)
     cancel: (id: number) => axiosInstance.post<ApiResponse<ActivityResult>>(`/api/activities/${id}/cancel`),
+    // mở lại khi lỡ bấm nhầm (done -> in_progress, cancelled -> planned)
+    reopen: (id: number) => axiosInstance.post<ApiResponse<ActivityResult>>(`/api/activities/${id}/reopen`),
 };

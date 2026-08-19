@@ -16,7 +16,7 @@ public class ContactCommandMapper {
                 .salutation(cmd.getSalutation())
                 .fullName(cmd.getFullName()).title(cmd.getTitle()).department(cmd.getDepartment())
                 .email(cmd.getEmail())
-                .zalo(cmd.getZalo()).source(cmd.getSource())
+                .zalo(cmd.getZalo()).phone(cmd.getPhone()).source(cmd.getSource())
                 .gender(cmd.getGender()).dateOfBirth(cmd.getDateOfBirth())
                 .isPrimary(cmd.getIsPrimary() != null ? cmd.getIsPrimary() : false).build();
     }
@@ -36,6 +36,7 @@ public class ContactCommandMapper {
                 .department(cmd.getDepartment() != null ? cmd.getDepartment() : e.getDepartment())
                 .email(cmd.getEmail() != null ? cmd.getEmail() : e.getEmail())
                 .zalo(cmd.getZalo() != null ? cmd.getZalo() : e.getZalo())
+                .phone(cmd.getPhone() != null ? cmd.getPhone() : e.getPhone())
                 .source(cmd.getSource() != null ? cmd.getSource() : e.getSource())
                 .gender(cmd.getGender() != null ? cmd.getGender() : e.getGender())
                 .dateOfBirth(cmd.getDateOfBirth() != null ? cmd.getDateOfBirth() : e.getDateOfBirth())
@@ -54,7 +55,7 @@ public class ContactCommandMapper {
                 .salutation(e.getSalutation())
                 .fullName(e.getFullName()).title(e.getTitle()).department(e.getDepartment())
                 .email(e.getEmail())
-                .zalo(e.getZalo()).source(e.getSource())
+                .zalo(e.getZalo()).phone(e.getPhone()).source(e.getSource())
                 .gender(e.getGender()).dateOfBirth(e.getDateOfBirth())
                 .isPrimary(e.getIsPrimary()).createdBy(e.getCreatedBy()).updatedBy(e.getUpdatedBy())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt()).build();

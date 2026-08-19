@@ -7,29 +7,14 @@ export interface UpdateContactPayload {
     department?: string | null;
     email: string | null;
     zalo?: string | null;
+    phone?: string | null;
     source?: string | null;
     gender: string | null;
     dateOfBirth: string | null;
     isPrimary: boolean;
 }
 
-/** Số điện thoại tạo kèm liên hệ. */
-export interface ContactPhonePayload {
-    phone: string;
-    phoneType: 'mobile' | 'office' | 'home' | 'other';
-    isPrimary: boolean;
-}
-
-/** Số điện thoại trả về từ GET /api/contacts/{id}/phones. */
-export interface ContactPhoneResult {
-    id: number;
-    contactId: number;
-    phone: string;
-    phoneType: 'mobile' | 'office' | 'home' | 'other';
-    isPrimary: boolean;
-}
-
-/** Payload tạo mới liên hệ — POST /api/contacts (kèm phones[]). */
+/** Payload tạo mới liên hệ — POST /api/contacts. */
 export interface CreateContactPayload {
     customerId: number | null;
     assignedUserId: number | null;
@@ -39,11 +24,11 @@ export interface CreateContactPayload {
     department: string | null;
     email: string | null;
     zalo: string | null;
+    phone: string | null;
     source: string | null;
     gender: string | null;
     dateOfBirth: string | null;
     isPrimary: boolean;
-    phones: ContactPhonePayload[];
 }
 
 export interface ContactResult {
@@ -56,6 +41,7 @@ export interface ContactResult {
     department: string | null;
     email: string | null;
     zalo: string | null;
+    phone: string | null;
     source: string | null;
     gender: string | null;
     dateOfBirth: string | null;

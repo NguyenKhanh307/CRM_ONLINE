@@ -12,12 +12,6 @@ import { useQuotationEmailDraft } from '../hooks/useQuotationEmailDraft';
 import { useQuotationWorkflow } from '../hooks/useQuotationWorkflow';
 import { quotationService } from '../services/quotationService';
 
-// kiểm danh sách email cách nhau bởi dấu phẩy (CC/BCC)
-const emailListError = (v: string, label: string): string | null => {
-    const list = v.split(',').map(s => s.trim()).filter(Boolean);
-    return list.some(e => emailError(e)) ? `${label} có địa chỉ không hợp lệ` : null;
-};
-
 interface Props {
     // ID báo giá cần gửi (null = đóng)
     quotationId: number | null;
@@ -34,8 +28,6 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
     const { data: draft, isLoading } = useQuotationEmailDraft(quotationId, open);
     const { mutate: workflowFn, isPending } = useQuotationWorkflow();
     const [to, setTo] = useState('');
-    const [cc, setCc] = useState('');
-    const [bcc, setBcc] = useState('');
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -86,8 +78,6 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
 
         const found = collectErrors({
             to: !to.trim() ? 'Vui lòng nhập email người nhận' : emailError(to),
-            cc: emailListError(cc, 'CC'),
-            bcc: emailListError(bcc, 'BCC'),
             subject: !subject.trim() ? 'Vui lòng nhập tiêu đề email' : null,
             body: !body.trim() ? 'Vui lòng nhập nội dung email' : null,
         });
@@ -107,8 +97,6 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
                 action: 'send',
                 emailPayload: {
                     to: to.trim(),
-                    cc: cc.trim() || undefined,
-                    bcc: bcc.trim() || undefined,
                     subject: subject.trim(),
                     body,
                 },
@@ -158,18 +146,6 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
                             placeholder={isLoading ? 'Đang tải...' : 'email@congty.com'}
                         />
                     </FormField>
-                    <div className="grid grid-cols-2 gap-3">
-                        <FormField label="CC" error={errors.cc}>
-                            <input className={inp} value={cc}
-                                onChange={e => { setCc(e.target.value); clearError('cc'); }}
-                                placeholder="Nhiều email cách nhau bởi dấu phẩy" />
-                        </FormField>
-                        <FormField label="BCC" error={errors.bcc}>
-                            <input className={inp} value={bcc}
-                                onChange={e => { setBcc(e.target.value); clearError('bcc'); }}
-                                placeholder="Nhiều email cách nhau bởi dấu phẩy" />
-                        </FormField>
-                    </div>
                     <FormField label="Tiêu đề" required error={errors.subject}>
                         <input className={inp} value={subject}
                             onChange={e => { setSubject(e.target.value); clearError('subject'); }} />
@@ -178,7 +154,7 @@ export function SendQuotationModal({ quotationId, onClose }: Props) {
                         label="Nội dung"
                         required
                         error={errors.body}
-                        hint="3 nút phản hồi (Đồng ý / Điều chỉnh / Không đồng ý) và file PDF báo giá sẽ được tự động thêm vào email khi gửi."
+                        hint="Nút 'Xem chi tiết báo giá' và file PDF báo giá sẽ được tự động thêm vào email khi gửi."
                     >
                         <RichTextEditor value={body} onChange={(v) => { setBody(v); clearError('body'); }} height={320} />
                     </FormField>

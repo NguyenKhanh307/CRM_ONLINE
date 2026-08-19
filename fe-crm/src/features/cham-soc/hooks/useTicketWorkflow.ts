@@ -1,4 +1,5 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { ticketService } from '../services/ticketService';
 import type { ResolutionType } from '../types/ticketTypes';
 
@@ -21,9 +22,8 @@ interface ActionArgs {
 // chạy hành động chuyển trạng thái phiếu: assign / start / resolve / approve / reject / receive /
 // inspect / complete / close / reopen / csat
 export function useTicketWorkflow() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, action, toUserId, resolutionType, note, reason, score, comment }: ActionArgs) => {
+    const { mutate: run, isPending } = useLiveMutation(
+        ({ id, action, toUserId, resolutionType, note, reason, score, comment }: ActionArgs) => {
             switch (action) {
                 case 'assign': return ticketService.assign(id, toUserId as number);
                 case 'start': return ticketService.start(id);
@@ -37,11 +37,18 @@ export function useTicketWorkflow() {
                 case 'reopen': return ticketService.reopen(id);
                 case 'csat': return ticketService.csat(id, score as number, comment);
             }
-        },
-        onSuccess: (_res, { id }) => {
-            qc.invalidateQueries({ queryKey: ['tickets'] });
-            qc.invalidateQueries({ queryKey: ['ticket', id] });
-            qc.invalidateQueries({ queryKey: ['ticket-comments', id] });
-        },
-    });
+        });
+
+    const mutate: typeof run = (input, callbacks) =>
+        run(input, {
+            ...callbacks,
+            onSuccess: (data) => {
+                notify('tickets');
+                notify(`ticket:${input.id}`);
+                notify(`ticket-comments:${input.id}`);
+                callbacks?.onSuccess?.(data);
+            },
+        });
+
+    return { mutate, isPending };
 }

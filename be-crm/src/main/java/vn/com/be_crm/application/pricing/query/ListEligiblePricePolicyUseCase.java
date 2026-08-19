@@ -3,6 +3,7 @@ package vn.com.be_crm.application.pricing.query;
 import vn.com.be_crm.application.pricing.dto.PricePolicyResult;
 import vn.com.be_crm.application.pricing.mapper.PricePolicyCommandMapper;
 import vn.com.be_crm.core.page.PageRequest;
+import vn.com.be_crm.domain.pricing.enums.PricePolicyStatus;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyCustomerRepository;
 import vn.com.be_crm.domain.pricing.repository.IPricePolicyRepository;
 
@@ -30,6 +31,12 @@ public class ListEligiblePricePolicyUseCase {
 
         return all.stream()
                 .filter(p -> byCustomer == null || byCustomer.contains(p.getId()))
+                // ô chọn form (không phải trang danh sách quản lý) — ẩn chính sách đã hết hạn.
+                // Kiểm cả điều kiện ngày (chưa kịp tự đổi status vì chưa ai GET/list qua use case
+                // tự đổi trạng thái) lẫn status='expired' đã lưu (đã tự đổi từ trước).
+                .filter(p -> p.getStatus() != PricePolicyStatus.expired
+                        && !(p.getStatus() == PricePolicyStatus.active && p.getEndDate() != null
+                                && p.getEndDate().isBefore(java.time.LocalDate.now())))
                 .map(PricePolicyCommandMapper::toResult)
                 .collect(Collectors.toList());
     }

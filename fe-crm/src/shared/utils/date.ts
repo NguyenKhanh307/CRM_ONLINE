@@ -23,3 +23,16 @@ export function parseVNDate(str: string): string | null {
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${yyyy}-${pad(mm)}-${pad(dd)}`;
 }
+
+// ghép chuỗi số thành mặt nạ dd/mm/yyyy khi người dùng gõ (tự chèn dấu '/')
+export function maskDate(raw: string): string {
+    // chỉ lấy chữ số, tối đa 8 ký tự (ddmmyyyy)
+    const digits = raw.replace(/\D/g, '').slice(0, 8);
+    const dd = digits.slice(0, 2);
+    const mm = digits.slice(2, 4);
+    const yyyy = digits.slice(4, 8);
+    let out = dd;
+    if (digits.length >= 3) out += '/' + mm;
+    if (digits.length >= 5) out += '/' + yyyy;
+    return out;
+}

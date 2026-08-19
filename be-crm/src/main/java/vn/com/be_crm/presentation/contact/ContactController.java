@@ -88,7 +88,7 @@ public class ContactController {
                         .assignedUserId(cmd.getAssignedUserId()).salutation(cmd.getSalutation())
                         .fullName(cmd.getFullName()).title(cmd.getTitle()).department(cmd.getDepartment())
                         .email(cmd.getEmail())
-                        .zalo(cmd.getZalo()).source(cmd.getSource()).gender(cmd.getGender())
+                        .zalo(cmd.getZalo()).phone(cmd.getPhone()).source(cmd.getSource()).gender(cmd.getGender())
                         .dateOfBirth(cmd.getDateOfBirth())
                         .isPrimary(cmd.getIsPrimary()).build())));
     }

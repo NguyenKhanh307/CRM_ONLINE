@@ -14,7 +14,7 @@ import java.util.Map;
 
 /**
  * Hibernate implementation của IDuplicateRepository — dò trùng bằng native SQL trên 3 bảng
- * (leads, customers, contacts + contact_phones) trong một session.
+ * (leads, customers, contacts) trong một session.
  */
 @Repository
 public class DuplicateRepositoryImpl implements IDuplicateRepository {
@@ -85,7 +85,7 @@ public class DuplicateRepositoryImpl implements IDuplicateRepository {
     }
 
     /**
-     * Dò trùng trên liên hệ: email (3 cột email) và số điện thoại (bảng contact_phones).
+     * Dò trùng trên liên hệ: email (3 cột email) và số điện thoại (cột contacts.phone).
      * Liên hệ không có mã và không có mã số thuế.
      */
     @SuppressWarnings("unchecked")
@@ -95,7 +95,7 @@ public class DuplicateRepositoryImpl implements IDuplicateRepository {
 
         List<String> conds = new ArrayList<>();
         if (email != null) conds.add("c.email = :email");
-        if (phone != null) conds.add("EXISTS (SELECT 1 FROM contact_phones cp WHERE cp.contact_id = c.id AND cp.phone = :phone)");
+        if (phone != null) conds.add("c.phone = :phone");
 
         boolean exclude = "contact".equals(excludeModule) && excludeId != null;
         String sql = "SELECT c.id, c.full_name, "

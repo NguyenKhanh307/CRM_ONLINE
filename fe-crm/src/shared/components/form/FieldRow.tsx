@@ -20,6 +20,7 @@ export const FieldRow = ({
 }) => (
     <div className={`flex ${alignTop || error ? 'items-start' : 'items-center'} gap-3`}>
         <span
+            // label trái 148px, căn lên đầu nếu alignTop hoặc có lỗi
             className={`text-sm text-gray-600 flex-shrink-0 w-[148px] ${alignTop || error ? 'pt-1.5' : ''}`}
         >
             {label}

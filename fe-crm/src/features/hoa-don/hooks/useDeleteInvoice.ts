@@ -1,11 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { invoiceService } from '../services/invoiceService';
 
-// xóa Hóa đơn — invalidate danh sách sau khi thành công
+// xóa Hóa đơn — báo danh sách làm mới sau khi thành công
 export function useDeleteInvoice() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: (id: number) => invoiceService.remove(id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices'] }),
-    });
+    const { mutate: run, isPending } = useLiveMutation((id: number) => invoiceService.remove(id));
+
+    const mutate: typeof run = (id, callbacks) =>
+        run(id, { ...callbacks, onSuccess: (data) => { notify('invoices'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }

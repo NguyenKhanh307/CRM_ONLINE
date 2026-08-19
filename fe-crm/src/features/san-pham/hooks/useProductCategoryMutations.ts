@@ -1,36 +1,34 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { productCategoryService, type CreateProductCategoryPayload, type UpdateProductCategoryPayload } from '../services/productCategoryService';
 
-/** Invalidate cache danh sách danh mục sau mỗi thay đổi. */
-const useInvalidateProductCategories = () => {
-    const qc = useQueryClient();
-    return () => qc.invalidateQueries({ queryKey: ['product-categories'] });
-};
-
-/** Tạo danh mục sản phẩm mới. */
+// tạo danh mục sản phẩm mới — báo danh sách danh mục làm mới sau khi thành công
 export function useCreateProductCategory() {
-    const invalidate = useInvalidateProductCategories();
-    return useMutation({
-        mutationFn: (body: CreateProductCategoryPayload) => productCategoryService.create(body),
-        onSuccess: invalidate,
-    });
+    const { mutate: run, isPending } = useLiveMutation((body: CreateProductCategoryPayload) => productCategoryService.create(body));
+
+    const mutate: typeof run = (body, callbacks) =>
+        run(body, { ...callbacks, onSuccess: (data) => { notify('product-categories'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }
 
-/** Cập nhật danh mục sản phẩm. */
+// cập nhật danh mục sản phẩm — báo danh sách danh mục làm mới sau khi thành công
 export function useUpdateProductCategory() {
-    const invalidate = useInvalidateProductCategories();
-    return useMutation({
-        mutationFn: ({ id, body }: { id: number; body: UpdateProductCategoryPayload }) =>
-            productCategoryService.update(id, body),
-        onSuccess: invalidate,
-    });
+    const { mutate: run, isPending } = useLiveMutation(
+        ({ id, body }: { id: number; body: UpdateProductCategoryPayload }) => productCategoryService.update(id, body));
+
+    const mutate: typeof run = (input, callbacks) =>
+        run(input, { ...callbacks, onSuccess: (data) => { notify('product-categories'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }
 
-/** Xóa danh mục sản phẩm. */
+// xóa danh mục sản phẩm — báo danh sách danh mục làm mới sau khi thành công
 export function useDeleteProductCategory() {
-    const invalidate = useInvalidateProductCategories();
-    return useMutation({
-        mutationFn: (id: number) => productCategoryService.remove(id),
-        onSuccess: invalidate,
-    });
+    const { mutate: run, isPending } = useLiveMutation((id: number) => productCategoryService.remove(id));
+
+    const mutate: typeof run = (id, callbacks) =>
+        run(id, { ...callbacks, onSuccess: (data) => { notify('product-categories'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }

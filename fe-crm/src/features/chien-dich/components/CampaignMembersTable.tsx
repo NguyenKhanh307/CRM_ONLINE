@@ -28,7 +28,7 @@ const MEMBER_STATUS_COLORS: Record<string, string> = {
 // bảng khách hàng của chiến dịch (bảng `campaign_members`) — thêm nhanh theo email + xóa
 export function CampaignMembersTable({ campaignId }: Props) {
     const { data: members = [], isLoading } = useCampaignMembers(campaignId);
-    const { mutate: createMember, mutateAsync: createMemberAsync, isPending: isCreating } = useCreateCampaignMember(campaignId);
+    const { mutate: createMember, isPending: isCreating } = useCreateCampaignMember(campaignId);
     const { mutate: deleteMember } = useDeleteCampaignMember(campaignId);
     const { data: customers = [] } = useCustomerList();
     const { showAlert } = useAlert();
@@ -82,7 +82,7 @@ export function CampaignMembersTable({ campaignId }: Props) {
         setIsAddingAll(true);
         try {
             await Promise.all(targets.map(c =>
-                createMemberAsync({ leadId: null, contactId: null, name: null, email: c.email, phone: null }),
+                createMember({ leadId: null, contactId: null, name: null, email: c.email, phone: null }),
             ));
             showAlert(`Đã thêm ${targets.length} khách hàng vào chiến dịch.`);
         } finally {

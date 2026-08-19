@@ -94,8 +94,14 @@ const TiemNangPage = () => {
             ...(l.ownerId == null && isOpen && can('lead', 'edit')
                 ? [{ key: 'claim', label: 'Nhận chăm sóc', onClick: () => runAction(l.id, 'claim') }]
                 : []),
+            ...(isOpen && l.convertedOpportunityId != null && can('lead', 'convert')
+                ? [{ key: 'convert', label: 'Chuyển đổi', onClick: () => runAction(l.id, 'convert') }]
+                : []),
             ...(can('opportunity', 'create')
                 ? [{ key: 'createOpportunity', label: 'Tạo cơ hội', onClick: () => navigate(`/co-hoi/them-moi?fromLead=${l.id}`) }]
+                : []),
+            ...(can('contact', 'create')
+                ? [{ key: 'createContact', label: 'Tạo liên hệ', onClick: () => navigate(`/lien-he/them-moi?fromLead=${l.id}`) }]
                 : []),
             ...(l.status !== 'converted' && can('lead', 'edit')
                 ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(l) }]
@@ -192,12 +198,12 @@ const TiemNangPage = () => {
                 columns={leadExportColumns}
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={async (keys, format) => {
+                onExport={async (keys) => {
                     // không tick dòng nào -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await leadService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
-                    exportRows(rows, leadExportColumns, keys, format, 'tiem-nang');
+                    exportRows(rows, leadExportColumns, keys, 'tiem-nang');
                     setExportOpen(false);
                 }}
             />

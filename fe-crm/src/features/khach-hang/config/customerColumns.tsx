@@ -3,17 +3,17 @@ import { badgeCell, currencyCell, dateCell, labelCell, numberCell, textCell, yes
 import type { CustomerResult } from '../types/customerTypes';
 
 const TYPE_LABELS: Record<string, string> = {
-    individual: 'Cá nhân', company: 'Công ty', agency: 'Đại lý',
+    individual: 'Cá nhân', company: 'Công ty',
 };
 
 const STATUS_COLORS: Record<string, string> = {
     active: 'bg-green-100 text-green-700',
     inactive: 'bg-red-100 text-red-600',
-    prospect: 'bg-blue-100 text-blue-700',
+    potential: 'bg-blue-100 text-blue-700',
 };
 
 const STATUS_LABELS: Record<string, string> = {
-    active: 'Hoạt động', inactive: 'Không hoạt động', prospect: 'Tiềm năng',
+    active: 'Hoạt động', inactive: 'Không hoạt động', potential: 'Tiềm năng',
 };
 
 // tạo danh sách cột Khách hàng — hiển thị đầy đủ trường + tên khóa ngoại (do BE resolve sẵn)

@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { badgeCell, currencyCell, dateCell, textCell } from '@/shared/components/table/cells';
+import { badgeCell, currencyCell, dateCell, textCell, yesNoCell } from '@/shared/components/table/cells';
 import type { QuotationResult } from '../types/quotationTypes';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -24,6 +24,7 @@ export const getQuotationColumns = (): ColumnDef<QuotationResult>[] => [
     { accessorKey: 'opportunityName', header: 'Cơ hội', size: 160, cell: textCell },
     { accessorKey: 'ownerName', header: 'Người phụ trách', size: 160, cell: textCell },
     { accessorKey: 'status', header: 'Trạng thái', size: 120, cell: badgeCell(STATUS_LABELS, STATUS_COLORS) },
+    { accessorKey: 'isLocked', header: 'Đã khóa', size: 100, cell: yesNoCell },
     { accessorKey: 'quoteDate', header: 'Ngày báo giá', size: 130, cell: dateCell },
     { accessorKey: 'validUntil', header: 'Hiệu lực đến', size: 130, cell: dateCell },
     { accessorKey: 'subtotal', header: 'Tạm tính', size: 150, cell: currencyCell },

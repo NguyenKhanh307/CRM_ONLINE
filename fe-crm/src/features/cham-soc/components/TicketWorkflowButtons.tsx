@@ -23,7 +23,11 @@ function actionsFor(t: TicketResult): Btn[] {
 
     switch (t.status) {
         case 'new':
-            return [{ action: 'assign', label: 'Giao xử lý', icon: FiUserCheck, cls: primary }];
+            // support/complaint: người tạo đã mặc định là người phụ trách -> bắt đầu xử lý thẳng,
+            // bỏ bước "Giao xử lý". return/exchange vẫn cần giao việc trước.
+            return isReturn
+                ? [{ action: 'assign', label: 'Giao xử lý', icon: FiUserCheck, cls: primary }]
+                : [{ action: 'start', label: 'Bắt đầu xử lý', icon: FiPlay, cls: primary }];
         case 'assigned':
             return [{ action: 'start', label: 'Bắt đầu xử lý', icon: FiPlay, cls: primary }];
         case 'in_progress':
@@ -31,7 +35,7 @@ function actionsFor(t: TicketResult): Btn[] {
             return isReturn
                 ? [{ action: 'approve', label: 'Duyệt', icon: FiCheck, cls: success },
                    { action: 'reject', label: 'Từ chối', icon: FiXCircle, cls: danger }]
-                : [{ action: 'resolve', label: 'Giải quyết', icon: FiCheckCircle, cls: success }];
+                : [{ action: 'resolve', label: 'Hoàn thành', icon: FiCheckCircle, cls: success }];
         case 'approved':
             return [{ action: 'receive', label: 'Đã nhận hàng', icon: FiInbox, cls: primary }];
         case 'received':
@@ -41,8 +45,12 @@ function actionsFor(t: TicketResult): Btn[] {
         case 'rejected':
             return [{ action: 'close', label: 'Đóng phiếu', icon: FiLock, cls: neutral }];
         case 'resolved':
-            return [{ action: 'close', label: 'Đóng phiếu', icon: FiLock, cls: neutral },
-                    { action: 'reopen', label: 'Mở lại', icon: FiRotateCcw, cls: neutral }];
+            // support/complaint: resolved = "Hoàn thành" cuối cùng, không cần bước "Đóng" riêng —
+            // chỉ còn "Mở lại" phòng lỡ bấm nhầm. return/exchange giữ nguyên cả hai nút.
+            return isReturn
+                ? [{ action: 'close', label: 'Đóng phiếu', icon: FiLock, cls: neutral },
+                   { action: 'reopen', label: 'Mở lại', icon: FiRotateCcw, cls: neutral }]
+                : [{ action: 'reopen', label: 'Mở lại', icon: FiRotateCcw, cls: neutral }];
         case 'closed':
             return [{ action: 'reopen', label: 'Mở lại', icon: FiRotateCcw, cls: neutral }];
         default:

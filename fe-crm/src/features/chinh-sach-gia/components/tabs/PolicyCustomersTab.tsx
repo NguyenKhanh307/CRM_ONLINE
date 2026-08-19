@@ -14,7 +14,7 @@ interface Props { policyId: number; }
 
 export function PolicyCustomersTab({ policyId }: Props) {
     const { data = [], isLoading } = usePolicyCustomers(policyId);
-    const { mutate: createFn, mutateAsync: createFnAsync, isPending: isCreating } = useCreatePolicyCustomer(policyId);
+    const { mutate: createFn, isPending: isCreating } = useCreatePolicyCustomer(policyId);
     const { mutate: deleteFn, isPending: isDeleting } = useDeletePolicyCustomer(policyId);
     const { showAlert } = useAlert();
     const { confirm } = useConfirm();
@@ -46,7 +46,8 @@ export function PolicyCustomersTab({ policyId }: Props) {
 
         setIsAddingAll(true);
         try {
-            await Promise.all(targets.map(c => createFnAsync({ pricePolicyId: policyId, customerId: c.id })));
+            // mutate của useLiveMutation đã tự trả về Promise nên dùng thẳng, không cần mutateAsync riêng
+            await Promise.all(targets.map(c => createFn({ pricePolicyId: policyId, customerId: c.id })));
             showAlert(`Đã thêm ${targets.length} khách hàng vào chính sách giá.`);
         } finally {
             setIsAddingAll(false);

@@ -1,15 +1,13 @@
-/** State form thêm mới liên hệ — các field UI (hoDem/ten tách riêng, id dạng string cho select). */
+/** State form thêm mới liên hệ — các field UI (id dạng string cho select). */
 export interface ContactFormState {
     salutation: string;
-    hoDem: string;
-    ten: string;
+    hoTen: string;
     title: string;
     department: string;
     customerId: string;
     assignedUserId: string;
     source: string;
-    mobilePhone: string;
-    officePhone: string;
+    phone: string;
     email: string;
     zalo: string;
     gender: string;
@@ -19,15 +17,13 @@ export interface ContactFormState {
 
 export const INITIAL_CONTACT_FORM: ContactFormState = {
     salutation: '',
-    hoDem: '',
-    ten: '',
+    hoTen: '',
     title: '',
     department: '',
     customerId: '',
     assignedUserId: '',
     source: '',
-    mobilePhone: '',
-    officePhone: '',
+    phone: '',
     email: '',
     zalo: '',
     gender: '',

@@ -1,11 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { phanQuyenService } from '../services/phanQuyenService';
 
 // lấy danh sách thành viên của một nhóm theo roleId đang chọn
-export const useRoleMembers = (roleId: number | null) => {
-    return useQuery({
-        queryKey: ['roleMembers', roleId],
-        queryFn: () => phanQuyenService.getRoleMembers(roleId!).then(res => res.data.data),
-        enabled: roleId !== null,
-    });
-};
+export function useRoleMembers(roleId: number | null) {
+    const enabled = roleId !== null;
+    return useLiveQuery(
+        `role-members:${roleId}`,
+        () => phanQuyenService.getRoleMembers(roleId as number).then(res => res.data.data),
+        enabled,
+    );
+}

@@ -1,11 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { contactService } from '../services/contactService';
 
-/** Xóa liên hệ — invalidate danh sách sau khi thành công. */
+// xóa liên hệ — báo danh sách làm mới sau khi thành công
 export function useDeleteContact() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: (id: number) => contactService.remove(id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['contacts'] }),
-    });
+    const { mutate: run, isPending } = useLiveMutation((id: number) => contactService.remove(id));
+
+    const mutate: typeof run = (id, callbacks) =>
+        run(id, { ...callbacks, onSuccess: (data) => { notify('contacts'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }

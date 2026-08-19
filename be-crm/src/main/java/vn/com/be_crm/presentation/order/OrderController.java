@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import vn.com.be_crm.application.invoice.dto.InvoiceResult;
 import vn.com.be_crm.application.order.command.*;
 import vn.com.be_crm.application.order.dto.*;
 import vn.com.be_crm.application.order.query.*;
@@ -37,23 +36,24 @@ public class OrderController {
     private final ImportBulkOrderUseCase importBulkUC;
     private final HandoverBulkOrderUseCase handoverBulkUC;
     private final OrderWorkflowUseCase workflowUC;
-    private final CreateInvoiceFromOrderUseCase createInvoiceUC;
+    private final MarkOrderConvertedUseCase markConvertedUC;
 
     /** @param createUC tạo mới @param updateUC cập nhật @param deleteUC xóa @param getUC lấy @param listUC danh sách
      *  @param listDeletedUC thùng rác @param restoreUC khôi phục @param purgeUC xóa vĩnh viễn @param importBulkUC nhập hàng loạt
-     *  @param handoverBulkUC bàn giao hàng loạt @param workflowUC luồng trạng thái @param createInvoiceUC xuất hóa đơn từ đơn hàng */
+     *  @param handoverBulkUC bàn giao hàng loạt @param workflowUC luồng trạng thái
+     *  @param markConvertedUC đánh dấu đã xuất hóa đơn (khóa đơn hàng + hoàn tất) */
     public OrderController(CreateOrderUseCase createUC, UpdateOrderUseCase updateUC, DeleteOrderUseCase deleteUC,
                            GetOrderUseCase getUC, ListOrderUseCase listUC,
                            ListDeletedOrdersUseCase listDeletedUC, RestoreOrderUseCase restoreUC, PurgeOrderUseCase purgeUC,
                            ImportBulkOrderUseCase importBulkUC,
                            HandoverBulkOrderUseCase handoverBulkUC,
                            OrderWorkflowUseCase workflowUC,
-                           CreateInvoiceFromOrderUseCase createInvoiceUC) {
+                           MarkOrderConvertedUseCase markConvertedUC) {
         this.createUC = createUC; this.updateUC = updateUC; this.deleteUC = deleteUC;
         this.getUC = getUC; this.listUC = listUC;
         this.listDeletedUC = listDeletedUC; this.restoreUC = restoreUC; this.purgeUC = purgeUC;
         this.importBulkUC = importBulkUC; this.handoverBulkUC = handoverBulkUC; this.workflowUC = workflowUC;
-        this.createInvoiceUC = createInvoiceUC;
+        this.markConvertedUC = markConvertedUC;
     }
 
     /** Tạo mới đơn hàng. @param cmd JSON body @return 201 */
@@ -124,11 +124,19 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.cancel(id)));
     }
 
-    /** Xuất hóa đơn từ đơn hàng (1-1, khóa đơn hàng + đơn hàng completed). @param id ID đơn hàng @return 201 hóa đơn */
+    /** Mở lại khi lỡ bấm nhầm (completed → processing, cancelled → draft). @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('order.process')")
+    @PostMapping("/{id}/reopen")
+    public ResponseEntity<ApiResponse<OrderResult>> reopen(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.reopen(id)));
+    }
+
+    /** Đánh dấu đơn hàng đã xuất hóa đơn (Hóa đơn đã được tạo riêng qua trang thêm mới
+     * ?fromOrder=; ở đây chỉ khóa đơn hàng + chuyển sang Hoàn tất). @param id ID đơn hàng @return 200 */
     @PreAuthorize("hasAuthority('order.create_invoice')")
-    @PostMapping("/{id}/create-invoice")
-    public ResponseEntity<ApiResponse<InvoiceResult>> createInvoice(@PathVariable Long id) {
-        return ResponseEntity.status(201).body(ApiResponse.created(createInvoiceUC.execute(id)));
+    @PostMapping("/{id}/mark-converted")
+    public ResponseEntity<ApiResponse<OrderResult>> markConverted(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(markConvertedUC.execute(id)));
     }
 
     /** Xóa mềm đơn hàng. @param id ID @param req HTTP request @return 204 */

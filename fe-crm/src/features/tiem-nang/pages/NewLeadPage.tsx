@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { collectErrors, emailError, phoneError, requiredError, taxCodeError } from '@/shared/utils/validators';
+import { collectErrors, emailError, phoneError, requiredError, taxCodeError, validateOrWarn } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiTrash2, FiUserPlus } from 'react-icons/fi';
@@ -21,7 +21,7 @@ import { useProductList } from '@/features/san-pham/hooks/useProductList';
 import { leadService } from '../services/leadService';
 import { useCreateLead } from '../hooks/useCreateLead';
 import type { CreateLeadItemPayload, CreateLeadPayload } from '../types/leadTypes';
-import { SOURCE_OPTIONS } from '../config/leadOptions';
+import { LEAD_TYPE_OPTIONS, SOURCE_OPTIONS } from '../config/leadOptions';
 
 // dòng nháp "sản phẩm quan tâm" gom ở client — chỉ gửi lên BE sau khi tiềm năng đã có id
 interface InterestDraftRow {
@@ -34,12 +34,6 @@ interface InterestDraftRow {
 const INTEREST_TYPE_OPTIONS = [
     { value: 'viewed', label: 'Đã xem' },
     { value: 'requested_quote', label: 'Yêu cầu báo giá' },
-];
-
-const LEAD_TYPE_OPTIONS = [
-    { value: 'ca-nhan', label: 'Cá nhân' },
-    { value: 'doanh-nghiep', label: 'Doanh nghiệp' },
-    { value: 'ho-kinh-doanh', label: 'Hộ kinh doanh' },
 ];
 
 interface FormState {
@@ -146,7 +140,7 @@ const NewLeadPage = () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
-        if (Object.keys(errs).length > 0) return;
+        if (!validateOrWarn(errs, showAlert)) return;
 
         // bước hỏi xác nhận
         if (!(await confirmCreate('tiềm năng'))) return;

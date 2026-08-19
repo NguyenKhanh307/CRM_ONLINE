@@ -79,6 +79,9 @@ const HoatDongPage = () => {
         ...((a.status === 'planned' || a.status === 'in_progress') && can('activity', 'edit')
             ? [{ key: 'cancel', label: 'Hủy', onClick: () => runAction(a.id, 'cancel') }]
             : []),
+        ...((a.status === 'done' || a.status === 'cancelled') && can('activity', 'edit')
+            ? [{ key: 'reopen', label: 'Mở lại', onClick: () => runAction(a.id, 'reopen') }]
+            : []),
         ...(can('activity', 'edit')
             ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(a) }]
             : []),
@@ -163,12 +166,12 @@ const HoatDongPage = () => {
                 columns={activityExportColumns}
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={async (keys, format) => {
+                onExport={async (keys) => {
                     // không tick dòng -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await activityService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
-                    exportRows(rows, activityExportColumns, keys, format, 'hoat-dong');
+                    exportRows(rows, activityExportColumns, keys, 'hoat-dong');
                     setExportOpen(false);
                 }}
             />

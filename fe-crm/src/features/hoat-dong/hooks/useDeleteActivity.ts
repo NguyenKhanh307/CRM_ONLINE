@@ -1,11 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { activityService } from '../services/activityService';
 
-// xóa hoạt động — invalidate danh sách sau khi thành công
+// xóa hoạt động — báo danh sách làm mới sau khi thành công
 export function useDeleteActivity() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: (id: number) => activityService.remove(id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['activities'] }),
-    });
+    const { mutate: run, isPending } = useLiveMutation((id: number) => activityService.remove(id));
+
+    const mutate: typeof run = (id, callbacks) =>
+        run(id, { ...callbacks, onSuccess: (data) => { notify('activities'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }

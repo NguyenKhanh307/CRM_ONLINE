@@ -23,4 +23,10 @@ export interface PageParams {
     status?: string;
     // thu hẹp theo khách hàng — hiện chỉ /api/contacts hỗ trợ (ô chọn Liên hệ theo khách đang chọn)
     customerId?: number;
+    // xem cơ hội của 1 nhân viên cụ thể — chỉ ADMIN/SALES_MANAGER, hiện chỉ /api/opportunities hỗ trợ
+    // (drill-down ở trang phân tích /phan-tich); nhân viên thường bị BE ép về chính họ bất kể truyền gì
+    ownerId?: number;
+    // loại bỏ bản ghi đã hết hạn (status='expired') — hiện chỉ /api/quotations hỗ trợ, dùng cho ô
+    // chọn báo giá ở form khác (Đơn hàng/Hóa đơn), KHÔNG bật ở trang danh sách /bao-gia
+    excludeExpired?: boolean;
 }

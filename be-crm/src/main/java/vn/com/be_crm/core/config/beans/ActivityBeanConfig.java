@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import vn.com.be_crm.application.activity.command.*;
 import vn.com.be_crm.application.activity.query.*;
 import vn.com.be_crm.application.lead.command.AddLeadScoreUseCase;
+import vn.com.be_crm.core.tx.port.ITransactionRunner;
 import vn.com.be_crm.domain.activity.repository.IActivityRepository;
 
 /**
@@ -24,7 +25,7 @@ public class ActivityBeanConfig {
     /** @return ListActivityUseCase được inject IActivityRepository */
     @Bean public ListActivityUseCase listActivityUseCase(IActivityRepository r, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListActivityUseCase(r, n); }
     /** @return ImportBulkActivityUseCase được inject IActivityRepository */
-    @Bean public ImportBulkActivityUseCase importBulkActivityUseCase(IActivityRepository r) { return new ImportBulkActivityUseCase(r); }
+    @Bean public ImportBulkActivityUseCase importBulkActivityUseCase(IActivityRepository r, ITransactionRunner tx) { return new ImportBulkActivityUseCase(r, tx); }
     /** @return ActivityWorkflowUseCase — hành động start/complete/cancel */
     @Bean public ActivityWorkflowUseCase activityWorkflowUseCase(IActivityRepository r) { return new ActivityWorkflowUseCase(r); }
 }

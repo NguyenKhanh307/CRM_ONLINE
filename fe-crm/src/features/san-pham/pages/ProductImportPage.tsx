@@ -12,7 +12,7 @@ const FIELDS: ImportField[] = [
     { key: 'costPrice',      label: 'Giá vốn',                       type: 'number' },
     { key: 'vatRate',        label: 'Thuế VAT (%)',                   type: 'number' },
     { key: 'description',    label: 'Mô tả',                         type: 'text' },
-    { key: 'status',         label: 'Trạng thái',                    type: 'enum', enumValues: ['active', 'inactive', 'discontinued'] },
+    { key: 'status',         label: 'Trạng thái',                    type: 'enum', enumValues: ['active', 'inactive', 'discontinued'], enumLabels: { active: 'Đang kinh doanh', inactive: 'Ngừng hoạt động', discontinued: 'Ngừng kinh doanh' } },
 ];
 
 const ProductImportPage = () => {

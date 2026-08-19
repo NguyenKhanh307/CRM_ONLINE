@@ -1,13 +1,15 @@
-import { useRef, useState, type FormEvent, useEffect } from 'react';
+import { useMemo, useRef, useState, type FormEvent, useEffect } from 'react';
 import { collectErrors, emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
 import { FieldError } from '@/shared/components/form/FormField';
 import { ModalFooter } from '@/shared/components/ModalFooter';
+import { SearchableSelect } from '@/shared/components/SearchableSelect';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { FiX } from 'react-icons/fi';
 import type { CustomerResult, UpdateCustomerPayload } from '../types/customerTypes';
 import { useUpdateCustomer } from '../hooks/useUpdateCustomer';
-import { RATING_OPTIONS } from '../config/customerOptions';
+import { RATING_OPTIONS, SOURCE_OPTIONS } from '../config/customerOptions';
 
 interface Props {
     item: CustomerResult | null;
@@ -23,6 +25,8 @@ const CUSTOMER_STATUS_COLORS: Record<string, string> = {
 
 export function CustomerEditModal({ item, onClose }: Props) {
     const { mutate, isPending } = useUpdateCustomer();
+    const { data: users = [] } = useActiveUsers();
+    const userOptions = useMemo(() => users.map((u) => ({ value: String(u.id), label: u.fullName })), [users]);
     const [form, setForm] = useState<UpdateCustomerPayload>({
         name: '', type: 'individual', taxCode: null, phone: null,
         email: null, address: null, source: null, ownerId: null,
@@ -134,7 +138,7 @@ export function CustomerEditModal({ item, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={lbl}>Nguồn</label>
-                            <input className={inp} value={form.source ?? ''} onChange={e => setForm(f => ({ ...f, source: e.target.value || null }))} />
+                            <SearchableSelect value={form.source ?? ''} onChange={v => setForm(f => ({ ...f, source: v || null }))} options={SOURCE_OPTIONS} />
                         </div>
                         <div>
                             <label className={lbl}>Tên viết tắt</label>
@@ -175,6 +179,11 @@ export function CustomerEditModal({ item, onClose }: Props) {
                             <label className={lbl}>Quy mô nhân sự</label>
                             <input className={inp} value={form.employeeSize ?? ''} onChange={e => setForm(f => ({ ...f, employeeSize: e.target.value || null }))} />
                         </div>
+                    </div>
+                    <div>
+                        <label className={lbl}>Nhân viên phụ trách</label>
+                        <SearchableSelect value={form.ownerId != null ? String(form.ownerId) : ''}
+                            onChange={v => setForm(f => ({ ...f, ownerId: v ? Number(v) : null }))} options={userOptions} />
                     </div>
                     <div className="flex items-center pb-1.5">
                         <label className="flex items-center gap-2 cursor-pointer">

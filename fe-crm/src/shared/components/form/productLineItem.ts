@@ -46,6 +46,7 @@ export const rowTotal = (r: LineItemRow): number =>
 
 // tổng hợp subtotal/discount/tax/total của toàn bộ dòng
 export const computeTotals = (rows: LineItemRow[]) =>
+    // hàm reduce() khởi tạo acc = { subtotal: 0, discount: 0, tax: 0, total: 0 } và cộng dồn từng dòng
     rows.reduce(
         (acc, r) => ({
             subtotal: acc.subtotal + rowSubtotal(r),
@@ -101,7 +102,9 @@ export const fromItemResult = (it: ItemResultLike): LineItemRow => {
 
 // so sánh dòng gốc (backend) với dòng hiện tại để biết cần tạo/sửa/xóa item nào
 export const diffLineItems = (original: LineItemRow[], current: LineItemRow[]) => {
+    // tìm các dòng đã xóa (có backendId nhưng không còn trong current), các dòng mới (không có backendId) và các dòng sửa (có backendId và productId)
     const curIds = new Set(current.filter((r) => r.backendId).map((r) => r.backendId));
+    // biến toDelete là mảng các backendId của dòng đã xóa, toCreate là mảng các dòng mới (không có backendId), toUpdate là mảng các dòng sửa (có backendId và productId)
     const toDelete = original.filter((r) => r.backendId && !curIds.has(r.backendId)).map((r) => r.backendId as number);
     const toCreate = current.filter((r) => !r.backendId && r.productId);
     const toUpdate = current.filter((r) => r.backendId && r.productId);

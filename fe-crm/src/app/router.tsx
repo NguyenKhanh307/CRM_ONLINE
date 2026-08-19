@@ -58,6 +58,7 @@ const ChamSocPage     = lazy(() => import('@/features/cham-soc/pages/ChamSocPage
 const TicketAddPage   = lazy(() => import('@/features/cham-soc/pages/TicketAddPage'));
 const TicketImportPage = lazy(() => import('@/features/cham-soc/pages/TicketImportPage'));
 const TicketDetailPage = lazy(() => import('@/features/cham-soc/pages/TicketDetailPage'));
+const SlaPolicyPage   = lazy(() => import('@/features/cham-soc/pages/SlaPolicyPage'));
 const ChinhSachGiaPage = lazy(() => import('@/features/chinh-sach-gia/pages/ChinhSachGiaPage'));
 const ChinhSachGiaDetailPage = lazy(() => import('@/features/chinh-sach-gia/pages/ChinhSachGiaDetailPage'));
 const PricePolicyImportPage = lazy(() => import('@/features/chinh-sach-gia/pages/PricePolicyImportPage'));
@@ -120,6 +121,7 @@ export const router = createBrowserRouter([
             { path: '/cham-soc',              element: <Suspense fallback={fallback}><ChamSocPage /></Suspense> },
             { path: '/cham-soc/them-moi',     element: <RequirePermission module="ticket"><Suspense fallback={fallback}><TicketAddPage /></Suspense></RequirePermission> },
             { path: '/cham-soc/nhap-file',    element: <RequirePermission module="ticket"><Suspense fallback={fallback}><TicketImportPage /></Suspense></RequirePermission> },
+            { path: '/cham-soc/sla',          element: <Suspense fallback={fallback}><SlaPolicyPage /></Suspense> },
             { path: '/cham-soc/:id',          element: <Suspense fallback={fallback}><TicketDetailPage /></Suspense> },
             { path: '/chinh-sach-gia',        element: <Suspense fallback={fallback}><ChinhSachGiaPage /></Suspense> },
             { path: '/chinh-sach-gia/nhap-file', element: <RequirePermission module="pricing"><Suspense fallback={fallback}><PricePolicyImportPage /></Suspense></RequirePermission> },

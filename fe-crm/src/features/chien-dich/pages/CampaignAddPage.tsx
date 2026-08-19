@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { collectErrors, dateRangeError, pastDateError } from '@/shared/utils/validators';
+import { collectErrors, dateRangeError, pastDateError, validateOrWarn } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -14,6 +14,7 @@ import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCreateCampaign } from '../hooks/useCreateCampaign';
 import { CAMPAIGN_TYPE_LABELS } from '../config/campaignColumns';
+import { CHANNEL_OPTIONS } from '../config/campaignOptions';
 import type { CreateCampaignPayload } from '../types/campaignTypes';
 
 interface HeaderState {
@@ -70,7 +71,7 @@ const CampaignAddPage = () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
-        if (Object.keys(errs).length > 0) return;
+        if (!validateOrWarn(errs, showAlert)) return;
 
         // bước dựng payload
         const payload: CreateCampaignPayload = {
@@ -121,7 +122,8 @@ const CampaignAddPage = () => {
                                 <SearchableSelect value={form.type} onChange={(v) => set({ type: v })} options={TYPE_OPTIONS} />
                             </FieldRow>
                             <FieldRow label="Kênh">
-                                <input type="text" value={form.channel} onChange={(e) => set({ channel: e.target.value })} className={inputCls} />
+                                <SearchableSelect value={form.channel} onChange={(v) => set({ channel: v })}
+                                    options={CHANNEL_OPTIONS} fallbackLabel={form.channel} />
                             </FieldRow>
                             <FieldRow label="Người phụ trách">
                                 <SearchableSelect value={form.ownerId} onChange={(v) => set({ ownerId: v })} options={userOptions} />
@@ -136,6 +138,9 @@ const CampaignAddPage = () => {
                             </FieldRow>
                             <FieldRow label="Ngân sách">
                                 <input type="number" min={0} value={form.budget} onChange={(e) => set({ budget: e.target.value })} className={inputCls} />
+                            </FieldRow>
+                            <FieldRow label="Chi phí thực tế">
+                                <input type="number" min={0} value={form.actualCost} onChange={(e) => set({ actualCost: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Quy mô mục tiêu">
                                 <input type="number" min={0} value={form.targetSize} onChange={(e) => set({ targetSize: e.target.value })} className={inputCls} />

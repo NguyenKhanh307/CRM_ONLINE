@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { FiEdit2 } from 'react-icons/fi';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FiEdit2, FiTarget, FiUserPlus } from 'react-icons/fi';
 import { ActionButton } from '@/shared/components/ActionButton';
+import { usePermission } from '@/core/permissions/usePermission';
 import { DetailHeader } from '@/shared/components/detail/DetailHeader';
 import { InfoCard } from '@/shared/components/detail/InfoCard';
 import { StatCards, type StatCard } from '@/shared/components/detail/StatCards';
@@ -29,6 +30,8 @@ type TabKey = 'activities' | 'opportunities' | 'items';
 // trang chi tiết Tiềm năng — 2 cột: thông tin + hoạt động/cơ hội đã chuyển đổi
 const LeadDetailPage = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const { can } = usePermission();
     const leadId = Number(id);
     const { data: lead, isLoading } = useLeadDetail(leadId);
     const { data: related } = useLeadRelated(leadId);
@@ -66,7 +69,21 @@ const LeadDetailPage = () => {
                     { label: 'Người phụ trách', value: lead.ownerName },
                 ]}
                 actions={
-                    <ActionButton variant="outline" icon={FiEdit2} onClick={() => setEditOpen(true)}>Sửa</ActionButton>
+                    <>
+                        {can('opportunity', 'create') && (
+                            <ActionButton variant="secondary" icon={FiTarget}
+                                onClick={() => navigate(`/co-hoi/them-moi?fromLead=${lead.id}`)}>
+                                Tạo cơ hội
+                            </ActionButton>
+                        )}
+                        {can('contact', 'create') && (
+                            <ActionButton variant="secondary" icon={FiUserPlus}
+                                onClick={() => navigate(`/lien-he/them-moi?fromLead=${lead.id}`)}>
+                                Tạo liên hệ
+                            </ActionButton>
+                        )}
+                        <ActionButton variant="outline" icon={FiEdit2} onClick={() => setEditOpen(true)}>Sửa</ActionButton>
+                    </>
                 }
             />
 

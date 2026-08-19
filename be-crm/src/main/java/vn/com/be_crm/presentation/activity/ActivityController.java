@@ -17,9 +17,7 @@ import vn.com.be_crm.presentation.activity.request.*;
 import vn.com.be_crm.core.response.ApiResponse;
 import vn.com.be_crm.core.page.PageResponse;
 
-/**
- * REST controller cho nghiệp vụ quản lý hoạt động chăm sóc.
- */
+// REST controller cho nghiệp vụ quản lý hoạt động chăm sóc.
 @RestController
 @RequestMapping("/api/activities")
 public class ActivityController {
@@ -92,8 +90,9 @@ public class ActivityController {
             @RequestParam(defaultValue = "desc") String sortDir,
             @RequestParam(required = false) String q, @RequestParam(required = false) String status) {
         Integer fromYear = (Integer) req.getAttribute("dataAccessFromYear");
-        // Record-level visibility: admin/manager xem tất cả, nhân viên chỉ xem hoạt động mình phụ trách
         Long userId = (Long) req.getAttribute("userId");
+        // Nếu là admin hoặc manager thì không giới hạn ownerId, ngược lại chỉ lấy hoạt
+        // động của chính mình
         boolean privileged = SecurityUtils.isAdminOrManager(SecurityContextHolder.getContext().getAuthentication());
         Long ownerId = privileged ? null : userId;
         PageResult<ActivityResult> result = listUseCase.execute(
@@ -155,7 +154,9 @@ public class ActivityController {
         return ResponseEntity.ok(ApiResponse.ok(importBulkUC.execute(cmd)));
     }
 
-    /** Bắt đầu thực hiện hoạt động (planned → in_progress). @param id ID @return 200 */
+    /**
+     * Bắt đầu thực hiện hoạt động (planned → in_progress). @param id ID @return 200
+     */
     @PostMapping("/{id}/start")
     public ResponseEntity<ApiResponse<ActivityResult>> start(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.start(id)));
@@ -171,5 +172,14 @@ public class ActivityController {
     @PostMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse<ActivityResult>> cancel(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.cancel(id)));
+    }
+
+    /**
+     * Mở lại trạng thái (done → in_progress, cancelled → planned). @param id
+     * ID @return 200
+     */
+    @PostMapping("/{id}/reopen")
+    public ResponseEntity<ApiResponse<ActivityResult>> reopen(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.reopen(id)));
     }
 }

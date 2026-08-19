@@ -1,11 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { customerService } from '../services/customerService';
 
 // lấy toàn bộ bản ghi liên quan của một khách hàng (trang 360°)
 export function useCustomerRelated(id: number | undefined) {
-    return useQuery({
-        queryKey: ['customer', id, 'related'],
-        queryFn: () => customerService.getRelated(id as number).then(r => r.data.data),
-        enabled: id != null && !Number.isNaN(id),
-    });
+    const enabled = id != null && !Number.isNaN(id);
+    return useLiveQuery(`customer:${id}:related`, () => customerService.getRelated(id as number).then(r => r.data.data), enabled);
 }

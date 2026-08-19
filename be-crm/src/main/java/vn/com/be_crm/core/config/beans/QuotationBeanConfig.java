@@ -29,8 +29,9 @@ public class QuotationBeanConfig {
     @Bean public CreateQuotationUseCase createQuotationUseCase(IQuotationRepository r) { return new CreateQuotationUseCase(r); }
     @Bean public UpdateQuotationUseCase updateQuotationUseCase(IQuotationRepository r, IQuotationItemRepository ir, NotifyAssignmentUseCase n) { return new UpdateQuotationUseCase(r, ir, n); }
     @Bean public DeleteQuotationUseCase deleteQuotationUseCase(IQuotationRepository r) { return new DeleteQuotationUseCase(r); }
-    @Bean public GetQuotationUseCase getQuotationUseCase(IQuotationRepository r, IQuotationItemRepository ir, vn.com.be_crm.core.lookup.port.INameResolver n) { return new GetQuotationUseCase(r, ir, n); }
-    @Bean public ListQuotationUseCase listQuotationUseCase(IQuotationRepository r, IQuotationItemRepository ir, vn.com.be_crm.core.lookup.port.INameResolver n) { return new ListQuotationUseCase(r, ir, n); }
+    @Bean public QuotationExpiryUseCase quotationExpiryUseCase(IQuotationRepository r, CreateNotificationUseCase n) { return new QuotationExpiryUseCase(r, n); }
+    @Bean public GetQuotationUseCase getQuotationUseCase(IQuotationRepository r, IQuotationItemRepository ir, vn.com.be_crm.core.lookup.port.INameResolver n, QuotationExpiryUseCase eu) { return new GetQuotationUseCase(r, ir, n, eu); }
+    @Bean public ListQuotationUseCase listQuotationUseCase(IQuotationRepository r, IQuotationItemRepository ir, vn.com.be_crm.core.lookup.port.INameResolver n, QuotationExpiryUseCase eu) { return new ListQuotationUseCase(r, ir, n, eu); }
 
     // ===== Quotation Item =====
 
@@ -68,8 +69,8 @@ public class QuotationBeanConfig {
             IContactRepository cor, IQuotationPdfService pdf, vn.com.be_crm.application.quotation.pdf.QuotationPdfDataBuilder pdfDataBuilder,
             vn.com.be_crm.application.quotation.email.QuotationEmailComposer composer,
             @Value("${app.frontend.base-url}") String frontendBaseUrl,
-            ITransactionRunner tx, ConvertQuotationToOrderUseCase convertToOrderUC) {
-        return new QuotationWorkflowUseCase(qr, ar, nuc, mr, es, cor, pdf, pdfDataBuilder, composer, frontendBaseUrl, tx, convertToOrderUC);
+            ITransactionRunner tx) {
+        return new QuotationWorkflowUseCase(qr, ar, nuc, mr, es, cor, pdf, pdfDataBuilder, composer, frontendBaseUrl, tx);
     }
 
     @Bean public PreviewQuotationPdfUseCase previewQuotationPdfUseCase(IQuotationRepository qr, IQuotationPdfService pdf,
@@ -78,10 +79,22 @@ public class QuotationBeanConfig {
         return new PreviewQuotationPdfUseCase(qr, pdf, pdfDataBuilder, composer);
     }
 
-    // khách phản hồi báo giá (đồng ý/điều chỉnh/không đồng ý, tự sinh đơn hàng khi đồng ý)
+    // khách phản hồi báo giá (đồng ý/không đồng ý — đồng ý tự sinh đơn hàng + tự đặt primary)
     @Bean public RespondToQuotationUseCase respondToQuotationUseCase(IQuotationRepository qr, CreateNotificationUseCase nuc,
-            ConvertQuotationToOrderUseCase convertToOrderUC, ITransactionRunner tx) {
-        return new RespondToQuotationUseCase(qr, nuc, convertToOrderUC, tx);
+            ConvertQuotationToOrderUseCase convertToOrderUC, SetPrimaryQuotationUseCase setPrimaryUC, ITransactionRunner tx) {
+        return new RespondToQuotationUseCase(qr, nuc, convertToOrderUC, setPrimaryUC, tx);
+    }
+
+    // khách "Chỉnh sửa" báo giá — chỉ lưu đề xuất (không đụng quotation_items)
+    @Bean public ProposeQuotationAdjustmentUseCase proposeQuotationAdjustmentUseCase(IQuotationRepository qr,
+            IQuotationItemRepository qir, CreateNotificationUseCase nuc, ITransactionRunner tx) {
+        return new ProposeQuotationAdjustmentUseCase(qr, qir, nuc, tx);
+    }
+
+    // nhân viên bấm "Tạo báo giá mới theo yêu cầu khách" — sinh báo giá mới từ đề xuất, khóa báo giá cũ
+    @Bean public CreateQuotationFromAdjustmentUseCase createQuotationFromAdjustmentUseCase(IQuotationRepository qr,
+            IQuotationItemRepository qir, ITransactionRunner tx) {
+        return new CreateQuotationFromAdjustmentUseCase(qr, qir, tx);
     }
 
     // xem báo giá công khai theo mã (code)
@@ -90,12 +103,8 @@ public class QuotationBeanConfig {
         return new GetQuotationByCodeUseCase(qr, qir, pr, cr, cor);
     }
 
-    // ===== Quotation <-> Opportunity <-> Order (clone / primary / sync / convert) =====
+    // ===== Quotation <-> Opportunity <-> Order (primary / sync / convert) =====
 
-    @Bean public CreateQuotationFromOpportunityUseCase createQuotationFromOpportunityUseCase(
-            IQuotationRepository qr, IOpportunityRepository or, IOpportunityItemRepository oir) {
-        return new CreateQuotationFromOpportunityUseCase(qr, or, oir);
-    }
     @Bean public RefreshQuotationItemsFromOpportunityUseCase refreshQuotationItemsFromOpportunityUseCase(
             IQuotationRepository qr, IQuotationItemRepository qir, IOpportunityItemRepository oir,
             ITransactionRunner tx) {
@@ -109,12 +118,19 @@ public class QuotationBeanConfig {
             RecomputeOpportunityAmountUseCase ruc, ITransactionRunner tx) {
         return new SyncQuotationToOpportunityUseCase(qr, qir, oir, ruc, tx);
     }
+    // dùng NỘI BỘ bởi RespondToQuotationUseCase (khách tự đồng ý qua trang công khai, không có ai
+    // ngồi điền AddPage nên vẫn cần tự sinh cả đơn hàng) — không còn lộ ra REST endpoint riêng
     @Bean public ConvertQuotationToOrderUseCase convertQuotationToOrderUseCase(
             IQuotationRepository qr, IQuotationItemRepository qir,
             vn.com.be_crm.domain.order.repository.IOrderRepository ordr, IOpportunityRepository or,
             vn.com.be_crm.application.lead.command.NotifyLeadFirstOrderUseCase notifyLeadFirstOrderUC,
             ITransactionRunner tx) {
         return new ConvertQuotationToOrderUseCase(qr, qir, ordr, or, notifyLeadFirstOrderUC, tx);
+    }
+    // nhân viên tự tay chuyển báo giá thành đơn hàng qua AddPage — chỉ khóa báo giá + cơ hội won
+    @Bean public MarkQuotationConvertedUseCase markQuotationConvertedUseCase(
+            IQuotationRepository qr, IOpportunityRepository or, ITransactionRunner tx) {
+        return new MarkQuotationConvertedUseCase(qr, or, tx);
     }
 
     // ===== Trash =====
@@ -126,5 +142,5 @@ public class QuotationBeanConfig {
     // ===== Handover & Import =====
 
     @Bean public HandoverBulkQuotationUseCase handoverBulkQuotationUseCase(IQuotationRepository r, NotifyAssignmentUseCase n) { return new HandoverBulkQuotationUseCase(r, n); }
-    @Bean public ImportBulkQuotationUseCase importBulkQuotationUseCase(IQuotationRepository r) { return new ImportBulkQuotationUseCase(r); }
+    @Bean public ImportBulkQuotationUseCase importBulkQuotationUseCase(IQuotationRepository r, ITransactionRunner tx) { return new ImportBulkQuotationUseCase(r, tx); }
 }

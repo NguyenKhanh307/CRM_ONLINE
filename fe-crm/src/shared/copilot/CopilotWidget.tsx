@@ -66,9 +66,15 @@ export const CopilotWidget = () => {
     };
 
     // bấm nút link trong bong bóng (vd "Xem biểu đồ so sánh") -> điều hướng + đóng hộp
+    // biểu đồ (nếu có) đi kèm qua React Router state (nhanh, cùng SPA) — đồng thời lưu thêm vào
+    // sessionStorage để trang /phan-tich vẫn dựng lại được biểu đồ nếu người dùng bấm F5/vào lại
+    // URL trực tiếp (state bị mất khi đó, sessionStorage thì không)
     const handleActionClick = (action: CopilotAction) => {
         setOpen(false);
-        navigate(action.route);
+        if (action.chart) {
+            try { sessionStorage.setItem('copilot:lastChart', JSON.stringify(action.chart)); } catch { /* im lặng */ }
+        }
+        navigate(action.route, action.chart ? { state: { chart: action.chart } } : undefined);
     };
 
     // Enter để gửi, Shift+Enter để xuống dòng

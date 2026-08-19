@@ -18,15 +18,19 @@ public class GetQuotationUseCase implements IUseCase<Long, QuotationResult> {
     private final IQuotationRepository repo;
     private final IQuotationItemRepository itemRepo;
     private final INameResolver names;
+    private final QuotationExpiryUseCase expiryUC;
 
-    public GetQuotationUseCase(IQuotationRepository repo, IQuotationItemRepository itemRepo, INameResolver names) {
+    public GetQuotationUseCase(IQuotationRepository repo, IQuotationItemRepository itemRepo, INameResolver names,
+                                QuotationExpiryUseCase expiryUC) {
         this.repo = repo;
         this.itemRepo = itemRepo;
         this.names = names;
+        this.expiryUC = expiryUC;
     }
 
     @Override public QuotationResult execute(Long id) {
         var e = repo.findById(id).orElseThrow(() -> new NotFoundException("Quotation not found: " + id));
+        e = expiryUC.checkAndExpire(e);
         QuotationResult result = QuotationCommandMapper.toResult(e);
         List<QuotationItem> items = itemRepo.findAllByQuotationId(id);
         LineItemTotals.Totals t = LineItemTotals.compute(items,

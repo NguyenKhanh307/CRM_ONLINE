@@ -25,24 +25,27 @@ interface DetailHeaderProps {
 // card header dùng chung cho mọi trang chi tiết: nút quay lại, tiêu đề, badge, hàng meta, nhóm nút
 export const DetailHeader = ({ backTo, backLabel = 'Quay lại danh sách', title, badge, meta, actions }: DetailHeaderProps) => {
     const navigate = useNavigate();
+    // lọc ra các meta có value khác null/undefined/rỗng để hiển thị
     const shown = (meta ?? []).filter(m => m.value !== null && m.value !== undefined && m.value !== '');
-
     return (
         <>
+            {/* nút quay lại danh sách */}
             <button
                 onClick={() => navigate(backTo)}
                 className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-4"
             >
                 <FiArrowLeft size={14} /> {backLabel}
             </button>
-
+            {/* card header: tiêu đề + badge + meta + actions */}
             <div className="bg-white rounded-card shadow-sm p-5 mb-4">
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-3">
+                            {/* tiêu đề + badge */}
                             <h1 className="text-xl font-semibold text-text-main truncate">{title}</h1>
                             {badge}
                         </div>
+                        {/* hàng meta */}
                         {shown.length > 0 && (
                             <div className="text-sm text-gray-500 flex flex-wrap gap-x-4 gap-y-1">
                                 {shown.map(m => (
@@ -53,6 +56,7 @@ export const DetailHeader = ({ backTo, backLabel = 'Quay lại danh sách', titl
                             </div>
                         )}
                     </div>
+                    {/* nhóm nút hành động bên phải */}
                     {actions && <div className="flex items-center gap-1.5 shrink-0">{actions}</div>}
                 </div>
             </div>

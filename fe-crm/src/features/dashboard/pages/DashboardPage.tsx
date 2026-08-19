@@ -4,16 +4,17 @@ import { useAuth } from '@/core/auth/useAuth';
 import type { MoneyUnit } from '@/shared/utils/number';
 import type { DashboardPeriod } from '../types/dashboardTypes';
 import { useAdminDashboard } from '../hooks/useAdminDashboard';
-import { useManagerDashboard } from '../hooks/useManagerDashboard';
-import { useSaleDashboard } from '../hooks/useSaleDashboard';
 import { PeriodSelect, UnitSelect, PERIOD_LABEL } from '../components/Selectors';
 import { AdminDashboardView } from '../components/AdminDashboardView';
-import { SalesDashboardView } from '../components/SalesDashboardView';
+import { ManagerDashboardView } from '../components/ManagerDashboardView';
+import { StaffDashboardView } from '../components/StaffDashboardView';
 
 type Role = 'admin' | 'manager' | 'sale';
 
 /**
  * Trang "Bàn làm việc" — chọn dashboard theo vai trò ưu tiên (ADMIN → Manager → Sale).
+ * Manager/Sale tự quản lý dữ liệu + trạng thái tải bên trong view riêng của mình (mỗi khối 1 hook),
+ * chỉ ADMIN còn dùng pattern loading/error tập trung ở đây (dữ liệu hệ thống, 1 truy vấn duy nhất).
  */
 const DashboardPage = () => {
     const { hasRole } = usePermission();
@@ -22,12 +23,7 @@ const DashboardPage = () => {
     const [unit, setUnit] = useState<MoneyUnit>('vnd');
 
     const role: Role = hasRole('ADMIN') ? 'admin' : hasRole('SALES_MANAGER') ? 'manager' : 'sale';
-
     const admin = useAdminDashboard(period, role === 'admin');
-    const manager = useManagerDashboard(period, role === 'manager');
-    const sale = useSaleDashboard(period, role === 'sale');
-
-    const active = role === 'admin' ? admin : role === 'manager' ? manager : sale;
     const periodLabel = PERIOD_LABEL[period];
 
     return (
@@ -43,22 +39,15 @@ const DashboardPage = () => {
                 </div>
             </div>
 
-            {active.isLoading && <div className="text-gray-400 py-10 text-center">Đang tải dữ liệu…</div>}
-            {active.isError && (
-                <div className="text-danger py-10 text-center">Không tải được dữ liệu bảng điều khiển.</div>
+            {role === 'admin' && (
+                <>
+                    {admin.isLoading && <div className="text-gray-400 py-10 text-center">Đang tải dữ liệu…</div>}
+                    {admin.isError && <div className="text-danger py-10 text-center">Không tải được dữ liệu bảng điều khiển.</div>}
+                    {admin.data && <AdminDashboardView data={admin.data} periodLabel={periodLabel} onRefresh={() => admin.refetch()} />}
+                </>
             )}
-
-            {role === 'admin' && admin.data && (
-                <AdminDashboardView data={admin.data} periodLabel={periodLabel} onRefresh={() => admin.refetch()} />
-            )}
-            {role === 'manager' && manager.data && (
-                <SalesDashboardView data={manager.data} unit={unit} periodLabel={periodLabel}
-                                    onRefresh={() => manager.refetch()} showTeam />
-            )}
-            {role === 'sale' && sale.data && (
-                <SalesDashboardView data={sale.data} unit={unit} periodLabel={periodLabel}
-                                    onRefresh={() => sale.refetch()} showTeam={false} />
-            )}
+            {role === 'manager' && <ManagerDashboardView period={period} unit={unit} periodLabel={periodLabel} />}
+            {role === 'sale' && <StaffDashboardView period={period} unit={unit} periodLabel={periodLabel} />}
         </div>
     );
 };

@@ -9,6 +9,7 @@ import java.util.Set;
  * Trạng thái đơn hàng theo vòng đời chốt bán:
  * draft → confirmed → processing → completed; có thể cancelled ở các bước trước khi hoàn tất.
  * completed đạt được khi đơn hàng đã xuất hóa đơn.
+ * Mở lại (phòng lỡ bấm nhầm, chỉ khi đơn chưa `isLocked`): completed → processing, cancelled → draft.
  */
 public enum OrderStatus {
     draft, confirmed, processing, completed, cancelled;
@@ -18,8 +19,8 @@ public enum OrderStatus {
             draft, Set.of(confirmed, cancelled),
             confirmed, Set.of(processing, completed, cancelled),
             processing, Set.of(completed, cancelled),
-            completed, Set.of(),
-            cancelled, Set.of()
+            completed, Set.of(processing),
+            cancelled, Set.of(draft)
     );
 
     /**

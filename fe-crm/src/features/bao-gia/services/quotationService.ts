@@ -57,15 +57,19 @@ export const quotationService = {
     // khách chấp nhận báo giá (sent -> accepted)
     accept: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/accept`),
+    // mở lại khi lỡ bấm nhầm chấp nhận (accepted -> sent)
+    reopen: (id: number) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/reopen`),
     // đặt báo giá làm báo giá đồng bộ (primary) của cơ hội
     setPrimary: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/set-primary`),
-    // chuyển báo giá thành đơn hàng (khóa báo giá + cơ hội Chốt Thắng)
-    convertToOrder: (id: number) =>
-        axiosInstance.post<ApiResponse<unknown>>(`/api/quotations/${id}/convert-to-order`),
-    // clone báo giá từ cơ hội (sao chép sâu KH/LH/chính sách giá + dòng hàng)
-    fromOpportunity: (opportunityId: number) =>
-        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/from-opportunity/${opportunityId}`),
+    // tạo báo giá mới từ đề xuất chỉnh sửa của khách (khóa báo giá cũ)
+    createRevision: (id: number) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/create-revision`),
+    // đánh dấu báo giá đã chuyển thành đơn hàng (Đơn hàng tạo riêng qua AddPage) — chỉ khóa báo
+    // giá + chuyển cơ hội liên quan sang Chốt Thắng
+    markConverted: (id: number) =>
+        axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/mark-converted`),
     // cập nhật lại dòng hàng báo giá theo cơ hội nguồn (xóa + clone lại, giữ liên kết)
     syncItemsFromOpportunity: (id: number) =>
         axiosInstance.post<ApiResponse<QuotationResult>>(`/api/quotations/${id}/sync-items-from-opportunity`),

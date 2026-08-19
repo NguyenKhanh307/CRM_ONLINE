@@ -1,11 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { userService } from '../services/userService';
 
 // lấy danh sách user active — dùng cho dropdown người phụ trách / chủ sở hữu
 export function useActiveUsers(enabled = true) {
-    return useQuery({
-        queryKey: ['users-active'],
-        queryFn: () => userService.listActive().then((r) => r.data.data.items),
-        enabled,
-    });
+    return useLiveQuery('users-active', () => userService.listActive().then((r) => r.data.data.items), enabled);
 }

@@ -1,12 +1,14 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { quotationService } from '../services/quotationService';
 import type { CreateQuotationPayload } from '../types/quotationTypes';
 
-// tạo mới báo giá — invalidate danh sách sau khi thành công
+// tạo mới báo giá — báo danh sách làm mới sau khi thành công
 export function useCreateQuotation() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: (payload: CreateQuotationPayload) => quotationService.create(payload),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['quotations'] }),
-    });
+    const { mutate: run, isPending } = useLiveMutation((payload: CreateQuotationPayload) => quotationService.create(payload));
+
+    const mutate: typeof run = (payload, callbacks) =>
+        run(payload, { ...callbacks, onSuccess: (data) => { notify('quotations'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
 }

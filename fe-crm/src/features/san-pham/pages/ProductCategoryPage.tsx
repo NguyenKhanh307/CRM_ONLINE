@@ -130,7 +130,7 @@ const ProductCategoryPage = () => {
                                     <td className="px-3 py-2 text-gray-500">{c.code}</td>
                                     <td className="px-3 py-2 font-medium text-text-main">{c.name}</td>
                                     <td className="px-3 py-2">{c.sortOrder}</td>
-                                    <td className="px-3 py-2">
+                                    <td className="px-3 py-2 whitespace-nowrap">
                                         {c.isActive
                                             ? <span className="px-2 py-0.5 rounded text-sm bg-green-100 text-green-700">Đang hoạt động</span>
                                             : <span className="px-2 py-0.5 rounded text-sm bg-gray-100 text-gray-600">Ngừng hoạt động</span>}

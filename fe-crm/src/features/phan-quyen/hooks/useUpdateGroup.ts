@@ -1,14 +1,15 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { phanQuyenService } from '../services/phanQuyenService';
 
-// cập nhật tên/mô tả nhóm người dùng
-export const useUpdateGroup = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, name, description }: { id: number; name: string; description?: string }) =>
-            phanQuyenService.updateRole(id, { name, description }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['roleGroups'] });
-        },
-    });
-};
+// cập nhật tên/mô tả nhóm người dùng — báo danh sách nhóm làm mới sau khi thành công
+export function useUpdateGroup() {
+    const { mutate: run, isPending } = useLiveMutation(
+        ({ id, name, description }: { id: number; name: string; description?: string }) =>
+            phanQuyenService.updateRole(id, { name, description }));
+
+    const mutate: typeof run = (input, callbacks) =>
+        run(input, { ...callbacks, onSuccess: (data) => { notify('role-groups'); callbacks?.onSuccess?.(data); } });
+
+    return { mutate, isPending };
+}

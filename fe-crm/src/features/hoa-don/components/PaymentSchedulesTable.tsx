@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { FiPlus, FiTrash2, FiSave } from 'react-icons/fi';
 import { DateInput } from '@/shared/components/form/DateInput';
+import { SearchableSelect, type SelectOption } from '@/shared/components/SearchableSelect';
+import { ScrollFrame } from '@/shared/components/table/ScrollFrame';
 import { useConfirm } from '@/shared/confirm/useConfirm';
+import { useVietQrBanks } from '@/shared/lookup/useVietQrBanks';
 import { formatNumber } from '@/shared/utils/number';
 import { nonNegativeError } from '@/shared/utils/validators';
 import { useInvoicePayments } from '../hooks/useInvoicePayments';
@@ -16,7 +19,9 @@ interface Props {
 const STATUS_LABELS: Record<PaymentScheduleStatus, string> = {
     pending: 'Chờ thu', partial: 'Một phần', paid: 'Đã thu', overdue: 'Quá hạn',
 };
-const STATUS_OPTIONS: PaymentScheduleStatus[] = ['pending', 'partial', 'paid', 'overdue'];
+// chỉ cho chọn 2 trạng thái — "Một phần"/"Quá hạn" giữ trong STATUS_LABELS để dòng dữ liệu cũ
+// (nếu có) vẫn hiện được tên, nhưng không còn là lựa chọn hợp lệ khi tạo/sửa
+const STATUS_OPTIONS: PaymentScheduleStatus[] = ['pending', 'paid'];
 
 const inp = 'w-full border border-gray-300 rounded-btn px-2 py-1 text-sm text-text-main focus:outline-none focus:border-primary';
 
@@ -28,7 +33,10 @@ function overpayError(otherPaid: number, value: number | null, invoiceTotal: num
 }
 
 // một dòng đợt thanh toán đã tồn tại — chỉnh sửa tại chỗ rồi lưu
-function ScheduleRow({ invoiceId, s, otherPaid, invoiceTotal }: { invoiceId: number; s: InvoicePaymentScheduleResult; otherPaid: number; invoiceTotal: number }) {
+function ScheduleRow({ invoiceId, s, otherPaid, invoiceTotal, bankOptions, banksLoading }: {
+    invoiceId: number; s: InvoicePaymentScheduleResult; otherPaid: number; invoiceTotal: number;
+    bankOptions: SelectOption[]; banksLoading: boolean;
+}) {
     const { update, remove } = useInvoicePayments(invoiceId);
     const { confirmSave, confirmDelete } = useConfirm();
     const [form, setForm] = useState<PaymentSchedulePayload>({
@@ -67,7 +75,8 @@ function ScheduleRow({ invoiceId, s, otherPaid, invoiceTotal }: { invoiceId: num
                 </select>
             </td>
             <td className="px-2 py-1 border-b border-gray-100">
-                <input className={inp} placeholder="Ngân hàng" value={form.bankName ?? ''} onChange={(e) => setForm((f) => ({ ...f, bankName: e.target.value || null }))} />
+                <SearchableSelect value={form.bankName ?? ''} onChange={(v) => setForm((f) => ({ ...f, bankName: v || null }))}
+                    options={bankOptions} fallbackLabel={form.bankName ?? undefined} placeholder="— Chọn ngân hàng —" loading={banksLoading} />
             </td>
             <td className="px-2 py-1 border-b border-gray-100">
                 <input className={inp} placeholder="Số TK" value={form.bankAccount ?? ''} onChange={(e) => setForm((f) => ({ ...f, bankAccount: e.target.value || null }))} />
@@ -96,13 +105,15 @@ function ScheduleRow({ invoiceId, s, otherPaid, invoiceTotal }: { invoiceId: num
 export function PaymentSchedulesTable({ invoiceId, invoiceTotal }: Props) {
     const { list, add } = useInvoicePayments(invoiceId);
     const { confirmCreate } = useConfirm();
+    const { options: bankOptions, loading: banksLoading } = useVietQrBanks();
     const schedules = list.data ?? [];
     const [draft, setDraft] = useState<PaymentSchedulePayload>({
         installmentNo: null, dueDate: null, amount: null, paidAmount: null, status: 'pending', bankName: null, bankAccount: null, note: null,
     });
     const [draftError, setDraftError] = useState<string | null>(null);
 
-    const totalPaid = schedules.reduce((s, x) => s + (x.paidAmount ?? 0), 0);
+    // chỉ đợt đã "Đã thu" mới tính vào tổng — đợt "Chờ thu" dù đã gõ số tiền vẫn chưa được cộng
+    const totalPaid = schedules.filter((s) => s.status === 'paid').reduce((s, x) => s + (x.paidAmount ?? 0), 0);
     const remaining = Math.max(invoiceTotal - totalPaid, 0);
 
     const submitAdd = async () => {
@@ -121,24 +132,25 @@ export function PaymentSchedulesTable({ invoiceId, invoiceTotal }: Props) {
 
     return (
         <div className="space-y-2">
-            <div className="overflow-x-auto border border-gray-200 rounded-section">
-                <table className="w-full border-collapse" style={{ minWidth: 560 }}>
+            <ScrollFrame visibleRows={5} headBg="gray" className="border border-gray-200 rounded-section">
+                <table className="w-full border-collapse" style={{ minWidth: 1020 }}>
                     <thead>
                         <tr className="bg-gray-100 text-sm text-text-main">
                             <th className="px-2 py-2 text-center" style={{ width: 44 }}>Đợt</th>
-                            <th className="px-2 py-2 text-left">Hạn thu</th>
-                            <th className="px-2 py-2 text-right">Đã thu</th>
+                            <th className="px-2 py-2 text-left" style={{ width: 170 }}>Hạn thu</th>
+                            <th className="px-2 py-2 text-right" style={{ width: 140 }}>Đã thu</th>
                             <th className="px-2 py-2 text-left" style={{ width: 120 }}>Trạng thái</th>
-                            <th className="px-2 py-2 text-left" style={{ width: 120 }}>Ngân hàng</th>
-                            <th className="px-2 py-2 text-left" style={{ width: 120 }}>Số TK</th>
-                            <th className="px-2 py-2 text-left">Ghi chú</th>
+                            <th className="px-2 py-2 text-left" style={{ width: 150 }}>Ngân hàng</th>
+                            <th className="px-2 py-2 text-left" style={{ width: 170 }}>Số TK</th>
+                            <th className="px-2 py-2 text-left" style={{ minWidth: 140 }}>Ghi chú</th>
                             <th className="px-2 py-2 text-center" style={{ width: 80 }} />
                         </tr>
                     </thead>
                     <tbody>
                         {schedules.map((s) => (
                             <ScheduleRow key={s.id} invoiceId={invoiceId} s={s} invoiceTotal={invoiceTotal}
-                                otherPaid={totalPaid - (s.paidAmount ?? 0)} />
+                                otherPaid={totalPaid - (s.status === 'paid' ? (s.paidAmount ?? 0) : 0)}
+                                bankOptions={bankOptions} banksLoading={banksLoading} />
                         ))}
                         {schedules.length === 0 && (
                             <tr><td colSpan={8} className="px-2 py-3 text-center text-sm text-gray-400">Chưa có đợt thanh toán nào</td></tr>
@@ -156,7 +168,10 @@ export function PaymentSchedulesTable({ invoiceId, invoiceTotal }: Props) {
                                     {STATUS_OPTIONS.map((o) => <option key={o} value={o}>{STATUS_LABELS[o]}</option>)}
                                 </select>
                             </td>
-                            <td className="px-2 py-1"><input className={inp} placeholder="Ngân hàng" value={draft.bankName ?? ''} onChange={(e) => setDraft((f) => ({ ...f, bankName: e.target.value || null }))} /></td>
+                            <td className="px-2 py-1">
+                                <SearchableSelect value={draft.bankName ?? ''} onChange={(v) => setDraft((f) => ({ ...f, bankName: v || null }))}
+                                    options={bankOptions} fallbackLabel={draft.bankName ?? undefined} placeholder="— Chọn ngân hàng —" loading={banksLoading} />
+                            </td>
                             <td className="px-2 py-1"><input className={inp} placeholder="Số TK" value={draft.bankAccount ?? ''} onChange={(e) => setDraft((f) => ({ ...f, bankAccount: e.target.value || null }))} /></td>
                             <td className="px-2 py-1"><input className={inp} value={draft.note ?? ''} onChange={(e) => setDraft((f) => ({ ...f, note: e.target.value || null }))} /></td>
                             <td className="px-2 py-1 text-center">
@@ -169,7 +184,7 @@ export function PaymentSchedulesTable({ invoiceId, invoiceTotal }: Props) {
                         </tr>
                     </tbody>
                 </table>
-            </div>
+            </ScrollFrame>
             <div className="text-sm text-text-main text-right space-x-6">
                 <span>Tổng hóa đơn: <b>{formatNumber(invoiceTotal)}</b></span>
                 <span>Đã thu: <b className="text-primary">{formatNumber(totalPaid)}</b></span>

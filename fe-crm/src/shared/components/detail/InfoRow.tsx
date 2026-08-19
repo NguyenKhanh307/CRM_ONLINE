@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-
+// một dòng thông tin trong panel thông tin của trang chi tiết: nhãn + giá trị
 interface InfoRowProps {
     label: string;
     // giá trị; rỗng/null sẽ hiện dấu "—"
@@ -9,8 +9,10 @@ interface InfoRowProps {
 // dòng "nhãn — giá trị" trong panel thông tin của trang chi tiết
 export const InfoRow = ({ label, value }: InfoRowProps) => (
     <div className="flex gap-2 py-1.5 border-b border-gray-100 last:border-0">
+        {/* nhãn (cột trái) + giá trị (cột phải) */}
         <span className="w-40 shrink-0 text-sm text-gray-500">{label}</span>
         <span className="text-table text-text-main break-words">
+            {/* nếu value rỗng/null/undefined thì hiện dấu "—" */}
             {value === null || value === undefined || value === '' ? '—' : value}
         </span>
     </div>

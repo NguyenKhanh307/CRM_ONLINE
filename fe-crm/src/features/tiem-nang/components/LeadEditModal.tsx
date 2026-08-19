@@ -11,7 +11,7 @@ import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import type { LeadResult, UpdateLeadPayload } from '../types/leadTypes';
 import { useUpdateLead } from '../hooks/useUpdateLead';
 import { useCampaignList } from '@/features/chien-dich/hooks/useCampaignList';
-import { SOURCE_OPTIONS } from '../config/leadOptions';
+import { LEAD_TYPE_OPTIONS, SOURCE_OPTIONS } from '../config/leadOptions';
 import { LeadItemsPanel } from './LeadItemsPanel';
 
 interface Props {
@@ -114,7 +114,7 @@ export function LeadEditModal({ item, onClose }: Props) {
                         <div>
                             <label className={lbl}>Trạng thái</label>
                             <SearchableSelect
-                                value={form.status}
+                                value={form.status ?? ''}
                                 onChange={v => setForm(f => ({ ...f, status: v || 'new' }))}
                                 options={LEAD_STATUS_OPTIONS}
                             />
@@ -184,7 +184,8 @@ export function LeadEditModal({ item, onClose }: Props) {
                         </div>
                         <div>
                             <label className={lbl}>Loại tiềm năng</label>
-                            <input className={inp} value={form.leadType ?? ''} onChange={e => setForm(f => ({ ...f, leadType: e.target.value || null }))} />
+                            <SearchableSelect options={LEAD_TYPE_OPTIONS} value={form.leadType ?? ''}
+                                onChange={v => setForm(f => ({ ...f, leadType: v || null }))} />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">

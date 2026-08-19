@@ -47,8 +47,8 @@ export const StepUploadFile = ({ fields, onParsed }: Props) => {
     const processFile = (file: File) => {
         setError(null);
         const ext = file.name.split('.').pop()?.toLowerCase();
-        if (!['xlsx', 'xls', 'csv'].includes(ext ?? '')) {
-            setError('Chỉ hỗ trợ file .xlsx, .xls, .csv');
+        if (!['xlsx', 'xls'].includes(ext ?? '')) {
+            setError('Chỉ hỗ trợ file .xlsx, .xls');
             return;
         }
         if (file.size > MAX_SIZE_MB * 1024 * 1024) {
@@ -101,11 +101,11 @@ export const StepUploadFile = ({ fields, onParsed }: Props) => {
                     <p className="text-md text-gray-600 text-center">
                         Kéo và thả tài liệu vào đây hoặc <span className="text-primary font-medium">Chọn file của bạn</span>
                     </p>
-                    <p className="text-sm text-gray-400">Chúng tôi hỗ trợ các file .csv, .xls và .xlsx</p>
+                    <p className="text-sm text-gray-400">Chúng tôi hỗ trợ các file .xls và .xlsx</p>
                     <input
                         ref={inputRef}
                         type="file"
-                        accept=".xlsx,.xls,.csv"
+                        accept=".xlsx,.xls"
                         className="hidden"
                         onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); }}
                     />
@@ -120,7 +120,7 @@ export const StepUploadFile = ({ fields, onParsed }: Props) => {
                     <p className="text-md font-medium text-success">Tải file thành công</p>
                     <p className="text-md text-gray-600">{parsed.fileName}</p>
                     <p className="text-sm text-gray-400">{parsed.rows.length} dòng dữ liệu</p>
-                    <input ref={inputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden"
+                    <input ref={inputRef} type="file" accept=".xlsx,.xls" className="hidden"
                         onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); }} />
                 </div>
             )}

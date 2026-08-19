@@ -107,6 +107,13 @@ public class InvoiceController {
         return ResponseEntity.ok(ApiResponse.ok(workflowUC.cancel(id)));
     }
 
+    /** Mở lại khi lỡ bấm nhầm hủy (cancelled → draft). @param id ID @return 200 */
+    @PreAuthorize("hasAuthority('invoice.approve')")
+    @PostMapping("/{id}/reopen")
+    public ResponseEntity<ApiResponse<InvoiceResult>> reopen(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(workflowUC.reopen(id)));
+    }
+
     /** Xóa mềm đơn hàng. @param id ID @param req HTTP request @return 204 */
     @PreAuthorize("hasAuthority('invoice.delete')")
     @DeleteMapping("/{id}")

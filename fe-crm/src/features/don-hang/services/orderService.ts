@@ -44,6 +44,8 @@ export const orderService = {
     complete: (id: number) => axiosInstance.post<ApiResponse<OrderResult>>(`/api/orders/${id}/complete`),
     // hủy đơn hàng (-> cancelled)
     cancel: (id: number) => axiosInstance.post<ApiResponse<OrderResult>>(`/api/orders/${id}/cancel`),
-    // xuất hóa đơn từ đơn hàng (1-1)
-    createInvoice: (id: number) => axiosInstance.post<ApiResponse<unknown>>(`/api/orders/${id}/create-invoice`),
+    // mở lại khi lỡ bấm nhầm (completed -> processing, cancelled -> draft)
+    reopen: (id: number) => axiosInstance.post<ApiResponse<OrderResult>>(`/api/orders/${id}/reopen`),
+    // đánh dấu đơn hàng đã xuất hóa đơn (Hóa đơn tạo riêng qua AddPage) — chỉ khóa đơn + hoàn tất
+    markConverted: (id: number) => axiosInstance.post<ApiResponse<OrderResult>>(`/api/orders/${id}/mark-converted`),
 };

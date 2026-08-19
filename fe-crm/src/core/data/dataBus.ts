@@ -12,6 +12,8 @@ export function subscribe(key: string, cb: Listener) {
 // đánh thức cả 'leads' lẫn 'leads:paged:...', không đánh thức 'lead:5')
 export function notify(prefix: string) {
     for (const [key, cbs] of listeners) {
+        // prefix là key hoặc là cha của key thì gọi callback
+        // nếu key đang lắng nghe là prefix hoặc là con của prefix thì gọi callback
         if (key === prefix || key.startsWith(prefix + ':')) cbs.forEach((cb) => cb());
     }
 }

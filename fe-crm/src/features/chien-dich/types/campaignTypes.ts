@@ -86,6 +86,7 @@ export interface CampaignStatsResult {
     orderCount: number;
     revenue: number | null;
     actualCost: number | null;
+    expectedRevenue: number | null;
 }
 
 export interface SendCampaignEmailPayload {

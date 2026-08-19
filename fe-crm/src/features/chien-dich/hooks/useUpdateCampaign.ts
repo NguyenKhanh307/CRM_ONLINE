@@ -1,16 +1,18 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveMutation } from '@/core/data/useLiveMutation';
+import { notify } from '@/core/data/dataBus';
 import { campaignService } from '../services/campaignService';
 import type { UpdateCampaignPayload } from '../types/campaignTypes';
 
-// cập nhật Chiến dịch — invalidate cả danh sách lẫn chi tiết sau khi thành công
+// cập nhật Chiến dịch — báo danh sách VÀ trang chi tiết đang mở làm mới sau khi thành công
 export function useUpdateCampaign() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, payload }: { id: number; payload: UpdateCampaignPayload }) =>
-            campaignService.update(id, payload),
-        onSuccess: (_d, v) => {
-            qc.invalidateQueries({ queryKey: ['campaigns'] });
-            qc.invalidateQueries({ queryKey: ['campaign', v.id] });
-        },
-    });
+    const { mutate: run, isPending } = useLiveMutation(
+        ({ id, payload }: { id: number; payload: UpdateCampaignPayload }) => campaignService.update(id, payload));
+
+    const mutate: typeof run = (input, callbacks) =>
+        run(input, {
+            ...callbacks,
+            onSuccess: (data) => { notify('campaigns'); notify(`campaign:${input.id}`); callbacks?.onSuccess?.(data); },
+        });
+
+    return { mutate, isPending };
 }

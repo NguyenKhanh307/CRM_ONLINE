@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { FiMoreHorizontal, FiX, FiUser } from 'react-icons/fi';
-import { userService } from '@/features/users/services/userService';
+import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useHandoverAll } from '@/features/users/hooks/useHandoverAll';
+import { useAuth } from '@/core/auth/useAuth';
+import { usePermission } from '@/core/permissions/usePermission';
 import { DialogFooter } from '@/shared/components/ModalFooter';
 import { useDialogKeyboardNav } from '@/shared/keyboard/useDialogKeyboardNav';
 
@@ -10,27 +11,39 @@ interface ModalProps {
     onClose: () => void;
 }
 
-// modal "bàn giao toàn bộ công việc" — chuyển hết 5 module từ người này sang người khác (chỉ ADMIN/SALES_MANAGER)
+// modal "bàn giao toàn bộ công việc" — chuyển hết 5 module từ người này sang người khác.
+// ADMIN/SALES_MANAGER chọn tự do cặp người bàn giao/nhận; nhân viên thường "Người bàn giao"
+// luôn khóa = chính mình, chỉ chọn được "Người nhận"
 const TransferWorkModal = ({ onClose }: ModalProps) => {
-    const [fromUser, setFromUser] = useState<number | ''>('');
+    const { user } = useAuth();
+    const { hasRole } = usePermission();
+    const isManager = hasRole('ADMIN') || hasRole('SALES_MANAGER');
+
+    const [fromUser, setFromUser] = useState<number | ''>(user?.id ?? '');
     const [toUser, setToUser] = useState<number | ''>('');
     const [reason, setReason] = useState('');
+    // lỗi bàn giao hiện tại chỗ modal, không dùng toast toàn cục — cần onError riêng để lấy message
+    const [apiError, setApiError] = useState<string | null>(null);
 
-    const { data: usersData, isLoading: isLoadingUsers } = useQuery({
-        queryKey: ['users', 'active'],
-        queryFn: () => userService.listActive().then(r => r.data.data.items),
-    });
+    const { data: usersData, isLoading: isLoadingUsers } = useActiveUsers();
     const users = usersData ?? [];
 
-    const { mutate: handoverFn, isPending, isError, error } = useHandoverAll();
+    const { mutate: handoverFn, isPending } = useHandoverAll();
 
     const canSubmit = fromUser !== '' && toUser !== '' && fromUser !== toUser;
 
     const handleSubmit = () => {
         if (!canSubmit) return;
+        setApiError(null);
         handoverFn(
             { fromUserId: fromUser as number, toUserId: toUser as number, reason: reason || undefined },
-            { onSuccess: onClose },
+            {
+                onSuccess: onClose,
+                onError: (err) => {
+                    const e = err as { response?: { data?: { message?: string } } };
+                    setApiError(e?.response?.data?.message ?? 'Bàn giao thất bại. Vui lòng thử lại.');
+                },
+            },
         );
     };
 
@@ -68,24 +81,35 @@ const TransferWorkModal = ({ onClose }: ModalProps) => {
                         <div className="flex gap-4">
                             <div className="flex-1 space-y-1.5">
                                 <label className="text-sm text-gray-600">Người bàn giao</label>
-                                <div className="relative">
-                                    <select
-                                        value={fromUser}
-                                        onChange={e => setFromUser(e.target.value === '' ? '' : Number(e.target.value))}
-                                        className="w-full appearance-none px-3 py-2 border border-gray-300 rounded-btn text-sm text-text-main bg-white focus:outline-none focus:border-primary"
-                                    >
-                                        <option value="">- Chọn người dùng -</option>
-                                        {users.map(u => (
-                                            <option key={u.id} value={u.id}>{u.fullName}</option>
-                                        ))}
-                                    </select>
-                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-1 text-gray-400">
-                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                        <FiUser size={14} />
-                                    </span>
-                                </div>
+                                {isManager ? (
+                                    <div className="relative">
+                                        <select
+                                            value={fromUser}
+                                            onChange={e => setFromUser(e.target.value === '' ? '' : Number(e.target.value))}
+                                            className="w-full appearance-none px-3 py-2 border border-gray-300 rounded-btn text-sm text-text-main bg-white focus:outline-none focus:border-primary"
+                                        >
+                                            <option value="">- Chọn người dùng -</option>
+                                            {users.map(u => (
+                                                <option key={u.id} value={u.id}>{u.fullName}</option>
+                                            ))}
+                                        </select>
+                                        <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-1 text-gray-400">
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                            <FiUser size={14} />
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="relative">
+                                        <div className="w-full px-3 py-2 border border-gray-200 rounded-btn text-sm text-gray-500 bg-gray-50 cursor-not-allowed">
+                                            {user?.fullName}
+                                        </div>
+                                        <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                            <FiUser size={14} />
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex-1 space-y-1.5">
@@ -124,11 +148,7 @@ const TransferWorkModal = ({ onClose }: ModalProps) => {
                         />
                     </div>
 
-                    {isError && (
-                        <p className="text-sm text-danger">
-                            {(error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Bàn giao thất bại. Vui lòng thử lại.'}
-                        </p>
-                    )}
+                    {apiError && <p className="text-sm text-danger">{apiError}</p>}
                 </div>
 
                 {/* Footer */}

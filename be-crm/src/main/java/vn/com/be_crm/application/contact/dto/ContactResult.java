@@ -22,6 +22,7 @@ public class ContactResult {
     private String department;
     private String email;
     private String zalo;
+    private String phone;
     private String source;
     private ContactGender gender;
     private LocalDate dateOfBirth;

@@ -15,13 +15,11 @@ import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { HandoverModal } from '@/shared/components/HandoverModal';
 import { ExportModal } from '@/shared/components/export/ExportModal';
 import { exportRows } from '@/shared/components/export/exportFile';
-import { useAlert } from '@/shared/alert/useAlert';
 import { usePagedOpportunityList } from '../hooks/usePagedOpportunityList';
 import { opportunityService } from '../services/opportunityService';
 import { useOpportunityItems } from '../hooks/useOpportunityItems';
 import { useDeleteOpportunity } from '../hooks/useDeleteOpportunity';
 import { useHandoverBulkOpportunity } from '../hooks/useHandoverBulkOpportunity';
-import { useCreateQuotationFromOpportunity } from '../hooks/useCreateQuotationFromOpportunity';
 import { getOpportunityColumns } from '../config/opportunityColumns';
 import { opportunityExportColumns } from '../config/opportunityExportColumns';
 import { OpportunityEditModal } from '../components/OpportunityEditModal';
@@ -39,7 +37,6 @@ const CoHoiPage = () => {
     const { can } = usePermission();
     const goCreate = () => navigate('/co-hoi/them-moi');
     usePageShortcuts({ onCreate: can('opportunity', 'create') ? goCreate : undefined });
-    const { showAlert } = useAlert();
     // server-side pagination + search + tag lọc nhanh
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
@@ -53,7 +50,6 @@ const CoHoiPage = () => {
     const total = pageData?.total ?? 0;
     const { mutate: deleteFn, isPending: isDeleting } = useDeleteOpportunity();
     const { mutate: handoverFn, isPending: isHandovering } = useHandoverBulkOpportunity();
-    const { mutateAsync: createQuoteFn } = useCreateQuotationFromOpportunity();
 
     const [editTarget, setEditTarget] = useState<OpportunityResult | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
@@ -67,19 +63,6 @@ const CoHoiPage = () => {
     const { data: items = [], isLoading: itemsLoading } = useOpportunityItems(selectedRecord?.id ?? null);
     const itemColumns = useMemo(() => getLineItemPanelColumns<OpportunityItemResult>(productMap), [productMap]);
 
-
-    // hàm tạo báo giá từ cơ hội (clone) rồi điều hướng sang danh sách báo giá
-    const createQuote = async (opportunityId: number) => {
-        try {
-            await createQuoteFn(opportunityId);
-            showAlert('Đã tạo báo giá từ cơ hội');
-            navigate('/bao-gia');
-        } catch (err) {
-            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-                ?? 'Không tạo được báo giá từ cơ hội';
-            showAlert(msg);
-        }
-    };
 
     const columns = useMemo<ColumnDef<OpportunityResult>[]>(() => getOpportunityColumns(), []);
 
@@ -145,7 +128,7 @@ const CoHoiPage = () => {
                     rowActions={(o) => [
                         { key: 'detail', label: 'Xem chi tiết', onClick: () => navigate(`/co-hoi/${o.id}`) },
                         ...(can('quotation', 'create')
-                            ? [{ key: 'quote', label: 'Tạo báo giá từ cơ hội', onClick: () => createQuote(o.id) }]
+                            ? [{ key: 'quote', label: 'Tạo báo giá từ cơ hội', onClick: () => navigate(`/bao-gia/them-moi?fromOpportunity=${o.id}`) }]
                             : []),
                         ...(can('opportunity', 'edit')
                             ? [{ key: 'edit', label: 'Chỉnh sửa', onClick: () => setEditTarget(o) }]
@@ -197,12 +180,12 @@ const CoHoiPage = () => {
                 columns={opportunityExportColumns}
                 rowCount={selectedRows.length > 0 ? selectedRows.length : total}
                 onClose={() => setExportOpen(false)}
-                onExport={async (keys, format) => {
+                onExport={async (keys) => {
                     // không tick dòng -> tải toàn bộ kết quả đang lọc từ server rồi xuất
                     const rows = selectedRows.length > 0
                         ? selectedRows
                         : (await opportunityService.getList({ page: 0, size: 10000, sortBy: 'createdAt', sortDir: 'desc', q: search || undefined, status: quickStatus || undefined })).data.data.items;
-                    exportRows(rows, opportunityExportColumns, keys, format, 'co-hoi');
+                    exportRows(rows, opportunityExportColumns, keys, 'co-hoi');
                     setExportOpen(false);
                 }}
             />

@@ -23,7 +23,7 @@ const PRIORITY_LABELS: Record<string, string> = {
 };
 
 const CALL_DIRECTION_LABELS: Record<string, string> = {
-    inbound: 'Gọi đến', outbound: 'Gọi đi',
+    in: 'Gọi đến', out: 'Gọi đi',
 };
 
 // tạo danh sách cột Hoạt động — hiển thị đầy đủ trường + tên người phụ trách (do BE resolve sẵn)

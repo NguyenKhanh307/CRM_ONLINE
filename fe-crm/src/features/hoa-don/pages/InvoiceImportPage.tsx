@@ -7,8 +7,8 @@ const FIELDS: ImportField[] = [
     { key: 'orderId',         label: 'ID đơn hàng',                   type: 'number' },
     { key: 'invoiceDate',     label: 'Ngày hóa đơn',                  type: 'date' },
     { key: 'dueDate',         label: 'Hạn thanh toán',                type: 'date' },
-    { key: 'status',          label: 'Trạng thái',                     type: 'enum', enumValues: ['draft', 'sent', 'partially_paid', 'paid', 'cancelled'] },
-    { key: 'paymentStatus',   label: 'Trạng thái thanh toán',          type: 'enum', enumValues: ['unpaid', 'partial', 'paid'] },
+    { key: 'status',          label: 'Trạng thái',                     type: 'enum', enumValues: ['draft', 'sent', 'partially_paid', 'paid', 'cancelled'], enumLabels: { draft: 'Nháp', sent: 'Đã gửi', partially_paid: 'Thanh toán một phần', paid: 'Đã thanh toán', cancelled: 'Đã hủy' } },
+    { key: 'paymentStatus',   label: 'Trạng thái thanh toán',          type: 'enum', enumValues: ['unpaid', 'partial', 'paid'], enumLabels: { unpaid: 'Chưa thanh toán', partial: 'Thanh toán một phần', paid: 'Đã thanh toán' } },
     { key: 'note',            label: 'Ghi chú',                        type: 'text' },
 ];
 

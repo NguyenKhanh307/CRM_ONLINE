@@ -1,11 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { customerService } from '../services/customerService';
 
 // lấy chi tiết một khách hàng theo ID (trang 360°)
 export function useCustomerDetail(id: number | undefined) {
-    return useQuery({
-        queryKey: ['customer', id],
-        queryFn: () => customerService.getById(id as number).then(r => r.data.data),
-        enabled: id != null && !Number.isNaN(id),
-    });
+    const enabled = id != null && !Number.isNaN(id);
+    return useLiveQuery(`customer:${id}`, () => customerService.getById(id as number).then(r => r.data.data), enabled);
 }

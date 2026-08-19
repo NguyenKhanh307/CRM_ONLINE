@@ -19,6 +19,5 @@ public class CreateOpportunityItemCommand {
     @Positive(message = "Số lượng phải lớn hơn 0") private BigDecimal quantity;
     @PositiveOrZero(message = "Đơn giá không được âm") private BigDecimal unitPrice;
     @PositiveOrZero(message = "Chiết khấu không được âm") private BigDecimal discount;
-    private BigDecimal amount;
     @Size(max = 255) private String note;
 }

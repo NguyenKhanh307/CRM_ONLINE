@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { collectErrors } from '@/shared/utils/validators';
+import { collectErrors, validateOrWarn } from '@/shared/utils/validators';
 import { formatNumber } from '@/shared/utils/number';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -32,6 +32,7 @@ import { useCreateOpportunity } from '../hooks/useCreateOpportunity';
 import { useOpportunityStages } from '../hooks/useOpportunityStages';
 import type { CreateOpportunityPayload } from '../types/opportunityTypes';
 import type { LeadResult } from '@/features/tiem-nang/types/leadTypes';
+import { OPPORTUNITY_TYPE_OPTIONS } from '../config/opportunityOptions';
 
 const SOURCE_OPTIONS = [
     { value: 'website', label: 'Website' },
@@ -91,7 +92,6 @@ const OpportunityAddPage = () => {
     const [originKind, setOriginKind] = useState<'customer' | 'lead'>('customer');
     const [pickedLeadId, setPickedLeadId] = useState('');
     const [pickedLead, setPickedLead] = useState<LeadResult | null>(null);
-    const [leadPrefillFrom, setLeadPrefillFrom] = useState<string | null>(null);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -128,7 +128,6 @@ const OpportunityAddPage = () => {
     const onPickLead = async (v: string) => {
         setPickedLeadId(v);
         setPickedLead(null);
-        setLeadPrefillFrom(null);
         if (!v) return;
         const lead = (await leadService.getById(Number(v))).data.data;
         setPickedLead(lead);
@@ -138,10 +137,10 @@ const OpportunityAddPage = () => {
             campaignId: lead.campaignId ? String(lead.campaignId) : '',
             ownerId: lead.ownerId ? String(lead.ownerId) : '',
         });
-        if (hasFilled(patch)) { set(patch); setLeadPrefillFrom(`tiềm năng «${lead.name}»`); }
+        if (hasFilled(patch)) set(patch);
     };
 
-    // vào trang qua nút "Tạo cơ hội" (chuột phải ở danh sách Tiềm năng, ?fromLead=<id>) -> tự
+    // vào trang qua nút "Tạo cơ hội" (chuột phải/trang chi tiết Tiềm năng, ?fromLead=<id>) -> tự
     // chọn nguồn Tiềm năng + tự điền, chạy đúng 1 lần lúc mount
     const [searchParams] = useSearchParams();
     const autoPickedRef = useRef(false);
@@ -153,6 +152,30 @@ const OpportunityAddPage = () => {
         void onPickLead(fromLead);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
+
+    // tự điền bảng dòng hàng từ sản phẩm tiềm năng đã "yêu cầu báo giá" (lead_items) — chờ cả
+    // tiềm năng nguồn lẫn danh sách sản phẩm sẵn sàng (tránh race lúc mới vào trang), chỉ điền
+    // khi bảng dòng hàng còn ở trạng thái mặc định (chưa ai gõ tay), chạy đúng 1 lần
+    const itemsPrefilledRef = useRef(false);
+    useEffect(() => {
+        if (!pickedLead || products.length === 0 || itemsPrefilledRef.current) return;
+        const stillEmpty = rows.length === 1 && !rows[0].productId;
+        if (!stillEmpty) return;
+        itemsPrefilledRef.current = true;
+        leadService.getItems(pickedLead.id).then((r) => {
+            const quoteItems = r.data.data.filter((it) => it.interestType === 'requested_quote');
+            if (quoteItems.length === 0) return;
+            setRows(quoteItems.map((it) => {
+                const p = products.find((pr) => pr.id === it.productId);
+                return {
+                    id: crypto.randomUUID(), productId: String(it.productId),
+                    unit: p?.unit ?? '', quantity: Number(it.quantity) || 1,
+                    unitPrice: p?.basePrice ?? 0, discountPct: 0, taxRate: p?.vatRate ?? 0, note: '',
+                };
+            }));
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pickedLead, products]);
 
     // hàm kiểm tra bắt buộc + biên (khớp ràng buộc backend) — trả map field->lỗi
     const validate = (): Record<string, string> =>
@@ -167,7 +190,7 @@ const OpportunityAddPage = () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
-        if (Object.keys(errs).length > 0) return;
+        if (!validateOrWarn(errs, showAlert)) return;
 
         const payload: CreateOpportunityPayload = {
             code: form.code.trim(),
@@ -246,7 +269,8 @@ const OpportunityAddPage = () => {
                                 <input type="text" value={form.name} onChange={(e) => set({ name: e.target.value })} className={inputCls} />
                             </FieldRow>
                             <FieldRow label="Loại cơ hội">
-                                <input type="text" value={form.opportunityType} onChange={(e) => set({ opportunityType: e.target.value })} className={inputCls} />
+                                <SearchableSelect value={form.opportunityType} onChange={(v) => set({ opportunityType: v })}
+                                    options={OPPORTUNITY_TYPE_OPTIONS} fallbackLabel={form.opportunityType} />
                             </FieldRow>
                             <FieldRow label="Nguồn tạo cơ hội">
                                 <div className="flex gap-2">
@@ -269,16 +293,14 @@ const OpportunityAddPage = () => {
                             {originKind === 'lead' && (
                                 <FieldRow label="Tiềm năng nguồn">
                                     <RecordPicker module="lead" value={pickedLeadId} onChange={onPickLead} />
-                                    <PrefillHint source={leadPrefillFrom} />
-                                    <p className="text-xs text-gray-400 mt-1">
-                                        Chỉ tự điền Tên/Nguồn/Chiến dịch/Người phụ trách — Khách hàng &amp; Liên hệ vẫn tự chọn/tạo bên dưới.
-                                    </p>
                                 </FieldRow>
                             )}
-                            <FieldRow label="Khách hàng">
-                                <SearchableSelect value={form.customerId} onChange={onPickCustomer} options={customerOptions} />
-                                <PrefillHint source={prefillFrom} />
-                            </FieldRow>
+                            {originKind === 'customer' && (
+                                <FieldRow label="Khách hàng">
+                                    <SearchableSelect value={form.customerId} onChange={onPickCustomer} options={customerOptions} />
+                                    <PrefillHint source={prefillFrom} />
+                                </FieldRow>
+                            )}
                             <FieldRow label="Liên hệ">
                                 <RecordPicker module="contact" value={form.contactId} onChange={(v) => set({ contactId: v })}
                                     customerId={form.customerId ? Number(form.customerId) : undefined} />

@@ -1,11 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from '@/core/data/useLiveQuery';
 import { opportunityService } from '../services/opportunityService';
 
 // lấy toàn bộ bản ghi liên quan của một cơ hội (trang 360°)
 export function useOpportunityRelated(id: number | undefined) {
-    return useQuery({
-        queryKey: ['opportunity', id, 'related'],
-        queryFn: () => opportunityService.getRelated(id as number).then(r => r.data.data),
-        enabled: id != null && !Number.isNaN(id),
-    });
+    const enabled = id != null && !Number.isNaN(id);
+    return useLiveQuery(`opportunity:${id}:related`, () => opportunityService.getRelated(id as number).then(r => r.data.data), enabled);
 }

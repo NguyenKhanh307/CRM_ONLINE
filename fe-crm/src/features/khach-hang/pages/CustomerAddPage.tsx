@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { collectErrors, emailError, nonNegativeError, phoneError, taxCodeError } from '@/shared/utils/validators';
+import { collectErrors, emailError, nonNegativeError, phoneError, taxCodeError, validateOrWarn } from '@/shared/utils/validators';
 import { useConfirm } from '@/shared/confirm/useConfirm';
 import { useNavigate } from 'react-router-dom';
 import { useFormKeyboardNav } from '@/shared/keyboard/useFormKeyboardNav';
@@ -15,19 +15,11 @@ import { useAuth } from '@/core/auth/useAuth';
 import { useActiveUsers } from '@/features/users/hooks/useActiveUsers';
 import { useCreateCustomer } from '../hooks/useCreateCustomer';
 import type { CreateCustomerPayload } from '../types/customerTypes';
-import { RATING_OPTIONS } from '../config/customerOptions';
+import { RATING_OPTIONS, SOURCE_OPTIONS } from '../config/customerOptions';
 
 const TYPE_OPTIONS = [
     { value: 'company', label: 'Doanh nghiệp' },
     { value: 'individual', label: 'Cá nhân' },
-];
-
-const SOURCE_OPTIONS = [
-    { value: 'website', label: 'Website' },
-    { value: 'gioi-thieu', label: 'Giới thiệu' },
-    { value: 'dien-thoai', label: 'Điện thoại' },
-    { value: 'email', label: 'Email' },
-    { value: 'khac', label: 'Khác' },
 ];
 
 interface FormState {
@@ -109,7 +101,7 @@ const CustomerAddPage = () => {
         // bước kiểm tra dữ liệu
         const errs = validate();
         setErrors(errs);
-        if (Object.keys(errs).length > 0) return;
+        if (!validateOrWarn(errs, showAlert)) return;
 
         // bước hỏi xác nhận rồi lưu
         if (!(await confirmCreate('khách hàng'))) return;

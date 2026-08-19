@@ -23,9 +23,11 @@ public class CopilotIntentDetector {
      * @param term       cụm tên/mã cần tìm (giữ nguyên dấu) — chỉ có với OPEN_RECORD
      * @param wantsChart true nếu câu hỏi mang ý so sánh/số liệu → đính link trang phân tích
      * @param period     kỳ suy từ câu hỏi (month/quarter/year)
+     * @param chartTopic chủ đề so sánh dò được ("employee"/"campaign"/"customer"/"product"), null nếu
+     *                   không khớp từ khóa nào → dùng mặc định "kỳ này vs kỳ trước"
      */
     public record Intent(Type type, String module, String route, String label,
-                         String term, boolean wantsChart, String period) {
+                         String term, boolean wantsChart, String period, String chartTopic) {
     }
 
     /** Một module điều hướng được: khóa, route FE, nhãn, alias (đã bỏ dấu), có trang chi tiết, có form thêm mới. */
@@ -80,10 +82,11 @@ public class CopilotIntentDetector {
         String norm = stripDiacritics(original).toLowerCase(Locale.ROOT);
         boolean wantsChart = CHART_WORDS.stream().anyMatch(norm::contains);
         String period = detectPeriod(norm);
+        String chartTopic = detectChartTopic(norm);
 
         boolean isCreate = startsWithAny(norm, CREATE_VERBS);
         boolean isOpen = startsWithAny(norm, OPEN_VERBS);
-        if (!isCreate && !isOpen) return new Intent(Type.NONE, null, null, null, null, wantsChart, period);
+        if (!isCreate && !isOpen) return new Intent(Type.NONE, null, null, null, null, wantsChart, period, chartTopic);
 
         for (Module m : MODULES) {
             for (String alias : m.aliases()) {
@@ -93,21 +96,21 @@ public class CopilotIntentDetector {
                 String restNorm = cleanFillers(stripDiacritics(rest).toLowerCase(Locale.ROOT));
                 if (isCreate) {
                     if (!m.hasCreate()) break;
-                    return new Intent(Type.CREATE, m.key(), m.route(), m.label(), null, wantsChart, period);
+                    return new Intent(Type.CREATE, m.key(), m.route(), m.label(), null, wantsChart, period, chartTopic);
                 }
                 // Câu hỏi trá hình ("xem khách hàng nào...") → không phải lệnh
                 if (QUESTION_WORDS.stream().anyMatch(restNorm::contains)) break;
                 if (restNorm.isBlank()) {
-                    return new Intent(Type.OPEN_PAGE, m.key(), m.route(), m.label(), null, wantsChart, period);
+                    return new Intent(Type.OPEN_PAGE, m.key(), m.route(), m.label(), null, wantsChart, period, chartTopic);
                 }
                 if (m.hasDetail()) {
                     return new Intent(Type.OPEN_RECORD, m.key(), m.route(), m.label(),
-                            cleanTerm(rest), wantsChart, period);
+                            cleanTerm(rest), wantsChart, period, chartTopic);
                 }
-                return new Intent(Type.OPEN_PAGE, m.key(), m.route(), m.label(), null, wantsChart, period);
+                return new Intent(Type.OPEN_PAGE, m.key(), m.route(), m.label(), null, wantsChart, period, chartTopic);
             }
         }
-        return new Intent(Type.NONE, null, null, null, null, wantsChart, period);
+        return new Intent(Type.NONE, null, null, null, null, wantsChart, period, chartTopic);
     }
 
     /**
@@ -127,6 +130,27 @@ public class CopilotIntentDetector {
         if (norm.contains("thang")) return "month";
         if (norm.contains("nam")) return "year";
         return "quarter";
+    }
+
+    /**
+     * Dò chủ đề so sánh cho biểu đồ tròn ở /phan-tich — chỉ so khớp từ khóa, khớp đầu tiên thắng.
+     * "công việc"/"chốt đơn" kiểm TRƯỚC "nhân viên" chung chung vì câu hỏi thường chứa cả hai
+     * (vd "so sánh khối lượng công việc giữa nhân viên") — từ khóa cụ thể hơn phải thắng.
+     *
+     * @param norm chuỗi đã bỏ dấu
+     * @return "employee"/"workload"/"winrate"/"campaign"/"customer"/"product", hoặc null nếu không
+     *         khớp (dùng mặc định "kỳ này vs kỳ trước")
+     */
+    private String detectChartTopic(String norm) {
+        if (norm.contains("ty le chot") || norm.contains("chot don") || norm.contains("ty le thanh cong"))
+            return "winrate";
+        if (norm.contains("khoi luong cong viec") || norm.contains("so luong cong viec") || norm.contains("cong viec"))
+            return "workload";
+        if (norm.contains("nhan vien") || norm.contains("nhan su")) return "employee";
+        if (norm.contains("chien dich")) return "campaign";
+        if (norm.contains("khach hang")) return "customer";
+        if (norm.contains("san pham") || norm.contains("hang hoa")) return "product";
+        return null;
     }
 
     /** Kiểm tra chuỗi bắt đầu bằng một trong các tiền tố (bỏ qua từ lịch sự đứng đầu). */
